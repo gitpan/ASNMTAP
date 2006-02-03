@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.002';
+my $VERSION = '3.000.003';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -407,7 +407,7 @@ my @man3pods = qw (
 WriteMakefile(
   NAME              => 'ASNMTAP',
   AUTHOR            => "alex.peeters\@citap.be",
-  ABSTRACT          => "Application System and Network Monitoring Tool Alex Peeters",
+  ABSTRACT          => "Application System Network Monitoring Tool Alex Peeters",
   VERSION           => $VERSION,
   PREREQ_PM         => \%PREREQ_PM,
   MAN3PODS          => { map { my $man3pod = $_; $man3pod =~ s/\//::/g; ("lib/ASNMTAP/$_.pod" => "\$(INST_MAN3DIR)/ASNMTAP::$man3pod.\$(MAN3EXT)") } @man3pods },

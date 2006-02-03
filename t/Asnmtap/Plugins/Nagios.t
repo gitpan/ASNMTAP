@@ -4,7 +4,7 @@ use Test::More tests => 99;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios v3.000.002' ) };
+BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios v3.000.003' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios', qw(:COMMANDS) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios', qw(:ALL) ) };
@@ -16,7 +16,7 @@ TODO: {
   my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::Nagios',
-    _programVersion     => '3.000.002',
+    _programVersion     => '3.000.003',
     _programUsagePrefix => '[--hihi]',
     _programHelpPrefix  => '--hihi ...',
     _programGetOptions => ['hihi=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
@@ -35,7 +35,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.002 postfix; nl-BE; rv:3.000.002) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.003 postfix; nl-BE; rv:3.000.003) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): get');
 
   $returnCode = $objectNagios->browseragent ( 'Mozilla/5.0' ) eq 'Mozilla/5.0' ? 1 : 0;
@@ -96,7 +96,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programDescription(): set');
 
 
-  $returnCode = $objectNagios->programVersion () eq '3.000.002' ? 1 : 0;
+  $returnCode = $objectNagios->programVersion () eq '3.000.003' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programVersion(): get');
 
   $returnCode = $objectNagios->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

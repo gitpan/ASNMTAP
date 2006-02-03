@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.002, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
+# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::XML::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::XML::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.002;
+  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.003;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -199,7 +199,9 @@ Purpose: CronTab (CT, sysdCT),
 
 =head1 LICENSE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
 

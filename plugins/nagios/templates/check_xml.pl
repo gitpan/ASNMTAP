@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.002, making Asnmtap v3.000.002 compatible
+# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.003;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ my $schema = "1.0";
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_xml.pl',
   _programDescription => 'Check Nagios by XML',
-  _programVersion     => '3.000.002',
+  _programVersion     => '3.000.003',
   _programUsagePrefix => '-F|--filename <filename> -H|--hostname <hostname> -s|--service <service> -i|--interval <interval> [-p|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
   _programHelpPrefix  => "-F, --filename=FILENAME
    FILENAME: XML 'filename' with the Nagios compatible test results
@@ -146,7 +146,9 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 LICENSE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
 

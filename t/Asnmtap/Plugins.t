@@ -4,7 +4,7 @@ use Test::More tests => 100;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins v3.000.002' ) };
+BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins v3.000.003' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins', qw(:COMMANDS) ) };
@@ -17,7 +17,7 @@ TODO: {
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins',
-    _programVersion     => '3.000.002',
+    _programVersion     => '3.000.003',
     _programUsagePrefix => '[--hihi]',
     _programHelpPrefix  => '--hihi ...',
     _programGetOptions => ['hihi=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
@@ -36,7 +36,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.002 postfix; nl-BE; rv:3.000.002) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
+  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.003 postfix; nl-BE; rv:3.000.003) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::browseragent(): get');
 
   $returnCode = $objectPlugins->browseragent ( 'Mozilla/5.0' ) eq 'Mozilla/5.0' ? 1 : 0;
@@ -97,7 +97,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programDescription(): set');
 
 
-  $returnCode = $objectPlugins->programVersion () eq '3.000.002' ? 1 : 0;
+  $returnCode = $objectPlugins->programVersion () eq '3.000.003' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programVersion(): get');
 
   $returnCode = $objectPlugins->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

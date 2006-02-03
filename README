@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 29 Januari 2006
-Version      : 3.000.002
+Latest update: 3 Februari 2006
+Version      : 3.000.003
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,6 +38,8 @@ This module requires these other modules and libraries:
 
 COPYRIGHT
 © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.com]
+
+Version 3.000.003, 2006/02/03, ASNMTAP CPAN Module
 
 Version 3.000.002, 2006/01/08, ASNMTAP Package Object Oriented Perl
 
@@ -86,6 +88,8 @@ COPYRIGHT
 
 ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
 
+Version 3.000.003, 2006/02/03, ASNMTAP CPAN Module
+
 Version 3.000.001 - 3.000.002, 2006/01/01 - 2006/01/08, ASNMTAP Package Object Oriented Perl
 
 v0.15.1 - v0.15.19, 2004/02/05 - 2005/12/11
@@ -118,17 +122,20 @@ COPYRIGHT
 
 LICENCE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this 
-copyright notice and the comments above remain intact. By using this code
-you agree to indemnify Alex Peeters from any liability that might arise 
-from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can 
+redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone
+so long as this copyright notice and the comments above remain intact. By 
+using this code you agree to indemnify Alex Peeters from any liability that 
+might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly 
 forbidden. In other words, please ask first before you try and make money off 
 of my program.
 
-Obtain permission before redistributing this software over the Internet or in
-any other medium. In all cases copyright and header must remain intact.
+Obtain permission before redistributing this software over the Internet or
+in any other medium. In all cases copyright and header must remain intact.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

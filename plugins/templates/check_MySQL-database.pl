@@ -48,7 +48,7 @@ use strict;
 use warnings;
 
 use lib qw(/opt/asnmtap/.);
-use ASNMTAP::Asnmtap::Plugins v3.000.002;
+use ASNMTAP::Asnmtap::Plugins v3.000.003;
 use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP :PLUGINS);
 
 use Getopt::Long;

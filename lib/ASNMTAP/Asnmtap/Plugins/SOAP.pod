@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.002;
+  use ASNMTAP::Asnmtap::Plugins v3.000.003;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-SOAP.pl',
     _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-    _programVersion     => '3.000.002',
+    _programVersion     => '3.000.003',
     _programGetOptions  => ['proxy:s', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -228,7 +228,9 @@ Purpose: CronTab (CT, sysdCT),
 
 =head1 LICENSE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
 

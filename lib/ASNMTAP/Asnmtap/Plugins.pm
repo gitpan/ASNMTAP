@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.002, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -58,7 +58,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.002;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.003;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -123,7 +123,7 @@ sub _init {
   
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.002 postfix; nl-BE; rv:3.000.002) Gecko/20060115 libwww-perl/5.803";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.003 postfix; nl-BE; rv:3.000.003) Gecko/20060115 libwww-perl/5.803";
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }
@@ -612,7 +612,9 @@ Purpose: CronTab (CT, sysdCT),
 
 =head1 LICENSE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
 

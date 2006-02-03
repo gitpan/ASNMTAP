@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-#  2006/01/01, v3.000.002, making Asnmtap v3.000.xxx compatible
+#  2006/01/01, v3.000.003, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.002; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.003; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

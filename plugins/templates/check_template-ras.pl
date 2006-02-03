@@ -23,7 +23,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 #use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
 
 use lib qw(/opt/asnmtap/.);
-use ASNMTAP::Asnmtap::Plugins v3.000.002;
+use ASNMTAP::Asnmtap::Plugins v3.000.003;
 use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP :PLUGINS :MODEM);
 
 use Getopt::Long;

@@ -4,7 +4,7 @@ use Test::More tests => 32;
 
 BEGIN { require_ok ( 'ASNMTAP::Time' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Time v3.000.002' ) };
+BEGIN { use_ok ( 'ASNMTAP::Time v3.000.003' ) };
 BEGIN { use_ok ( 'ASNMTAP::Time' ) };
 BEGIN { use_ok ( 'ASNMTAP::Time', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Time', qw(:DATE) ) };

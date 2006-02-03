@@ -4,19 +4,19 @@ use Test::More tests => 24;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::XML' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML v3.000.002' ) };
+BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML v3.000.003' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(&extract_XML) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.002;
+  use ASNMTAP::Asnmtap::Plugins v3.000.003;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'XML.t',
     _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::XML',
-    _programVersion     => '3.000.002',
+    _programVersion     => '3.000.003',
     _timeout           => 30,
     _debug             => 0);
 

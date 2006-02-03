@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.002, making Asnmtap v3.000.002 compatible
+# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.002;
+use ASNMTAP::Asnmtap::Plugins v3.000.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-SOAP.pl',
   _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-  _programVersion     => '3.000.002',
+  _programVersion     => '3.000.003',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -190,7 +190,9 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 LICENSE
 
-ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
 
 Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
 
