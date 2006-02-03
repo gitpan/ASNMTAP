@@ -1,0 +1,134 @@
+# -----------------------------------------------------------------------
+# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# -----------------------------------------------------------------------
+
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Author       : Alex Peeters [alex.peeters@citap.be]
+Latest update: 29 Januari 2006
+Version      : 3.000.002
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+The README is used to introduce the module and provide instructions on
+how to install the module, any machine dependencies it may have (for
+example C compilers and installed libraries) and any other information
+that should be provided before the module is installed.
+
+
+# INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+   
+# DEPENDENCIES  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+This module requires these other modules and libraries:
+
+  ...
+
+
+# COPYRIGHT AND LICENCE - - - - - - - - - - - - - - - - - - - - - - - - -
+
+COPYRIGHT
+© Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.com]
+
+Version 3.000.002, 2006/01/08, ASNMTAP Package Object Oriented Perl
+
+Version 3.000.001, 2006/01/01, ASNMTAP Package
+
+'ASNMTAP' is based on 'Process System daemons v1.60.17-01' written by Alex Peeters [alex.peeters@citap.com]
+'collector.pl' is based on 'Process System daemons v1.60.17-01' written by Alex Peeters [alex.peeters@citap.com]
+
+Purpose: CronTab (CT, sysdCT),
+         Disk Filesystem monitoring (DF, sysdDF),
+         Intrusion Detection for FW-1 (ID, sysdID)
+         Process System daemons (PS, sysdPS),
+         Reachability of Remote Hosts on a network (RH, sysdRH),
+         Rotate Logfiles (system activity files) (RL),
+         Remote Socket monitoring (RS, sysdRS),
+         System Activity monitoring (SA, sysdSA).
+
+         sysdCT : (1.60.1.13) <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> DF|ID|PS|RH|RL|RS|SA
+
+         sysdDF : (1.60.1.2)  filesystem:percent:[optional stop action]:[optional start action]:support team email
+
+         sysdID : (1.60.1.14) ... preparations ...
+
+         sysdPS : (1.60.1.1)  process:comment:[optional stop action]:[optional start action]:support team email
+
+         sysdRH : (1.60.1.9)  hostname:ip-adres:gateway:[protocol]:[timeout]:[bytes]:[optional stop action]:[optional start action]:support team email
+                                                       icmp|tcp|udp   >= 0   <= 1024
+         sysdRS : (1.60.1.15) protocol:ip-adres:port:service:[request]:[timeout]:[status]:[optional stop action]:[optional start action]:support team email
+                               tcp|udp                                    >= 0
+         sysdSA : (1.60.1.11) process:activity:comment:priority:facility:logfile:[optional stop action]:[optional start action]:support team email
+
+         2002/03/02 - 2003/03/01, from v1.60.16.x until v1.60.17-01
+
+         2002/01/03 - 2002/02/26, from v1.60.14.x until v1.60.15.x
+
+         2001/12/26 - 2002/01/02, from v1.60.13.x until v1.60.14.x
+
+         2000/10/19 - 2001/12/24, from v1.60.1.x until v1.60.13.x
+
+'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+COPYRIGHT
+© Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.com]
+
+ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
+
+Version 3.000.001 - 3.000.002, 2006/01/01 - 2006/01/08, ASNMTAP Package Object Oriented Perl
+
+v0.15.1 - v0.15.19, 2004/02/05 - 2005/12/11
+
+v0.14.1a - v0.14.2, 2004/01/01 - 2004/02/02
+
+
+COPYRIGHT NOTICE
+© Copyright 2003 Stanley.Hopcroft@IPAustralia.Gov.AU
+
+'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+COPYRIGHT
+© Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.com]
+
+'archive.pl'                              is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+'rsync-mirror-distributed-<hostname>.sh'  is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+'rsync-mirror-failover-<hostname>.sh'     is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+'rsync-wrapper-distributed-<hostname>.sh' is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+'rsync-wrapper-failover-<hostname>.sh'    is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+'sshWrapperASNMTAP.pl'                    is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
+
+2000/12/09 - 2002/01/28, v1.3.2-01 - v1.3.2-03
+
+2000/11/07 - 2000/12/02, v1.3.1-01 - v1.3.1-05
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+LICENCE
+
+ASNMTAP may be used and modified free of charge by anyone so long as this 
+copyright notice and the comments above remain intact. By using this code
+you agree to indemnify Alex Peeters from any liability that might arise 
+from it's use.
+
+Selling the code for this program without prior written consent is expressly 
+forbidden. In other words, please ask first before you try and make money off 
+of my program.
+
+Obtain permission before redistributing this software over the Internet or in
+any other medium. In all cases copyright and header must remain intact.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

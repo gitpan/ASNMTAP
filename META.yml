@@ -1,0 +1,27 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         ASNMTAP
+version:      3.000.002
+version_from: 
+installdirs:  site
+requires:
+    Bundle::LWP:                   1.11
+    CGI:                           3.15
+    Config::General:               2.30
+    Config::General::Interpolated: 2.06
+    Cwd:                           3.05
+    Data::Dumper:                  2.121
+    Dumpvalue:                     1.11
+    File::Basename:                2.73
+    Getopt::Long:                  2.34
+    IO:                            1.21
+    IO::CaptureOutput:             1.03
+    SOAP::Lite:                    0.656
+    Time::HiRes:                   1.81
+    Time::Local:                   1.11
+    URI:                           1.35
+    XML::LibXML:                   1.58
+    XML::Simple:                   2.14
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17

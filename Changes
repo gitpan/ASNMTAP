@@ -1,0 +1,59 @@
+# -----------------------------------------------------------------------
+# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# -----------------------------------------------------------------------
+
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Author       : Alex Peeters [alex.peeters@citap.be]
+Latest update: 29 Januari 2006
+Version      : 3.000.002
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.002, 2006/01/08, we actually started a total rewrite into Object Oriented Perl: ASNMTAP Package Object Oriented Perl
+
+package ASNMTAP::Asnmtap
+package ASNMTAP::Asnmtap::IO
+package ASNMTAP::Asnmtap::Time
+
+package ASNMTAP::Asnmtap::Applications
+package ASNMTAP::Asnmtap::Applications::CGI
+package ASNMTAP::Asnmtap::Applications::Display
+package ASNMTAP::Asnmtap::Applications::Collector
+
+package ASNMTAP::Asnmtap::Plugins
+package ASNMTAP::Asnmtap::Plugins::Mail
+package ASNMTAP::Asnmtap::Plugins::Modem
+package ASNMTAP::Asnmtap::Plugins::Nagios
+package ASNMTAP::Asnmtap::Plugins::SOAP
+package ASNMTAP::Asnmtap::Plugins::WebTransact
+package ASNMTAP::Asnmtap::Plugins::XML
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.001, 2006/01/01, we actually started a total rewrite of v2.002.000: ASNMTAP Package
+
+package ASNMTAP::Asnmtap
+package ASNMTAP::Asnmtap::IO
+package ASNMTAP::Asnmtap::Time
+
+package ASNMTAP::Asnmtap::Applications
+package ASNMTAP::Asnmtap::Applications::CGI
+package ASNMTAP::Asnmtap::Applications::Display
+package ASNMTAP::Asnmtap::Applications::Collector
+
+package ASNMTAP::Asnmtap::Plugins
+package ASNMTAP::Asnmtap::Plugins::Nagios
+package ASNMTAP::Asnmtap::Plugins::WebTransact
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 2.000.000 - 2.002.000, 2004/12/29 - 2005/12/31
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 1.xxx.xxx, 2003/08/16 - 2004/12/10
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

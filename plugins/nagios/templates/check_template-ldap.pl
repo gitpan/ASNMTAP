@@ -1,0 +1,219 @@
+#!/usr/bin/perl
+# ----------------------------------------------------------------------------------------------------------
+# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# ----------------------------------------------------------------------------------------------------------
+# 2006/01/29, v3.000.002, making Asnmtap v3.000.002 compatible
+# ----------------------------------------------------------------------------------------------------------
+
+use strict;
+use warnings;           # Must be used in test mode only. This reduce a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+use strict;
+use warnings;           # Must be used in test mode only. This reduce a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
+  _programName        => 'check_template-ldap.pl',
+  _programDescription => 'LDAP Nagios Template',
+  _programVersion     => '3.000.002',
+  _programGetOptions => ['host|H=s', 'port|P=s', 'dn=s', 'dnPass=s', 'base=s', 'scope=s', 'filter=s', 'username|u|loginname:s', 'password|passwd|p:s', 'environment|e:s'],
+  _programUsagePrefix => '-0|--dn <dn> -1|--dnPass <dn pass> -b|--base <base> -s|--scope <scope> -f|--filter <filter>',
+  _programHelpPrefix  => "-0, --dn=<DN>
+-1, --dnPass=<DN PASS>
+-b, --base=<BASE>
+-s, --scope=<SCOPE>
+-f, --filter=<FILTER>",
+  _timeout           => 30,
+  _debug             => 0);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# my $ldapserver = 'ldap.citap.be';
+# my $ldapport   = 389;
+
+# my $DN         = 'uid=ldapconsult,ou=People,dc=be';
+# my $DN_PASS    = 'dn_passwd';
+
+# my $BASE       = 'dc=be';
+# my $SCOPE      = 'SUB';
+# my $FILTER     = '(uid=alexpeeters)';
+
+# my $USER       = 'alexpeeters';
+# my $PASS       = 'passwd';
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+my $ldapserver = $objectNagios->getOptionsArgv ('host') ? $objectNagios->getOptionsArgv ('host') : undef;
+$objectNagios->printUsage ('Missing host') unless (defined $ldapserver);
+
+my $ldapport = $objectNagios->getOptionsArgv ('port') ? $objectNagios->getOptionsArgv ('port') : undef;
+$objectNagios->printUsage ('Missing port') unless (defined $ldapport);
+
+my $DN = $objectNagios->getOptionsArgv ('dn') ? $objectNagios->getOptionsArgv ('dn') : undef;
+$objectNagios->printUsage ('Missing dn') unless (defined $DN);
+
+my $DN_PASS = $objectNagios->getOptionsArgv ('dnPass') ? $objectNagios->getOptionsArgv ('dnPass') : undef;
+$objectNagios->printUsage ('Missing dnPass') unless (defined $DN_PASS);
+
+my $BASE = $objectNagios->getOptionsArgv ('base') ? $objectNagios->getOptionsArgv ('base') : undef;
+$objectNagios->printUsage ('Missing base') unless (defined $BASE);
+
+my $SCOPE = $objectNagios->getOptionsArgv ('scope') ? $objectNagios->getOptionsArgv ('scope') : undef;
+$objectNagios->printUsage ('Missing scope') unless (defined $SCOPE);
+
+my $FILTER = $objectNagios->getOptionsArgv ('filter') ? $objectNagios->getOptionsArgv ('filter') : undef;
+$objectNagios->printUsage ('Missing filter') unless (defined $FILTER);
+
+my $USER = $objectNagios->getOptionsArgv ('username') ? $objectNagios->getOptionsArgv ('username') : undef;
+
+my $PASS = $objectNagios->getOptionsArgv ('password') ? $objectNagios->getOptionsArgv ('password') : undef;
+$objectNagios->printUsage ('Missing password') unless (defined $PASS);
+
+my $debug = $objectNagios->getOptionsValue ('debug');
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use Net::LDAP;
+use Net::LDAP::Util qw( ldap_error_name ldap_error_text );
+
+my ($returnValue, $authenticated) = (1, 0);
+my $ldap = Net::LDAP->new ($ldapserver, port => $ldapport, version => 2) or $returnValue = 0;
+
+if ($returnValue) {
+  my $messageLDAP;
+
+  if ($DN ne '' && $DN_PASS ne '') {
+    $messageLDAP = $ldap->bind($DN, password => $DN_PASS);
+    $authenticated = ldapStatusOk ('Wrong username or password, dude..', $messageLDAP, $debug);
+  } else {
+    $messageLDAP = $ldap->bind();
+    $authenticated = ldapStatusOk ('Annonymous', $messageLDAP, $debug);
+  }
+
+  if ($authenticated) {
+    if ($debug) {
+      print "WhooHoo, authentication is good!\n";
+      my ($namingContexts, $supportedLDAPVersions);
+
+      my $dse = $ldap->root_dse();
+
+      my @contexts = $dse->get_value('namingContexts');
+      $namingContexts = join (', ', @contexts);
+      print "namingContexts: $namingContexts\n" if (defined $namingContexts);
+
+      my @supportedLDAPVersion = $dse->get_value('supportedLDAPVersion');
+      $supportedLDAPVersions = join (', ', @supportedLDAPVersion);
+      print "supportedLDAPVersions: $supportedLDAPVersions\n" if (defined $supportedLDAPVersions);
+    }
+  
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    $messageLDAP = $ldap->search ( base => $BASE, scope => $SCOPE, filter => $FILTER );
+
+    if (ldapStatusOk ("Ooooopes, can't search", $messageLDAP, $debug)) {
+      $objectNagios->pluginValues ( { stateValue => $ERRORS{OK}, alert => 'Search is good' }, $TYPE{APPEND} ); 
+
+      if ($messageLDAP->count() != 0) {
+        my $dn = ($messageLDAP->entry(0))->dn();
+        print "\nDN: $dn\n" if ($debug);
+
+        if ($debug >= 2) {
+          my $entry = $messageLDAP->entry(0);
+          foreach my $attribute ($entry->attributes) { print $attribute, ": ", $entry->get_value($attribute), "\n"; }
+        }
+
+        $ldap->unbind();
+
+        if ($dn ne '' && defined $PASS && $PASS ne '') {
+          # Now let's verify the authentication credentials, by rebinding with the users DN and password.
+          my $ldap = Net::LDAP->new ($ldapserver, port => $ldapport, version => 2) or $returnValue = 0;
+
+          if ($returnValue) {
+            $messageLDAP = $ldap->bind($dn, password => $PASS);
+
+            if (ldapStatusOk ('Wrong username or password', $messageLDAP, $debug)) {
+              $ldap->unbind();
+              $objectNagios->pluginValues ( { stateValue => $ERRORS{OK}, alert => "Search and Authentication is good" }, $TYPE{APPEND} );
+            }
+          } else {
+            $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Can't get an connection to ldapserver '$ldapserver:$ldapport'" }, $TYPE{APPEND} );
+          }
+        } else {
+          $objectNagios->pluginValues ( { stateValue => $ERRORS{OK}, alert => "Search is good" }, $TYPE{APPEND} ); 
+        }
+      } else {
+        $ldap->unbind();
+        $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Nothing found for 'base: $BASE - scope: $SCOPE - filter: $FILTER'" }, $TYPE{APPEND} ); 
+      }
+    }
+  } else {
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Can't bind to ldapserver '$ldapserver:$ldapport' for DN '$DN'" }, $TYPE{APPEND} ); 
+  }
+} else {
+  $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Can't get an connection to ldapserver '$ldapserver:$ldapport'" }, $TYPE{APPEND} ); 
+}
+
+$objectNagios->exit (7);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub ldapStatusOk {
+  my ($error_message, $messageLDAP, $debug) = @_;
+
+  if ( $messageLDAP->code) {
+    print "-> $error_message\n" if ($debug);
+
+    if ($debug >= 2) {
+      print "Return code : ", $messageLDAP->code, "\n";
+      print "Message     : ", ldap_error_name ($messageLDAP->code), ": ", ldap_error_text ($messageLDAP->error);
+      print "MessageID   : ", $messageLDAP->mesg_id, "\n"      if (defined $messageLDAP->mesg_id);
+      print "DN          : ", $messageLDAP->dn, "\n"           if (defined $messageLDAP->dn);
+      print "Server error:",  $messageLDAP->server_error, "\n" if (defined $messageLDAP->server_error);
+    }
+
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $error_message .': '. $messageLDAP->code .' - '. $messageLDAP->error, result => '' }, $TYPE{APPEND} ); 
+    return (0);
+  } else {
+    return (1);
+  }
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__END__
+
+=head1 NAME
+
+ASNMTAP::Asnmtap::Plugins::Nagios
+
+check_template-ldap.pl
+
+LDAP Nagios Template
+
+=head1 AUTHOR
+
+Alex Peeters [alex.peeters@citap.be]
+
+=head1 COPYRIGHT NOTICE
+
+(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+                        All Rights Reserved.
+
+=head1 LICENSE
+
+ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+
+Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
+
+Obtain permission before redistributing this software over the Internet or in any other medium. In all cases copyright and header must remain intact.
+
+=cut
