@@ -2,6 +2,12 @@
 
 ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions used by ASNMTAP-based plugins.
 
+TODO:
+
+  - init_modem
+
+  - exit_modem_plugin
+
 =head1 SYNOPSIS
 
 ...
@@ -20,19 +26,7 @@ ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions 
 
 ALL
 
- $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
- $CAPTUREOUTPUT
- $PREFIXPATH $APPLICATIONPATH $PLUGINPATH
- $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
- %ERRORS %STATE %TYPE
-
  ...
-
-=item *
-
-MODEM
-
-...
 
 =head1 AUTHOR
 

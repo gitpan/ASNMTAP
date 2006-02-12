@@ -25,7 +25,7 @@ if ( -x "$prefix/$plugin" ) {
   if ( ( $ASNMTAP_PROXY ? ( $ASNMTAP_PROXY eq '0.0.0.0' ? 0 : 1 ) : 1 ) ) {
     my $proxy = ($ASNMTAP_PROXY ? "--proxy='$ASNMTAP_PROXY'" : '');
 
-    $t += checkCmd( "$prefix/$plugin $proxy", 0);
+    $t += checkCmd( "$prefix/$plugin $proxy", [0, 1, 2]);
   } else {
     $t += skipMissingCmd( "$prefix/$plugin", ($tests - 3) );
   }

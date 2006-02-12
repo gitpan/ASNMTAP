@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Time
+# 2006/02/12, v3.000.004, package ASNMTAP::Time
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Time;
@@ -47,8 +47,24 @@ BEGIN {
 
   @ASNMTAP::Time::EXPORT_OK   = ( @{ $ASNMTAP::Time::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Time::VERSION     = 3.000.003;
+  $ASNMTAP::Time::VERSION     = 3.000.004;
 }
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Constants = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+use constant SEC   => 1;
+use constant MIN   => SEC * 60;
+use constant HOUR  => MIN * 60;
+use constant DAY   => HOUR * 24;
+use constant WEEK  => DAY * 7;
+use constant MONTH => DAY * 30;                           # 28...31
+use constant YEAR  => DAY * 364;                          # leap year 365
+
+# TODO:
+# - MONTH: n months must be the sum of all the days in a months 28...31, with correction regarding the current day
+# - YEAR : between 29 Feb in an leap year and 28 Feb year after leay year, YEAR is 356 otherwise 364
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Private subs  = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

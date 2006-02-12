@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL,v 1.00 2006/01/29 18:49:00 Alex Peeters Exp $
+# $Id: Makefile.PL,v 1.00 2006/02/12 18:49:00 Alex Peeters Exp $
 
 use 5.008005;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.003';
+my $VERSION = '3.000.004';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -22,17 +22,17 @@ my $ASNMTAP_PATH         = exists $ENV{ASNMTAP_PATH}         ? $ENV{ASNMTAP_PATH
 my $ASNMTAP_PROXY        = exists $ENV{ASNMTAP_PROXY}        ? $ENV{ASNMTAP_PROXY}        : '0.0.0.0';
 
 my @prerequisites = (
-# [ '<level>', '<feature>',                '<installed module>',                  <dependency hash>, <install by default: 0 = no, 1 = yes, 2 = always and 3 = reserverd>, [<directorie>, ...], [[<files>, <x|r>], ...] ];
-  [ '*00',     'Package ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap',                    { 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Data::Dumper' => '2.121','Dumpvalue' => '1.11', 'Getopt::Long' => '2.34', 'IO::CaptureOutput' => '1.03', 'Time::Local' => '1.11' }, 2, 
+# [ '<level>', '<feature>',                '<installed module>',                  <dependency hash>, <install by default: 0 = no, 1 = yes, 2 = always, 3 = reserved and 4 = info>, [<directorie>, ...], [[<files>, <x|r>], ...] ];
+  [ '*00',     'Package ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap',                    { 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Data::Dumper' => '2.121','Dumpvalue' => '1.11', 'Getopt::Long' => '2.34', 'IO::CaptureOutput' => '1.03', 'Test::Simple' => '0.62', 'Time::Local' => '1.11' }, 2, 
    [], [
-    [ 'Asnmtap.cnf',                                                              'r' ],
+    [ 'Asnmtap.cnf',                                                              'R' ],
    ]
   ],
   [ '*01',     'IO',                       'ASNMTAP::IO',                         { 'ASNMTAP::Asnmtap' => '*00', 'IO' => '1.21' }, 2, [], [] ],
   [ '*02',     'Time',                     'ASNMTAP::Time',                       { 'ASNMTAP::Asnmtap' => '*00', 'Time::Local' => '1.11' }, 2, [], [] ],
   [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00' }, 3, [], [] ],
   [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010' }, 3, [], [] ],
-  [ '*0011',   'Subclass Plugins',         'ASNMTAP::Asnmtap::Plugins',           { 'ASNMTAP::Asnmtap' => '*00', 'Time::HiRes' => '1.81' }, 2,
+  [ '*0011',   'Subclass Plugins',         'ASNMTAP::Asnmtap::Plugins',           { 'ASNMTAP::Asnmtap' => '*00', 'Time::HiRes' => '1.76' }, 2,
    [
     'plugins',
     'plugins/templates',
@@ -103,15 +103,37 @@ my @prerequisites = (
     [ 'plugins/nagios/templates/xml/nagios-1.0.xml-dtd',                          'r' ]
    ]
   ],
-  [ '*001101', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.07', 'Net::POP3' => '2.28' }, 3, [], [] ],
+  [ '*001101', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'Net::POP3' => '2.28', 'Time::Local' => '1.11' }, 1, [], [] ],
   [ '*001102', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011' }, 3, [], [] ],
   [ '*001103', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.656' }, 1, [], [] ],
-  [ '*001104', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.15', 'URI' => '1.35' }, 1, [], [] ],
-  [ '*001105', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::LibXML' => '1.58', 'XML::Simple' => '2.14' }, 2, [], [] ],
-  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.05', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.21' }, 1, [], [] ]
+  [ '*001104', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.10', 'Crypt::SSLeay' => '0.51', 'Digest::MD5' => '2.33', 'MIME::Base64' => '3.01', 'Net::FTP' => '2.58', 'URI' => '1.35' }, 1, [], [] ],
+  [ '*001105', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.58', 'XML::Simple' => '2.14' }, 2, [], [] ],
+  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.05', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.21' }, 1, [], [] ],
+
+  [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.02', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],
+  [ '', 'check_template-ftp.pl',      'Net::FTP',                               { 'Net::FTP' => '2.58' }, 4, [], [] ],
+  [ '', 'check_template-ldap.pl',     'Net::LDAP',                              { 'Convert::ASN1' => '0.19', 'URI::ldap' => '1.11', 'Digest::MD5' => '2.33', 'XML::Parser' => '2.34', 'Net::LDAP' => '0' }, 4, [], [] ]
 );
 
 # End Configuration - You should not have to change anything below this line
+
+my @man3pods = qw (
+  Asnmtap
+  IO
+  Time
+  Asnmtap/Applications
+  Asnmtap/Applications/CGI
+  Asnmtap/Applications/Collector
+  Asnmtap/Applications/Display
+  Asnmtap/Plugins
+  Asnmtap/Plugins/Mail
+  Asnmtap/Plugins/Modem
+  Asnmtap/Plugins/Nagios
+  Asnmtap/Plugins/SOAP
+  Asnmtap/Plugins/WebTransact
+  Asnmtap/Plugins/XML
+);
+
 
 my %has_module_cache = ();
 
@@ -165,7 +187,7 @@ EOT
   $PERL_AUTOINSTALL = ( ExtUtils::MakeMaker::prompt( "\nAutomatic installation of dependencies via CPAN?" => ( $PERL_AUTOINSTALL ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
   $ENV{PERL_AUTOINSTALL} = $PERL_AUTOINSTALL;
 
-# $ASNMTAP_APPLICATIONS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Applications?" => ( $ASNMTAP_APPLICATIONS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
+  $ASNMTAP_APPLICATIONS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Applications?" => ( $ASNMTAP_APPLICATIONS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
   $ASNMTAP_PLUGINS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Plugin templates?" => ( $ASNMTAP_PLUGINS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
 
   if ( $ASNMTAP_APPLICATIONS or $ASNMTAP_PLUGINS ) {
@@ -185,8 +207,10 @@ EOT
   }
 }
 
-print "- created (when not already exists): '$ASNMTAP_PATH'\n\n";
-chown ( $ASNMTAP_UID, $ASNMTAP_GID, $ASNMTAP_PATH ) or die "- chown $ASNMTAP_UID:$ASNMTAP_GID $ASNMTAP_PATH failed: $!";
+if ( $ASNMTAP_APPLICATIONS or $ASNMTAP_PLUGINS ) {
+  print "- created (when not already exists): '$ASNMTAP_PATH'\n\n";
+  chown ( $ASNMTAP_UID, $ASNMTAP_GID, $ASNMTAP_PATH ) or die "- chown $ASNMTAP_UID:$ASNMTAP_GID $ASNMTAP_PATH failed: $!";
+}
 
 my $intro = <<EOI;
 This Build comes with some package that I can install.
@@ -223,8 +247,7 @@ sub generate_PREREQ_PM {
   foreach (keys %$modules) {
     my $detected = has_module ( $_, $modules->{$_} );
 
-    $buffer .= sprintf ( "%-24s [%s] %-32s %-8s\n", ( $i++ ? '' : $feature), ($detected >= 2 ? '+' : ( $detected ? '*' : ' ') ), $_ . ( $modules->{ $_ } and $modules->{ $_ } !~ /^\*\d{2,2}(?:\d{2,2}(?:\d{2,2})?)?$/ ? " (v$modules->{$_})" : '' ), ( $i == 1 ? ( $install ? ( $install == 3 ? 'reserved' : ($install == 2 ? 'always' : '[ yes ]') ) : '[ no ]') : '' ) );
-  }
+    $buffer .= sprintf ( "%-24s [%s] %-32s %-8s\n", ( $i++ ? '' : $feature), ($detected >= 2 ? '+' : ( $detected ? '*' : ' ') ), $_ . ( $modules->{ $_ } and $modules->{ $_ } !~ /^\*\d{2,2}(?:\d{2,2}(?:\d{2,2})?)?$/ ? " (v$modules->{$_})" : '' ), ( $i == 1 ? ( $install ? $install == 4 ? 'info' : ( ( $install == 3 ? 'reserved' : ($install == 2 ? 'always' : '[ yes ]') ) ) : '[ no ]') : '' ) ); }
 
   return $buffer;
 }
@@ -348,8 +371,9 @@ if ( $ASNMTAP_PLUGINS ) {
           my $file = @$_[0];
           my $mode = @$_[1];
           my $destination = $ASNMTAP_PATH .'/'. $file;
+          $destination .= '-orig' if ( $mode =~ /^[RX]$/ );
           File::Copy::copy ( $file, $destination ) or die "- copy '$file' failed: $!";
-          chmod ( ( $mode eq 'x' ? 0750 : 0640 ), $destination) or die "- chmod $destination $file failed: $!";
+          chmod ( ( $mode =~ /^[xX]$/ ? 0750 : 0640 ), $destination) or die "- chmod $destination $file failed: $!";
           print "- copied file '$destination'\n";
         }
       }
@@ -384,30 +408,10 @@ if ( $PERL_AUTOINSTALL ) {
 
 # Ok, now it is time to really generate the Makefile  - - - - - - - - - -
 
-my @man3pods = qw (
-  Asnmtap
-  IO
-  Time
-  Asnmtap/Plugins
-  Asnmtap/Plugins/Mail
-  Asnmtap/Plugins/Modem
-  Asnmtap/Plugins/Nagios
-  Asnmtap/Plugins/SOAP
-  Asnmtap/Plugins/WebTransact
-  Asnmtap/Plugins/XML
-);
-
-# Asnmtap/Applications
-# Asnmtap/Applications/CGI
-# Asnmtap/Applications/Collector
-# Asnmtap/Applications/Display
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 WriteMakefile(
   NAME              => 'ASNMTAP',
   AUTHOR            => "alex.peeters\@citap.be",
-  ABSTRACT          => "Application System Network Monitoring Tool Alex Peeters",
+  ABSTRACT          => "Application System Network Monitoring Toolkit Alex Peeters",
   VERSION           => $VERSION,
   PREREQ_PM         => \%PREREQ_PM,
   MAN3PODS          => { map { my $man3pod = $_; $man3pod =~ s/\//::/g; ("lib/ASNMTAP/$_.pod" => "\$(INST_MAN3DIR)/ASNMTAP::$man3pod.\$(MAN3EXT)") } @man3pods },

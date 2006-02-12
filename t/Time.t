@@ -1,10 +1,10 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 32;
+use Test::More tests => 31;
 
 BEGIN { require_ok ( 'ASNMTAP::Time' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Time v3.000.003' ) };
+#BEGIN { use_ok ( 'ASNMTAP::Time v3.000.004' ) };
 BEGIN { use_ok ( 'ASNMTAP::Time' ) };
 BEGIN { use_ok ( 'ASNMTAP::Time', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Time', qw(:DATE) ) };

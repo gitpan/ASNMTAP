@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
+# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.003;
+use ASNMTAP::Asnmtap::Plugins v3.000.004;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_dummy.pl',
   _programDescription => "Dummy plugin for testing the '$APPLICATION'",
-  _programVersion     => '3.000.003',
+  _programVersion     => '3.000.004',
   _programUsagePrefix => '-r|--returnCode <VALUE>',
   _programHelpPrefix  => '-r, --returnCode=<VALUE>
    VALUE = 0-3
@@ -43,6 +43,8 @@ $objectPlugins->pluginValues ( { stateValue => $returnCode, alert => '+DUMMY-T'.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sleep 10;
 
 $objectPlugins->exit (7);
 

@@ -1,19 +1,19 @@
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugins::WebTransact is an object-oriented class for generating ASNMTAP-based plugins of Web Transactions.
+is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 SYNOPSIS
 
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
   my @URLS = ();
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   @URLS = (
     { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Perfdata Label 1' },
   );
 
-  $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins, newAgent => 1 );
+  $objectWebTransact->check ( { }, newAgent => 1 );
   undef $objectWebTransact;
 
 =head1 DESCRIPTION
@@ -26,6 +26,20 @@ Common examples are database searches and registration activities.
 A Web transaction is specified by
 
 =over 4
+
+=item * asnmtapInherited
+
+A required reference to an ASNMTAP::Asnmtap::Plugins or ASNMTAP::Asnmtap::Plugins::Nagios subclass
+
+Through this way of working we inherited the command line setting from the proxy.
+
+When we specify at the command prompt I<--proxy=username;password@proxyserver:port>, the needed and required proxy settings are automatically set.
+
+The command line options I<--timeout>, I<--debug> and I<--debugfile> are also inherited.
+
+B<debug> writes the string form of the request (including query_string) and the response to STDERR.
+
+I<_browseragent> is inherited and specifies the name that your application should use when it presents itself on the network.
 
 =item * a list of URLs where each URL is a page in the transaction
 
@@ -216,14 +230,14 @@ I<Example:>
     { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
 equals to:
 
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
   my @URLS = ();
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   @URLS = (
     { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
@@ -235,7 +249,7 @@ equals to:
 
 Performs a check of the Web transaction by getting the sequence or URLs specified in the constructor argument.
 
-  $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins, newAgent => 1 );
+  $objectWebTransact->check ( { }, newAgent => 1 );
 
 B<CGI_VALUES> is a reference to a hash whose keys are the values used in the
 Qs_var lists. This allows the check method to get the value of these
@@ -249,7 +263,6 @@ This hash ref is B<required> and must be set to {} if there are B<no> variables.
 I<Structure of the array of hash references:>
 
   (
-    asnmtapInherited => undef,
     custom           => undef,
     newAgent         => 1,
     openAppend       => 1,
@@ -262,20 +275,6 @@ I<Structure of the array of hash references:>
 B<Possible options are:>
   
 =over 4
-
-=item I<asnmtapInherited>
-
-A required reference to an ASNMTAP::Asnmtap::Plugins or ASNMTAP::Asnmtap::Plugins::Nagios subclass
-
-Through this way of working we inherited the command line setting from the proxy.
-
-When we specify at the command prompt I<--proxy=username;password@proxyserver:port>, the needed and required proxy settings are automatically set.
-
-The command line options I<--timeout>, I<--debug> and I<--debugfile> are also inherited.
-
-B<debug> writes the string form of the request (including query_string) and the response to STDERR.
-
-I<_browseragent> is inherited and specifies the name that your application should use when it presents itself on the network.
 
 =item I<custom>
 
@@ -300,11 +299,11 @@ Is an scalar, reference to a function, default: undef
 
 =item I<newAgent>
 
-The first time we call $objectWebTransact->check ( {}, ... ), then newAgent must equals 1, so that an (browser) session will be created.
+The first time we call $objectWebTransact->check ( { }, ... ), then newAgent must equals 1, so that an (browser) session will be created.
 
 This means that when you specify newAgent => 0 the first time you call $objectWebTransact->check, it will be treated as newAgent => 1, to ensure that an (browser) session is created.
 
-Every time whel for a following call $objectWebTransact->check ( {}, ... ), newAgent equals 1, then a new (browser) session is created. 
+Every time whel for a following call $objectWebTransact->check ( { }, ... ), newAgent equals 1, then a new (browser) session is created. 
 
 When newAgent equals 0, then we using the same (browser) session again.
 
@@ -345,7 +344,7 @@ check semantics:
 
 I<Example:>
 
-  $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins, newAgent => 1 );
+  $objectWebTransact->check ( { }, newAgent => 1 );
   undef $objectWebTransact;
 
 =item $objectWebTransact->matches()
@@ -400,7 +399,7 @@ Get the urls
 
 =item $objectWebTransact->set_urls()
 
-Set the urls used by the next call from $objectWebTransact->check ()
+Set the urls used by the next call from $objectWebTransact->check ( { } )
 
   my @URLS = (
     { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
@@ -408,7 +407,7 @@ Set the urls used by the next call from $objectWebTransact->check ()
 
   $objectWebTransact->urls( \@URLS );
 
-  $returnCode = $objectWebTransact->check ( { }, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { } );
 
 =back
 
@@ -434,8 +433,8 @@ Exp_Fault field the check fails.
                Msg_Fault      => 'Status error when Exp_Fault found',
                Perfdata_Label => 'Label x' } ];
 
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ($ar);
-  my $returnCode = $objectWebTransact->check ( { tmno => $tmno }, asnmtapInherited => \$objectPlugins, newAgent => 1 );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, $ar);
+  my $returnCode = $objectWebTransact->check ( { tmno => $tmno }, newAgent => 1 );
 
   foreach ( @{ $objectWebTransact->get_matches() } ) { print $_, "\n"; }
 
@@ -489,8 +488,8 @@ the query string p_tmno1 = <current_value_of_arg_hash{'tmno'}>
   $i = @ARGV == 1 ? 0 : int( rand($#tmarks) + 0.5 );
   $tmno = $tmarks[$i];
 
-  $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( URLS );
-  $returnCode = $objectWebTransact->check ( {tmno => $tmno}, asnmtapInherited => \$objectPlugins, newAgent => 1 )
+  $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, URLS );
+  $returnCode = $objectWebTransact->check ( {tmno => $tmno}, newAgent => 1 )
 
   foreach ( @{ $objectWebTransact->get_matches() } ) { print $_, "\n"; }
 
@@ -534,8 +533,8 @@ More examples:
     { Method => "POST", Url => "...", Qs_var => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \@URLS );
-  my $returnCode = $objectWebTransact->check( { }, ... );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \$objectPlugins, \@URLS );
+  my $returnCode = $objectWebTransact->check( { } );
 
   my $matches = $objectWebTransact->matches();
   my $valNavigationToken = @$matches[0];
@@ -545,7 +544,7 @@ More examples:
     { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
-  $returnCode = $objectWebTransact->check( { valNavigationToken => $valNavigationToken }, ... );
+  $returnCode = $objectWebTransact->check( { valNavigationToken => $valNavigationToken } );
   print "Navigation Token: $valNavigationToken\n";
 
   equals to:
@@ -558,13 +557,29 @@ More examples:
     { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \@URLS );
-  $returnCode = $objectWebTransact->check( { }, ... );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \$objectPlugins, \@URLS );
+  $returnCode = $objectWebTransact->check( { } );
 
   my %returns =  %{ $objectWebTransact->returns() };
   print 'Navigation Token: '. $returns{valNavigationToken} ."\n";
 
 =item Example 3
+
+  my $startTime;
+
+  if ( defined $perfData and $perfData ) {
+    ${$objectWebTransact->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$objectWebTransact->{asnmtapInherited}}->pluginValue ('endTime') );
+    $startTime = ${$objectWebTransact->{asnmtapInherited}}->pluginValue ('endTime');
+  }
+
+  my $returnCode = $objectWebTransact->check ( { }, newAgent => $newAgent );
+
+  if ( defined $startTime ) {
+    my $responseTime = ${$objectWebTransact->{asnmtapInherited}}->setEndTime_and_getResponsTime ( $startTime );
+    ${$objectWebTransact->{asnmtapInherited}}->appendPerformanceData ( 'Logon='. $responseTime .'ms;;;;' );
+  }
+
+=item Example 4
 
   my $matches = $objectWebTransact->matches();
   my ($valNavigationToken, $valTicketnummer, undef) = @$matches[0..$#$matches];
@@ -580,10 +595,10 @@ More examples:
   print "Ticketnummer    : ", $valTicketnummer, "\n" if (defined $valTicketnummer);
   foreach my $match ( @{ $objectWebTransact->matches() } ) { print "-> $match <-\n"; }
 
-=item Example 4
+=item Example 5
 
   my @URLS = ();
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   use constant EXP_TITLE_1 => "\Q<TITLE>\E(Consulting Internet Technology Alex Peeters)\Q</TITLE>\E";
   use constant EXP_TITLE_2 => "\Q<TITLE>\E(Consulting) (Internet) (Technology) (Alex Peeters)\Q</TITLE>\E";
@@ -597,7 +612,7 @@ More examples:
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( {}, custom => \&customWebTransact, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );
 
   foreach ( @{ $objectWebTransact->get_matches() } ) { print $_, "\n"; }
 
@@ -619,7 +634,7 @@ More examples:
   print $returns {title2}[2], "\n";
   print $returns {title2}[3], "\n";
 
-=item Example 5
+=item Example 6
 
   use constant EXP_TITLE_1 => "\Q<TITLE>\E(Consulting Internet Technology Alex Peeters)\Q</TITLE>\E";
   use constant EXP_TITLE_2 => "\Q<TITLE>\E(Consulting) (Internet) (Technology) (Alex Peeters)\Q</TITLE>\E";
@@ -633,7 +648,7 @@ More examples:
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { } );
   my %returns = %{ $objectWebTransact->returns() };
   $objectPlugins->pluginValues ( { alert => $returns {title1} .' - '. $returns {submain} .' - '. $returns {title2}[0] .' - '. $returns {title2}[1] .' - '. $returns {title2}[2] .' - '. $returns {title2}[3] }, $TYPE{REPLACE} );
 
@@ -649,14 +664,14 @@ equals to:
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { } );
 
   @URLS = (
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, asnmtapInherited => \$objectPlugins, newAgent => 0 );
+  $returnCode = $objectWebTransact->check ( { }, newAgent => 0 );
 
 =back
 
@@ -681,11 +696,13 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 DEPENDENCIES
 
-  ASNMTAP::Asnmtap
   ASNMTAP::Asnmtap::Plugins
   Bundle::LWP
   CGI
-  LWP
+  Digest::MD5
+  Crypt::SSLeay
+  MIME::Base64
+  Net::FTP
   URI
 
 =head1 COPYRIGHT NOTICE

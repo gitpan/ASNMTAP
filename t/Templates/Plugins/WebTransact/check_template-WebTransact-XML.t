@@ -20,12 +20,12 @@ if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
 
-  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : '';
+  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
 
-  if ( ( $ASNMTAP_PROXY ? ( $ASNMTAP_PROXY eq '0.0.0.0' ? 0 : 1 ) : 1 ) ) {
+  if ( ( defined $ASNMTAP_PROXY ? ( ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY ne '' ) ? 0 : 1 ) : 1 ) ) {
     my $proxy = ($ASNMTAP_PROXY ? "--proxy='$ASNMTAP_PROXY'" : '');
 
-    $t += checkCmd( "$prefix/$plugin $proxy", 3, "/ERROR: The XML file 'xml\/Monitoring-1.0.xml' doesn't exist/");
+    $t += checkCmd( "$prefix/$plugin $proxy", [2, 3], "/ERROR: The XML file 'xml\/Monitoring-1.0.xml' doesn't exist/");
   } else {
     $t += skipMissingCmd( "$prefix/$plugin", ($tests - 3) );
   }

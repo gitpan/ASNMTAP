@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,13 +26,13 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE);
 BEGIN {
   use Exporter ();
 
-  @ASNMTAP::Asnmtap::Plugins::SOAP::ISA         = qw(Exporter ASNMTAP::Asnmtap::Plugins);
+  @ASNMTAP::Asnmtap::Plugins::SOAP::ISA         = qw(Exporter);
 
   %ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS = ( ALL => [ qw(&get_soap_request) ] );
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.004;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -207,7 +207,7 @@ sub get_soap_request {
   $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') );
 
   my $som = (defined $params and $params ne '') ? (ref $params eq 'ARRAY' ? $service->call( $parms{method} => @$params ) : $service->call( $parms{method} => $params )) : $service->call( $parms{method} );
-  
+
   my $responseTime = $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') );
   $$asnmtapInherited->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $responseTime ."ms;;;;" );
   print "ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request: () <->\n" if ( $debug );
@@ -270,7 +270,7 @@ sub get_soap_request {
     print "\nASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request: End XML dump\n";
   }
 
-  $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{OK}, alert => '...' }, $TYPE{APPEND} ); 
+  $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{OK}, alert => 'SOAP OK' }, $TYPE{APPEND} ); 
   return ($returnCode, $xml);
 }
 

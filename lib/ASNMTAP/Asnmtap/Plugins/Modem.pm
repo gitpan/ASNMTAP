@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.004;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -185,7 +185,7 @@ sub init_modem {
 
   # loglevel - default logging level. One of: debug, verbose, notice, info, warning, err, crit, alert, emerg
   my $loglevel = 'emerg';
-  my $log = 'file,/var/log/asnmtap/' . $PROGNAME . '.log';   # my $log = 'syslog';
+  my $log = 'file,/var/log/asnmtap/'. $PROGNAME .'.log';   # my $log = 'syslog';
 
   ($opt_p) || usage("Phonenumber not specified\n");
   my $phonenumber = $1 if ($opt_p =~ /([.0-9]+)/);
@@ -243,7 +243,7 @@ sub init_modem {
 	  my ($rStatus, $rStdout, $rStderr) = call_system ("$command", $debug);
 
       if ( $rStatus ) {
-        $SIG{'ALRM'} = sub { alarm 0; $exit = 1 };
+        $SIG{ALRM} = sub { alarm 0; $exit = 1 };
         alarm 60; $exit = 0;
 
         do {
@@ -265,7 +265,7 @@ sub init_modem {
         } until (defined $hrasconn || $exit);
 
         alarm 0;
-        $SIG{'ALRM'} = 'IGNORE';             # $SIG{'ALRM'} = 'DEFAULT';
+        $SIG{ALRM} = 'IGNORE';               # $SIG{ALRM} = 'DEFAULT';
 
         if ( ! defined $hrasconn ) {
           sleep(1);

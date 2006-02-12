@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::IO
+# 2006/02/12, v3.000.004, package ASNMTAP::IO
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::IO;
@@ -33,7 +33,7 @@ BEGIN {
 
   @ASNMTAP::IO::EXPORT_OK   = ( @{ $ASNMTAP::IO::EXPORT_TAGS{ALL} } );
   
-  $ASNMTAP::IO::VERSION     = 3.000.003;
+  $ASNMTAP::IO::VERSION     = 3.000.004;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -72,7 +72,7 @@ sub scan_socket_info {
   if ($protocol eq "tcp" || $protocol eq "udp") { $socketProtocol = $protocol; } else { $socketProtocol = "tcp"; }
   $socketTimeout = 5;
 
-  $SIG{'ALRM'} = sub { alarm 0; $exit = 1 };
+  $SIG{ALRM} = sub { alarm 0; $exit = 1 };
   alarm 10; $exit = 0;
 
   use IO::Socket;
@@ -144,7 +144,7 @@ sub scan_socket_info {
   }
 
   alarm 0;
-  $SIG{'ALRM'} = 'IGNORE';                    # $SIG{'ALRM'} = 'DEFAULT';
+  $SIG{ALRM} = 'IGNORE';                      # $SIG{ALRM} = 'DEFAULT';
   close($result);
 
   if ($request) { $result = "$request"; } else { $result = "$service($port)"; }

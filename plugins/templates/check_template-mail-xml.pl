@@ -2,132 +2,41 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/01, v3.0, making ASNMTAP v3.xxx.xxx compatible
-# ----------------------------------------------------------------------------------------------------------
-# COPYRIGHT NOTICE
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be].                            All Rights Reserved.
-#
-# Asnmtap may be used and modified free of charge by anyone so long as this copyright notice and the comments
-# above remain intact.  By using this code you agree to indemnify Alex Peeters from any liability that might 
-# arise from it's use.
-#
-# Selling the code for this program without prior written consent is expressly forbidden.    In other words, 
-# please ask first before you try and make money off of my program.
-#
-# Obtain permission before redistributing this software over the Internet or in any other medium.
-# In all cases copyright and header must remain intact.
+# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;           # Must be used in test mode only. This reduce a little process speed
 #use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
 
-use lib qw(/opt/asnmtap/.);
-use ASNMTAP::Asnmtap::Plugins v3.000.003;
-use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP :PLUGINS :HTTP :MAIL :XML);
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use Getopt::Long;
-use vars qw($opt_e  $opt_t $opt_S $opt_D $opt_L $opt_d $opt_O $opt_A $opt_V $opt_h $PROGNAME);
+use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$PROGNAME    = "check_template-mail-xml.pl";
-my $prgtext  = "Mail XML plugin template for testing the '$APPLICATION'";
-my $version  = "3.0";
-$TIMEOUT     = 10;
+my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
+  _programName        => 'check_template-mail-xml.pl',
+  _programDescription => "Mail XML plugin template for testing the '$APPLICATION'",
+  _programVersion     => '3.000.004',
+  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'environment|e:s', 'timeout|t:i', 'trendline|T:i'],
+  _timeout            => 30,
+  _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub printHelp ();
-sub printUsage ();
+my $username = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : undef;
+$objectPlugins->printUsage ('Missing username') unless (defined $username);
 
-Getopt::Long::Configure('bundling');
-
-GetOptions (
-  # mail xml  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  "e:s" => \$opt_e, "environment:s" => \$opt_e,
-  # default - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  "t:f" => \$opt_t, "trendline:f"  => \$opt_t,
-  "S:s" => \$opt_S, "status:s"     => \$opt_S,
-  "D:s" => \$opt_D, "debug:s"      => \$opt_D,
-  "L:s" => \$opt_L, "logging:s"    => \$opt_L,
-  "d:s" => \$opt_d, "debugfile:s"   => \$opt_d,
-  "O:s" => \$opt_O, "onDemand:s"   => \$opt_O,
-  "A:s" => \$opt_A, "asnmtapEnv:s" => \$opt_A,
-  "V"   => \$opt_V, "version"      => \$opt_V,
-  "h"   => \$opt_h, "help"         => \$opt_h
-);
-
-if ($opt_V) { printRevision($PROGNAME, $version); exit $ERRORS{"OK"}; }
-if ($opt_h) { printHelp(); exit $ERRORS{"OK"}; }
-my ($trendline, $status, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $returnCode, $startTime, $onDemand, $asnmtapEnv) = init_plugin ($opt_t, $opt_S, $opt_D, $opt_L, $opt_d, $opt_O, $opt_A);
+my $password = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : undef;
+$objectPlugins->printUsage ('Missing password') unless (defined $password);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $environment = 'P';
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.004;
 
-if ($opt_e) {
-  if ($opt_e eq 'P' || $opt_e eq 'A' || $opt_e eq 'S' || $opt_e eq 'T' || $opt_e eq 'D' || $opt_e eq 'L') {
-    $environment = $opt_e;
-  } else {
-    usage("Invalid environment: $opt_e\n");
-  }
-}
-
-# XML config  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-use constant HEADER  => '<?xml version="1.0" encoding="UTF-8"?>';
-use constant FOOTER  => '</BaseServiceReport>';
-
-# smtp & pop3 config  - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-use constant SUBJECT => 'ASNMTAP';
-
-# cygwin: $boolean_unixSystem & linux: $boolean_unixSystem = 1
-my $boolean_unixSystem  = 1;
-
-# when $emailsReceivedState = 1: No emails received => $state = $STATE{$ERRORS{"OK"}} or $STATE{$ERRORS{"WARNING"}};
-# when $emailsReceivedState = 0: x mail(s) received => $state = $STATE{$ERRORS{"OK"}} or $STATE{$ERRORS{"WARNING"}};
-my $emailsReceivedState = 0;
-
-my $serverListSMTP = [qw(chablis.dvkhosting.com)];
-my $serverSMTP     = 'chablis.dvkhosting.com';
-
-my $mailFrom       = 'alex.peeters@citap.com';
-my $mailTo         = 'asnmtap@citap.com';
-my $serverPOP3     = 'chablis.dvkhosting.com';
-my $username       = 'asnmtap';
-my $password       = 'asnmtap';
-
-my $textFrom       = 'From:';
-my $textTo         = 'To:';
-my $textSubject    = 'Subject:';
-my $textStatus     = 'Status';
-
-my $textStatusUp   = $APPLICATION . ' Status UP';
-my $textStatusDown = $APPLICATION . ' Status Down';
-
-# ansmtap  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-$state             = $STATE{$ERRORS{"UNKNOWN"}};
-$message           = "Receive XML Mail";
-$alert             = "";
-$error             = "";
-$result            = "";
-
-# Fingerprint emails  - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-my $mailSubject    = SUBJECT . ' / ' . $textFrom . ' ' . $mailFrom . ' ' . $textTo . ' ' . $mailTo;
-
-my $mailHeader     = $mailSubject;
-my $mailPluginname = '<' . $PROGNAME . '>';
-my $mailBranding   = $mailPluginname . ' <' . $prgtext . '>';
-my $mailTimestamp  = 'Timestamp <' . $mailFrom . '>:';
-my $mailStatus     = $textStatus . ' <' . $textStatusDown . '>';
-
-# Body of the emails  - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-my $mailBody       = "
+my $body = "
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
 
 <BaseServiceReport>
@@ -143,90 +52,102 @@ my $mailBody       = "
 </BaseServiceReport>
 ";
 
+my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
+  _asnmtapInherited => \$objectPlugins,
+  _SMTP             => { smtp => [ qw(smtp.citap.be) ], mime => 0 },
+  _POP3             => { pop3 => 'pop3.citap.be', username => $username, password => $password },
+# _POP3             => { pop3 => [ qw(pop3.citap.be pop3.citap.com) ], username => 'asnmtap', password => 'asnmtap' },
+  _mailType         => 0,
+  _mail             => {
+                         from   => 'alex.peeters@citap.com',
+                         to     => 'asnmtap@citap.com',
+                         status => $APPLICATION .' Status UP',
+                         body   => $body
+                       }
+  );
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my ($endTime, $responseTime, $performanceData);
-($endTime, $responseTime) = setEndTime_and_getResponsTime ($startTime);
+my $environment = $objectPlugins->getOptionsArgv('environment');
+$objectPlugins->printUsage ('Missing environment') unless (defined $environment);
+
+my $environmentText = $objectPlugins->getOptionsValue('environment');
+
+my ($returnCode, $numberOfMatches, $debugfileMessage, @xml);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Receiving Fingerprint Mails - - - - - - - - - - - - - - - - - - - - - -
 
-sleep 3 if ($debug); # sleep 3 secs - Can't call method 'login' on an undefined value at '$pop->login($username, $password);'
-($returnCode, $alert, $state) = scan_socket_info ( 'tcp', $serverPOP3, 110, 'pop3', 'OK (POP3)', $boolean_unixSystem, $alert, $state, $debug, pop3 => { username => $username, password => $password, serviceReady => "[XMail [0-9.]+ POP3 Server] service ready", passwirdRequired => "Password required for", mailMessages => "Maildrop has [0-9.]+ messages", closingSession => "[XMail [0-9.]+ POP3 Server] closing session" } );
+use constant HEADER  => '<?xml version="1.0" encoding="UTF-8"?>';
+use constant FOOTER  => '</BaseServiceReport>';
 
-if ( $returnCode ) {
-  my ($debugfileMessage, $dummy, $numberOfMails, $statusUp, $statusDown, @xml);
+$debugfileMessage  = "\n<HTML><HEAD><TITLE>Mail XML plugin template \@ $APPLICATION</TITLE></HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">Mail XML plugin template @ $APPLICATION</H1><HR>\n";
+$debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR style=\"font: normal 68% bold verdana,arial,helvetica; text-align:left; background:#a6caf0;\"><TH>Server</TH><TH>Name</TH><TH>Environment</TH><TH>First Occurence Date</TH><TH>First Occurence Time</TH><TH>Errors</TH></TR>\n";
+$debugfileMessage .= "<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">$environmentText</H3>";
 
-  if ($environment eq 'P') {
-    $dummy = "Production";
-  } elsif ($environment eq 'A') {
-    $dummy = "Acceptation";
-  } elsif ($environment eq 'S') {
-    $dummy = "Simulation";
-  } elsif ($environment eq 'T') {
-    $dummy = "Test";
-  } elsif ($environment eq 'D') {
-    $dummy = "Development";
-  } elsif ($environment eq 'L') {
-    $dummy = "Local";
+($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, customArguments => \{ xml => \@xml, header => HEADER, footer => FOOTER, validateDTD => 0, filenameDTD => '' }, receivedState => 0 );
+
+if ( defined $numberOfMatches and $numberOfMatches ) { 
+  my $debug = $objectPlugins->getOptionsValue ('debug');
+  $objectPlugins->pluginValue ( { alert => $numberOfMatches .' email(s)' }, $TYPE{APPEND} ); 
+
+  my $fixedAlert = "+";
+
+  foreach my $xml (@xml) {
+    $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:purple;\"><TD>$xml->{Ressource}->{Server}</TD><TD>$xml->{Ressource}->{Name}</TD><TD>$xml->{Ressource}->{Environment}</TD><TD>$xml->{Ressource}->{Date}</TD><TD>$xml->{Ressource}->{Time}</TD><TD>$xml->{Ressource}->{Errors}</TD></TR>\n";
+    $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:red;\"><TD valign=\"top\">Error Stack</TD><TD colspan=\"6\">$xml->{Ressource}->{ErrorStack}</TD></TR>\n";
+    $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:red;\"><TD valign=\"top\">Error Detail</TD><TD colspan=\"6\">$xml->{Ressource}->{ErrorDetail}</TD></TR>\n" if ( $debug >= 2 );
+    $fixedAlert       .= "$xml->{Ressource}->{Server}-$xml->{Ressource}->{Name}+";
   }
 
-  $debugfileMessage  = "\n<HTML><HEAD><TITLE>XML::Parser $prgtext \@ $APPLICATION</TITLE></HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$prgtext @ $APPLICATION</H1><HR>\n";
-  $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR style=\"font: normal 68% bold verdana,arial,helvetica; text-align:left; background:#a6caf0;\"><TH>Server</TH><TH>Name</TH><TH>Environment</TH><TH>First Occurence Date</TH><TH>First Occurence Time</TH><TH>Errors</TH></TR>\n";
-  $debugfileMessage .= "<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">$dummy</H3>";
-
-  ($alert, $state, $result, $numberOfMails, $statusUp, $statusDown) = receiving_fingerprint_mails ( $alert, $state, $serverPOP3, $username, $password, $TIMEOUT, $emailsReceivedState, $textFrom, $textTo, $textSubject, $textStatus, $textStatusUp, $textStatusDown, $mailTo, $mailFrom, $mailSubject, $mailHeader, $mailPluginname, $mailBranding, $mailTimestamp, $mailStatus, 7, $debug, \&actionOnMailBody, $environment, \@xml, HEADER, FOOTER, 0, '', $onDemand );
-
-  if ($numberOfMails != 0) {
-    $alert .= " - $statusUp Email(s) service up" if $statusUp;
-    $alert .= " - $statusDown Email(s) service down" if $statusDown;
-    my $fixedAlert = "+";
-
-    foreach my $xml (@xml) {
-      $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:purple;\"><TD>$xml->{Ressource}->{Server}</TD><TD>$xml->{Ressource}->{Name}</TD><TD>$xml->{Ressource}->{Environment}</TD><TD>$xml->{Ressource}->{Date}</TD><TD>$xml->{Ressource}->{Time}</TD><TD>$xml->{Ressource}->{Errors}</TD></TR>\n";
-      $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:red;\"><TD valign=\"top\">Error Stack</TD><TD colspan=\"6\">$xml->{Ressource}->{ErrorStack}</TD></TR>\n";
-      $debugfileMessage .= "<TR style=\"background:#eeeee0; font: normal 68% bold verdana,arial,helvetica; color:red;\"><TD valign=\"top\">Error Detail</TD><TD colspan=\"6\">$xml->{Ressource}->{ErrorDetail}</TD></TR>\n" if ($debug >= 2);
-      $fixedAlert      .= "$xml->{Ressource}->{Server}-$xml->{Ressource}->{Name}+";
-    }
-
-    $alert .= ", $fixedAlert" if ($fixedAlert ne "+");
-  }
-
-  $debugfileMessage .= "\n</TABLE>\n</BODY>\n</HTML>";
-  write_debugfile($debug, $debugfile, 0, $debugfileMessage);
+  $objectPlugins->pluginValue ( { alert => $fixedAlert }, $TYPE{COMMA_APPEND} ) if ($fixedAlert ne "+");
 }
 
-($endTime, $responseTime) = setEndTime_and_getResponsTime ($endTime);
-$performanceData = "receiving=" .$responseTime. "ms;" .($trendline*1000). ";;;";
+$debugfileMessage .= "\n</TABLE>\n</BODY>\n</HTML>";
+$objectPlugins->write_debugfile ( \$debugfileMessage, 0 );
 
 # Sending Fingerprint Mail  - - - - - - - - - - - - - - - - - - - - - - -
 
-($returnCode, $alert, $state) = scan_socket_info ( 'tcp', $serverSMTP, '25', 'smtp', 'OK (221)', $boolean_unixSystem, $alert, $state, $debug );
+($returnCode) = $objectMAIL->sending_fingerprint_mail();
 
-if ( $returnCode ) {
-  ($returnCode, $alert, $state) = sending_fingerprint_mail ( $alert, $state, $serverListSMTP, $mailTo, $mailFrom, $mailSubject, $mailHeader, $mailBranding, $mailTimestamp, $mailStatus, $mailBody, $debug );
-}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-($endTime, $responseTime) = setEndTime_and_getResponsTime ($endTime);
-$performanceData .= " sending=" .$responseTime. "ms;" .($trendline*1000). ";;;";
+$objectPlugins->exit (7);
 
-($endTime, $responseTime) = setEndTime_and_getResponsTime ($startTime);
-$performanceData .= " Total=" .$responseTime. "ms;" .($trendline*1000). ";;;";
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-exit_plugin ( $asnmtapEnv, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $performanceData );
-
-# Function needed by receiving_fingerprint_mails!!! - - - - - - - - - - - -
+# Function needed by receiving_fingerprint_mail ! - - - - - - - - - - - -
 
 sub actionOnMailBody {
-  my ($tNumberOfMails, $tAlert, $tState, $tResultXML, $tPop, $tMsgnum, $tDate, $tTime, $tDay, $tMonth, $tYear, $tHour, $tMin, $tSec, $tDebug, $tEnvironment, $tXml, $tHeaderXML, $tFooterXML, $tValidateDTD, $tFilenameDTD, $tOnDemand) = @_;
+  my ($self, $asnmtapInherited, $pop3, $msgnum, $arguments) = @_;
 
-  print "# mail(s) : $tNumberOfMails\nAlert     : $tAlert\nState     : $tState\nResult    : $tResultXML\nPop       : $tPop\nmsgnum    : $tMsgnum\nDebug     : $tDebug\nEnvironm. : $tEnvironment\nHeader    : $tHeaderXML\nFooter    : $tFooterXML\nValidate  : $tValidateDTD\nFilename  : $tFilenameDTD\n" if ( $tDebug >= 2 );
+  my $debug = $$asnmtapInherited->getOptionsValue ('debug');
 
-  my ($returnCode, $stateXML, $xml);
-  ( $returnCode, $stateXML, $tAlert, $xml ) = extract_XML($tState, $tAlert, $tResultXML, undef, $tHeaderXML, $tFooterXML, $tValidateDTD, $tFilenameDTD, $tDebug);
+  unless ( defined $arguments and ref $arguments eq 'REF' and ref $$arguments eq 'HASH' ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'actionOnMailBody: arguments need to be an REF HASH!!!' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
 
-  if ($returnCode == $ERRORS{'OK'}) {
-    # put here your code regarding the MailBody - - - - - - - - - - - - -
-    if ($tDebug) {
+  no warnings 'deprecated';
+
+  if ( $debug ) {
+    print "\n\nactionOnMailBody:\n". $self->{defaultArguments}->{result} ."\n\n"; 
+    while (my ($key, $value) = each %{ $$arguments } ) { print "actionOnMailBody: $key => $value\n"; }
+    print "\n";
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
+  my ($returnCode, $xml) = extract_XML ( asnmtapInherited => $asnmtapInherited, resultXML => $self->{defaultArguments}->{result}, headerXML => ${$$arguments}{header}, footerXML => ${$$arguments}{footer}, validateDTD => ${$$arguments}{validateDTD}, filenameDTD => ${$$arguments}{filenameDTD} );
+
+  unless ( $returnCode ) {
+    if ( $debug ) {
       print "<->\n", $xml->{Ressource}->{Server}, "\n";
       print "<->\n", $xml->{Ressource}->{Name}, "\n";
       print "<->\n", $xml->{Ressource}->{Date}, "\n";
@@ -234,7 +155,10 @@ sub actionOnMailBody {
       print "<->\n", $xml->{Ressource}->{Environment}, "\n";
     }
 
-    if ((($tEnvironment eq 'P') && $xml->{Ressource}->{Environment} =~ /^prod$/i) or (($tEnvironment eq 'S') && $xml->{Ressource}->{Environment} =~ /^sim$/i) or (($tEnvironment eq 'A') && $xml->{Ressource}->{Environment} =~ /^acc$/i) or (($tEnvironment eq 'T') && $xml->{Ressource}->{Environment} =~ /^test$/i) or (($tEnvironment eq 'D') && $xml->{Ressource}->{Environment} =~ /^dev$/i) or (($tEnvironment eq 'L') && $xml->{Ressource}->{Environment} =~ /^local$/i)) {
+    my $tXml = ${$$arguments}{xml};
+    my $environment = $$asnmtapInherited->getOptionsArgv('environment');
+
+    if ((($environment eq 'P') && $xml->{Ressource}->{Environment} =~ /^prod$/i) or (($environment eq 'S') && $xml->{Ressource}->{Environment} =~ /^sim$/i) or (($environment eq 'A') && $xml->{Ressource}->{Environment} =~ /^acc$/i) or (($environment eq 'T') && $xml->{Ressource}->{Environment} =~ /^test$/i) or (($environment eq 'D') && $xml->{Ressource}->{Environment} =~ /^dev$/i) or (($environment eq 'L') && $xml->{Ressource}->{Environment} =~ /^local$/i)) {
       my $push = 0;
 
       foreach my $tmpXML (@{$tXml}) {
@@ -243,7 +167,7 @@ sub actionOnMailBody {
                 ($tmpXML->{Ressource}->{Environment} eq $xml->{Ressource}->{Environment}) &&
                 ($tmpXML->{Ressource}->{ErrorStack} eq $xml->{Ressource}->{ErrorStack});
 
-        if ($push && $tDebug >= 2) { $push = ($tmpXML->{Ressource}->{ErrorDetail} eq $xml->{Ressource}->{ErrorDetail}); }
+        if ($push && $debug >= 2) { $push = ($tmpXML->{Ressource}->{ErrorDetail} eq $xml->{Ressource}->{ErrorDetail}); }
 
         if ($push) {
           $tmpXML->{Ressource}->{Errors}++;
@@ -256,42 +180,53 @@ sub actionOnMailBody {
         push (@{$tXml}, $xml);
       }
 
-      $xml->{Ressource}->{ErrorDetail} = "" if ($tDebug ne 2);
-      $tPop->delete($tMsgnum) if (! ($tOnDemand or $tDebug));
-      $tNumberOfMails++;
+      $xml->{Ressource}->{ErrorDetail} = '' if ( $debug != 2 );
+      $pop3->delete( $msgnum ) unless ( $debug or $$asnmtapInherited->getOptionsValue('onDemand') );
+      $self->{defaultArguments}->{numberOfMatches}++;
     }
 
-    if ( $tDebug ) {
+    if ( $debug ) {
       foreach my $xml (@{$tXml}) {
         print "\n+++(out)+++\n$xml->{Ressource}->{Name}\n$xml->{Ressource}->{Date}\n$xml->{Ressource}->{Time}\n$xml->{Ressource}->{Errors}\n";
       }
     }
   } else {
-    $tState = $stateXML;
-    $tPop->delete($tMsgnum) if ($tOnDemand and $tDebug >= 4);
+    $pop3->delete( $msgnum ) unless ( $debug >= 4 and $$asnmtapInherited->getOptionsValue('onDemand') );
   }
 
-  return ($tNumberOfMails, $tAlert, $tState, $tResultXML);
+  return ( $returnCode );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub printUsage () {
-  print "Usage: $PROGNAME [-e <environment>] $PLUGINUSAGE\n";
-}
+__END__
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+=head1 NAME
 
-sub printHelp () {
-  printRevision($PROGNAME, $version);
-  print "This is the plugin '$prgtext'\n";
-  printUsage();
+check_template-mail-xml.pl
 
-  print "
--e, --environment=P(roduction)|T(est)|A(cceptation)|S(imulation)|D(evelopment)|L(ocal)
-";
+Mail XML plugin template for testing the 'Application Monitoring'
 
-  support();
-}
+The ASNMTAP plugins come with ABSOLUTELY NO WARRANTY.
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+=head1 AUTHOR
+
+Alex Peeters [alex.peeters@citap.be]
+
+=head1 COPYRIGHT NOTICE
+
+(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+                        All Rights Reserved.
+
+=head1 LICENSE
+
+This ASNMTAP CPAN library and Plugin templates are free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The other parts of ASNMTAP may be used and modified free of charge by anyone so long as this copyright notice and the comments above remain intact. By using this code you agree to indemnify Alex Peeters from any liability that might arise from it's use.
+
+Selling the code for this program without prior written consent is expressly forbidden. In other words, please ask first before you try and make money off of my program.
+
+Obtain permission before redistributing this software over the Internet or in any other medium. In all cases copyright and header must remain intact.
+
+=cut
+

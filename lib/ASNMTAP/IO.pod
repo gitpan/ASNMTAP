@@ -49,7 +49,6 @@ ASNMTAP::Asnmtap
 =head1 DEPENDENCIES
 
 ASNMTAP::Asnmtap
-Carp
 IO::Socket
 
 =head1 COPYRIGHT NOTICE

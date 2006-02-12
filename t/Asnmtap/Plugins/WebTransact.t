@@ -1,20 +1,20 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 19;
+use Test::More tests => 18;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact v3.000.003' ) };
+#BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact v3.000.004' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.003;
+use ASNMTAP::Asnmtap::Plugins v3.000.004;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact.t',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.003',
-  _programGetOptions  => ['environment|e:s', 'proxy:s', 'trendline|T:i'],
+  _programVersion     => '3.000.004',
+  _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -25,7 +25,7 @@ can_ok( $objectPlugins, qw(appendPerformanceData browseragent clientCertificate 
 use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
 my @URLS = ();
-my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
 isa_ok( $objectWebTransact, 'ASNMTAP::Asnmtap::Plugins::WebTransact' );
 can_ok( $objectWebTransact, qw(matches get_matches set_matches returns get_returns set_returns urls get_urls set_urls) );
@@ -56,8 +56,8 @@ ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::WebTransact::get_matches():');
 );
 
 $objectWebTransact->set_urls( \@URLS );
-$returnCode = $objectWebTransact->check ( { }, asnmtapInherited => \$objectPlugins );
-ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::WebTransact::set_urls():');
+$returnCode = $objectWebTransact->check ( { } );
+ok ($returnCode != 4, 'ASNMTAP::Asnmtap::Plugins::WebTransact::set_urls():');
 
 $returnCode = 0;
 foreach ( @{ $objectWebTransact->get_urls() } ) { $returnCode = 1; last; };
@@ -68,7 +68,7 @@ SKIP: {
   my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
   skip 'reason: ASNMTAP_PROXY', 5 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
 
-  $returnCode = $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { } );
   ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::WebTransact::check():');
 
 
@@ -86,7 +86,7 @@ SKIP: {
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, asnmtapInherited => \$objectPlugins, newAgent => 0 );
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, newAgent => 0 );
   ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::WebTransact::check():');
 
 

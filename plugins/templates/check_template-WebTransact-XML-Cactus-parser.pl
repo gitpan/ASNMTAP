@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
+# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.003;
+use ASNMTAP::Asnmtap::Plugins v3.000.004;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,11 +19,8 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Cactus-parser.pl',
   _programDescription => "WebTransact XML Cactus parser HTTP/HTTPS plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.003',
-  _programGetOptions  => ['filename|F:s', 'environment|e:s', 'proxy:s', 'trendline|T:i'],
-  _programUsagePrefix => '-F|--filename <filename>',
-  _programHelpPrefix  => "-F, --filename=<FILENAME>
-   FILENAME: Cactus XML 'filename'",
+  _programVersion     => '3.000.004',
+  _programGetOptions  => ['filename|f:s', 'environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 300,
   _debug              => 0);
 
@@ -77,9 +74,9 @@ if ($httpNotByFile) {
     { Method => "GET",  Url => URL, Qs_var => [], Qs_fixed => [suite => TESTSUITE], Exp => EXP, Exp_Fault => EXP_FAULT, Msg => MSG, Msg_Fault => MSG_FAULT },
   );
 
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
-  $returnCode = $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins );
+  $returnCode = $objectWebTransact->check ( { } );
   undef $objectWebTransact;
   $objectPlugins->exit (7) if ( $returnCode );
 

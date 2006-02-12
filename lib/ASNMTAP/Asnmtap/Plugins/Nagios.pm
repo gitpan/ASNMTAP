@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,18 +36,22 @@ BEGIN {
                                                                        $PREFIXPATH $PLUGINPATH
                                                                        %ERRORS %STATE %TYPE
 
-                                                                       $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                                                       $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+
+                                                                       &convert_to_KB &convert_from_KB_to_metric ) ],
 
                                                       NAGIOS   => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                        $CAPTUREOUTPUT
                                                                        $PREFIXPATH $PLUGINPATH
-                                                                       %ERRORS %STATE %TYPE) ],
+                                                                       %ERRORS %STATE %TYPE
+
+                                                                       &convert_to_KB &convert_from_KB_to_metric ) ],
 
                                                       COMMANDS => [ qw($PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ] );
 
   @ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = 3.000.004;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -63,8 +67,9 @@ sub convert_from_KB_to_metric;
 
 sub convert_to_KB {
   my ($metric, $value) = @_;
-  my $result = ($metric =~ /^[Gg]$/) ? $value * (1024 * 1024) : (($metric =~ /^[Mm]$/) ? $value * 1024 : $value);
-  return ($result)
+
+  my $result = ($metric =~ /^[Gg]$/) ? $value * (1024 * 1024) : ( ($metric =~ /^[Mm]$/) ? $value * 1024 : $value );
+  return ( $result )
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,9 +77,9 @@ sub convert_to_KB {
 sub convert_from_KB_to_metric {
   my ($metric, $value) = @_;
 
-  my $result = ($metric eq 'GB') ? $value / (1024 * 1024) : (($metric eq 'MB') ? $value / 1024 : $value);
+  my $result = ($metric eq 'GB') ? $value / (1024 * 1024) : ( ($metric eq 'MB') ? $value / 1024 : $value );
   $result = sprintf("%.2f", $result) if ($metric ne 'kB');
-  return ($result)
+  return ( $result )
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -83,7 +88,7 @@ sub _init {
   $_[0]->SUPER::_init($_[1]);
   carp ('ASNMTAP::Asnmtap::Plugins::Nagios: _init') if ( $_[0]->{_debug} );
 
-  $_[0]->{_programUsageSuffix} = ' [-o|--ostype <OSTYPE>] [-m|--metric <METRIC>] ' . $_[0]->{_programUsageSuffix};
+  $_[0]->{_programUsageSuffix} = ' [-o|--ostype <OSTYPE>] [-m|--metric <METRIC>] '. $_[0]->{_programUsageSuffix};
 
   $_[0]->{_programHelpSuffix} = "
 -o, --ostype=<OSTYPE>
@@ -100,11 +105,37 @@ sub _getOptions {
   $_[0]->SUPER::_getOptions();
   carp ('ASNMTAP::Asnmtap::Plugins::Nagios: _getOptions') if ( $_[0]->{_debug} );
 
-  my $osType = (exists $_[0]->{_getOptionsArgv}->{ostype}) ? $_[0]->{_getOptionsArgv}->{ostype} : $^O;
-  $_[0]->{_getOptionsValues}->{osType} = $osType;
+  my $osType = ( exists $_[0]->{_getOptionsArgv}->{ostype} ) ? $_[0]->{_getOptionsArgv}->{ostype} : undef;
+  $osType = ( defined $osType ? $osType : ( defined $^O ? $^O : 'Linux' ) );
+
+  my $osVersion = ( exists $_[0]->{_getOptionsArgv}->{osversion} ) ? $_[0]->{_getOptionsArgv}->{osversion} : undef;
+
+  for ( $osType ) {
+    /aix/i                   && do { $osType = 'AIX';     last; };
+    /cygwin/i                && do { $osType = 'Cygwin';  last; };
+    /freebsd/i               && do { $osType = 'FreeBSD'; last; };
+    /linux/i                 && do { $osType = 'Linux';   last; };
+    /hp-ux/i                 && do { $osType = 'HP-UX';   last; };
+    /irix/i                  && do { $osType = 'Irix';    last; };
+    /macos/i                 && do { $osType = 'MacOS';   last; };
+    /(?:FreeMiNt|MiNT)/i     && do { $osType = 'MiNT';    last; };
+    /netbsd/i                && do { $osType = 'NetBSD';  last; };
+    /netware/i               && do { $osType = 'NetWare'; last; };
+    /openbsd/i               && do { $osType = 'OpenBSD'; last; };
+    /os2/i                   && do { $osType = 'OS2';     last; };
+    /sco/i                   && do { $osType = 'SCO';     last; };
+    /solaris/i               && do { $osType = 'Solaris'; last; };
+    /stratus/i               && do { $osType = 'Stratus'; last; };
+    /unix/i                  && do { $osType = 'Unix';    last; };
+    /vms/i                   && do { $osType = 'VMS';     last; };
+    /mswin32/i               && do { $osType = 'Win32';   last; };
+  }
+
+  $_[0]->{_getOptionsValues}->{osType}    = $osType;
+  $_[0]->{_getOptionsValues}->{osVersion} = $osVersion;
 
   my $metric = (exists $_[0]->{_getOptionsArgv}->{metric}) ? $_[0]->{_getOptionsArgv}->{metric} : 'kB';
-  $_[0]->printUsage ('Invalid metric option: ' . $metric) unless ($metric =~ /^k|M|G$/);
+  $_[0]->printUsage ('Invalid metric option: '. $metric) unless ($metric =~ /^k|M|G$/);
   $_[0]->{_getOptionsValues}->{metric} = ($metric eq 'M') ? 'MB' : ($metric eq 'G') ? 'GB' : 'kB';
 }
 
@@ -128,11 +159,11 @@ __END__
 
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugin::Nagios Subclass of ASNMTAP::Asnmtap::Plugins
+ASNMTAP::Asnmtap::Plugin::Nagios provides a nice object oriented interface for building Nagios (http://www.nagios.org) compatible plugins.
 
 =head1 Description
 
-This module that provides a nice object oriented interface for building Nagios (http://www.nagios.org) compatible plugins.
+ASNMTAP::Asnmtap::Plugin::Nagios Subclass of ASNMTAP::Asnmtap::Plugins
 
 =head1 SEE ALSO
 

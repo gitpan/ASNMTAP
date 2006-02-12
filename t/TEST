@@ -36,13 +36,13 @@ if (@ARGV) {
   @tests = (<IO.t>, <Time.t>, <Asnmtap.t>);
 
   if ( -f 'APPLICATIONS_ENABLED' ) {
-    push ( @tests, (<Asnmtap/Applications.t>, <Asnmtap/Applications/*.t>) );
-  # push ( @tests, () )                                   if ( -f 'APPLICATIONS_CGI_ENABLED' );
+#   push ( @tests, (<Asnmtap/Applications.t>, <Asnmtap/Applications/*.t>) );
+    push ( @tests, () )                                   if ( -f 'APPLICATIONS_CGI_ENABLED' );
   }
 
   if ( -f 'PLUGINS_ENABLED' ) {
     push ( @tests, <Asnmtap/Plugins.t> );
-#   push ( @tests, <Asnmtap/Plugins/Mail.t> )             if ( -f 'PLUGINS_MAIL_ENABLED' );
+    push ( @tests, <Asnmtap/Plugins/Mail.t> )             if ( -f 'PLUGINS_MAIL_ENABLED' );
 #   push ( @tests, <Asnmtap/Plugins/Modem.t> )            if ( -f 'PLUGINS_MODEM_ENABLED' );
     push ( @tests, <Asnmtap/Plugins/Nagios.t> )           if ( -f 'PLUGINS_NAGIOS_ENABLED' );
     push ( @tests, <Asnmtap/Plugins/SOAP.t> )             if ( -f 'PLUGINS_SOAP_ENABLED' );
@@ -72,10 +72,10 @@ if (@ARGV) {
       }
 	  
       if ( -f 'PLUGINS_MAIL_ENABLED' ) {
-#        push ( @tests, <Templates/Plugins/Mail/check_template-mail.t> );
+        push ( @tests, <Templates/Plugins/Mail/check_template-mail.t> );
 
         if ( -f 'PLUGINS_XML_ENABLED' ) {
-#         push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t> <Templates/Plugins/Mail/check_template-mail-xml.t> <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>) );
+          push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>) );
         }
       }
 #      push ( @tests, <Templates/Plugins/Modem/*.t> )      if ( -f 'PLUGINS_MODEM_ENABLED' );

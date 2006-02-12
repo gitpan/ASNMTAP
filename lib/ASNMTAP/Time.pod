@@ -4,7 +4,7 @@ ASNMTAP::Time is a Perl module that provides date and time functions used by ASN
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Time v3.000.003;
+  use ASNMTAP::Time v3.000.004;
   use ASNMTAP::Time qw(:ALL);
 
   print "Timeslot current  : ", get_timeslot (), "\n";

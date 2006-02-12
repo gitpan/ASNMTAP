@@ -7,14 +7,14 @@ Asnmtap.cnf                                         General config file for ASNM
 lib/ASNMTAP/Asnmtap.pm
 lib/ASNMTAP/Asnmtap.pod
 
-# lib/ASNMTAP/Asnmtap/Applications.pm
-# lib/ASNMTAP/Asnmtap/Applications.pod
-# lib/ASNMTAP/Asnmtap/Applications/CGI.pm
-# lib/ASNMTAP/Asnmtap/Applications/CGI.pod
-# lib/ASNMTAP/Asnmtap/Applications/Collector.pm
-# lib/ASNMTAP/Asnmtap/Applications/Collector.pod
-# lib/ASNMTAP/Asnmtap/Applications/Display.pm
-# lib/ASNMTAP/Asnmtap/Applications/Display.pod
+lib/ASNMTAP/Asnmtap/Applications.pm
+lib/ASNMTAP/Asnmtap/Applications.pod
+lib/ASNMTAP/Asnmtap/Applications/CGI.pm
+lib/ASNMTAP/Asnmtap/Applications/CGI.pod
+lib/ASNMTAP/Asnmtap/Applications/Collector.pm
+lib/ASNMTAP/Asnmtap/Applications/Collector.pod
+lib/ASNMTAP/Asnmtap/Applications/Display.pm
+lib/ASNMTAP/Asnmtap/Applications/Display.pod
 
 lib/ASNMTAP/Asnmtap/Plugins.pm
 lib/ASNMTAP/Asnmtap/Plugins.pod
@@ -41,10 +41,10 @@ t/TEST												Run tests
 
 t/Asnmtap.t
 
-# t/Asnmtap/Applications.t
-# t/Asnmtap/Applications/CGI.t
-# t/Asnmtap/Applications/Collector.t
-# t/Asnmtap/Applications/Display.t
+t/Asnmtap/Applications.t
+t/Asnmtap/Applications/CGI.t
+t/Asnmtap/Applications/Collector.t
+t/Asnmtap/Applications/Display.t
 
 t/Asnmtap/Plugins.t
 t/Asnmtap/Plugins/Mail.t

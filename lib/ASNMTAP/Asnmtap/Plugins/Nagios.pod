@@ -1,12 +1,8 @@
 =head1 NAME
 
+ASNMTAP::Asnmtap::Plugin::Nagios provides a nice object oriented interface for building Nagios (http://www.nagios.org) compatible plugins.
+
 ASNMTAP::Asnmtap::Plugin::Nagios Subclass of ASNMTAP::Asnmtap::Plugins
-
-TODO:
-
-  - convert_to_KB
-
-  - convert_from_KB_to_metric
 
 =head1 SYNOPSIS
 
@@ -20,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.003;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.004;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -36,9 +32,28 @@ $objectNagios->exit (7);
 
 =item _programGetOptions:
 
-'-o, --ostype=<ostype>
- -m, --metric=<k|M|G>,
-   k=kB (default), M=MB or G=GB'
+ -o, --ostype=<ostype>
+   AIX
+   Cygwin
+   FreeBSD
+   Linux
+   HP-UX
+   Irix
+   MacOS
+   MiNT
+   NetBSD
+   NetWare
+   OpenBSD
+   OS2
+   SCO
+   Solaris
+   Stratus
+   Unix
+   VMS
+   Win32
+
+ -m, --metric=<k|M|G>
+   where k=kB (default), M=MB or G=GB
 
 =item _getOptionsArgs
 
@@ -61,6 +76,20 @@ equals kB for k, MB for M and GB for G
 =item _pluginValues
 
 there are no specific plugin values defined for ASNMTAP::Asnmtap::Plugins::Nagios!
+
+=back
+
+=head1 Public functions
+
+=over 4
+
+=item convert_to_KB()
+
+convert scalar value to KB
+
+=item convert_from_KB_to_metric()
+
+convert scalar value in KB to given metric where equals kB for k, MB for M and GB for G
 
 =back
 
@@ -164,7 +193,38 @@ call_system()
 
 =head1 EXPORT
 
-...
+=head2 TAGS
+
+=over 4
+
+=item *
+
+ALL
+
+  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+  $CAPTUREOUTPUT
+  $PREFIXPATH $PLUGINPATH
+  %ERRORS %STATE %TYPE
+  $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  &convert_to_KB &convert_from_KB_to_metric
+
+=item *
+
+NAGIOS
+
+  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+  $CAPTUREOUTPUT
+  $PREFIXPATH $PLUGINPATH
+  %ERRORS %STATE %TYPE
+  &convert_to_KB &convert_from_KB_to_metric
+
+=item *
+
+COMMANDS
+
+  $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+
+=back
 
 =head1 AUTHOR
 
@@ -174,12 +234,28 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
+  check_template-ftp.pl
+  check_template-ldap.pl
+  check_template-nagios.pl
+  check_xml-monitoring.pl
+  check_xml.pl
+
 =head1 DEPENDENCIES
 
-  ASNMTAP::Asnmtap
   ASNMTAP::Asnmtap::Plugins
-  Carp
   Time::Local
+
+  check_template-ldap.pl
+  Net::LDAP
+
+    Dependencies Net::LDAP:
+    Convert::ASN1   - required
+    URI::ldap       - optional, needed for URL parsing
+    Digest::MD5     - optional, needed for SASL CRAM-MD5 auth
+    Net::SSLeay     - optional, needed for IO::Socket::SSL
+                        needed OpenSSL-0.9.7b or newer...
+    IO::Socket::SSL - optional, needed for Net::LDAPS
+    XML::Parser     - optional, needed for Net::LDAP::DSML
 
 =head1 COPYRIGHT NOTICE
 

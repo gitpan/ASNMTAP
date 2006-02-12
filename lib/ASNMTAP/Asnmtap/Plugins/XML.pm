@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::XML::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::XML::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.004;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -145,7 +145,7 @@ sub extract_XML {
     return ( $ERRORS{UNKNOWN} );
   }
 
-  if ($debug >= 2) {
+  if ( $debug >= 2 ) {
     use Data::Dumper;
     print "\nASNMTAP::Asnmtap::Plugins::XML: Start XML data dump\n", Dumper( $returnXML ), "\nASNMTAP::Asnmtap::Plugins::XML: End XML data dump\n";
   }

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -58,7 +58,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.004;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -67,7 +67,9 @@ sub _init {
   $_[0]->SUPER::_init($_[1]);
   carp ('ASNMTAP::Asnmtap::Plugins: _init') if ( $_[0]->{_debug} );
 
-  $_[0]->{_programUsageSuffix} = ' [-S|--status N] [-A|asnmtapEnv [F|T]|[F|T]|[F|T]] [-O|onDemand F|T|N|Y] [-L|--logging <LOGGING>] [-D|--debugfile <DEBUGFILE>] [-d|--debug F|T|L|M|A|S] ' . $_[0]->{_programUsageSuffix};
+  # --httpdump - tijdelijk voor backwards compatibiliteit !!!
+
+  $_[0]->{_programUsageSuffix} = ' [-S|--status N] [-A|asnmtapEnv [F|T]|[F|T]|[F|T]] [-O|onDemand F|T|N|Y] [-L|--logging <LOGGING>] [-D|--debugfile|--httpdump <DEBUGFILE>] [-d|--debug F|T|L|M|A|S] '. $_[0]->{_programUsageSuffix};
 
   $_[0]->{_programHelpSuffix}  = "
 -S, --status=N
@@ -86,7 +88,7 @@ sub _init {
    T(true)/Y(es) : plugin launched on demand
 -L, --logging=LOGGING
    write logging to file LOGGING
--D, --debugfile=DEBUGFILE
+-D, --debugfile, --httpdump=DEBUGFILE
    write debug to file DEBUGFILE
 -d, --debug=F|T|L|M|A|S
    F(alse)       : screendebugging off (default)
@@ -97,15 +99,14 @@ sub _init {
    S(erver Admin): long screendebugging on for Server Admins
 " . $_[0]->{_programHelpSuffix};
 
-  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|D:s', 'debug|d:s' );
+  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|httpdump|D:s', 'debug|d:s' );
 
   my ($_programUsageSuffix, $_programHelpSuffix);
 
   foreach ( @{ $_[0]->{_programGetOptions} } ) {
-  foreach ( @{ $_[0]->{_programGetOptions} } ) {
     for ($_) {
-      /^timeout\|t([:=])i$/             && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-t|--timeout <TIMEOUT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-t, --timeout=<TIMEOUT>\n   timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time\n"; last; };
       /^trendline\|T([:=])i$/           && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-T|--trendline <TRENDLINE>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-T, --trendline <TRENDLINE>\n   trendline threshold (seconds) from which a TRENDLINE status will result for the plugin response time\n"; last; };
+      /^timeout\|t([:=])i$/             && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-t|--timeout <TIMEOUT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-t, --timeout=<TIMEOUT>\n   timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time\n"; last; };
       /^environment\|e([:=])s$/         && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-e|--environment <ENVIRONMENT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-e, --environment=<ENVIRONMENT>\n P(roduction)\n   S(imulation)\n   A(cceptation)\n   T(est)\n D(evelopment)\n   L(ocal)\n"; last; };
       /^proxy([:=])s$/                  && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'--proxy <username:password@proxy>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "--proxy=<username:password\@proxy>\n"; last; };
       /^host\|H([:=])s$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-H|--host <HOST>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-H, --host=<HOST>\n   hostname or ip address\n"; last; };
@@ -113,17 +114,24 @@ sub _init {
       /^port\|P([:=])i$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-P|--port <PORT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-P, --port=<PORT>\n"; last; };
       /^community\|C([:=])s$/           && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-C|--community <SNMP COMMUNITY>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-C, --community=<SNMP COMMUNITY>\n"; last; };      /^password\|passwd\|p([:=])s$/    && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-p|--password|--passwd <PASSWORD>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-p, --password/--passwd=<PASSWORD>\n"; last; };
       /^username\|u\|loginname([:=])s$/ && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-u|--username|--loginname <USERNAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-u, --username/--loginname=<USERNAME>\n"; last; };
+      /^filename\|F([:=])s$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-F|--filename <FILENAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-F, --filename=<FILENAME>\n   XML filename with the ASNMTAP/Nagios compatible test results\n"; last; };
+      /^interval\|i([:=])i$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-i|--interval <SECONDS>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-i, --interval=<SECONDS>\n   interval threshold (seconds) from which a CRITICAL (2x) or WARNING (1x) status will result when XML fingerprint out of time\n"; last; };
+      /^loglevel\|l([:=])s$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-l|--loglevel <LOGLEVEL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-l, --loglevel=<LOGLEVEL>\n   loglevel, one of (order of decrescent verbosity): debug, verbose, notice, info, warning, err, crit, alert, emerg\n"; last; };
+      /^year\|Y([:=])i$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Y|--year <YEAR>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Y, --year=<YEAR>\n   year, format: [19|20|21]yy\n"; last; };
+      /^quarter\|Q([:=])i$/             && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Q|--quarter <QUARTER>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Q, --quarter=<QUARTER>\n   quarter, where value 0..4\n"; last; };
+      /^month\|M([:=])i$/               && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-M|--month <MONTH>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-M, --month=<MONTH>\n   month, where value 1..12\n"; last; };
     }
-  }
   }
 
   $_[0]->{_programUsageSuffix} = $_programUsageSuffix .' '. $_[0]->{_programUsageSuffix} if (defined $_programUsageSuffix);
 
   $_[0]->{_programHelpSuffix} = "\n". $_programHelpSuffix . $_[0]->{_programHelpSuffix} if (defined $_programHelpSuffix);
-  
+
+  $_[0]->[ $_[0]->[0]{_exit_} = @{$_[0]} ] = 0;
+
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.003 postfix; nl-BE; rv:3.000.003) Gecko/20060115 libwww-perl/5.803";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.004 postfix; nl-BE; rv:3.000.004) Gecko/20060115 libwww-perl/5.803";
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }
@@ -134,17 +142,36 @@ sub _getOptions {
   $_[0]->SUPER::_getOptions();
   carp ('ASNMTAP::Asnmtap::Plugins: _getOptions') if ( $_[0]->{_debug} );
 
+  # Default _pluginValues - - - - - - - - - - - - - - - - - - - - - - - -
+
+  $_[0]->[ $_[0]->[0]{_pluginValues}   = @{$_[0]} ] = {};
+
+  $_[0]->{_pluginValues}->{stateValue} = $ERRORS{DEPENDENT};
+  $_[0]->{_pluginValues}->{stateError} = $STATE{$_[0]->{_pluginValues}->{stateValue}};
+
+  $_[0]->{_pluginValues}->{message}    = $_[0]->{_programDescription};
+
+  $_[0]->{_pluginValues}->{alert}      = undef;
+  $_[0]->{_pluginValues}->{error}      = undef;
+  $_[0]->{_pluginValues}->{result}     = undef;
+
+  $_[0]->{_pluginValues}->{performanceData} = undef;
+
+  my ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
+  $_[0]->{_pluginValues}->{startTime}  = $startTimeSeconds .'.'. $startTimeMicroseconds;
+  $_[0]->{_pluginValues}->{endTime}    = $_[0]->{_pluginValues}->{startTime};
+
   # Default command line options  - - - - - - - - - - - - - - - - - - - -
 
   my $status = (exists $_[0]->{_getOptionsArgv}->{status}) ? $_[0]->{_getOptionsArgv}->{status} : 'N';
-  $_[0]->printUsage ('Invalid status option: ' . $status) unless ($status =~ /^[N]$/);
+  $_[0]->printUsage ('Invalid status option: '. $status) unless ($status =~ /^[N]$/);
 
   if (exists $_[0]->{_getOptionsArgv}->{asnmtapEnv}) {
     my $asnmtapEnv = $_[0]->{_getOptionsArgv}->{asnmtapEnv};
 
     my ($boolean_screenDebug, $boolean_debug_all, $boolean_debug_NOK) = split (/\|/, $asnmtapEnv);
-    $_[0]->printUsage ('Wrong ASNMTAP environment options: ' . $asnmtapEnv) unless (defined $boolean_screenDebug and defined $boolean_debug_all and defined $boolean_debug_NOK);
-    $_[0]->printUsage ('Invalid ASNMTAP environment options: ' . $asnmtapEnv) unless ($boolean_screenDebug =~ /^[TF]$/ and $boolean_debug_all =~ /^[TF]$/ and $boolean_debug_NOK =~ /^[TF]$/);
+    $_[0]->printUsage ('Wrong ASNMTAP environment options: '. $asnmtapEnv) unless (defined $boolean_screenDebug and defined $boolean_debug_all and defined $boolean_debug_NOK);
+    $_[0]->printUsage ('Invalid ASNMTAP environment options: '. $asnmtapEnv) unless ($boolean_screenDebug =~ /^[TF]$/ and $boolean_debug_all =~ /^[TF]$/ and $boolean_debug_NOK =~ /^[TF]$/);
 
     $_[0]->{_getOptionsValues}->{boolean_screenDebug} = ($boolean_screenDebug eq 'T') ? 1 : 0;
     $_[0]->{_getOptionsValues}->{boolean_debug_all}   = ($boolean_debug_all eq 'T')   ? 1 : 0;
@@ -156,7 +183,7 @@ sub _getOptions {
   }
 
   my $onDemand = (exists $_[0]->{_getOptionsArgv}->{onDemand}) ? $_[0]->{_getOptionsArgv}->{onDemand} : 'F';
-  $_[0]->printUsage ('Invalid on demand option: ' . $onDemand) unless ($onDemand =~ /^[FTNY]$/);
+  $_[0]->printUsage ('Invalid on demand option: '. $onDemand) unless ($onDemand =~ /^[FTNY]$/);
   $_[0]->{_getOptionsValues}->{onDemand} = ($onDemand =~ /^[TY]$/) ? 1 : 0;
 
   # exists $_[0]->{_getOptionsArgv}->{logging}
@@ -166,17 +193,23 @@ sub _getOptions {
   }
   
   my $debug = (exists $_[0]->{_getOptionsArgv}->{debug}) ? $_[0]->{_getOptionsArgv}->{debug} : 'F';
-  $_[0]->printUsage ('Invalid debug option: ' . $debug) unless ($debug =~ /^[FTLMAS]$/);
+  $_[0]->printUsage ('Invalid debug option: '. $debug) unless ($debug =~ /^[FTLMAS]$/);
   $_[0]->{_getOptionsValues}->{debug} = ($debug eq 'T') ? 1 : (($debug eq 'L') ? 2 : (($debug eq 'M') ? 3 : (($debug eq 'A') ? 4 : ((($debug eq 'S') ? 5 : 0)))));
 
   # Reserved command line options - - - - - - - - - - - - - - - - - - - -
 
-  # exists $_[0]->{_getOptionsArgv}->{timeout}
+  if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
+    my $timeout = $1 if ( $_[0]->{_getOptionsArgv}->{timeout} =~ m/^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid timeout: '. $_[0]->{_getOptionsArgv}->{timeout}) unless (defined $timeout);
+  }
 
-  # exists $_[0]->{_getOptionsArgv}->{trendline}
+  if ( exists $_[0]->{_getOptionsArgv}->{trendline} ) {
+    my $trendline = $1 if ( $_[0]->{_getOptionsArgv}->{trendline} =~ m/^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid trendline: '. $_[0]->{_getOptionsArgv}->{trendline}) unless (defined $trendline);
+  }
 
   if ( exists $_[0]->{_getOptionsArgv}->{environment} ) {
-    $_[0]->printUsage ('Invalid environment option: ' . $_[0]->{_getOptionsArgv}->{environment}) unless ($_[0]->{_getOptionsArgv}->{environment} =~ /^[PSATDL]$/);
+    $_[0]->printUsage ('Invalid environment option: '. $_[0]->{_getOptionsArgv}->{environment}) unless ($_[0]->{_getOptionsArgv}->{environment} =~ /^[PSATDL]$/);
 
     for ($_[0]->{_getOptionsArgv}->{environment}) {
       /P/ && do { $_[0]->{_getOptionsValues}->{environment} = "Production";  last; };
@@ -191,14 +224,18 @@ sub _getOptions {
 
   $_[0]->_init_proxy_and_client_certificate ();
 
-  if (exists $_[0]->{_getOptionsArgv}->{host}) {
+  if ( exists $_[0]->{_getOptionsArgv}->{host} ) {
     my $host = $1 if ( $_[0]->{_getOptionsArgv}->{host} =~ m/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[a-zA-Z][-a-zA-Z0-9]+(\.[a-zA-Z][-a-zA-Z0-9]+)*)$/ );
-    $_[0]->printUsage ('Invalid hostname or ip address: ' . $_[0]->{_getOptionsArgv}->{host}) unless (defined $host);
+    $_[0]->printUsage ('Invalid hostname or ip address: '. $_[0]->{_getOptionsArgv}->{host}) unless (defined $host);
   }
 
+  # RFC 1738: Uniform Resource Locators (URL)
   # exists $_[0]->{_getOptionsArgv}->{url}
 
-  # exists $_[0]->{_getOptionsArgv}->{port}
+  if ( exists $_[0]->{_getOptionsArgv}->{port} ) {
+    my $port = $1 if ( $_[0]->{_getOptionsArgv}->{port} =~ m/^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid port: '. $_[0]->{_getOptionsArgv}->{port}) unless (defined $port);
+  }
 
   # exists $_[0]->{_getOptionsArgv}->{community}
 
@@ -206,38 +243,67 @@ sub _getOptions {
 
   # exists $_[0]->{_getOptionsArgv}->{username}
 
+  # exists $_[0]->{_getOptionsArgv}->{filename}
+
+  if ( exists $_[0]->{_getOptionsArgv}->{interval} ) {
+    my $interval = $1 if ( $_[0]->{_getOptionsArgv}->{interval} =~ m/^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid interval: '. $_[0]->{_getOptionsArgv}->{interval}) unless (defined $interval);
+  }
+
+  if ( exists $_[0]->{_getOptionsArgv}->{loglevel} ) {
+    my $loglevel = $1 if ( $_[0]->{_getOptionsArgv}->{loglevel} =~ m/^(debug|verbose|notice|info|warning|err|crit|alert|emerg)$/ );
+    $_[0]->printUsage ('Invalid loglevel: '. $_[0]->{_getOptionsArgv}->{loglevel}) unless (defined $loglevel);
+  }
+
+  if ( exists $_[0]->{_getOptionsArgv}->{year} ) {
+    my $year = $1 if ( $_[0]->{_getOptionsArgv}->{year} =~ m/^((?:19|20|21)\d{2,2})$/ );
+    $_[0]->printUsage ('Invalid year: '. $_[0]->{_getOptionsArgv}->{year}) unless (defined $year);
+  }
+
+  if ( exists $_[0]->{_getOptionsArgv}->{quarter} ) {
+    my $quarter = $1 if ( $_[0]->{_getOptionsArgv}->{quarter} =~ m/^([1-4])$/ );
+    $_[0]->printUsage ('Invalid quarter: '. $_[0]->{_getOptionsArgv}->{quarter}) unless (defined $quarter);
+  }
+
+  if ( exists $_[0]->{_getOptionsArgv}->{month} ) {
+    my $month = $1 if ( $_[0]->{_getOptionsArgv}->{month} =~ m/^([1-9]|1[0-2])$/ );
+    $_[0]->printUsage ('Invalid month: '. $_[0]->{_getOptionsArgv}->{month}) unless (defined $month);
+  }
+
+  # Reserved command line options - - - - - - - - - - - - - - - - - - - -
+
   if (exists $_[0]->{_getOptionsArgv}->{warning}) {
-    my $warning = $1 if ( $_[0]->{_getOptionsArgv}->{warning} =~ /^(\d+)$/ );
-  # my $warning = $1 if ( $_[0]->{_getOptionsArgv}->{warning} =~ /^(\d(?:[:,]\d+)*)*$/ );
-    $_[0]->printUsage ('Invalid warning threshold ranges ' . $_[0]->{_getOptionsArgv}->{warning}) unless (defined $warning);
+    my $warning = $1 if ( $_[0]->{_getOptionsArgv}->{warning} =~ /^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid warning threshold ranges '. $_[0]->{_getOptionsArgv}->{warning}) unless (defined $warning);
   }
 
   if (exists $_[0]->{_getOptionsArgv}->{critical}) {
-    my $critical = $1 if ($_[0]->{_getOptionsArgv}->{critical} =~ /^(\d+)$/ );
-  # my $critical = $1 if ($_[0]->{_getOptionsArgv}->{critical} =~ /^(\d(?:[:,]\d+)*)*$/ );
-    $_[0]->printUsage ('Invalid critical threshold range: ' . $_[0]->{_getOptionsArgv}->{critical}) unless (defined $critical);
+    my $critical = $1 if ($_[0]->{_getOptionsArgv}->{critical} =~ /^([1-9]?(?:\d*))$/ );
+    $_[0]->printUsage ('Invalid critical threshold range: '. $_[0]->{_getOptionsArgv}->{critical}) unless (defined $critical);
   }
 
   # Default _pluginValues - - - - - - - - - - - - - - - - - - - - - - - -
 
-  $_[0]->[ $_[0]->[0]{_pluginValues} = @{$_[0]} ] = {};
+  $_[0]->{_pluginValues}->{message}  .= ' ('. $_[0]->{_getOptionsValues}->{environment} .')' if ( defined $_[0]->{_getOptionsValues}->{environment} );
 
-  $_[0]->{_pluginValues}->{stateValue} = $ERRORS{DEPENDENT};
-  $_[0]->{_pluginValues}->{stateError} = $STATE{$_[0]->{_pluginValues}->{stateValue}};
-
-  $_[0]->{_pluginValues}->{message}    = $_[0]->{_programDescription};
-  $_[0]->{_pluginValues}->{message}   .= ' ('. $_[0]->{_getOptionsValues}->{environment} .')' if ( defined $_[0]->{_getOptionsValues}->{environment} );
-
-  $_[0]->{_pluginValues}->{alert}      = undef;
-  $_[0]->{_pluginValues}->{error}      = undef;
-  $_[0]->{_pluginValues}->{result}     = undef;
-
-  $_[0]->{_pluginValues}->{performanceData} = undef;
-
-  my ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
+  ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
   $_[0]->{_pluginValues}->{startTime} = $startTimeSeconds .'.'. $startTimeMicroseconds;
+  $_[0]->{_pluginValues}->{endTime}   = $_[0]->{_pluginValues}->{startTime};
 
-  $_[0]->{_pluginValues}->{endTime} = $_[0]->{_pluginValues}->{startTime};
+  # Timing Out Slow Plugins - part 1/2 - - - - - - - - - - - - - - - - - -
+
+  if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
+    $_[0]->{_pluginValues}->{_alarm_} = alarm (0);
+
+    if ( $_[0]->{_pluginValues}->{_alarm_} && ( $_[0]->{_getOptionsArgv}->{timeout} > $_[0]->{_pluginValues}->{_alarm_} ) ) {
+      $_[0]->{_getOptionsArgv}->{timeout} = $_[0]->{_pluginValues}->{_alarm_};
+    }
+
+    $_[0]->{_pluginValues}->{_handler_} = $SIG{ALRM};
+    $SIG{ALRM} = sub { alarm 0; die "ASNMTAP::Asnmtap::Plugins::Alarm went off\n"; };
+
+    alarm ( $_[0]->{_getOptionsArgv}->{timeout} );
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -251,7 +317,7 @@ sub _init_proxy_and_client_certificate {
 
 	if (defined $proxyServer) {
       ($proxyUsername, $proxyPassword) = split(/\:/, $proxyUsernamePassword, 2);
-      $_[0]->printUsage ('Username and/or Password missing: : ' . $proxy) unless (defined $proxyUsername and defined $proxyPassword);
+      $_[0]->printUsage ('Username and/or Password missing: : '. $proxy) unless (defined $proxyUsername and defined $proxyPassword);
     } else {
       $proxyServer = $proxy;
     }
@@ -300,7 +366,7 @@ sub _init_proxy_and_client_certificate {
 
 # Object accessor methods - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub appendPerformanceData { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1; $_[0]->{_pluginValues}->{performanceData} .= ' ' . $_[1] if ( defined $_[1] ); }
+sub appendPerformanceData { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1; $_[0]->{_pluginValues}->{performanceData} .= ' '. $_[1] if ( defined $_[1] ); }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -374,11 +440,19 @@ sub pluginValues {
     $_[0]->{_pluginValues}->{alert} = $_[1]->{alert} if ( defined $_[1]->{alert} );
     $_[0]->{_pluginValues}->{error} = $_[1]->{error} if ( defined $_[1]->{error} );
   } elsif ( $_[2] == $TYPE{APPEND} ) {
-    $_[0]->{_pluginValues}->{alert} .= ( ( $_[0]->{_pluginValues}->{alert} ? ' - ' : '' ) . $_[1]->{alert} ) if ( defined $_[1]->{alert} );
-    $_[0]->{_pluginValues}->{error} .= ( ( $_[0]->{_pluginValues}->{error} ? ' - ' : '' ) . $_[1]->{error} ) if ( defined $_[1]->{error} );
+    $_[0]->{_pluginValues}->{alert} .= ( ( defined $_[0]->{_pluginValues}->{alert} ? ' - ' : '' ) .$_[1]->{alert} ) if ( defined $_[1]->{alert} );
+    $_[0]->{_pluginValues}->{error} .= ( ( defined $_[0]->{_pluginValues}->{error} ? ' - ' : '' ) .$_[1]->{error} ) if ( defined $_[1]->{error} );
   } elsif ( $_[2] == $TYPE{INSERT} ) {
-    $_[0]->{_pluginValues}->{alert} = ( $_[1]->{alert} .' - '. $_[0]->{_pluginValues}->{alert} ) if ( defined $_[1]->{alert} );
-    $_[0]->{_pluginValues}->{error} = ( $_[1]->{error} .' - '. $_[0]->{_pluginValues}->{error} ) if ( defined $_[1]->{error} );
+    $_[0]->{_pluginValues}->{alert} = ( $_[1]->{alert} . ( defined $_[0]->{_pluginValues}->{alert} ? ' - '. $_[0]->{_pluginValues}->{alert} : '' ) ) if ( defined $_[1]->{alert} );
+    $_[0]->{_pluginValues}->{error} = ( $_[1]->{error} . ( defined $_[0]->{_pluginValues}->{error} ? ' - '. $_[0]->{_pluginValues}->{error} : '' ) ) if ( defined $_[1]->{error} );
+  } elsif ( $_[2] == $TYPE{COMMA_REPLACE} ) {
+    # reserved !!!
+  } elsif ( $_[2] == $TYPE{COMMA_APPEND} ) {
+    $_[0]->{_pluginValues}->{alert} .= ( ( defined $_[0]->{_pluginValues}->{alert} ? ', ' : '' ) .$_[1]->{alert} ) if ( defined $_[1]->{alert} );
+    $_[0]->{_pluginValues}->{error} .= ( ( defined $_[0]->{_pluginValues}->{error} ? ', ' : '' ) .$_[1]->{error} ) if ( defined $_[1]->{error} );
+  } elsif ( $_[2] == $TYPE{COMMA_INSERT} ) {
+    $_[0]->{_pluginValues}->{alert} = ( $_[1]->{alert} . ( defined $_[0]->{_pluginValues}->{alert} ? ', '. $_[0]->{_pluginValues}->{alert} : '' ) ) if ( defined $_[1]->{alert} );
+    $_[0]->{_pluginValues}->{error} = ( $_[1]->{error} . ( defined $_[0]->{_pluginValues}->{alert} ? ', '. $_[0]->{_pluginValues}->{error} : '' ) ) if ( defined $_[1]->{error} );
   }
 
   $_[0]->{_pluginValues}->{result} = $_[1]->{result} if ( defined $_[1]->{result} );
@@ -415,9 +489,8 @@ sub setEndTime_and_getResponsTime {
   $_[0]->{_pluginValues}->{endTime} = "$endTimeSeconds.$endTimeMicroseconds";
 
   my ($startTimeSeconds, $startTimeMicroseconds) = split (/\./, $_[1]);
-  my $responseTime = ( $endTimeSeconds >= $startTimeSeconds ) ? tv_interval ( [$startTimeSeconds, $startTimeMicroseconds], [$endTimeSeconds, $endTimeMicroseconds]) : tv_interval ( [$endTimeSeconds, $endTimeMicroseconds], [$startTimeSeconds, $startTimeMicroseconds]);
-
-  return ( int ($responseTime * 1000) );
+  $startTimeMicroseconds = 0 unless ( defined $startTimeMicroseconds );
+  return ( defined $startTimeSeconds ? int ( ( ( $endTimeSeconds >= $startTimeSeconds ) ? tv_interval ( [$startTimeSeconds, $startTimeMicroseconds], [$endTimeSeconds, $endTimeMicroseconds] ) : tv_interval ( [$endTimeSeconds, $endTimeMicroseconds], [$startTimeSeconds, $startTimeMicroseconds] ) ) * 1000 ) : -1 );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -449,10 +522,20 @@ sub call_system {
   my ($status, $stdout, $stderr) = $_[0]->SUPER::call_system ( $_[1] );
 
   if ( $status ) {
-    $_[0]->pluginValues ( { stateValue => $ERRORS{OK}, alert => $_[1] .': '. 'OK', result => ( defined $stdout ? $stdout : undef ) }, $TYPE{APPEND} );
+    if ( $_[0]->{_getOptionsValues}->{debug} ) {
+      $_[0]->pluginValues ( { stateValue => $ERRORS{OK}, alert => $_[1] .': OK', result => ( defined $stdout ? $stdout : undef ) }, $TYPE{APPEND} );
+    } else {
+      $_[0]->pluginValues ( { stateValue => $ERRORS{OK}, result => ( defined $stdout ? $stdout : undef ) }, $TYPE{APPEND} );
+    }
+
     return ( $ERRORS{OK} );
   } else {
-    $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $_[1] .': '. $stderr, result => ( defined $stderr ? $stderr : undef ) }, $TYPE{APPEND} );
+    if ( $_[0]->{_getOptionsValues}->{debug} ) {
+      $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, result => ( defined $stderr ? $stderr : undef ) }, $TYPE{APPEND} );
+    } else {
+      $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $_[1] .': '. $stderr, result => ( defined $stderr ? $stderr : undef ) }, $TYPE{APPEND} );
+    }
+
     return ( $ERRORS{UNKNOWN} );
   }
 }
@@ -461,6 +544,34 @@ sub call_system {
 
 sub exit {
   &_checkAccObjRef ( $_[0] ); &_checkSubArgs1;
+
+  # Timing Out Slow Plugins - part 2/2  - - - - - - - - - - - - - - - - -
+
+  if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
+    my $remaining = alarm (0);
+    my $alarmed = ( $remaining == 0 or $@ eq "ASNMTAP::Asnmtap::Plugins::Alarm went off\n" );
+
+    if ( $alarmed ) {
+      $remaining = 0;
+      $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'TIMING OUT SLOW PLUGIN' }, $TYPE{APPEND} );
+    }
+
+    $SIG{ALRM} = $_[0]->{_pluginValues}->{_handler_} ? $_[0]->{_pluginValues}->{_handler_} : 'DEFAULT';
+
+    if ( $_[0]->{_pluginValues}->{_alarm_} ) {   # Previous alarm pending
+	  my $alarm = $_[0]->{_pluginValues}->{_alarm_} - $_[0]->{_getOptionsArgv}->{timeout} + $remaining;
+
+      if ( $alarm > 0 ) {          # Reset it, excluding the elapsed time
+	    alarm( $alarm );
+	  } else {              # It should have gone off already, set it off
+	    kill 'ALRM',$$;
+      }
+    }
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+  $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'HELP, THERE IS A PROBLEM WITH THE PLUGIN)' }, $TYPE{APPEND} ) if ( $_[0]->{_pluginValues}->{stateValue} == $ERRORS{DEPENDENT} or ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 2 ) );
 
   my $duration = $_[0]->setEndTime_and_getResponsTime ($_[0]->{_pluginValues}->{startTime});
 
@@ -477,13 +588,13 @@ sub exit {
     }
 
     if ( $_[0]->{_pluginValues}->{stateValue} ) {
-      $_[0]->appendPerformanceData('Trendline=' .$responseTimeSeconds. 's;;;;');
+      $_[0]->appendPerformanceData('Trendline='. $responseTimeSeconds .'s;;;;');
     } else {
-      $_[0]->appendPerformanceData('Trendline=' .$responseTimeSeconds. 's;' .$_[0]->{_getOptionsArgv}->{trendline}. ';;;');
+      $_[0]->appendPerformanceData('Trendline='. $responseTimeSeconds .'s;'. $_[0]->{_getOptionsArgv}->{trendline} .';;;');
       $_[0]->{_pluginValues}->{alert} = "Response time $responseTimeSeconds > trendline ". $_[0]->{_getOptionsArgv}->{trendline} if ( $responseTimeSeconds > $_[0]->{_getOptionsArgv}->{trendline} );
     }
   } else {
-    $_[0]->appendPerformanceData('Duration=' .$duration. 'ms;;;0;') if ( $_[1] =~ /^[2367]$/ );
+    $_[0]->appendPerformanceData('Duration='. $duration .'ms;;;0;') if ( $_[1] =~ /^[2367]$/ );
   }
 
   $_[0]->{_pluginValues}->{alert} =~ s/^\s+//g if ( defined $_[0]->{_pluginValues}->{alert} );
@@ -505,10 +616,10 @@ sub exit {
   $returnMessage .= ' ERROR: '. $_[0]->{_pluginValues}->{error} if (defined $_[0]->{_pluginValues}->{error});
 
   if (defined $_[1]) {
-    $_[0]->appendPerformanceData('Status=' .$_[0]->{_pluginValues}->{stateValue}. ';1;2;0;3') if ( $_[1] =~ /^[1357]$/ );
+    $_[0]->appendPerformanceData('Status='. $_[0]->{_pluginValues}->{stateValue} .';1;2;0;3') if ( $_[1] =~ /^[1357]$/ );
   }
 
-  $_[0]->appendPerformanceData('Execution=' .$_[0]->setEndTime_and_getResponsTime ($^T). 'ms;;;0;');
+  $_[0]->appendPerformanceData('Execution='. $_[0]->setEndTime_and_getResponsTime ($^T) .'ms;;;0;');
 
   if ( defined $_[0]->{_pluginValues}->{performanceData} ) {
     $_[0]->{_pluginValues}->{performanceData} =~ s/^\s+//g;
@@ -561,12 +672,22 @@ sub exit {
   $_[0]->dumpData (1) if ( $_[0]->getOptionsArgv ('dumpData') );
 
   print "$returnMessage\n";
-  exit $ERRORS{$_[0]->{_pluginValues}->{stateError}};
+  $_[0]->{_exit_} = 1;
+  exit $ERRORS { $_[0]->{_pluginValues}->{stateError} };
 }
 
 # Destructor  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub DESTROY { print (ref ($_[0]), "::DESTROY: ()\n") if ( $_[0]->{_debug} ); }
+sub DESTROY { 
+  print (ref ($_[0]), "::DESTROY: ()\n") if ( $_[0]->{_debug} ); 
+
+  if ( exists $_[0]->{_pluginValues} ) {
+    unless ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 1 ) {
+      $_[0]->{_exit_} = 2;
+      $_[0]->exit(0);
+    }
+  }
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -578,11 +699,11 @@ __END__
 
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugin Subclass of ASNMTAP::Asnmtap
+ASNMTAP::Asnmtap::Plugin provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
 
 =head1 Description
 
-This module that provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
+ASNMTAP::Asnmtap::Plugin Subclass of ASNMTAP::Asnmtap
 
 =head1 SEE ALSO
 

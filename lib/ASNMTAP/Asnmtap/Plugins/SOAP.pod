@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.003;
+  use ASNMTAP::Asnmtap::Plugins v3.000.004;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-SOAP.pl',
     _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-    _programVersion     => '3.000.003',
+    _programVersion     => '3.000.004',
     _programGetOptions  => ['proxy:s', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -63,7 +63,9 @@ Service Oriented Access Protocol) both on client and server side.
 
 =item get_soap_request()
 
-...
+SOAP is a simple XML-based protocol to let applications exchange information over HTTP.
+
+More information regarding SOAP can be find at URI: http://www.w3schools.com/soap/
 
 Returns a status for $returnCode (OK..UNKNOWN) and when the status is OK for $xml the extracted XML if exists, otherwise undef.
 
@@ -204,9 +206,29 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 DEPENDENCIES
 
-  ASNMTAP::Asnmtap
   ASNMTAP::Asnmtap::Plugins
-  Carp
+  SOAP::Lite
+
+  Dependencies SOAP::Lite:
+  XML::Parser
+  MIME::Base64
+  URI
+  libwww-perl
+
+  Following modules will be loaded on demand only, and are considered optional:
+  Crypt::SSLeay     HTTPS/SSL support
+  Apache            mod_perl server implementation (included with mod_perl)
+  Net::POP3         POP3 server implementation
+  MIME::Lite        SMTP client implementation
+  IO::File          FTP client and IO server
+  Net::FTP          FTP client
+  MQSeries          MQSeries transport
+  Net::Jabber       Jabber transport
+  FCGI              FastCGI server implementation
+  IO::Socket::SSL   SSL support for TCP transport
+  MIME::Tools       MIME attachment support
+  DIME::Tools       DIME attachment support
+  Compress::Zlib    HTTP compression support
 
 =head1 COPYRIGHT NOTICE
 

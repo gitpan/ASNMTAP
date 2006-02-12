@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-#  2006/01/01, v3.000.003, making Asnmtap v3.000.xxx compatible
+#  2006/01/01, v3.000.004, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.003; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.004; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -66,7 +66,7 @@ sub _error_message { $_[0] =~ s/\n/ /g; $_[0]; }
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 sub new {
-  my ($object, $urls_ar) = @_;
+  my ($object, $asnmtapInherited, $urls_ar) = @_;
 
   # $urls_ar is a ref to a list of hashes (representing a request record) in a partic format.
 
@@ -74,29 +74,31 @@ sub new {
   # hard to interpret 'not an array ref' messages (from check::_make_req) caused
   # by mis spelled or mistaken field names.
 
-  &_dumpValue ( $urls_ar, 'URL list is not an array reference.' ) if ( ref $urls_ar ne 'ARRAY' );
+  &_dumpValue ( $asnmtapInherited, $object .': attribute asnmtapInherited is missing.' ) unless ( defined $asnmtapInherited );
+
+  &_dumpValue ( $urls_ar, $object .': URL list is not an array reference.' ) if ( ref $urls_ar ne 'ARRAY' );
   my @urls = @$urls_ar;
 
   foreach my $url ( @urls ) {
-    &_dumpValue ( $url, 'Request record is not a hash.' ) if ( ref $url ne 'HASH' );
+    &_dumpValue ( $url, $object .': Request record is not a hash.' ) if ( ref $url ne 'HASH' );
     my @keys = keys %$url;
 
     foreach my $key ( @keys ) {
       if ( ! exists Field_Refs->{$key} ) {
         warn "Expected keys: ", join " ", keys %{ (Field_Refs) };
-        &_dumpValue ( $url, "Unexpected key \"$key\" in record." );
+        &_dumpValue ( $url, $object .": Unexpected key \"$key\" in record." );
       }
 
       my $ref_type = '';
 
       if ( ($ref_type = ref $url->{$key}) && ( $ref_type ne Field_Refs->{$key}{type} ) ) {
         warn "Expected key \"$key\" to be ", Field_Refs->{$key}{type} ? Field_Refs->{$key}{type} .' ref' : 'non ref', "\n";
-        &_dumpValue ( $url, "Field \"$key\" has wrong reference type" );
+        &_dumpValue ( $url, $object .": Field \"$key\" has wrong reference type" );
       }
 
       if ( ! ref $url->{$key} and Field_Refs->{$key}{is_ref} ) {
         warn "Expected key \"$key\" to be ", Field_Refs->{$key}{type} ? Field_Refs->{$key}{type} .' ref' : 'non ref', "\n";
-        &_dumpValue ( $url, "Key \"$key\" not a  reference" );
+        &_dumpValue ( $url, $object .": Key \"$key\" not a  reference" );
       }
     }
   }
@@ -121,7 +123,7 @@ sub new {
     }
   }
 
-  bless { urls => $urls_ar, matches => [], returns => {}, number_of_images_downloaded => 0 }, $classname;
+  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, number_of_images_downloaded => 0 }, $classname;
 
   # The field urls contains a ref to a list of (hashes) records representing the web transaction.
 
@@ -144,8 +146,7 @@ sub new {
 sub check {
   my ($self, $cgi_parm_vals_hr) = @_;
 
-  my %defaults = ( asnmtapInherited => undef,
-                   custom           => undef,
+  my %defaults = ( custom           => undef,
                    newAgent         => TRUE,
                    openAppend       => TRUE,
                    cookies          => TRUE,
@@ -155,21 +156,18 @@ sub check {
 
   my %parms = (%defaults, @_);
 
-  my $asnmtapInherited = $parms{asnmtapInherited};
-  unless ( defined $asnmtapInherited ) { cluck ( ref ($self) .' asnmtapInherited missing' ); exit $ERRORS{UNKNOWN} }
-
-  my $debug         = $$asnmtapInherited->getOptionsValue ( 'debug' );
-  my $debugfile     = $$asnmtapInherited->getOptionsArgv ( 'debugfile' );
+  my $debug         = ${$self->{asnmtapInherited}}->getOptionsValue ( 'debug' );
+  my $debugfile     = ${$self->{asnmtapInherited}}->getOptionsArgv ( 'debugfile' );
   my $openAppend    = $parms{openAppend};
 
-  my $proxyServer   = $$asnmtapInherited->proxy ( 'server' );
-  my $proxyUsername = $$asnmtapInherited->proxy ( 'username' );
-  my $proxyPassword = $$asnmtapInherited->proxy ( 'password' );
+  my $proxyServer   = ${$self->{asnmtapInherited}}->proxy ( 'server' );
+  my $proxyUsername = ${$self->{asnmtapInherited}}->proxy ( 'username' );
+  my $proxyPassword = ${$self->{asnmtapInherited}}->proxy ( 'password' );
 
   if ( $parms{newAgent} or ! defined $ua ) {
     $ua = LWP::UserAgent->new ();
-    $ua->agent ( $$asnmtapInherited->browseragent () );
-    $ua->timeout ( $$asnmtapInherited->timeout () );
+    $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
+    $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
 
     $ua->default_headers->push_header ( 'Accept-Language' => 'no, en' );
     $ua->default_headers->push_header ( 'Accept-Charset'  => 'iso-8859-1,*,utf-8' );
@@ -185,7 +183,7 @@ sub check {
   my ($resp_string, $res, $found);
 
   foreach my $url_r ( @{ $self->{urls} } ) {
-    $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') );
+    ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
 
     my $url = $url_r->{Url} ? $url_r->{Url} : &_next_url ($res, $resp_string);
     my $req = $self->_make_req( $url_r->{Method}, $url, $url_r->{Qs_var}, $url_r->{Qs_fixed}, $cgi_parm_vals_hr );
@@ -195,9 +193,9 @@ sub check {
     $res = $ua->request($req);
     print STDERR ref ($self), '   ' x $indent_level, ' --> ', $res->as_string, "\n" if ( $debug >= 2 );
 
-    my $responseTime = $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') );
+    my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
     print ref ($self), ': Response time: ', $responseTime, " - $url\n" if ( $debug );
-    $$asnmtapInherited->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime ."ms;;;;" ) if ( defined $url_r->{Perfdata_Label} );
+    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime ."ms;;;;" ) if ( defined $url_r->{Perfdata_Label} );
 
     $self->_write_debugfile ( $req_as_string, $res->as_string, $debugfile, $openAppend ) if ( defined $debugfile );
 
@@ -309,7 +307,7 @@ sub check {
         }
 
         rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
-        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "'". $errorMessage ."' - ". $url_r->{Msg}, error => &_error_message( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => "'". $errorMessage ."' - ". $url_r->{Msg}, error => &_error_message( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
         return ( $returnCode );
       }
     } else {
@@ -323,7 +321,7 @@ sub check {
       rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
 
 	  if ( $returnCode != $ERRORS{OK} and defined $errorMessage ) {
-        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => $errorMessage .' - '. $url_r->{Msg}, error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => $errorMessage .' - '. $url_r->{Msg}, error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
         return ( $returnCode );
 	  }
 	}
@@ -333,18 +331,18 @@ sub check {
     if ( $self->_my_match ( $url_r->{Exp_Fault}, $resp_string) ) {
       my $fault_ind = $url_r->{Exp_Fault};
       my ($bad_stuff) = $resp_string =~ /($fault_ind.*\n.*\n)/;
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg_Fault} ."' - '". $fault_ind ."' indication in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $bad_stuff }, $TYPE{REPLACE} );
+      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $url_r->{Msg_Fault}, error => &_error_message ( $req->method .' '. $req->uri ), result => $bad_stuff }, $TYPE{REPLACE} );
       return ( $ERRORS{CRITICAL} );
     } elsif ( ! ($found = $self->_my_match ( $url_r->{Exp}, $resp_string)) ) {
       my $exp_type = ref $url_r->{Exp};
       my $exp_str = $exp_type eq 'ARRAY' ? "@{$url_r->{Exp}}" : $url_r->{Exp};
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". $exp_str ."' not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". $exp_str ."' not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
       return ( $ERRORS{CRITICAL} );
     } elsif (ref $url_r->{Exp} eq 'ARRAY') {
       my $exp_array = @{$url_r->{Exp}};
 
       if ( $exp_array != $found ) {
-        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". ( $exp_array - $found ) ."' element(s) not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". ( $exp_array - $found ) ."' element(s) not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
         return ( $ERRORS{CRITICAL} );
       }
     }
@@ -353,7 +351,7 @@ sub check {
       my ($image_dl_ok, $image_dl_msg, $number_imgs_dl ) = &_download_images ($res, \%parms, \%downloaded);
 
       unless ( $image_dl_ok ) {
-        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $image_dl_msg }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $image_dl_msg }, $TYPE{REPLACE} );
         return ( $ERRORS{CRITICAL} );
       }
 
@@ -361,7 +359,7 @@ sub check {
     }
   }
 
-  $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );
+  ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );
   return ( $returnCode );
 }
 
@@ -387,7 +385,7 @@ sub _make_req {
   # [p_tm_number => 1] means get the second match (from the last set of matches)
   # and use it as the value of p_tm_number.
 
-  # If the value is a array ref eg [p_tm_number, [0, sub { $_[0] . 'Blah' }]
+  # If the value is a array ref eg [p_tm_number, [0, sub { $_[0] .'Blah' }]
   # then the query_string becomes p_tm_number => $ar->[1]( $name_vals{$ar->[0]} )
 
   # qs_fixed is an array_ref containing name value pairs
@@ -427,7 +425,7 @@ sub _make_req {
   } elsif ( $method eq 'HEAD' ) {
     $req = HEAD $url;
   } else { # do something to indicate no such method
-    &_dumpValue ( $self, "Unexpected method \"$method\" for url \"$url\"" );
+    &_dumpValue ( $self, ref $self .": Unexpected method \"$method\" for url \"$url\"" );
   }
 }
 
@@ -440,18 +438,19 @@ sub _my_match {
   my @matches = ();
 
   if ( ref $pat eq 'ARRAY') {
+    my $debug = ${$self->{asnmtapInherited}}->getOptionsValue ( 'debug' );
+
     foreach my $p (@$pat) {
+      print ref ($self) ."::_my_match: ? $p\n" if ( $debug >= 3 );
+
       if ( my @match = ($str =~ m#$p#) ) {
-        # matches are expected to save whatever they want with parentheses eg (\w+).
-        # the string that matches each pattern (and is saved in @match)
-        # is stored in the object as $self->{matches}[0], [1], ..
-        # If a pattern fails to match then the correspondending match is ''.
+        print ref ($self) ."::_my_match: = @match\n" if ( $debug >= 3 );
         push (@matches, @match) if (scalar (@match));
         $found++;
       }
     }
 
-    $self->matches(\@matches);
+    $self->matches ( \@matches );
   } else {
     $found = ($str =~ m#$pat#);
   }
@@ -465,15 +464,19 @@ sub _my_return {
   my ($self, $pat, $str) = @_;
 
   if ( ref $pat eq 'HASH') {
-    while ( my ($key, $value) = each ( %{ $pat } ) ) { 
-      if ( my @match = ($str =~ m#$value#) ) {
-        my $number = scalar (@match);
+    my $debug = ${$self->{asnmtapInherited}}->getOptionsValue ( 'debug' );
 
-        if ( $number ) {
-          $returns {$key} = ($number == 1) ? $match[0] : [ @match ];
-          $self->returns ( \%returns );
-        }
+    while ( my ($key, $value) = each ( %{$pat} ) ) {
+      print ref ($self) ."::_my_return: ? $key => $value\n" if ( $debug >= 3 );
+
+      if ( my @match = ($str =~ m#$value#g) ) {
+        print ref ($self) ."::_my_return: = @match\n" if ( $debug >= 3 );
+        $returns {$key} = (scalar (@match) == 1) ? $match[0] : [ @match ];
+      } else {
+        $returns {$key} = undef;
       }
+
+      $self->returns ( \%returns );
     }
   }
 }
@@ -565,7 +568,7 @@ sub _next_url {
 
 # Destructor  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub DESTROY { print (ref ($_[0]), "::DESTROY: ()\n"); }
+sub DESTROY { print (ref ($_[0]), "::DESTROY: ()\n") if ( ${$_[0]->{asnmtapInherited}}->getOptionsValue ( 'debug' ) ) }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -577,7 +580,7 @@ __END__
 
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugins::WebTransact is an object-oriented class for generating ASNMTAP-based plugins of Web Transactions.
+is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 DESCRIPTION
 

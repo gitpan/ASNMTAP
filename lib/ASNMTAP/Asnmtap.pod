@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
   my $objectAsnmtap = ASNMTAP::Asnmtap->new (
     _programName        => 'test-asnmtap.pl',
     _programDescription => "Test ASNMTAP::Asnmtap",
-    _programVersion     => '3.000.003',
+    _programVersion     => '3.000.004',
     _programUsagePrefix => '[--hihi]',
     _programHelpPrefix  => "--hihi ...",
     _programGetOptions => ['hihi=s'],
@@ -27,11 +27,10 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
 
 =head1 DESCRIPTION
 
-...
+Once Upon a Time in Belgium ...
 
 =head1 OVERVIEW OF CLASSES AND PACKAGES
 
-...
 
 =head2 OVERVIEW OF CLASSES
 
@@ -155,9 +154,12 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
                     '8' => 'IN PROGRESS'
                     '9' => 'TRENDLINE'
 
-%TYPE               'APPEND'  => '0'
-                    'REPLACE' => '1'
-                    'INSERT'  => '2'
+ %TYPE              'REPLACE'       => '0'
+                    'APPEND'        => '1'
+                    'INSERT'        => '2'
+                    'COMMA_REPLACE' => '3' <- reserved !!!
+                    'COMMA_APPEND'  => '4'
+                    'COMMA_INSERT'  => '5'
 
 =head1 CONFIG
 
@@ -562,6 +564,8 @@ ASNMTAP::Asnmtap::Plugins::Mail, ASNMTAP::Asnmtap::Plugins::Modem, ASNMTAP::Asnm
   Dumpvalue
   Getopt::Long
   IO::CaptureOutput
+  Test::Simple
+  Time::Local
 
 =head1 COPYRIGHT NOTICE
 

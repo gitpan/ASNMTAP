@@ -1,20 +1,8 @@
 =head1 NAME
 
+ASNMTAP::Asnmtap::Plugin provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
+
 ASNMTAP::Asnmtap::Plugin Subclass of ASNMTAP::Asnmtap
-
-TODO:
-
-  - init_modem
-
-  - exit_modem_plugin
-
-  - sending_fingerprint_mail
-
-  - receiving_fingerprint_mails
-
-  - sending_fingerprint_mail_XML
-
-  - receiving_fingerprint_mails_XML
 
 =head1 SYNOPSIS
 
@@ -33,7 +21,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template.pl',
   _programDescription => "General plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.003',
+  _programVersion     => '3.000.004',
   _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
   _programHelpPrefix  => "-H, --hostname=HOST
    Name or IP address of host to check
@@ -57,9 +45,9 @@ $objectPlugins->exit (7);
 
 =over 4
 
-=item Default command line options
+=item default command line options
 
-'-S, --status=N
+ -S, --status=N
     N(agios)      : Nagios custom plugin output (default)
  -A, --asnmtapEnv=[F|T]|[F|T][F|T]
     F(alse)       : all screendebugging off (default)
@@ -83,13 +71,13 @@ $objectPlugins->exit (7);
     L(ong)        : long screendebugging on
     M(oderator)   : long screendebugging on for Moderators
     A(dmin)       : long screendebugging on for Admins
-    S(erver Admin): long screendebugging on for Server Admins'
+    S(erver Admin): long screendebugging on for Server Admins
 
 =item Reserved command line options (autoinsertions)
 
-'-t, --timeout=<TIMEOUT>
+ -t, --timeout=<TIMEOUT>
 
-    timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time
+    timeout threshold (seconds) from which an UNKNOWN status will result when timing out slow plugins
 
     add: new ... (_programGetOptions => ['timeout|t:i' or 'timeout|t=i'])
 
@@ -107,7 +95,7 @@ $objectPlugins->exit (7);
 
     autoadd -T, --trendline=<TRENDLINE> ..0 to _programHelpSuffix
 
- -e, environment=<ENVIRONMENT>
+ -e, --environment=<ENVIRONMENT>
 
     P(roduction)  and set the _getOptionsValues to 'Production'
     S(imulation)  and set the _getOptionsValues to 'Simulation'
@@ -188,9 +176,69 @@ $objectPlugins->exit (7);
 
     autoadd -u, --username/--loginname=<USERNAME> to _programHelpSuffix
 
-=item Reserved command line options (validations & validations)
+ -F, --filename=<FILENAME>
 
-'-w, --warning=<WARNING>
+    XML filename with the ASNMTAP/Nagios compatible test results
+
+    add: new ... (_programGetOptions => ['filename|F:s' or 'filename|F=s'])
+
+    autoadd [-F|--filename <FILENAME>] to _programUsageSuffix
+
+    autoadd -F, --filename=<FILENAME> ... to _programHelpSuffix
+
+ -i, --interval=<SECONDS>
+
+    interval threshold (seconds) from which a CRITICAL (2x) or WARNING (1x) status will result when XML fingerprint out of time
+
+    add: new ... (_programGetOptions => ['interval|i:i' or 'interval|i=i'])
+
+    autoadd [-i|--interval <SECONDS>] to _programUsageSuffix
+
+    autoadd -i, --interval=<SECONDS> ... to _programHelpSuffix
+
+-l, --loglevel=<LOGLEVEL>
+
+    loglevel, one of (order of decrescent verbosity): debug, verbose, notice, info, warning, err, crit, alert, emerg
+
+    add: new ... (_programGetOptions => ['loglevel|l:s' or 'loglevel|l=s'])
+
+    autoadd [-l|--loglevel <LOGLEVEL>] to _programUsageSuffix
+
+    autoadd -l, --loglevel=<LOGLEVEL> ... to _programHelpSuffix
+
+-Y, --year=<YEAR>
+
+    year, format: [19|20|21]yy
+
+    add: new ... (_programGetOptions => ['interval|i:i' or 'interval|i=i'])
+
+    autoadd [-Y|--year <YEAR>] to _programUsageSuffix
+
+    autoadd -Y, --year=<YEAR> ... to _programHelpSuffix
+
+-Q, --quarter=<QUARTER>
+
+    quarter, where value 1..4
+
+    add: new ... (_programGetOptions => ['quarter|Q:i' or 'quarter|Q:i'])
+
+    autoadd [-Q|--quarter <QUARTER>] to _programUsageSuffix
+
+    autoadd -Q, --quarter=<QUARTER> ... to _programHelpSuffix
+
+-M, --month=<MONTH>
+
+    month, where value 1..12
+
+    add: new ... (_programGetOptions => ['month|M:i' or 'month|M=i'])
+
+    autoadd [-M|--month <MONTH>] to _programUsageSuffix
+
+    autoadd -M, --month=<MONTH> ... to _programHelpSuffix
+
+=item Reserved command line options
+
+ -w, --warning=<WARNING>
 
     warning threshold with more than one type of threshold
 
@@ -328,7 +376,7 @@ vb +DUMMY-T1:C 2.077+DUMMY-T2:W 1.913+
 
 =item error
 
-error description ...
+error description
 
 =item result
 
@@ -615,23 +663,33 @@ hash with item is equal to one of the possible items:
 
 =item stateValue
 
-  $ERROR{OK..UNKNOWN}
+set the return status value, 'stateError' is automatically set
+
+optional, $ERROR{OK..UNKNOWN}
 
 =item stateError
 
-  $STATE{0..3}
+set the return status error, 'stateValue' is automatically set
+
+optional, $STATE{0..3}
 
 =item alert
 
-...
+set the error message
+
+optional, scalar
 
 =item error
 
-...
+set the error message
+
+optional, scalar
 
 =item result
 
-...
+set the result to the object
+
+optional, scalar
 
 =back
 
@@ -732,7 +790,7 @@ time: scalar, hhmmss.mmmnnn
 
 =item Function
 
-Set endTime and get responstime
+Set endTime and get responstime (-1 when argument time fails)
 
 =back
 
@@ -1017,10 +1075,11 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins::Nagios
 
+  check_template.pl
+
 =head1 DEPENDENCIES
 
   ASNMTAP::Asnmtap
-  Carp
   Time::HiRes
 
 =head1 COPYRIGHT NOTICE

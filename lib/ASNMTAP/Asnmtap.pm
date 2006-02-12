@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = 3.000.003;
+  $ASNMTAP::Asnmtap::VERSION     = 3.000.004;
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,7 +93,7 @@ $ENV{ENV}            = ( exists $_config{ENV}{ENV} )      ? $_config{ENV}{ENV}  
 # SET ASNMTAP::Asnmtap VARIABLES  - - - - - - - - - - - - - - - - - - -
 
 our $APPLICATIONPATH = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{APPLICATIONS} ) ? $_config{SUBDIR}{APPLICATIONS} : 'applications');
-our $PLUGINPATH      = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{PLUGINS} ) ? $_config{SUBDIR}{APPLICATIONS} : 'plugins');
+our $PLUGINPATH      = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{PLUGINS} ) ? $_config{SUBDIR}{PLUGINS} : 'plugins');
 
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} ) ? $_config{COMMON}{APPLICATION} : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )    ? $_config{COMMON}{BUSINESS}    : 'CITAP';
@@ -114,7 +114,7 @@ undef %_config;
 
 our %ERRORS          = ('OK'=>'0','WARNING'=>'1','CRITICAL'=>'2','UNKNOWN'=>'3','DEPENDENT'=>'4','OFFLINE'=>'5','NO TEST'=>'6','NO DATA'=>'7','IN PROGRESS'=>'8','TRENDLINE'=>'9');
 our %STATE           = ('0'=>'OK','1'=>'WARNING','2'=>'CRITICAL','3'=>'UNKNOWN','4'=>'DEPENDENT','5'=>'OFFLINE','6'=>'NO TEST','7'=>'NO DATA','8'=>'IN PROGRESS','9'=>'TRENDLINE');
-our %TYPE            = ('REPLACE'=>'0','APPEND'=>'1','INSERT'=>'2');
+our %TYPE            = ('REPLACE'=>'0','APPEND'=>'1','INSERT'=>'2','COMMA_REPLACE'=>'3','COMMA_APPEND'=>'4','COMMA_INSERT'=>'5');
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
 
@@ -201,7 +201,7 @@ sub _getOptions {
   $_[0]->printUsage ('.') if ( exists $_[0]->{_getOptionsArgv}->{'usage'} );
 
   my $verbose = (exists $_[0]->{_getOptionsArgv}->{verbose}) ? $_[0]->{_getOptionsArgv}->{verbose} : 0;
-  $_[0]->printUsage ('Invalid verbose option: ' . $verbose) unless ($verbose =~ /^[0123]$/);
+  $_[0]->printUsage ('Invalid verbose option: '. $verbose) unless ($verbose =~ /^[0123]$/);
 
   $_[0]->[ $_[0]->[0]{_getOptionsValues} = @{$_[0]} ] = {};
 }

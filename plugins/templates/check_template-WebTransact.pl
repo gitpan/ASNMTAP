@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
+# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.003;
+use ASNMTAP::Asnmtap::Plugins v3.000.004;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,8 +19,8 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact.pl',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.003',
-  _programGetOptions  => ['environment|e:s', 'proxy:s', 'trendline|T:i'],
+  _programVersion     => '3.000.004',
+  _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -29,7 +29,7 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
 my @URLS = ();
-my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -41,7 +41,7 @@ $objectPlugins->pluginValue ('message', 'www.citap.be/www.citap.com');
   { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
 );
 
-my $returnCode = $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins );
+my $returnCode = $objectWebTransact->check ( { } );
 
 unless ( $returnCode ) {
   use constant EXP_TITLE_1 => "\Q<TITLE>\E(Consulting Internet Technology Alex Peeters)\Q</TITLE>\E";
@@ -56,7 +56,7 @@ unless ( $returnCode ) {
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, asnmtapInherited => \$objectPlugins, newAgent => 0 );
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, newAgent => 0 );
   my %returns = %{ $objectWebTransact->returns() };
   $objectPlugins->pluginValues ( { alert => $returns {title1} .' - '. $returns {submain} .' - '. $returns {title2}[0] .' - '. $returns {title2}[1] .' - '. $returns {title2}[2] .' - '. $returns {title2}[3] }, $TYPE{REPLACE} );
 }

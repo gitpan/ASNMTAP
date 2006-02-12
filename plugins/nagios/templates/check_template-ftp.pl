@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/01/29, v3.000.003, making Asnmtap v3.000.003 compatible
+# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.003;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.004;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,8 +24,8 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-ftp.pl',
   _programDescription => 'FTP Nagios Template',
-  _programVersion     => '3.000.003',
-  _programGetOptions => ['host|H=s', 'username|u|loginname=s', 'password|passwd|p=s', 'environment|e:s'],
+  _programVersion     => '3.000.004',
+  _programGetOptions => ['host|H=s', 'username|u|loginname=s', 'password|passwd|p=s', 'environment|e:s', 'trendline|T:i'],
   _timeout           => 30,
   _debug             => 0);
 
@@ -62,11 +62,11 @@ if ( $returnValue ) {
   # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  # $ftp->cwd("/ape") or $returnValue = errorTrapFTP("Cannot change to directory", $ftp->message, $debug) if ($returnValue);
-  # $ftp->ascii or $returnValue = errorTrapFTP("Transfer file in ascii mode", $ftp->message, $debug) if ($returnValue);
-  # $ftp->binary or $returnValue = errorTrapFTP("Transfer file in binary mode", $ftp->message, $debug) if ($returnValue);
-  # $ftp->get("that.file") or $returnValue = errorTrapFTP("Get failed", $ftp->message, $debug) if ($returnValue);
-  # $ftp->ls or $returnValue = errorTrapFTP("List ", $ftp->message, $debug) if ($returnValue);
+  # $ftp->cwd ("/test") or $returnValue = errorTrapFTP ("Cannot change to directory", $ftp->message, $debug ) if ($returnValue);
+  # $ftp->ascii or $returnValue = errorTrapFTP ("Transfer file in ascii mode", $ftp->message, $debug ) if ($returnValue);
+  # $ftp->binary or $returnValue = errorTrapFTP ("Transfer file in binary mode", $ftp->message, $debug ) if ($returnValue);
+  # $ftp->get ("that.file") or $returnValue = errorTrapFTP ("Get failed", $ftp->message, $debug ) if ($returnValue);
+  # $ftp->ls or $returnValue = errorTrapFTP ("List ", $ftp->message, $debug ) if ($returnValue);
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

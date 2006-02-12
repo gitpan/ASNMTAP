@@ -4,14 +4,14 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.003;
+  use ASNMTAP::Asnmtap::Plugins v3.000.004;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-WebTransact-XML.pl',
     _programDescription => "WebTransact-XML plugin template for testing the '$APPLICATION'",
-    _programVersion     => '3.000.003',
-    _programGetOptions  => ['environment|e:s', 'proxy:s', 'trendline|T:i'],
+    _programVersion     => '3.000.004',
+    _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
 
@@ -19,7 +19,7 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
   use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
   my @URLS = ();
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \@URLS );
+  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   $objectPlugins->pluginValue ('message', "WebTransact-XML plugin template for testing the '$APPLICATION'");
 
@@ -35,7 +35,7 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
     { Method => "GET",  Url => 'http://asnmtap.citap.com/ServletTestRunner.xml', Qs_var => [], Qs_fixed => [], Exp => "\Q<testsuites>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "ServletTestRunner.xml", Msg_Fault => "ServletTestRunner.xml" },
   );
 
-  $returnCode = $objectWebTransact->check ( {}, asnmtapInherited => \$objectPlugins, newAgent => 1 );
+  $returnCode = $objectWebTransact->check ( { }, newAgent => 1 );
   undef $objectWebTransact;
   $objectPlugins->exit (7) if ( $returnCode );
 
@@ -192,10 +192,9 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins, ASNMTAP::Asnmtap::Plugins::Nagios
 
 =head1 DEPENDENCIES
 
-  ASNMTAP::Asnmtap
   ASNMTAP::Asnmtap::Plugins
-  Carp
   Data::Dumper 
+  XML::Parser
   XML::LibXML
   XML::Simple
 

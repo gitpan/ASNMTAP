@@ -5,14 +5,28 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 3 Februari 2006
-Version      : 3.000.003
+Latest update: 12 Februari 2006
+Version      : 3.000.004
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.003, 2006/02/03
+Version 3.000.004, 2006/02/12, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Mail added
+
+Making ASNMTAP CPAN module perl 5.8.5 and 5.8.6 compatible
+
+Tested on:
+- Cygwin
+- Solaris 5.9
+- Linux 2.4.21-37.EL (Centos 3.x)
+- Linux 2.6.9-22.0.2.EL (Centos 4.x)
+
+Makefile.PL
+- many dependencies checks added
+
+
+Version 3.000.003, 2006/02/03, ASNMTAP CPAN module
 
 This ASNMTAP CPAN library and Plugin templates are free software; you can 
 redistribute it and/or modify it under the same terms as Perl itself.

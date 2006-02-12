@@ -19,7 +19,7 @@ my $plugin = 'check_template-nagios.pl';
 if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
-  $t += checkCmd( "$prefix/$plugin", 0, "/OKIDO/");
+  $t += checkCmd( "$prefix/$plugin", [0, 1, 2], "/OKIDO/");
 } else {
   $t += skipMissingCmd( "$prefix/$plugin", $tests );
 }
