@@ -4,9 +4,9 @@ ASNMTAP::Asnmtap::Plugins::Mail is a Perl module that provides Mail functions us
 
 =head1 SYNOPSIS
 
-use ASNMTAP::Asnmtap::Plugins::Mail;
+  use ASNMTAP::Asnmtap::Plugins::Mail;
 
-my $objectNagios = ASNMTAP::Asnmtap::Plugins::Mail->new ();
+  my $objectNagios = ASNMTAP::Asnmtap::Plugins::Mail->new ();
 
 =head1 Description
 
@@ -14,18 +14,18 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.004;
+  use ASNMTAP::Asnmtap::Plugins v3.000.005;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.004',
+    _programVersion     => '3.000.005',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.004;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.005;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
@@ -199,7 +199,7 @@ When the status and the header plus the first 7 lines of the e-mail agrees to th
  Status <Application Monitoring Status Down>
 
 =back
- 
+
 =item XML
 
 Each e-mail exists of an XML fingerprint. This allows us lateron only to pick up the required e-mails with pop3, because we will filter out the emails with a minimum band width the e-mails desired from the mail box. 
@@ -237,9 +237,9 @@ When the status and the header plus the first 5 lines of the e-mail agrees to th
 
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE FingerprintEmail SYSTEM "dtd/FingerprintEmail-1.0.dtd"><FingerprintEmail><Schema Value="1.0"/><Fingerprint From="alex.peeters@citap.com" To="asnmtap@citap.com" Destination="ASNMTAP" Plugin="mail-fingerprint-xml-citap-com.pl" Description="XML fingerprint Mail plugin template for testing the 'Application Monitoring'" Environment="PROD" Date="2006/2/4" Time="11:1:18" Epochtime="1139047278" Status="Application Monitoring Status UP" /></FingerprintEmail>
 
-=back  
+=back
 
-=back  
+=back
 
 =item _text
 
@@ -277,7 +277,7 @@ is the textual descriptions for the status
 
 optional, scalar value, default: 'Status'
 
-==back
+=back
 
 =item _mail
 
@@ -330,7 +330,9 @@ Returns a status for $returnCode (OK..UNKNOWN).
 =item Returns $ERRORS{CRITICAL} when:
 
 - Date or Time into Fingerprint XML are wrong
+
 - Epochtime difference from Date and Time into Fingerprint XML are wrong
+
 - Result into Fingerprint XML are out of date
 
 =item Returns $ERRORS{WARNING} when:
@@ -345,7 +347,9 @@ Returns a status for $returnCode (OK..UNKNOWN).
 
 optional, is an reference to your own custom defined function
 
-$self:
+=over 4
+
+=item $self:
 
 the reference to the current object
 
@@ -397,17 +401,17 @@ the extracted message from the email starting just after the fingerprint
 
 =back
 
-$asnmtapInherited:
+=item $asnmtapInherited:
 
 A required reference to an ASNMTAP::Asnmtap::Plugins or ASNMTAP::Asnmtap::Plugins::Nagios subclass
 
 Through this way of working we inherited the command line option I<--debug>.
 
-$pop3:
+=item $pop3:
 
 A new Net::POP3 object is created and all POP3 commands are accessed via method calls on this object.
 
-$msgnum:
+=item $msgnum:
  
   sub actionOnReceivingFingerprintMail {
     my ($self, $asnmtapInherited, $pop3, $msgnum) = @_;
@@ -449,6 +453,8 @@ and now with customArguments:
     return ( $returnCode );
   }
 
+=back
+
 =item customArguments
 
 optional, when you need to pass parameters to your own custom
@@ -482,7 +488,7 @@ required when _mailType = 1 (XML), scalar value
 =back
 
 Returns a status for $returnCode (OK..UNKNOWN).
-				   
+
 =back
 
 =head1 EXPORT
@@ -494,6 +500,10 @@ Returns a status for $returnCode (OK..UNKNOWN).
 =item *
 
 ALL
+
+none
+
+=back
 
 =head1 AUTHOR
 
@@ -520,14 +530,14 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

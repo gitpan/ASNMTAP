@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,13 +19,13 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template.pl',
   _programDescription => "General plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programUsagePrefix => '-w|--warning <warning> -c|--critical <critical>',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    warning threshold with more than one type of threshold
 -c, --critical=<CRITICAL>
    critical threshold with more than one type of threshold',
-  _programGetOptions  => ['host|H:s', 'warning|w=s', 'critical|c=s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -34,13 +34,9 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $host = $objectPlugins->getOptionsArgv ('host');
-$objectPlugins->printUsage ('Missing hostname/ip address') unless (defined $host);
 
 my $warning = $objectPlugins->getOptionsArgv ('warning');
-$objectPlugins->printUsage ('Missing warning threshold') unless (defined $warning);
-
 my $critical = $objectPlugins->getOptionsArgv ('critical');
-$objectPlugins->printUsage ('Missing critical threshold') unless (defined $critical);
 
 $objectPlugins->pluginValue ( stateValue => $ERRORS{CRITICAL} );
 $objectPlugins->pluginValue ( alert => '.1.' );

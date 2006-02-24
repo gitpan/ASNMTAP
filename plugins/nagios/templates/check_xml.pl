@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.004;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.005;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ my $schema = "1.0";
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_xml.pl',
   _programDescription => 'Check Nagios by XML',
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [-p|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
@@ -37,23 +37,19 @@ my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions => ['filename|F=s', 'hostname|H=s', 'service|s=s', 'plugin|P:s', 'parameters|p:s', 'validation:s', 'interval|i=i', 'environment|e:s'],
+  _programGetOptions => ['filename|F=s', 'hostname|H=s', 'service|s=s', 'plugin|P:s', 'parameters|p:s', 'validation:s', 'interval|i=i', 'environment|e=s'],
   _timeout           => 30,
   _debug             => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $filename = $objectNagios->getOptionsArgv ('filename') ? $objectNagios->getOptionsArgv ('filename') : undef;
-$objectNagios->printUsage ('Missing XML file') unless (defined $filename);
+my $filename = $objectNagios->getOptionsArgv ('filename');
 
 my $hostname = $objectNagios->getOptionsArgv ('hostname') ? $objectNagios->getOptionsArgv ('hostname') : undef;
-$objectNagios->printUsage ('Missing hostname') unless (defined $hostname);
+$objectNagios->printUsage ('Missing command line argument hostname') unless (defined $hostname);
 
 my $service = $objectNagios->getOptionsArgv ('service') ? $objectNagios->getOptionsArgv ('service') : undef;
-$objectNagios->printUsage ('Missing service') unless ( defined $service);
-
-my $resultOutOfDate = $objectNagios->getOptionsArgv ('interval') ? $objectNagios->getOptionsArgv ('interval') : undef;
-$objectNagios->printUsage ('Missing interval') unless (defined $resultOutOfDate);
+$objectNagios->printUsage ('Missing command line argument service') unless ( defined $service);
 
 my $plugin      = $objectNagios->getOptionsArgv ('plugin')     ? $objectNagios->getOptionsArgv ('plugin')     : undef;
 my $parameters  = $objectNagios->getOptionsArgv ('parameters') ? $objectNagios->getOptionsArgv ('parameters') : '';
@@ -64,8 +60,9 @@ if (defined $validateDTD) {
   $validateDTD = ($validateDTD eq 'T') ? 1 : 0;
 }
 
-my $environment = $objectNagios->getOptionsArgv ('environment');
-$objectNagios->printUsage ('Missing environment') unless (defined $environment);
+my $resultOutOfDate = $objectNagios->getOptionsArgv ('interval');
+
+my $environment = $objectNagios->getOptionsArgv ('environment') ? $objectNagios->getOptionsArgv ('environment') : 'P';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

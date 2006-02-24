@@ -20,14 +20,15 @@ if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
 
-  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
+  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ? $ENV{ASNMTAP_PROXY} : undef );
 
-  if ( defined $ASNMTAP_PROXY ? ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ? 0 : 1 ) : 1 ) {
+  unless ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) ) {
+
     my $proxy = ($ASNMTAP_PROXY ? "--proxy='$ASNMTAP_PROXY'" : '');
 
     $t += checkCmd( "$prefix/$plugin $proxy", [0, 1, 2, 3]);
   } else {
-    $t += skipMissingCmd( "$prefix/$plugin", ($tests - 3) );
+    $t += skipMissingCmd( "ASNMTAP_PROXY", ($tests - 3) );
   }
 } else {
   $t += skipMissingCmd( "$prefix/$plugin", $tests );

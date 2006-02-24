@@ -4,7 +4,6 @@ use Test::More tests => 27;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap' ) };
 
-#BEGIN { use_ok ( 'ASNMTAP::Asnmtap v3.000.004' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(:ASNMTAP) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(:COMMANDS) ) };
@@ -16,9 +15,9 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $APPLICATIONPATH $PLUGINPATH
+  $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $RUNPATH
   %ERRORS %STATE %TYPE
-  $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   &_checkAccObjRef
   &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
   &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
@@ -29,7 +28,7 @@ TODO: {
   my $objectAsnmtap = ASNMTAP::Asnmtap->new (
     _programName        => 'Asnmtap.t',
     _programDescription => 'Test ASNMTAP::Asnmtap',
-    _programVersion     => '3.000.004',
+    _programVersion     => '3.000.005',
     _programUsagePrefix => '[--hihi]',
     _programHelpPrefix  => "--hihi ...",
     _programGetOptions => ['hihi=s'],
@@ -45,7 +44,7 @@ TODO: {
   is ( $objectAsnmtap->programDescription(), 'Test ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap::programDescription()' );
   is ( $objectAsnmtap->programDescription('-change programDescription-'), '-change programDescription-', 'ASNMTAP::Asnmtap::programDescription(\'-change programDescription-\')' );
 
-  is ( $objectAsnmtap->programVersion(), '3.000.004', 'ASNMTAP::Asnmtap::programVersion()' );
+  is ( $objectAsnmtap->programVersion(), '3.000.005', 'ASNMTAP::Asnmtap::programVersion()' );
   is ( $objectAsnmtap->programVersion('-change programVersion-'), '-change programVersion-', 'ASNMTAP::Asnmtap::programVersion(\'-change programVersion-\')' );
 
   is ( $objectAsnmtap->getOptionsArgv('hihi'), undef, 'ASNMTAP::Asnmtap::getOptionsArgv(\'hihi\')' );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -28,10 +28,10 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH
+                                                         $PREFIXPATH $LOGPATH $RUNPATH
                                                          %ERRORS %STATE %TYPE
 
-                                                         $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                         $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
                                                          &_checkAccObjRef
                                                          &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -44,10 +44,10 @@ BEGIN {
 
                                     ASNMTAP      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH
+                                                         $PREFIXPATH $LOGPATH $RUNPATH
                                                          %ERRORS %STATE %TYPE) ],
 
-                                    COMMANDS     => [ qw($PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                    COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
 
                                    _HIDDEN       => [ qw(&_checkAccObjRef
                                                          &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -60,14 +60,14 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = 3.000.004;
+  $ASNMTAP::Asnmtap::VERSION     = 3.000.005;
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my %_config;
 
-our $PREFIXPATH = '/opt/asnmtap';
+our $PREFIXPATH = '/opt/asnmtap-3.000.xxx';
 my $_configfile = "$PREFIXPATH/Asnmtap.cnf";
 
 if ( -e $_configfile or ( exists $ENV{ASNMTAP_PATH} ) ) {
@@ -94,6 +94,8 @@ $ENV{ENV}            = ( exists $_config{ENV}{ENV} )      ? $_config{ENV}{ENV}  
 
 our $APPLICATIONPATH = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{APPLICATIONS} ) ? $_config{SUBDIR}{APPLICATIONS} : 'applications');
 our $PLUGINPATH      = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{PLUGINS} ) ? $_config{SUBDIR}{PLUGINS} : 'plugins');
+our $LOGPATH         = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{LOG} ) ? $_config{SUBDIR}{LOG} : 'log');
+our $RUNPATH         = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{RUN} ) ? $_config{SUBDIR}{RUN} : 'run');
 
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} ) ? $_config{COMMON}{APPLICATION} : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )    ? $_config{COMMON}{BUSINESS}    : 'CITAP';
@@ -103,7 +105,11 @@ our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} ) ? $_config{COMMO
 
 our $CAPTUREOUTPUT   = ( exists $_config{IO}{CAPTUREOUTPUT} )   ? $_config{IO}{CAPTUREOUTPUT}   : 1;
 
+our $CHATCOMMAND     = ( exists $_config{COMMAND}{CHAT} )       ? $_config{COMMAND}{CHAT}       : '/usr/sbin/chat';
+our $KILLALLCOMMAND  = ( exists $_config{COMMAND}{KILLALL} )    ? $_config{COMMAND}{KILLALL}    : '/usr/bin/killall';
 our $PERLCOMMAND     = ( exists $_config{COMMAND}{PERL} )       ? $_config{COMMAND}{PERL}       : '/usr/bin/perl';
+our $PPPDCOMMAND     = ( exists $_config{COMMAND}{PPPD} )       ? $_config{COMMAND}{PPPD}       : '/usr/sbin/pppd';
+our $ROUTECOMMAND    = ( exists $_config{COMMAND}{ROUTE} )      ? $_config{COMMAND}{ROUTE}      : '/sbin/route';
 our $RSYNCCOMMAND    = ( exists $_config{COMMAND}{RSYNC} )      ? $_config{COMMAND}{RSYNC}      : '/usr/bin/rsync';
 our $SCPCOMMAND      = ( exists $_config{COMMAND}{SCP} )        ? $_config{COMMAND}{SCP}        : '/usr/bin/scp';
 our $SSHCOMMAND      = ( exists $_config{COMMAND}{SSH} )        ? $_config{COMMAND}{SSH}        : '/usr/bin/ssh';
@@ -183,6 +189,8 @@ sub _init {
 ";
 
   push (@{ $_[0]->{_programGetOptions} }, 'verbose|v:i', 'version|V', 'help|h', 'usage', 'dumpData');
+
+  $_[0]->[ $_[0]->[0]{_getOptionsType} = @{$_[0]} ] = {};
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -241,6 +249,8 @@ sub programVersion     { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1;  $_[0]->{_
 sub getOptionsArgv     { &_checkAccObjRef ( $_[0] ); &_checkReadOnly1; ( defined $_[1] and defined $_[0]->{_getOptionsArgv}->{$_[1]} ) ? $_[0]->{_getOptionsArgv}->{$_[1]} : undef; }
 
 sub getOptionsValue    { &_checkAccObjRef ( $_[0] ); &_checkReadOnly1; ( defined $_[1] and defined $_[0]->{_getOptionsValues}->{$_[1]} ) ? $_[0]->{_getOptionsValues}->{$_[1]} : undef; }
+
+sub getOptionsType     { &_checkAccObjRef ( $_[0] ); &_checkReadOnly1; ( defined $_[1] and defined $_[0]->{_getOptionsType}->{$_[1]} ) ? $_[0]->{_getOptionsType}->{$_[1]} : undef; }
 
 sub debug              { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1;  $_[0]->{_debug} = $_[1] if ( defined $_[1] and $_[1] =~ /^[01]$/ ); $_[0]->{_debug}; }
 
@@ -367,14 +377,14 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

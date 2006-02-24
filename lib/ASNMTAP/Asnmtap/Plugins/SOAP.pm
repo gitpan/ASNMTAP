@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.004;
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.005;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,12 +87,12 @@ sub get_soap_request {
   my $cookies = $parms{cookies};
 
   unless ( $cookies =~ /^[01]$/ ) {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Parameter cookies must be 0 or 1' }, $TYPE{APPEND} );
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter cookies must be 0 or 1' }, $TYPE{APPEND} );
     return ( $ERRORS{UNKNOWN} );
   }
 
   unless ( defined $parms{perfdataLabel} ) {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing parameter perfdataLabel' }, $TYPE{APPEND} );
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing SOAP parameter perfdataLabel' }, $TYPE{APPEND} );
     return ( $ERRORS{UNKNOWN} );
   }
 
@@ -301,14 +301,14 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

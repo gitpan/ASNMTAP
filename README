@@ -5,13 +5,41 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 12 Februari 2006
-Version      : 3.000.004
+Latest update: 26 Februari 2006
+Version      : 3.000.005
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Next TODO ASNMTAP::Asnmtap::Plugins::Modem
+Version 3.000.005, 2006/02/26
+
+- check_MySQL-database-replication.pl (MySQL database replication)
+  - Bit::Vector 6.3
+  - Date::Calc 5.4
+  - Bundle::DBI
+  - Bundle::DBD::mysql
+
+- ASNMTAP::Time
+  - Date::Calc instead of unix data command
+
+- Making ASNMTAP CPAN module perl 5.8.0, 5.8.5 and 5.8.6 compatible
+
+  For perl versions before 5.8.5, then you must change into Asnmtap.cnf from 'CAPTUREOUTPUT 1' to 'CAPTUREOUTPUT 0' !!!
+
+- ASNMTAP::Asnmtap::getOptionsType() added
+
+- ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Modem added
+
+  All    : IO::Handle 1.20
+           Device::Modem 1.43
+
+  Linux or some kind of unix machine:
+           Device::SerialPort 1.002
+           Net::Ifconfig::Wrapper 0.05
+
+  Windows: Win32::SerialPort 0.19
+           Win32::API 0.41
+           Win32::RASE 1.01
 
 
 Version 3.000.004, 2006/02/12, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Mail added
@@ -50,13 +78,49 @@ perl -MCPAN -e 'install ASNMTAP::Asnmtap'
 
 # BINARIES  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-General:
-- yum install expat
-- yum install expat-devel
+Cygwin:
 
-Needed for XML::LibXML used by ASNMTAP::Asnmtap::Plugins::XML
-- yum install lib2xml
-- yum install lib2xml-devel
+  General:
+  - Devel, expat v1.95.8
+
+  Needed for Win32::API used by ASNMTAP::Asnmtap::Plugins::Modem
+  - Libs, w32api v 3.6-1
+
+  Needed for XML::LibXML used by ASNMTAP::Asnmtap::Plugins::XML
+  - Libs, libxml2 v 2.6.22
+  - Devel, libxml2 v 2.6.22
+
+
+Linux:
+
+  General:
+  - yum install expat
+  - yum install expat-devel
+
+  Needed for XML::LibXML used by ASNMTAP::Asnmtap::Plugins::XML
+  - yum install lib2xml
+  - yum install lib2xml-devel
+
+
+Solaris:
+
+  General:
+  - wget ftp://sunfreeware.com/pub/freeware/sparc/9/expat-1.95.5-sol9-sparc-local.gz
+  - gzip -d expat-1.95.5-sol9-sparc-local.gz
+  - pkgadd -d expat-1.95.5-sol9-sparc-local
+  or
+  - wget ftp://sunfreeware.com/pub/freeware/sparc/10/expat-1.95.5-sol10-sparc-local.gz
+  - gzip -d expat-1.95.5-sol10-sparc-local.gz
+  - pkgadd -d expat-1.95.5-sol10-sparc-local
+
+  Needed for XML::LibXML used by ASNMTAP::Asnmtap::Plugins::XML
+  - wget ftp://sunfreeware.com/pub/freeware/sparc/9/libxml2-2.6.16-sol9-sparc-local.gz
+  - gzip -d libxml2-2.6.16-sol9-sparc-local.gz
+  - pkgadd -d libxml2-2.6.16-sol9-sparc-local
+  or
+  - wget ftp://sunfreeware.com/pub/freeware/sparc/10/libxml2-2.6.16-sol10-sparc-local.gz
+  - gzip -d libxml2-2.6.16-sol10-sparc-local.gz
+  - pkgadd -d libxml2-2.6.16-sol10-sparc-local
 
 
 # DEPENDENCIES  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,26 +130,27 @@ This module requires these other modules and libraries:
 Base package ASNMTAP::Asnmtap
 - Config::General:               2.30
 - Config::General::Interpolated: 2.06
-- Data::Dumper:                  2.121
+- Data::Dumper:                  2.12
 - Dumpvalue:                     1.11
-- Getopt::Long:                  2.34
+- Getopt::Long:                  2.32
 - IO::CaptureOutput:             1.03
-- Test::Simple:                  0.62
-- Time::Local:                   1.11
+- Test::Simple:                  0.47
+- Time::Local:                   1.04
 
 ASNMTAP::IO
-- IO:                            1.21
+- IO:                            1.20
 
 ASNMTAP::Time
-- Time::Local:                   1.11
+- Date::Calc:                    5.4
+- Time::Local:                   1.04
 
 ASNMTAP::Asnmtap::Plugins
 - ASNMTAP::Asnmtap
-- Time::HiRes:                   1.76
+- Time::HiRes:                   1.66
 
 ASNMTAP::Asnmtap::Plugins::Nagios
 - ASNMTAP::Asnmtap::Plugins
-- Time::Local:                   1.11
+- Time::Local:                   1.04
 
   check_template-ldap.pl
   - Net::LDAP
@@ -104,7 +169,7 @@ ASNMTAP::Asnmtap::Plugins::Mail
 - Mail::Sendmail                 0.79
 - MIME::Base64                   3.01
 - Net::POP3                      2.28
-- Time::Local                    1.11
+- Time::Local                    1.04
 
 ASNMTAP::Asnmtap::Plugins::Modem
 - ASNMTAP::Asnmtap::Plugins
@@ -152,7 +217,7 @@ ASNMTAP::Asnmtap::Plugins::XML
 
 ASNMTAP::Asnmtap::Plugins::NPTest
 - Cwd:                           3.05
-- Data::Dumper:                  2.121
+- Data::Dumper:                  2.12
 - File::Basename:                2.73
 
 

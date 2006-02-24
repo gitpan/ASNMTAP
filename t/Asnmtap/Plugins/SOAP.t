@@ -4,18 +4,17 @@ use Test::More tests => 21;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 
-#BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP v3.000.004' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(&get_soap_request) ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'SOAP.t ',
   _programDescription => "Testing ASNMTAP::Asnmtap::Plugins::SOAP",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -41,8 +40,8 @@ my $params;
 my ($returnCode, $xml, $errorStatus);
 
 SKIP: {
-  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
-  skip 'reason: ASNMTAP_PROXY', 8 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
+  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ? $ENV{ASNMTAP_PROXY} : undef );
+  skip 'Missing ASNMTAP_PROXY', 8 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
 
   if ( defined $ASNMTAP_PROXY ) {
     no warnings 'deprecated';
@@ -226,8 +225,8 @@ TODO: {
     cookies           => 2
   );
 
-  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QParameter cookies must be 0 or 1\E/);
-  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): ');
+  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QSOAP parameter cookies must be 0 or 1\E/);
+  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): SOAP parameter cookies must be 0 or 1');
 
   ($returnCode, $xml) = get_soap_request ( 
     asnmtapInherited  => \$objectPlugins,
@@ -238,8 +237,8 @@ TODO: {
     cookies           => 1
   );
 
-  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QMissing parameter perfdataLabel\E/);
-  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): ');
+  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QMissing SOAP parameter perfdataLabel\E/);
+  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): Missing SOAP parameter perfdataLabel');
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.004;
+  use ASNMTAP::Asnmtap::Plugins v3.000.005;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-SOAP.pl',
     _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-    _programVersion     => '3.000.004',
+    _programVersion     => '3.000.005',
     _programGetOptions  => ['proxy:s', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -237,14 +237,14 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

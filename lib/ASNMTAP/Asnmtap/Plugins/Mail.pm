@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/08, v3.000.004, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.004;
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.005;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -643,14 +643,14 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

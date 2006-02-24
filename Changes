@@ -5,12 +5,42 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 12 Februari 2006
-Version      : 3.000.004
+Latest update: 26 Februari 2006
+Version      : 3.000.005
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+- check_MySQL-database-replication.pl (MySQL database replication)
+  - Bit::Vector 6.3
+  - Date::Calc 5.4
+  - Bundle::DBI
+  - Bundle::DBD::mysql
+
+- ASNMTAP::Time
+  - Date::Calc instead of unix data command
+
+- Making ASNMTAP CPAN module perl 5.8.0, 5.8.5 and 5.8.6 compatible
+
+  For perl versions before 5.8.5, then you must change into Asnmtap.cnf from 'CAPTUREOUTPUT 1' to 'CAPTUREOUTPUT 0' !!!
+
+- ASNMTAP::Asnmtap::getOptionsType() added
+
+- ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Modem added
+
+  All    : IO::Handle 1.20
+           Device::Modem 1.43
+
+  Linux or some kind of unix machine:
+           Device::SerialPort 1.002
+           Net::Ifconfig::Wrapper 0.05
+
+  Windows: Win32::SerialPort 0.19
+           Win32::API 0.41
+           Win32::RASE 1.01
+
 
 Version 3.000.004, 2006/02/12, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Mail added
 

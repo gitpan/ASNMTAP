@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,25 +19,20 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml.pl',
   _programDescription => "XML fingerprint Mail XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.004',
-  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'interval|i=i', 'environment|e:s', 'timeout|t:i', 'trendline|T:i'],
+  _programVersion     => '3.000.005',
+  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'interval|i=i', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $username = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : undef;
-$objectPlugins->printUsage ('Missing username') unless (defined $username);
-
-my $password = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : undef;
-$objectPlugins->printUsage ('Missing password') unless (defined $password);
-
+my $username = $objectPlugins->getOptionsArgv ('username');
+my $password = $objectPlugins->getOptionsArgv ('password');
 my $interval = $objectPlugins->getOptionsArgv ('interval');
-$interval = 300 unless (defined $interval);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.004;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.005;
 
 my $body = "
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -72,7 +67,6 @@ my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $environment = $objectPlugins->getOptionsArgv('environment');
-$objectPlugins->printUsage ('Missing environment') unless (defined $environment);
 
 my $environmentText = $objectPlugins->getOptionsValue('environment');
 
@@ -95,7 +89,7 @@ $debugfileMessage .= "<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,a
 
 if ( defined $numberOfMatches and $numberOfMatches ) { 
   my $debug = $objectPlugins->getOptionsValue ('debug');
-  $objectPlugins->pluginValue ( { alert => $numberOfMatches .' email(s)' }, $TYPE{APPEND} ); 
+  $objectPlugins->pluginValues ( { alert => $numberOfMatches .' email(s)' }, $TYPE{APPEND} ); 
 
   my $fixedAlert = "+";
 
@@ -106,7 +100,7 @@ if ( defined $numberOfMatches and $numberOfMatches ) {
     $fixedAlert       .= "$xml->{Ressource}->{Server}-$xml->{Ressource}->{Name}+";
   }
 
-  $objectPlugins->pluginValue ( { alert => $fixedAlert }, $TYPE{COMMA_APPEND} ) if ($fixedAlert ne "+");
+  $objectPlugins->pluginValues ( { alert => $fixedAlert }, $TYPE{COMMA_APPEND} ) if ($fixedAlert ne "+");
 }
 
 $debugfileMessage .= "\n</TABLE>\n</BODY>\n</HTML>";

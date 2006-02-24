@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-#  2006/01/01, v3.000.004, making Asnmtap v3.000.xxx compatible
+#  2006/02/26, v3.000.005, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.004; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.005; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -123,7 +123,7 @@ sub new {
     }
   }
 
-  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, number_of_images_downloaded => 0 }, $classname;
+  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, newAgent => 1, number_of_images_downloaded => 0 }, $classname;
 
   # The field urls contains a ref to a list of (hashes) records representing the web transaction.
 
@@ -147,7 +147,8 @@ sub check {
   my ($self, $cgi_parm_vals_hr) = @_;
 
   my %defaults = ( custom           => undef,
-                   newAgent         => TRUE,
+                   perfdataLabel    => undef,
+                   newAgent         => undef,
                    openAppend       => TRUE,
                    cookies          => TRUE,
                    download_images  => FALSE,
@@ -164,7 +165,10 @@ sub check {
   my $proxyUsername = ${$self->{asnmtapInherited}}->proxy ( 'username' );
   my $proxyPassword = ${$self->{asnmtapInherited}}->proxy ( 'password' );
 
-  if ( $parms{newAgent} or ! defined $ua ) {
+  $self->{newAgent} = $parms{newAgent} if ( defined $parms{newAgent} and defined $ua );
+
+  if ( $self->{newAgent} or ! defined $ua ) {
+    $self->{newAgent} = 0;
     $ua = LWP::UserAgent->new ();
     $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
     $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
@@ -181,6 +185,13 @@ sub check {
   my $returnCode = $parms{fail_if_1} ? $ERRORS{OK} : $ERRORS{CRITICAL};
   my $indent_level = $parms{indent_level};
   my ($resp_string, $res, $found);
+
+  my $startTime;
+
+  if ( defined $parms{perfdataLabel} and $parms{perfdataLabel} ) {
+    ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
+    $startTime = ${$self->{asnmtapInherited}}->pluginValue ('endTime');
+  }
 
   foreach my $url_r ( @{ $self->{urls} } ) {
     ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
@@ -357,6 +368,11 @@ sub check {
 
       $self->{number_of_images_downloaded} += $number_imgs_dl;
     }
+  }
+
+  if ( defined $parms{perfdataLabel} and defined $startTime ) {
+    my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( $startTime );
+    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $parms{perfdataLabel} ."='". $responseTime .'ms;;;;' );
   }
 
   ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );
@@ -580,7 +596,7 @@ __END__
 
 =head1 NAME
 
-is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
+ASNMTAP::Asnmtap::Plugins::Webtransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 DESCRIPTION
 

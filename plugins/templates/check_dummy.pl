@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_dummy.pl',
   _programDescription => "Dummy plugin for testing the '$APPLICATION'",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programUsagePrefix => '-r|--returnCode <VALUE>',
   _programHelpPrefix  => '-r, --returnCode=<VALUE>
    VALUE = 0-3
@@ -36,7 +36,7 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $returnCode = $objectPlugins->getOptionsArgv ('returnCode');
-$objectPlugins->printUsage ('Missing returnCode') unless ( defined $returnCode );
+$objectPlugins->printUsage ('Missing command line argument returnCode') unless ( defined $returnCode );
 $objectPlugins->printUsage ('Invalid returnCode: '. $returnCode) unless ( $returnCode =~ /^([0-3]+)$/ );
 $objectPlugins->pluginValues ( { stateValue => $returnCode, alert => '+DUMMY-T'. $returnCode .'+' }, $TYPE{APPEND} );
 
@@ -44,7 +44,7 @@ $objectPlugins->pluginValues ( { stateValue => $returnCode, alert => '+DUMMY-T'.
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sleep 10;
+sleep $returnCode;
 
 $objectPlugins->exit (7);
 

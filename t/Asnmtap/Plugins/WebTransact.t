@@ -4,16 +4,15 @@ use Test::More tests => 18;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-#BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact v3.000.004' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact.t',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -65,8 +64,8 @@ ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::WebTransact::urls():');
 
 
 SKIP: {
-  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
-  skip 'reason: ASNMTAP_PROXY', 5 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
+  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ? $ENV{ASNMTAP_PROXY} : undef );
+  skip 'Missing ASNMTAP_PROXY', 5 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
 
   $returnCode = $objectWebTransact->check ( { } );
   ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::WebTransact::check():');
@@ -86,7 +85,7 @@ SKIP: {
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, newAgent => 0 );
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );
   ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::WebTransact::check():');
 
 

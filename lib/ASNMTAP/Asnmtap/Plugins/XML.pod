@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.004;
+  use ASNMTAP::Asnmtap::Plugins v3.000.005;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-WebTransact-XML.pl',
     _programDescription => "WebTransact-XML plugin template for testing the '$APPLICATION'",
-    _programVersion     => '3.000.004',
+    _programVersion     => '3.000.005',
     _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -35,7 +35,7 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
     { Method => "GET",  Url => 'http://asnmtap.citap.com/ServletTestRunner.xml', Qs_var => [], Qs_fixed => [], Exp => "\Q<testsuites>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "ServletTestRunner.xml", Msg_Fault => "ServletTestRunner.xml" },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, newAgent => 1 );
+  $returnCode = $objectWebTransact->check ( { } );
   undef $objectWebTransact;
   $objectPlugins->exit (7) if ( $returnCode );
 
@@ -205,14 +205,14 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins, ASNMTAP::Asnmtap::Plugins::Nagios
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

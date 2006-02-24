@@ -21,7 +21,11 @@
 </COMMON>
 
 <COMMAND>
+    CHAT            /usr/sbin/chat
+    KILLALL         /usr/bin/killall
 	PERL			/usr/bin/perl
+	PPPD			/usr/sbin/pppd
+    ROUTE           /sbin/route
 	RSYNC			/usr/bin/rsync
 	SCP 			/usr/bin/scp
 	SSH				/usr/bin/ssh
@@ -38,6 +42,8 @@
 <SUBDIR>
 	APPLICATIONS	applications
 	PLUGINS			plugins
+    LOG             log
+    RUN             run
 </SUBDIR>
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

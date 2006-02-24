@@ -1,7 +1,10 @@
 #!/usr/bin/perl -w
 # ---------------------------------------------------------------------------------------------------------
+#
 # Copyright (c)2004-2005 Yves Van den Hove (yves.vandenhove@smals-mvm.be)
+#
 # ---------------------------------------------------------------------------------------------------------
+# 2006-02-20 - Version 1.9: 
 # 2006-01-30 - Version 1.8: use constant EXP_FAULT, little bugfix, sub URLDecode()
 # 2006-01-12 - Version 1.7: Qs_fixed for GET requests, /i for regexp, my @URLS, Perfdata_Label, Msg, Msg_fault
 # 2005-09-06 - Version 1.6: No more .ico
@@ -12,7 +15,7 @@
 # 2004-06-11 - Version 1.1: List output format
 # 2004-06-09 - Version 1.0: Original design
 # ---------------------------------------------------------------------------------------------------------
-# Last Update: 30/01/2006 13:00
+# Last Update: 20/02/2006 11:35
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +25,7 @@ use vars qw($opt_i $opt_o $opt_f $opt_h $opt_v $PROGNAME);
 
 my $PROGNAME = "GrinderCaptureConverter.pl";
 my $prgtext  = "Grinder Capture Converter";
-my $version  = "1.8";
+my $version  = "1.9";
 my $debug    = 0;
 
 my $infile;
@@ -132,11 +135,7 @@ exit(0);
 
 sub output_webtransact () {
   open (OUTFILE, ">$outfile") || die ("Could not open webtransact output file");
-  print OUTFILE "use WebTransactSmalsMvM;\n\n";
-  print OUTFILE "my \$x;\n";
-  print OUTFILE "my \$rc;\n\n";
-  print OUTFILE "use constant EXP_FAULT => \"<NIHIL>\";\n\n";
-  print OUTFILE "my \@URLS = (\n";
+  print OUTFILE "\@URLS = (\n";
 
   for(my $c = 0; $c < @urlArray; $c++) {
     if (! ($urlArray[$c] =~ /.gif|.jpg|.png|.css|.ico$|.js$/i) ) {
@@ -150,9 +149,9 @@ sub output_webtransact () {
           $Qs_fixed .= URLDecode($name) . " => " . "\"" . URLDecode($value) . "\"" . ", ";
         }  
         chop($Qs_fixed); chop($Qs_fixed);
-        print OUTFILE "  { Method => \"POST\", Url => \"" . URLDecode($urlArray[$c]) . "\", Qs_var => [], Qs_fixed => [$Qs_fixed], Exp => \"<NIHIL>\", Exp_Fault => \"<NIHIL>\", Msg => \"$tFilename\", Msg_Fault => \"$tFilename\", Perfdata_Label => \"$tFilename\" },\n";
+        print OUTFILE "  { Method => \"POST\", Url => \"" . URLDecode($urlArray[$c]) . "\", Qs_var => [], Qs_fixed => [$Qs_fixed], Exp => \"<NIHIL>\", Exp_Fault => EXP_FAULT, Msg => \"$tFilename\", Msg_Fault => MSG_FAULT, Perfdata_Label => \"$tFilename\" },\n";
       } else {
-      	my ($tUrl, $tParams) = split(/\?/, $urlArray[$c]);
+      	my ($tUrl, $tParams)  = split(/\?/, $urlArray[$c]);
       	my(undef, $tFilename) = $tUrl =~ m/(.*\/)(.*)$/; 	
       	my @tArray1 = split(/&/, $tParams) if (defined $tParams && $tParams ne '');
         my $Qs_fixed;
@@ -166,16 +165,12 @@ sub output_webtransact () {
 	      	$Qs_fixed="";
 	      }
 	      chop($Qs_fixed); chop($Qs_fixed);
-        print OUTFILE "  { Method => \"GET\",  Url => \"" . URLDecode($tUrl) . "\", Qs_var => [], Qs_fixed => [$Qs_fixed], Exp => \"<NIHIL>\", Exp_Fault => EXP_FAULT, Msg => \"$tFilename\", Msg_Fault => \"$tFilename\", Perfdata_Label => \"$tFilename\" },\n";
+        print OUTFILE "  { Method => \"GET\",  Url => \"" . URLDecode($tUrl) . "\", Qs_var => [], Qs_fixed => [$Qs_fixed], Exp => \"<NIHIL>\", Exp_Fault => EXP_FAULT, Msg => \"$tFilename\", Msg_Fault => MSG_FAULT, Perfdata_Label => \"$tFilename\" },\n";
       }
     }
   }
 
   print OUTFILE ");\n\n";
-  print OUTFILE "\$x = Nagios::WebTransactSmalsMvM->new( \\\@URLS );\n";
-  print OUTFILE "(\$rc, \$error, \$alert, \$result) = \$x->check( {}, timeout => \$TIMEOUT, debug => \$debug, httpdump => \$httpdump, proxy => { server => \$proxyServer, account => \$proxyUsername, pass => \$proxyPassword } );\n\n";
-  print OUTFILE "\$message = \"...\";\n";
-  print OUTFILE "exit_status ( \$status, \$debug, \$logging, \$httpdump, \$STATE{\$rc}, \$message, \$alert, \$error, \$result );\n\n";
   close (OUTFILE);
 }
 

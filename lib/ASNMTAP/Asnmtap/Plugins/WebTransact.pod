@@ -1,6 +1,6 @@
 =head1 NAME
 
-is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
+ASNMTAP::Asnmtap::Plugins::Webtransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 SYNOPSIS
 
@@ -13,7 +13,7 @@ is a Perl module that provides WebTransact functions used by ASNMTAP-based plugi
     { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Perfdata Label 1' },
   );
 
-  $objectWebTransact->check ( { }, newAgent => 1 );
+  $objectWebTransact->check ( { } );
   undef $objectWebTransact;
 
 =head1 DESCRIPTION
@@ -200,7 +200,9 @@ Is an scalar (value is a string), ex. blurb
 
 =item Exp_Return
 
-hash, { var_label_1 => EXP_VAR_LABEL_1, ... }
+B<Exp_Return> is the pattern that indicates the response is a return.
+
+Is an hash, { var_label_1 => EXP_VAR_LABEL_1, ... }
 
 =item Msg .
 
@@ -249,7 +251,7 @@ equals to:
 
 Performs a check of the Web transaction by getting the sequence or URLs specified in the constructor argument.
 
-  $objectWebTransact->check ( { }, newAgent => 1 );
+  $objectWebTransact->check ( { } );
 
 B<CGI_VALUES> is a reference to a hash whose keys are the values used in the
 Qs_var lists. This allows the check method to get the value of these
@@ -264,7 +266,8 @@ I<Structure of the array of hash references:>
 
   (
     custom           => undef,
-    newAgent         => 1,
+    perfdataLabel    => undef,
+    newAgent         => undef,
     openAppend       => 1,
     cookies          => 1,
     download_images  => 0,
@@ -273,7 +276,7 @@ I<Structure of the array of hash references:>
   )
 
 B<Possible options are:>
-  
+
 =over 4
 
 =item I<custom>
@@ -297,17 +300,53 @@ This function give you a extra control to ASNMTAP::Asnmtap::Plugins::WebTransact
 
 Is an scalar, reference to a function, default: undef
 
+=item I<perfdataLabel>
+
+set the performancedata label for a group of URLs
+
+=over 4
+
+=item I<Example>
+
+  my @URLS = (
+    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+  );
+
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, perfdataLabel => 'homepage' );
+
+equals to:
+
+  my @URLS = (
+    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+  );
+
+  $startTime = $objectPlugins->setEndTime_and_getResponsTime ( $objectPlugins->pluginValue ('endTime') );
+  $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );
+  $responseTime = $objectWebTransact->setEndTime_and_getResponsTime ( $startTime );
+  $objectWebTransact->appendPerformanceData ( 'homepage='. $responseTime .'ms;'. ($trendline*1000) .';;;' );
+
+=back
+
 =item I<newAgent>
 
-The first time we call $objectWebTransact->check ( { }, ... ), then newAgent must equals 1, so that an (browser) session will be created.
+The first time we call $objectWebTransact->check ( { }, ... ), 
+
+is an scalar, value is 0, 1 or undef (default)
+
+ undef: current (browser) session will be used, but at the first 
+        all a new (browser) session will automaticallybe created
+ 0    : current (browser) session will be used
+ 1    : new (browser) session will be created
 
 This means that when you specify newAgent => 0 the first time you call $objectWebTransact->check, it will be treated as newAgent => 1, to ensure that an (browser) session is created.
 
-Every time whel for a following call $objectWebTransact->check ( { }, ... ), newAgent equals 1, then a new (browser) session is created. 
+Every time whel for a following call $objectWebTransact->check ( { }, ... ), newAgent equals 1, then a new (browser) session is created.
 
 When newAgent equals 0, then we using the same (browser) session again.
 
-Is an scalar, value is 0 or 1 (default)
+Optional, is an scalar, value is 0 or 1
 
 =item I<openAppend>
 
@@ -344,7 +383,7 @@ check semantics:
 
 I<Example:>
 
-  $objectWebTransact->check ( { }, newAgent => 1 );
+  $objectWebTransact->check ( { } );
   undef $objectWebTransact;
 
 =item $objectWebTransact->matches()
@@ -388,7 +427,7 @@ Set the return keys and values from all next urls to download
 =item $objectWebTransact->urls()
 
 Set and/or get the urls
-  
+ 
 =item $objectWebTransact->get_urls()
 
 Get the urls
@@ -434,7 +473,7 @@ Exp_Fault field the check fails.
                Perfdata_Label => 'Label x' } ];
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, $ar);
-  my $returnCode = $objectWebTransact->check ( { tmno => $tmno }, newAgent => 1 );
+  my $returnCode = $objectWebTransact->check ( { tmno => $tmno } );
 
   foreach ( @{ $objectWebTransact->get_matches() } ) { print $_, "\n"; }
 
@@ -489,7 +528,7 @@ the query string p_tmno1 = <current_value_of_arg_hash{'tmno'}>
   $tmno = $tmarks[$i];
 
   $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, URLS );
-  $returnCode = $objectWebTransact->check ( {tmno => $tmno}, newAgent => 1 )
+  $returnCode = $objectWebTransact->check ( {tmno => $tmno} )
 
   foreach ( @{ $objectWebTransact->get_matches() } ) { print $_, "\n"; }
 
@@ -512,7 +551,7 @@ More examples:
     { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => VAL_NAVIGATION_TOKEN, TICKETNUMBER => VAL_TICKETNUMBER], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
   );
 
-  equals to:
+equals to:
 
   use constant EXP_NAVIGATION_TOKEN => '<input\s+type="hidden"\s+name="NAVIGATION_TOKEN"\s+value="(-{0,1}\d+)"\s+/>';
 
@@ -547,7 +586,7 @@ More examples:
   $returnCode = $objectWebTransact->check( { valNavigationToken => $valNavigationToken } );
   print "Navigation Token: $valNavigationToken\n";
 
-  equals to:
+equals to:
   
   use constant EXP_NAVIGATION_TOKEN => '<input\s+type="hidden"\s+name="NAVIGATION_TOKEN"\s+value="(-{0,1}\d+)"\s+/>';
 
@@ -671,13 +710,13 @@ equals to:
     { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
-  $returnCode = $objectWebTransact->check ( { }, newAgent => 0 );
+  $returnCode = $objectWebTransact->check ( { } );
 
 =back
 
 =head1 BUGS
 
-=item * B<you> must identify the URLs and the query strings required by the transaction 
+B<you> must identify the URLs and the query strings required by the transaction 
 using tools like grinder or by examining the HTML source of the forms.
 
 =head1 AUTHOR

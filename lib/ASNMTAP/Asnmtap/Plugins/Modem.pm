@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -15,7 +15,11 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap qw(%ERRORS %TYPE);
+use Carp qw(cluck);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap qw(%ERRORS %TYPE $CHATCOMMAND $KILLALLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $LOGPATH);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -24,277 +28,341 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Modem::ISA         = qw(Exporter ASNMTAP::Asnmtap::Plugins);
 
-  %ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS = ( ALL => [ qw() ] );
+  %ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS = ( ALL => [ qw(&get_modem_request) ] );
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.004;
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.005;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub init_modem {
-  my ($PROGNAME, $timeout, $phonebook, $username, $password, $opt_p, $opt_P, $opt_B, $opt_l, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $asnmtapEnv) = @_;
+sub get_modem_request {
+  my %defaults = ( asnmtapInherited => undef,
+                   custom           => undef,
+                   customArguments  => undef,
+                   windows          => undef,
+                   phonenumber      => undef,
+                   port             => '/dev/ttyS0',
+                   baudrate         => 19200,
+                   databits         => 8,
+                   initString       => 'H0 Z S7=45 S0=0 Q0 V1 E0 &C0 X4',
+                   parity           => 'none',
+                   stopbits         => 1,
+                   timeout          => 30,
+                   phonebook        => undef,
+                   username         => undef,
+                   password         => undef,
+                   defaultGateway   => undef,
+                   defaultInterface => undef,
+                   defaultDelete    => 1,
+                   pppInterface     => 'ppp0',
+                   pppTimeout       => 60,
+                   pppPath          => '/etc/ppp',
+                   logtype          => 'syslog',
+                   loglevel         => 'emerg'
+                 );
+
+  my %parms = (%defaults, @_);
+
+  my $asnmtapInherited = $parms{asnmtapInherited};
+  unless ( defined $asnmtapInherited ) { cluck ( 'ASNMTAP::Asnmtap::Plugins::XML: asnmtapInherited missing' ); exit $ERRORS{UNKNOWN} }
+
+  my $debug = $$asnmtapInherited->getOptionsValue ( 'debug' );
+
+  unless ( defined $parms{phonenumber} ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing phonenumber' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{phonenumber} =~ /^[.0-9]+$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid phonenumber: '. $parms{phonenumber} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  if ( $^O eq 'MSWin32' or ( defined $parms{windows} and $parms{windows} ) ) {
+    eval "use Win32::RASE";
+    $parms{windows} = 1;
+
+    unless ( $parms{port} =~ /^com[1-4]$/ ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid Windows port: '. $parms{port} }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+  } else {                                             # running on Linix
+    eval "use Net::Ifconfig::Wrapper";
+    $parms{windows} = 0;
+
+    unless ( $parms{port} =~ /^\/dev\/ttyS[0-3]$/ ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid Linux port: '. $parms{port} }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+  }
+
+  unless ( $parms{baudrate} =~ /^(?:300|1200|2400|4800|9600|19200|38400|57600|115200)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid baudrate: '. $parms{baudrate} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{databits} =~ /^[5-8]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid databits: '. $parms{databits} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{parity} =~ /^(?:none|odd|even)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid : parity'. $parms{parity} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{stopbits} =~ /^[12]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid stopbits: '. $parms{stopbits} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{timeout} =~ /^\d+$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid timeout: '. $parms{timeout} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  my $modem_not_ras = ( defined $parms{phonebook} ? 0 : 1 );
+
+  unless ( $modem_not_ras ) {
+    unless ( defined $parms{phonebook} and defined $parms{username} ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing phonebook' }, $TYPE{APPEND} ) unless ( defined $parms{phonebook} );
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing username' },  $TYPE{APPEND} ) unless ( defined $parms{username} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+
+    if ( $parms{windows} and ! defined $parms{password} ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing password' },  $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+  }
+
+  unless ( $parms{defaultDelete} =~ /^(?:[01])$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid defaultDelete: '. $parms{defaultDelete} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{pppInterface} =~ /^(?:ppp[0-3])$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid pppInterface: '. $parms{pppInterface} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{pppTimeout} =~ /^(?:[1-9]\d*)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid pppTimeout: '. $parms{pppTimeout} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{logtype} =~ /^(?:file|syslog)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid logtype: '. $parms{logtype} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ( $parms{loglevel} =~ /^(?:debug|info|notice|warning|err|crit|alert|emerg)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Invalid loglevel: '. $parms{loglevel} }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
 
   use Device::Modem;
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  sub _IfaceInfo {
-    my ($Info, $Iface) = @_;
+  sub _ppp_interface_info {
+    my ($asnmtapInherited, $info, $pppInterface, $debug) = @_;
 
-    my $Res = "$Iface:\t".($Info->{$Iface}->{'status'} ? 'UP' : 'DOWN')."\n";
-    while (my ($Addr, $Mask) = each(%{$Info->{$Iface}->{'inet'}})) { $Res .= sprintf("\tinet %-15s mask $Mask\n", $Addr); };
-    $Info->{$Iface}->{'ether'} and $Res .= "\tether ".$Info->{$Iface}->{'ether'}."\n";
-    $Info->{$Iface}->{'descr'} and $Res .= "\tdescr '".$Info->{$Iface}->{'descr'}."'\n";
-    return $Res;
-  };
+    my $pppStatus = ( $info->{$pppInterface}->{status} ? 'UP' : 'DOWN' );
+    my $pppInterfaceInfo = $pppInterface .': '. $pppStatus ."\n";
+
+    if ( $pppStatus eq 'UP' ) {
+      while ( my ($pppIp, $pppMask) = each( %{ $info->{$pppInterface}->{inet} } ) ) { 
+        $pppInterfaceInfo .= sprintf ("inet %-15s mask $pppMask\n", $pppIp);
+        $$asnmtapInherited->pluginValues ( { alert => "$pppInterface $pppStatus - inet $pppIp mask $pppMask" }, $TYPE{APPEND} );
+      };
+
+      $pppInterfaceInfo .= 'ether '. $info->{$pppInterface}->{ether} ."\n" if ( $info->{$pppInterface}->{ether} );
+      $pppInterfaceInfo .= 'descr '. $info->{$pppInterface}->{descr} ."\n" if ( $info->{$pppInterface}->{descr} );
+    }
+
+    print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_ppp_interface_info: $pppInterfaceInfo" if ($debug);
+    return ( $pppStatus );
+  }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  sub _errorTrapModem {
+  sub _error_trap_modem {
     my ($error_message, $ras_message, $debug) = @_;
-    print "$error_message, $ras_message\n" if ($debug);
-    return 0;
+
+    print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_error_trap_modem: $error_message, $ras_message\n" if ($debug);
+    return (0);
   }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   sub _test_modem {
-    my ($testAll, $modem, $ok, $not_connected_guess, $phonenumber, $port, $baud, $log, $timeout, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $loglevel, $asnmtapEnv) = @_;
+    my ( $asnmtapInherited, $parms, $modem, $ok, $answer, $not_connected_guess, $test_modem, $debug ) = @_;
 
-    # test syslog/file logging.
+    my $log = 'syslog';
+
+    if ( $$parms{logtype} eq 'file' ) {
+      $$asnmtapInherited->call_system ( 'mkdir '. $LOGPATH ) unless ( -e "$LOGPATH" );
+      my $logfile = $LOGPATH .'/'. $$asnmtapInherited->programName() .'.log';
+      $log = 'file,'. $logfile;
+    }
+
+    if ($debug) {                              # test syslog/file logging
+      $$modem = Device::Modem->new ( port => $$parms{port}, log => $log, loglevel => 'debug' );
+    } else {
+      $$modem = Device::Modem->new ( port => $$parms{port}, log => $log, loglevel => $$parms{loglevel} );
+    }
+
     if ($debug) {
-      $modem = Device::Modem->new( port => $port, log => $log, loglevel => 'debug' );
-    } else {
-      $modem = Device::Modem->new( port => $port, log => $log, loglevel => $loglevel );
+      print 'ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem::Device::Modem::new: '. $$modem ."\n";
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem::Device::Modem::connect: baudrate => $$parms{baudrate}, databits => $$parms{databits}, initString => $$parms{initString}, parity => $$parms{parity}, stopbits => $$parms{stopbits}\n";
     }
 
-    print "Device::Modem->new: <$modem>\n" if ($debug);
-
-    if ( $modem->connect(baudrate => $baud) ) {
-      print "Modem is connected to $port serial port\n" if ($debug);
+    if ( $$modem->connect ( baudrate => $$parms{baudrate}, databits => $$parms{databits}, initString => $$parms{initString}, parity => $$parms{parity}, stopbits => $$parms{stopbits} ) ) {
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Modem is connected to ". $$parms{port} ." serial port\n" if ($debug);
     } else {
-      $alert = "Cannot connect to $port serial port!: $!";
-      $state = $STATE{$ERRORS{"CRITICAL"}};
-      exit_plugin ( $asnmtapEnv, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result );
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Cannot connect to '. $$parms{port} ." serial port!: $!" }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
     }
 
-    # Testing if modem is turned on and available
-    if ( $modem->is_active() ) {
-      print "Modem is active\n" if ($debug);
+    if ( $$modem->is_active () ) {
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Modem is active\n" if ($debug);
     } else {
-      $alert = "Modem is turned off, or not functioning ...";
-      $state = $STATE{$ERRORS{"CRITICAL"}};
-      exit_plugin ( $asnmtapEnv, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result );
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Modem is turned off, or not functioning ...' }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
     }
 
-	my $answer;
-
-	if ( $testAll ) {
+	if ( $test_modem ) {
       # Try with AT escape code, send `attention' sequence (+++)
-      $answer = '<NIHIL>';
-      $answer = $modem->attention();
-      $answer = '<no answer>' if ( !(defined $answer) );
-      print "Sending attention, modem says '$answer'\n" if ($debug);
+      $$answer = $$modem->attention();
+      $$answer = '<no answer>' unless ( defined $$answer );
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Sending attention, modem says '$$answer'\n" if ($debug);
 
-      if ( $answer ne '<no answer>' ) {
-        $alert .= " Sending attention, modem says '$answer'";
-        $not_connected_guess++;
+      unless ( $$answer eq '<no answer>' ) {
+        $$asnmtapInherited->pluginValues ( { alert => "Sending attention, modem says '$$answer'" }, $TYPE{APPEND} );
+        $$not_connected_guess++;
       }
 
       # Send empty AT command
-      $answer = '<NIHIL>';
-      $modem->atsend('AT'.Device::Modem::CR);
-      $answer = $modem->answer();
-      $answer = '<no answer>' if ( !(defined $answer) );
-      print "Sending AT, modem says '$answer'\n" if ($debug);
+      $$answer = undef;
+      $$modem->atsend('AT'. Device::Modem::CR);
+      $$answer = $$modem->answer();
+      $$answer = '<no answer>' unless ( defined $$answer );
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Sending AT, modem says '$$answer'\n" if ($debug);
 
-      if ( !($answer =~ /OK/) ) {
-        $alert .= " Sending AT, modem says '$answer'";
-        $not_connected_guess++;
+      unless ( $$answer =~ /OK/ ) {
+        $$asnmtapInherited->pluginValues ( { alert => "Sending AT, modem says '$$answer'" }, $TYPE{APPEND} );
+        $$not_connected_guess++;
       }
 
       # This must generate an error!
-      $answer = '<NIHIL>';
-      $modem->atsend('AT@x@@!$#'.Device::Modem::CR);
-      $answer = $modem->answer();
-      $answer = '<no answer>' if ( !(defined $answer) );
-      print "Sending erroneous AT command, modem says '$answer'\n" if ($debug);
+      $$answer = undef;
+      $$modem->atsend('AT@x@@!$#'. Device::Modem::CR);
+      $$answer = $$modem->answer();
+      $$answer = '<no answer>' unless ( defined $$answer );
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Sending erroneous AT command, modem says '$$answer'\n" if ($debug);
 
-      if ( !($answer =~ /ERROR/) ) {
-        $alert .= " Sending erroneous AT command, modem says '$answer'";
-        $not_connected_guess++;
+      unless ( $$answer =~ /ERROR/ ) {
+        $$asnmtapInherited->pluginValues ( { alert => "Sending erroneous AT command, modem says '$$answer'" }, $TYPE{APPEND} );
+        $$not_connected_guess++;
       }
 
-      $answer = '<NIHIL>';
-      $modem->atsend('AT'.Device::Modem::CR);
-      $modem->answer();
-      $answer = '<no answer>' if ( !(defined $answer) );
-      print "Sending AT command, modem says '$answer'\n" if ($debug);
+      $$answer = undef;
+      $$modem->atsend('AT'. Device::Modem::CR);
+      $$answer = $$modem->answer();
+      $$answer = '<no answer>' unless ( defined $$answer );
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Sending AT command, modem says '$$answer'\n" if ($debug);
 
-      $answer = '<NIHIL>';
-      $modem->atsend('ATZ'.Device::Modem::CR);
-      $answer = $modem->answer();
-      $answer = '<no answer>' if ( !(defined $answer) );
-      print "Sending ATZ reset command, modem says '$answer'\n" if ($debug);
+      $$answer = undef;
+      $$modem->atsend('ATZ'. Device::Modem::CR);
+      $$answer = $$modem->answer();
+      $$answer = '<no answer>' unless ( defined $$answer );
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: Sending ATZ reset command, modem says '$$answer'\n" if ($debug);
 
-      if ( !($answer =~ /OK/ )) {
-        $alert .= " Sending ATZ reset command, modem says '$answer'";
-        $not_connected_guess++;
+      unless ( $$answer =~ /OK/ ) {
+        $$asnmtapInherited->pluginValues ( { alert => "Sending ATZ reset command, modem says '$$answer'" }, $TYPE{APPEND} );
+        $$not_connected_guess++;
       }
 
-      $answer = '<NIHIL>';
-      ($ok, $answer) = $modem->dial($phonenumber, $timeout);
-      $answer = '<no answer>' if ( !(defined $answer) );
+      $$answer = undef;
+      ($$ok, $$answer) = $$modem->dial( $$parms{phonenumber}, $$parms{timeout} );
+      $$answer = '<no answer>' unless ( defined $$answer );
 
-      if ( $ok ) {
-        print "Dialed [" . $phonenumber . "], answer <$answer>\n" if ($debug);
+       print 'ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: ', ( $$ok ? 'Dialed' : 'Cannot Dial' ), '['. $$parms{phonenumber} ."], answer: $$answer\n" if ($debug);
+    } else {
+      $$modem = undef;
+    }
+
+    sleep (1);
+    return ( $ERRORS{OK} );
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  my ($returnCode, $hrasconn, $modem, $ok, $answer);
+  my $not_connected_guess = 0;
+
+  return ( $returnCode ) if ( $returnCode = _test_modem ( $asnmtapInherited, \%parms, \$modem, \$ok, \$answer, \$not_connected_guess, $modem_not_ras, $debug ) );
+
+  unless ( $modem_not_ras ) {
+    my ($pppStatus, $exit);
+
+    if ( $parms{windows} ) {
+      eval { no strict 'subs'; $hrasconn = RasDial( $parms{phonebook}, $parms{phonenumber}, $parms{username}, $parms{password} ) or _error_trap_modem ( 'Cannot DIAL to '. $parms{phonenumber}, Win32::RASE::FormatMessage, $debug ) };
+    } else {
+      $$asnmtapInherited->call_system ( $ROUTECOMMAND .' del default' ) if ( $parms{defaultDelete} );
+
+      my $command = 'cd '. $parms{pppPath} .'; '. $PPPDCOMMAND .' '. $parms{port} .' '. $parms{baudrate} .' debug user '. $parms{username} .' call '. $parms{phonebook} ." connect \"$CHATCOMMAND -v ABORT BUSY ABORT 'NO CARRIER' ABORT VOICE ABORT 'NO DIALTONE' ABORT 'NO DIAL TONE' ABORT 'NO ANSWER' ABORT DELAYED '' ATZ OK AT OK ATDT". $parms{phonenumber} ." CONNECT '\\d\\c'\" defaultroute";
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::pppd: $command\n" if ($debug);
+
+      if ( $$asnmtapInherited->call_system ( "$command" ) ) {
+        $$asnmtapInherited->pluginValues ( { alert => "'$command' failed" }, $TYPE{APPEND} );
+        $not_connected_guess++;
       } else {
-        $alert .= " Cannot dial [" . $phonenumber . "]";
-        print "Cannot dial [" . $phonenumber . "], answer <$answer>\n" if ($debug);
-        $not_connected_guess++;
-      }
-
-      sleep(1);
-    } else {
-      undef $modem;
-      sleep(1);
-    }
-
-	return ($modem, $ok, $answer, $not_connected_guess, $alert, $state);
-  }
-
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  my $modemNotRas = ( ($phonebook eq '<NIHIL>') and ($username eq '<NIHIL>') and ($password eq '<NIHIL>') ) ? 1 : 0;
-
-  my $windows;
-
-  if ($^O eq 'MSWin32') {                              # running on Win32
-    eval "use Win32::RASE";
-    $windows = 1;
-  } else {                                             # running on Linix
-    eval "use Net::Ifconfig::Wrapper";
-    $windows = 0;
-  }
- 
-  # modem settings
-  my $port     = ($windows) ? 'com1' : '/dev/ttyS0';
-  my $baud     = '19200';
-
-  # loglevel - default logging level. One of: debug, verbose, notice, info, warning, err, crit, alert, emerg
-  my $loglevel = 'emerg';
-  my $log = 'file,/var/log/asnmtap/'. $PROGNAME .'.log';   # my $log = 'syslog';
-
-  ($opt_p) || usage("Phonenumber not specified\n");
-  my $phonenumber = $1 if ($opt_p =~ /([.0-9]+)/);
-  ($phonenumber) || usage("Invalid phonenumber: $opt_p\n");
-
-  if ($opt_P) {
-    if ($opt_P eq 'com1' || $opt_P eq 'com2' || $opt_P eq '/dev/ttyS0' || $opt_P eq '/dev/ttyS1' ) {
-      $port = $opt_P;
-    } else {
-      usage("Invalid port: $opt_P\n");
-    }
-  }
-
-  if ($opt_B) {
-    if ($opt_B eq '300' || $opt_B eq '1200' || $opt_B eq '2400' || $opt_B eq '4800' || $opt_B eq '9600' || $opt_B eq '19200' || $opt_B eq '38400' || $opt_B eq '57600' || $opt_B eq '115200') {
-      $baud = $opt_B;
-    } else {
-      usage("Invalid baudrate: $opt_B\n");
-    }
-  }
-
-  if ($opt_l) {
-    if ($opt_l eq 'debug' || $opt_l eq 'verbose' || $opt_l eq 'notice' || $opt_l eq 'info' || $opt_l eq 'warning' || $opt_l eq 'err' || $opt_l eq 'crit' || $opt_l eq 'alert' || $opt_l eq 'emerg') {
-      $loglevel = $opt_l;
-    } else {
-      usage("Invalid loglevel: $opt_l\n");
-    }
-  }
-
-  $Device::Modem::port     = $port;
-  $Device::Modem::baudrate = $baud;
-
-  print "Your serial port is `$Device::Modem::port' (environment configured)\n" if ($debug);
-  print "Link baud rate   is `$Device::Modem::baudrate' (environment configured)\n" if ($debug);
-
-  my ($modem, $ok, $answer, $not_connected_guess);
-  $not_connected_guess = 0;
-  ($modem, $ok, $answer, $not_connected_guess, $alert, $state) = _test_modem ( $modemNotRas, $modem, $ok, $not_connected_guess, $phonenumber, $port, $baud, $log, $timeout, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $loglevel, $asnmtapEnv );
-
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  my $hrasconn;
-
-  if ( ! $modemNotRas ) {
-    my ($ppp0, $exit);
-
-    if ( $windows ) {
-      eval { no strict "subs"; $hrasconn = RasDial($phonebook, $phonenumber, $username, $password) or _errorTrapModem("Cannot DIAL to $phonenumber", Win32::RASE::FormatMessage, $debug) };
-    } else {
-      call_system ("/sbin/route del default", $debug);
-
-      my $command = "cd /etc/ppp; /usr/sbin/pppd $port $baud debug user $username call $phonebook connect \"/usr/sbin/chat -v ABORT BUSY ABORT 'NO CARRIER' ABORT VOICE ABORT 'NO DIALTONE' ABORT 'NO DIAL TONE' ABORT 'NO ANSWER' ABORT DELAYED '' ATZ OK AT OK ATDT$phonenumber CONNECT '\\d\\c'\" defaultroute";
-      print "Command: <$command>\n" if ($debug);
-
-	  my ($rStatus, $rStdout, $rStderr) = call_system ("$command", $debug);
-
-      if ( $rStatus ) {
-        $SIG{ALRM} = sub { alarm 0; $exit = 1 };
-        alarm 60; $exit = 0;
+        $SIG{ALRM} = sub { alarm (0); $exit = 1 };
+        alarm ( $parms{pppTimeout} ); $exit = 0;
 
         do {
-          my $info; eval { $info = Net::Ifconfig::Wrapper::Ifconfig('list') };
-          # my $info = Net::Ifconfig::Wrapper::Ifconfig('list');
+          my $info; eval { $info = Net::Ifconfig::Wrapper::Ifconfig ('list') };
 
           if ( defined $info ) {
-            (undef, $ppp0) = split(/:/, _IfaceInfo($info, "ppp0"));
-            $_ = $ppp0;
-            chomp;
-            s/[ \t]+/ /g;
-            $ppp0 = $_;
-            print "<$ppp0>\n" if ($debug);
-            $hrasconn = $phonebook if ($ppp0 =~ /UP/);
+            $pppStatus = _ppp_interface_info ( $asnmtapInherited, $info, $parms{pppInterface}, $debug );
+
+            if ( $pppStatus eq 'UP' ) {
+              $hrasconn = $parms{phonebook};
+            } else {
+              $not_connected_guess++
+            }
           }
 
-          sleep 1;
+          sleep (1);
           undef $info;
         } until (defined $hrasconn || $exit);
 
-        alarm 0;
-        $SIG{ALRM} = 'IGNORE';               # $SIG{ALRM} = 'DEFAULT';
+        alarm (0); $SIG{ALRM} = 'DEFAULT';
 
-        if ( ! defined $hrasconn ) {
-          sleep(1);
-          call_system ("killall -HUP pppd", $debug);
-          $alert .= " pppd call '$phonebook' failed";
+        unless ( defined $hrasconn ) {
+          sleep (1);
+          $$asnmtapInherited->pluginValues ( { alert => "pppd call '". $parms{phonebook} ."' failed" }, $TYPE{APPEND} );
+          $$asnmtapInherited->call_system ( $KILLALLCOMMAND .' -HUP pppd' );
           $not_connected_guess++;
         }
-      } else {
-       $alert .= " '$command' failed";
-       $not_connected_guess++;
       }
 
-      call_system ("/sbin/route -n", $debug);
+      $$asnmtapInherited->call_system ( $ROUTECOMMAND .' -n' );
     }
 
     if ( defined $hrasconn ) {
-      print "Connected, \$hrasconn=$hrasconn\n" if ($debug);
-
-      if ( ! $windows ) {
-        my (undef, $pppStatus, $pppdInet, $pppIp, $pppdMask, $pppMask) = split(/ /, $ppp0);
-        $alert = " $pppStatus $pppdInet $pppIp $pppdMask $pppMask";
-      }
-	
 	  $ok = 1;
-    } else { # modem test
-      ($modem, $ok, $answer, $not_connected_guess, $alert, $state) = _test_modem ( ! $modemNotRas, $modem, $ok, $not_connected_guess, $phonenumber, $port, $baud, $log, $timeout, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $loglevel, $asnmtapEnv );
+      $not_connected_guess = 0;
+      print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request: Connected to $hrasconn\n" if ($debug);
+    } else {                                                 # modem test
+      return ( $returnCode ) if ( $returnCode = _test_modem ( $asnmtapInherited, \%parms, \$modem, \$ok, \$answer, \$not_connected_guess, ! $modem_not_ras, $debug ) );
 
-      if ( $windows ) {
-        $alert .= " Cannot DIAL to '$phonenumber'";
+      if ( $parms{windows} ) {
+        $$asnmtapInherited->pluginValues ( { alert => "Cannot DIAL to '" .$parms{phonenumber}. "'" }, $TYPE{APPEND} );
         $not_connected_guess++;
       }
     }
@@ -302,63 +370,54 @@ sub init_modem {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  print "<$windows><$hrasconn><$modem><$ok><$answer><$not_connected_guess><$alert><$state>\n" if ($debug);
-  return ($windows, $hrasconn, $modem, $ok, $answer, $not_connected_guess, $alert, $state);
-}
+  $returnCode = $ERRORS{OK};
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  if ( ( $modem_not_ras and defined $ok ) or ( defined $ok and $ok and ! $not_connected_guess ) ) {
+    if ( defined $parms{custom} ) {
+      $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($$asnmtapInherited, \%parms, \$modem, \$ok, \$answer, \$not_connected_guess, $parms{customArguments}) : $parms{custom}->($$asnmtapInherited, \%parms, \$modem, \$ok, \$answer, \$not_connected_guess);
+    } else {
+      print 'ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request: ', $$asnmtapInherited->{_programDescription}, "\n" if ($debug);
+    }
+  }
 
-sub exit_modem_plugin {
-  my ($windows, $hrasconn, $asnmtapEnv, $defaultGateway, $interface, $phonebook, $modem, $ok, $not_connected_guess, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $performanceData) = @_;
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  if ( $phonebook eq '<NIHIL>' ) {
-    if ($ok) {
-      sleep(1);
-      my $ok = $modem->hangup();
+  unless ( defined $parms{phonebook} ) {
+    if ( $ok and $answer ne 'SKIP HANGUP' ) {
+      sleep (1);
+      $ok = $modem->hangup();
 
       if( $ok =~ /OK/ ) {
-        print "Hanging up done\n" if ($debug);
+        print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::modem::hangup: Hanging up done\n" if ($debug);
       } else {
-        print "Cannot Hanging up\n" if ($debug);
-        $alert .= " Cannot Hanging up";
+        print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::modem::hangup: Cannot Hanging up\n" if ($debug);
+        $$asnmtapInherited->pluginValues ( { alert => 'Cannot Hanging up' }, $TYPE{APPEND} );
         $not_connected_guess++;
       }
     }
-  } else {
-    if ( $windows ) {
-      eval {
-        no strict "subs";
+  } elsif ( $parms{windows} ) {
+    eval {
+      no strict 'subs';
 
-        if ( RasHangUp($hrasconn, 3) ) {
-          print "RAS connection was terminated successfully.\n" if ($debug);
-        } elsif ( !Win32::RASE::GetLastError ) {
-          print "Timeout. RAS connection is still active.\n" if ($debug);
-          $alert .= " Timeout. RAS connection is still active.";
-          $state = $STATE{$ERRORS{"CRITICAL"}};
-        } else {
-          print Win32::RASE::FormatMessage, "\n";
-          $alert .= " " . Win32::RASE::FormatMessage;
-          $state = $STATE{$ERRORS{"CRITICAL"}};
-        }
+      if ( RasHangUp($hrasconn, 3) ) {
+        print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::RAS: RAS connection was terminated successfully.\n" if ($debug);
+      } elsif ( !Win32::RASE::GetLastError ) {
+        print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::RAS: Timeout. RAS connection is still active.\n" if ($debug);
+        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Timeout. RAS connection is still active.' }, $TYPE{APPEND} );
+      } else {
+        print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::RAS: ", Win32::RASE::FormatMessage, "\n";
+        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => ' '. Win32::RASE::FormatMessage }, $TYPE{APPEND} );
       }
-    } else {
-      call_system ("/sbin/route del default", $debug);
-      call_system ("killall -HUP pppd", $debug);
-      call_system ("/sbin/route add default gw $defaultGateway dev $interface", $debug);
     }
+  } else {
+    $$asnmtapInherited->call_system ( $ROUTECOMMAND .' del default' ) if ( $parms{defaultDelete} );
+    $$asnmtapInherited->call_system ( $KILLALLCOMMAND .' -HUP pppd' );
+    $$asnmtapInherited->call_system ( $ROUTECOMMAND .' add default gw '. $parms{defaultGateway} .' dev '. $parms{defaultInterface} );
   }
 
-  if ( $not_connected_guess++ ) {
-    $state = $STATE{$ERRORS{"CRITICAL"}};
-  } else {
-    if ( $state eq $STATE{$ERRORS{"UNKNOWN"}} ) { $state = $STATE{$ERRORS{"OK"}}; }
-  }
-
-  if (defined $performanceData) {
-    exit_plugin ( $asnmtapEnv, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result, $performanceData );
-  } else {
-    exit_plugin ( $asnmtapEnv, $status, $startTime, $trendline, $debug, $logging, $debugfile, $state, $message, $alert, $error, $result );
-  }
+  $returnCode = ( $not_connected_guess ? $ERRORS{UNKNOWN} : $returnCode ) ;
+  $$asnmtapInherited->pluginValue ( stateValue => $returnCode );
+  return ( $returnCode );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -388,14 +447,14 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.004;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.005;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,8 +24,8 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-ldap.pl',
   _programDescription => 'LDAP Nagios Template',
-  _programVersion     => '3.000.004',
-  _programGetOptions => ['host|H=s', 'port|P=s', 'dn=s', 'dnPass=s', 'base=s', 'scope=s', 'filter=s', 'username|u|loginname:s', 'password|passwd|p:s', 'environment|e:s'],
+  _programVersion     => '3.000.005',
+  _programGetOptions => ['host|H=s', 'port|P=i', 'dn=s', 'dnPass=s', 'base=s', 'scope=s', 'filter=s', 'username|u|loginname:s', 'password|passwd|p=s', 'environment|e:s'],
   _programUsagePrefix => '-0|--dn <dn> -1|--dnPass <dn pass> -b|--base <base> -s|--scope <scope> -f|--filter <filter>',
   _programHelpPrefix  => "-0, --dn=<DN>
 -1, --dnPass=<DN PASS>
@@ -37,31 +37,26 @@ my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $ldapserver = $objectNagios->getOptionsArgv ('host') ? $objectNagios->getOptionsArgv ('host') : undef;
-$objectNagios->printUsage ('Missing host') unless (defined $ldapserver);
-
-my $ldapport = $objectNagios->getOptionsArgv ('port') ? $objectNagios->getOptionsArgv ('port') : undef;
-$objectNagios->printUsage ('Missing port') unless (defined $ldapport);
+my $ldapserver = $objectNagios->getOptionsArgv ('host');
+my $ldapport   = $objectNagios->getOptionsArgv ('port');
+my $PASS       = $objectNagios->getOptionsArgv ('password');
 
 my $DN = $objectNagios->getOptionsArgv ('dn') ? $objectNagios->getOptionsArgv ('dn') : undef;
-$objectNagios->printUsage ('Missing dn') unless (defined $DN);
+$objectNagios->printUsage ('Missing command line argument dn') unless (defined $DN);
 
 my $DN_PASS = $objectNagios->getOptionsArgv ('dnPass') ? $objectNagios->getOptionsArgv ('dnPass') : undef;
-$objectNagios->printUsage ('Missing dnPass') unless (defined $DN_PASS);
+$objectNagios->printUsage ('Missing command line argument dnPass') unless (defined $DN_PASS);
 
 my $BASE = $objectNagios->getOptionsArgv ('base') ? $objectNagios->getOptionsArgv ('base') : undef;
-$objectNagios->printUsage ('Missing base') unless (defined $BASE);
+$objectNagios->printUsage ('Missing command line argument base') unless (defined $BASE);
 
 my $SCOPE = $objectNagios->getOptionsArgv ('scope') ? $objectNagios->getOptionsArgv ('scope') : undef;
-$objectNagios->printUsage ('Missing scope') unless (defined $SCOPE);
+$objectNagios->printUsage ('Missing command line argument scope') unless (defined $SCOPE);
 
 my $FILTER = $objectNagios->getOptionsArgv ('filter') ? $objectNagios->getOptionsArgv ('filter') : undef;
-$objectNagios->printUsage ('Missing filter') unless (defined $FILTER);
+$objectNagios->printUsage ('Missing command line argument filter') unless (defined $FILTER);
 
 my $USER = $objectNagios->getOptionsArgv ('username') ? $objectNagios->getOptionsArgv ('username') : undef;
-
-my $PASS = $objectNagios->getOptionsArgv ('password') ? $objectNagios->getOptionsArgv ('password') : undef;
-$objectNagios->printUsage ('Missing password') unless (defined $PASS);
 
 my $debug = $objectNagios->getOptionsValue ('debug');
 

@@ -3,18 +3,19 @@ Makefile.PL											Makefile generator
 MANIFEST											This file
 README												Get you started with this package
 Asnmtap.cnf                                         General config file for ASNMTAP
+META.yml                                            Module meta-data (added by MakeMaker)
 
 lib/ASNMTAP/Asnmtap.pm
 lib/ASNMTAP/Asnmtap.pod
 
-lib/ASNMTAP/Asnmtap/Applications.pm
-lib/ASNMTAP/Asnmtap/Applications.pod
-lib/ASNMTAP/Asnmtap/Applications/CGI.pm
-lib/ASNMTAP/Asnmtap/Applications/CGI.pod
-lib/ASNMTAP/Asnmtap/Applications/Collector.pm
-lib/ASNMTAP/Asnmtap/Applications/Collector.pod
-lib/ASNMTAP/Asnmtap/Applications/Display.pm
-lib/ASNMTAP/Asnmtap/Applications/Display.pod
+#lib/ASNMTAP/Asnmtap/Applications.pm
+#lib/ASNMTAP/Asnmtap/Applications.pod
+#lib/ASNMTAP/Asnmtap/Applications/CGI.pm
+#lib/ASNMTAP/Asnmtap/Applications/CGI.pod
+#lib/ASNMTAP/Asnmtap/Applications/Collector.pm
+#lib/ASNMTAP/Asnmtap/Applications/Collector.pod
+#lib/ASNMTAP/Asnmtap/Applications/Display.pm
+#lib/ASNMTAP/Asnmtap/Applications/Display.pod
 
 lib/ASNMTAP/Asnmtap/Plugins.pm
 lib/ASNMTAP/Asnmtap/Plugins.pod
@@ -41,10 +42,10 @@ t/TEST												Run tests
 
 t/Asnmtap.t
 
-t/Asnmtap/Applications.t
-t/Asnmtap/Applications/CGI.t
-t/Asnmtap/Applications/Collector.t
-t/Asnmtap/Applications/Display.t
+#t/Asnmtap/Applications.t
+#t/Asnmtap/Applications/CGI.t
+#t/Asnmtap/Applications/Collector.t
+#t/Asnmtap/Applications/Display.t
 
 t/Asnmtap/Plugins.t
 t/Asnmtap/Plugins/Mail.t
@@ -55,7 +56,7 @@ t/Asnmtap/Plugins/XML.t
 t/Asnmtap/Plugins/WebTransact.t
 
 t/Templates/Plugins/check_dummy.t
-# t/templates/Plugins/check_MySQL-database.t
+t/Templates/Plugins/check_MySQL-database-replication.t
 t/Templates/Plugins/check_template.t
 
 t/Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t
@@ -102,7 +103,7 @@ plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
 
 plugins/templates/check_dummy.pl
-plugins/templates/check_MySQL-database.pl
+plugins/templates/check_MySQL-database-replication.pl
 plugins/templates/check_template.pl
 plugins/templates/check_template-mail.pl
 plugins/templates/check_template-mail-fingerprint-xml.pl
@@ -137,6 +138,14 @@ plugins/templates/ssl/key/alex-peeters-nopass.key
 plugins/templates/ssl/key/alex-peeters.key
 plugins/templates/ssl/key/server-ca.key
 
+etc/chatscripts/ASNMTAP
+etc/ppp/pap-secrets
+etc/ppp/peers/ASNMTAP
+etc/ppp/resolv/ASNMTAP
+
+usr/bin/plog                                        plog
+usr/bin/poff                                        poff
+usr/bin/pon                                         pon
+
 plugins/tools/GrinderCaptureConverter.pl
 
-META.yml                                 Module meta-data (added by MakeMaker)

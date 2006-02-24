@@ -24,11 +24,11 @@ my $plugin = 'check_template-ftp.pl';
 if ( $installed and -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
-  $t += checkCmd( "$prefix/$plugin", 3, "/Missing host/");
-  $t += checkCmd( "$prefix/$plugin -H ftp.citap.com", 3, "/Missing username/");
-  $t += checkCmd( "$prefix/$plugin -H ftp.citap.com -u username", 3, "/Missing password/");
-  $t += checkCmd( "$prefix/$plugin -H ftp.citap.com -u username -p password", 3, "/Missing environment/");
-  $t += checkCmd( "$prefix/$plugin -H ftp.citap.com -u username -p password -e L", 2);
+  $t += checkCmd( "$prefix/$plugin", 3, "/Missing command line argument environment/");
+  $t += checkCmd( "$prefix/$plugin -e L", 3, "/Missing command line argument host/");
+  $t += checkCmd( "$prefix/$plugin -e L -H ftp.citap.com", 3, "/Missing command line argument username/");
+  $t += checkCmd( "$prefix/$plugin -e L -H ftp.citap.com -u username", 3, "/Missing command line argument password/");
+  $t += checkCmd( "$prefix/$plugin -e L -H ftp.citap.com -u username -p password", 2);
 } else {
   $t += skipMissingCmd( "$prefix/$plugin", $tests );
 }

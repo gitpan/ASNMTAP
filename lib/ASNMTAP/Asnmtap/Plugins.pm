@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -32,24 +32,26 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS = (ALL      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH
+                                                              $PREFIXPATH $LOGPATH $RUNPATH
                                                               %ERRORS %STATE %TYPE
 
-                                                              $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                              $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
                                                               &_checkAccObjRef
                                                               &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
                                                               &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
                                                               &_dumpValue
 
-                                                              $PLUGINPATH) ],
+                                                              $PLUGINPATH
+
+                                                              $ALARM_OFF) ],
 
                                              PLUGINS  => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH $PLUGINPATH
+                                                              $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
                                                               %ERRORS %STATE %TYPE) ],
 
-                                             COMMANDS => [ qw($PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                             COMMANDS => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
 
                                             _HIDDEN   => [ qw(&_checkAccObjRef
                                                               &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -58,8 +60,10 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.004;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.005;
 }
+
+our $ALARM_OFF = 0;
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
 
@@ -105,21 +109,25 @@ sub _init {
 
   foreach ( @{ $_[0]->{_programGetOptions} } ) {
     for ($_) {
-      /^trendline\|T([:=])i$/           && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-T|--trendline <TRENDLINE>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-T, --trendline <TRENDLINE>\n   trendline threshold (seconds) from which a TRENDLINE status will result for the plugin response time\n"; last; };
-      /^timeout\|t([:=])i$/             && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-t|--timeout <TIMEOUT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-t, --timeout=<TIMEOUT>\n   timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time\n"; last; };
-      /^environment\|e([:=])s$/         && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-e|--environment <ENVIRONMENT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-e, --environment=<ENVIRONMENT>\n P(roduction)\n   S(imulation)\n   A(cceptation)\n   T(est)\n D(evelopment)\n   L(ocal)\n"; last; };
-      /^proxy([:=])s$/                  && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'--proxy <username:password@proxy>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "--proxy=<username:password\@proxy>\n"; last; };
-      /^host\|H([:=])s$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-H|--host <HOST>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-H, --host=<HOST>\n   hostname or ip address\n"; last; };
-      /^url\|U([:=])s$/                 && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-U|--url <URL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-U, --url=<URL>\n"; last; };
-      /^port\|P([:=])i$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-P|--port <PORT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-P, --port=<PORT>\n"; last; };
-      /^community\|C([:=])s$/           && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-C|--community <SNMP COMMUNITY>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-C, --community=<SNMP COMMUNITY>\n"; last; };      /^password\|passwd\|p([:=])s$/    && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-p|--password|--passwd <PASSWORD>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-p, --password/--passwd=<PASSWORD>\n"; last; };
-      /^username\|u\|loginname([:=])s$/ && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-u|--username|--loginname <USERNAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-u, --username/--loginname=<USERNAME>\n"; last; };
-      /^filename\|F([:=])s$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-F|--filename <FILENAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-F, --filename=<FILENAME>\n   XML filename with the ASNMTAP/Nagios compatible test results\n"; last; };
-      /^interval\|i([:=])i$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-i|--interval <SECONDS>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-i, --interval=<SECONDS>\n   interval threshold (seconds) from which a CRITICAL (2x) or WARNING (1x) status will result when XML fingerprint out of time\n"; last; };
-      /^loglevel\|l([:=])s$/            && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-l|--loglevel <LOGLEVEL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-l, --loglevel=<LOGLEVEL>\n   loglevel, one of (order of decrescent verbosity): debug, verbose, notice, info, warning, err, crit, alert, emerg\n"; last; };
-      /^year\|Y([:=])i$/                && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Y|--year <YEAR>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Y, --year=<YEAR>\n   year, format: [19|20|21]yy\n"; last; };
-      /^quarter\|Q([:=])i$/             && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Q|--quarter <QUARTER>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Q, --quarter=<QUARTER>\n   quarter, where value 0..4\n"; last; };
-      /^month\|M([:=])i$/               && do { $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-M|--month <MONTH>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-M, --month=<MONTH>\n   month, where value 1..12\n"; last; };
+      /^trendline\|T([:=])i$/           && do { $_[0]->{_getOptionsType}->{trendline}   = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-T|--trendline <TRENDLINE>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-T, --trendline <TRENDLINE>\n   trendline threshold (seconds) from which a TRENDLINE status will result for the plugin response time\n"; last; };
+      /^timeout\|t([:=])i$/             && do { $_[0]->{_getOptionsType}->{timeout}     = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-t|--timeout <TIMEOUT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-t, --timeout=<TIMEOUT>\n   timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time\n"; last; };
+      /^environment\|e([:=])s$/         && do { $_[0]->{_getOptionsType}->{environment} = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-e|--environment <ENVIRONMENT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-e, --environment=<ENVIRONMENT>\n   P(roduction)\n   S(imulation)\n   A(cceptation)\n   T(est)\n   D(evelopment)\n   L(ocal)\n"; last; };
+      /^proxy([:=])s$/                  && do { $_[0]->{_getOptionsType}->{proxy}       = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'--proxy <username:password@proxy>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "--proxy=<username:password\@proxy>\n"; last; };
+      /^host\|H([:=])s$/                && do { $_[0]->{_getOptionsType}->{host}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-H|--host <HOST>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-H, --host=<HOST>\n   hostname or ip address\n"; last; };
+      /^url\|U([:=])s$/                 && do { $_[0]->{_getOptionsType}->{url}         = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-U|--url <URL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-U, --url=<URL>\n"; last; };
+      /^port\|P([:=])i$/                && do { $_[0]->{_getOptionsType}->{port}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-P|--port <PORT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-P, --port=<PORT>\n"; last; };
+      /^community\|C([:=])s$/           && do { $_[0]->{_getOptionsType}->{community}   = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-C|--community <SNMP COMMUNITY>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-C, --community=<SNMP COMMUNITY>\n"; last; };      
+      /^username\|u\|loginname([:=])s$/ && do { $_[0]->{_getOptionsType}->{username}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-u|--username|--loginname <USERNAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-u, --username/--loginname=<USERNAME>\n"; last; };
+      /^password\|passwd\|p([:=])s$/    && do { $_[0]->{_getOptionsType}->{password}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-p|--password|--passwd <PASSWORD>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-p, --password/--passwd=<PASSWORD>\n"; last; };
+      /^filename\|F([:=])s$/            && do { $_[0]->{_getOptionsType}->{filename}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-F|--filename <FILENAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-F, --filename=<FILENAME>\n   XML filename with the ASNMTAP/Nagios compatible test results\n"; last; };
+      /^interval\|i([:=])i$/            && do { $_[0]->{_getOptionsType}->{interval}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-i|--interval <SECONDS>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-i, --interval=<SECONDS>\n   interval threshold (seconds) from which a CRITICAL (2x) or WARNING (1x) status will result when XML fingerprint out of time\n"; last; };
+      /^loglevel\|l([:=])s$/            && do { $_[0]->{_getOptionsType}->{loglevel}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-l|--loglevel <LOGLEVEL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-l, --loglevel=<LOGLEVEL>\n   loglevel, one of (order of decrescent verbosity): debug, verbose, notice, info, warning, err, crit, alert, emerg\n"; last; };
+      /^year\|Y([:=])i$/                && do { $_[0]->{_getOptionsType}->{year}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Y|--year <YEAR>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Y, --year=<YEAR>\n   year, format: [19|20|21]yy\n"; last; };
+      /^quarter\|Q([:=])i$/             && do { $_[0]->{_getOptionsType}->{quarter}     = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-Q|--quarter <QUARTER>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-Q, --quarter=<QUARTER>\n   quarter, where value 0..4\n"; last; };
+      /^month\|M([:=])i$/               && do { $_[0]->{_getOptionsType}->{month}       = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-M|--month <MONTH>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-M, --month=<MONTH>\n   month, where value 1..12\n"; last; };
+
+      /^warning\|w([:=])s$/             && do { $_[0]->{_getOptionsType}->{warning}     = $1; last; };
+      /^critical\|c([:=])s$/            && do { $_[0]->{_getOptionsType}->{critical}    = $1; last; };
     }
   }
 
@@ -131,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.004 postfix; nl-BE; rv:3.000.004) Gecko/20060115 libwww-perl/5.803";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.005 postfix; nl-BE; rv:3.000.005) Gecko/20060115 libwww-perl/5.803";
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }
@@ -191,7 +199,7 @@ sub _getOptions {
   if ( defined $_[0]->{_getOptionsArgv}->{debugfile} ) {
     unlink $_[0]->{_getOptionsArgv}->{debugfile} if ( -s $_[0]->{_getOptionsArgv}->{debugfile} );
   }
-  
+
   my $debug = (exists $_[0]->{_getOptionsArgv}->{debug}) ? $_[0]->{_getOptionsArgv}->{debug} : 'F';
   $_[0]->printUsage ('Invalid debug option: '. $debug) unless ($debug =~ /^[FTLMAS]$/);
   $_[0]->{_getOptionsValues}->{debug} = ($debug eq 'T') ? 1 : (($debug eq 'L') ? 2 : (($debug eq 'M') ? 3 : (($debug eq 'A') ? 4 : ((($debug eq 'S') ? 5 : 0)))));
@@ -201,11 +209,15 @@ sub _getOptions {
   if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
     my $timeout = $1 if ( $_[0]->{_getOptionsArgv}->{timeout} =~ m/^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid timeout: '. $_[0]->{_getOptionsArgv}->{timeout}) unless (defined $timeout);
+  } elsif ( exists $_[0]->{_getOptionsType}->{timeout} and $_[0]->{_getOptionsType}->{timeout} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument timeout');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{trendline} ) {
     my $trendline = $1 if ( $_[0]->{_getOptionsArgv}->{trendline} =~ m/^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid trendline: '. $_[0]->{_getOptionsArgv}->{trendline}) unless (defined $trendline);
+  } elsif ( exists $_[0]->{_getOptionsType}->{trendline} and $_[0]->{_getOptionsType}->{trendline} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument trendline');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{environment} ) {
@@ -220,6 +232,8 @@ sub _getOptions {
       /L/ && do { $_[0]->{_getOptionsValues}->{environment} = "Local";       last; };
       $_[0]->{_getOptionsValues}->{environment} = undef;
     }
+  } elsif ( exists $_[0]->{_getOptionsType}->{environment} and $_[0]->{_getOptionsType}->{environment} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument environment');
   }
 
   $_[0]->_init_proxy_and_client_certificate ();
@@ -227,47 +241,80 @@ sub _getOptions {
   if ( exists $_[0]->{_getOptionsArgv}->{host} ) {
     my $host = $1 if ( $_[0]->{_getOptionsArgv}->{host} =~ m/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[a-zA-Z][-a-zA-Z0-9]+(\.[a-zA-Z][-a-zA-Z0-9]+)*)$/ );
     $_[0]->printUsage ('Invalid hostname or ip address: '. $_[0]->{_getOptionsArgv}->{host}) unless (defined $host);
+  } elsif ( exists $_[0]->{_getOptionsType}->{host} and $_[0]->{_getOptionsType}->{host} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument host');
   }
 
-  # RFC 1738: Uniform Resource Locators (URL)
-  # exists $_[0]->{_getOptionsArgv}->{url}
+  if ( exists $_[0]->{_getOptionsArgv}->{url} ) {
+    # TODO ...
+  } elsif ( exists $_[0]->{_getOptionsType}->{url} and $_[0]->{_getOptionsType}->{url} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument url');
+  }
 
   if ( exists $_[0]->{_getOptionsArgv}->{port} ) {
     my $port = $1 if ( $_[0]->{_getOptionsArgv}->{port} =~ m/^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid port: '. $_[0]->{_getOptionsArgv}->{port}) unless (defined $port);
+  } elsif ( exists $_[0]->{_getOptionsType}->{port} and $_[0]->{_getOptionsType}->{port} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument port');
   }
 
-  # exists $_[0]->{_getOptionsArgv}->{community}
+  if ( exists $_[0]->{_getOptionsArgv}->{community} ) {
+    # TODO ...
+  } elsif ( exists $_[0]->{_getOptionsType}->{community} and $_[0]->{_getOptionsType}->{community} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument community');
+  }
 
-  # exists $_[0]->{_getOptionsArgv}->{password}
+  if ( exists $_[0]->{_getOptionsArgv}->{username} ) {
+    # TODO ...
+  } elsif ( exists $_[0]->{_getOptionsType}->{username} and $_[0]->{_getOptionsType}->{username} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument username');
+  }
 
-  # exists $_[0]->{_getOptionsArgv}->{username}
+  if ( exists $_[0]->{_getOptionsArgv}->{password} ) {
+    # TODO ...
+  } elsif ( exists $_[0]->{_getOptionsType}->{password} and $_[0]->{_getOptionsType}->{password} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument password');
+  }
 
-  # exists $_[0]->{_getOptionsArgv}->{filename}
+  if ( exists $_[0]->{_getOptionsArgv}->{filename} ) {
+    # TODO ...
+  } elsif ( exists $_[0]->{_getOptionsType}->{filename} and $_[0]->{_getOptionsType}->{filename} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument filename');
+  }
 
   if ( exists $_[0]->{_getOptionsArgv}->{interval} ) {
     my $interval = $1 if ( $_[0]->{_getOptionsArgv}->{interval} =~ m/^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid interval: '. $_[0]->{_getOptionsArgv}->{interval}) unless (defined $interval);
+  } elsif ( exists $_[0]->{_getOptionsType}->{interval} and $_[0]->{_getOptionsType}->{interval} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument interval');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{loglevel} ) {
     my $loglevel = $1 if ( $_[0]->{_getOptionsArgv}->{loglevel} =~ m/^(debug|verbose|notice|info|warning|err|crit|alert|emerg)$/ );
     $_[0]->printUsage ('Invalid loglevel: '. $_[0]->{_getOptionsArgv}->{loglevel}) unless (defined $loglevel);
+  } elsif ( exists $_[0]->{_getOptionsType}->{loglevel} and $_[0]->{_getOptionsType}->{loglevel} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument loglevel');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{year} ) {
     my $year = $1 if ( $_[0]->{_getOptionsArgv}->{year} =~ m/^((?:19|20|21)\d{2,2})$/ );
     $_[0]->printUsage ('Invalid year: '. $_[0]->{_getOptionsArgv}->{year}) unless (defined $year);
+  } elsif ( exists $_[0]->{_getOptionsType}->{year} and $_[0]->{_getOptionsType}->{year} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument year');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{quarter} ) {
     my $quarter = $1 if ( $_[0]->{_getOptionsArgv}->{quarter} =~ m/^([1-4])$/ );
     $_[0]->printUsage ('Invalid quarter: '. $_[0]->{_getOptionsArgv}->{quarter}) unless (defined $quarter);
+  } elsif ( exists $_[0]->{_getOptionsType}->{quarter} and $_[0]->{_getOptionsType}->{quarter} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument quarter');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{month} ) {
     my $month = $1 if ( $_[0]->{_getOptionsArgv}->{month} =~ m/^([1-9]|1[0-2])$/ );
     $_[0]->printUsage ('Invalid month: '. $_[0]->{_getOptionsArgv}->{month}) unless (defined $month);
+  } elsif ( exists $_[0]->{_getOptionsType}->{month} and $_[0]->{_getOptionsType}->{month} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument month');
   }
 
   # Reserved command line options - - - - - - - - - - - - - - - - - - - -
@@ -275,11 +322,15 @@ sub _getOptions {
   if (exists $_[0]->{_getOptionsArgv}->{warning}) {
     my $warning = $1 if ( $_[0]->{_getOptionsArgv}->{warning} =~ /^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid warning threshold ranges '. $_[0]->{_getOptionsArgv}->{warning}) unless (defined $warning);
+  } elsif ( exists $_[0]->{_getOptionsType}->{warning} and $_[0]->{_getOptionsType}->{warning} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument warning');
   }
 
   if (exists $_[0]->{_getOptionsArgv}->{critical}) {
     my $critical = $1 if ($_[0]->{_getOptionsArgv}->{critical} =~ /^([1-9]?(?:\d*))$/ );
     $_[0]->printUsage ('Invalid critical threshold range: '. $_[0]->{_getOptionsArgv}->{critical}) unless (defined $critical);
+  } elsif ( exists $_[0]->{_getOptionsType}->{critical} and $_[0]->{_getOptionsType}->{critical} eq '=' ) {
+    $_[0]->printUsage ('Missing command line argument critical');
   }
 
   # Default _pluginValues - - - - - - - - - - - - - - - - - - - - - - - -
@@ -295,13 +346,12 @@ sub _getOptions {
   if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
     $_[0]->{_pluginValues}->{_alarm_} = alarm (0);
 
-    if ( $_[0]->{_pluginValues}->{_alarm_} && ( $_[0]->{_getOptionsArgv}->{timeout} > $_[0]->{_pluginValues}->{_alarm_} ) ) {
+    if ( $_[0]->{_pluginValues}->{_alarm_} && $_[0]->{_getOptionsArgv}->{timeout} > $_[0]->{_pluginValues}->{_alarm_} ) {
       $_[0]->{_getOptionsArgv}->{timeout} = $_[0]->{_pluginValues}->{_alarm_};
     }
 
     $_[0]->{_pluginValues}->{_handler_} = $SIG{ALRM};
-    $SIG{ALRM} = sub { alarm 0; die "ASNMTAP::Asnmtap::Plugins::Alarm went off\n"; };
-
+    $SIG{ALRM} = sub { $ALARM_OFF = 1; die "ASNMTAP::Asnmtap::Plugins::ALARM_OFF = 1\n" };
     alarm ( $_[0]->{_getOptionsArgv}->{timeout} );
   }
 }
@@ -549,11 +599,10 @@ sub exit {
 
   if ( exists $_[0]->{_getOptionsArgv}->{timeout} ) {
     my $remaining = alarm (0);
-    my $alarmed = ( $remaining == 0 or $@ eq "ASNMTAP::Asnmtap::Plugins::Alarm went off\n" );
 
-    if ( $alarmed ) {
+    if ( $ALARM_OFF or $! =~ /\QASNMTAP::Asnmtap::Plugins::ALARM_OFF = 1\n\E/ or $@ =~ /\QASNMTAP::Asnmtap::Plugins::ALARM_OFF = 1\n\E/ ) {
+      $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "TIMING OUT SLOW PLUGIN ($remaining)" }, $TYPE{APPEND} );
       $remaining = 0;
-      $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'TIMING OUT SLOW PLUGIN' }, $TYPE{APPEND} );
     }
 
     $SIG{ALRM} = $_[0]->{_pluginValues}->{_handler_} ? $_[0]->{_pluginValues}->{_handler_} : 'DEFAULT';
@@ -562,16 +611,16 @@ sub exit {
 	  my $alarm = $_[0]->{_pluginValues}->{_alarm_} - $_[0]->{_getOptionsArgv}->{timeout} + $remaining;
 
       if ( $alarm > 0 ) {          # Reset it, excluding the elapsed time
-	    alarm( $alarm );
-	  } else {              # It should have gone off already, set it off
-	    kill 'ALRM',$$;
+        alarm ($alarm);
+      } else {              # It should have gone off already, set it off
+        kill 'ALRM',$$;
       }
     }
   }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-  $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'HELP, THERE IS A PROBLEM WITH THE PLUGIN)' }, $TYPE{APPEND} ) if ( $_[0]->{_pluginValues}->{stateValue} == $ERRORS{DEPENDENT} or ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 2 ) );
+  $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'HELP, THERE IS A PROBLEM WITH THE PLUGIN' }, $TYPE{APPEND} ) if ( $_[0]->{_pluginValues}->{stateValue} == $ERRORS{DEPENDENT} or ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 2 ) );
 
   my $duration = $_[0]->setEndTime_and_getResponsTime ($_[0]->{_pluginValues}->{startTime});
 
@@ -618,6 +667,8 @@ sub exit {
   if (defined $_[1]) {
     $_[0]->appendPerformanceData('Status='. $_[0]->{_pluginValues}->{stateValue} .';1;2;0;3') if ( $_[1] =~ /^[1357]$/ );
   }
+
+  $_[0]->appendPerformanceData('Compilation='. ($_[0]->setEndTime_and_getResponsTime ($^T) - $duration) .'ms;;;0;');
 
   $_[0]->appendPerformanceData('Execution='. $_[0]->setEndTime_and_getResponsTime ($^T) .'ms;;;0;');
 
@@ -699,11 +750,11 @@ __END__
 
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugin provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
+ASNMTAP::Asnmtap::Plugins provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
 
 =head1 Description
 
-ASNMTAP::Asnmtap::Plugin Subclass of ASNMTAP::Asnmtap
+ASNMTAP::Asnmtap::Plugins Subclass of ASNMTAP::Asnmtap
 
 =head1 SEE ALSO
 
@@ -720,14 +771,14 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

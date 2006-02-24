@@ -4,7 +4,7 @@ ASNMTAP::Time is a Perl module that provides date and time functions used by ASN
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Time v3.000.004;
+  use ASNMTAP::Time v3.000.005;
   use ASNMTAP::Time qw(:ALL);
 
   print "Timeslot current  : ", get_timeslot (), "\n";
@@ -32,7 +32,7 @@ ASNMTAP::Time is a Perl module that provides date and time functions used by ASN
   print "day   1 days ago  : ", get_day ('1 days ago'), "\n";
   print "month 1 month ago : ", get_month ('1 month ago'), "\n";
   print "year  1 year ago  : ", get_year ('1 year ago'), "\n";
-  
+
 =head1 DESCRIPTION
 
 Provides date and time functions used by ASNMTAP and ASNMTAP-based applications and plugins.
@@ -115,30 +115,6 @@ Format: 'YYYYMMDD hhmmss' where
 
 =item *
 
-get_hour()
-
-Returns formated hour for the current localtime().
-
-Format: 'hh' where 'hh' hour since midnight (0 - 23)
-
-=item *
-
-get_min()
-
-Returns formated min for the current localtime().
-
-Format: 'mm' where 'mm' minutes after each hour (0 - 59)
-
-=item *
-
-get_seconds()
-
-Returns formated seconds for the current localtime().
-
-Format: 'ss' where 'ss' seconds after each minute (0 - 59)
-
-=item *
-
 get_logfiledate()
 
 Returns an formated logfile date for the current localtime().
@@ -173,14 +149,6 @@ Format: 'hh:mm:ss' where
   mm: min Minutes after each hour (0 - 59)
   ss: sec Seconds after each minute (0 - 59)
 
-=back
-
-=head2 user command date based functions
-
-$STRING: '1 days ago'
-
-=over 4
-
 =item *
 
 get_epoch()
@@ -191,32 +159,56 @@ Returns the epoch time described by $STRING, not `now'.
 
 get_week()
 
-Returns the week described by $STRING, not `now', where week (01-53) started on a Monday.
+Returns the week and year described by $STRING, not `now', where week (01-53) started on a Monday, calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_wday()
 
-Returns the day of week described by $STRING, not `now', where day of week (1-7) first day of week is Monday.
+Returns the day of week described by $STRING, not `now', where day of week (1-7) first day of week is Monday, calculated for the current localtime() or specified time() at call.
+
+=item *
+
+get_hour()
+
+Returns formated hour for the current localtime() or specified time() at call.
+
+Format: 'hh' where 'hh' hour since midnight (0 - 23)
+
+=item *
+
+get_min()
+
+Returns formated min for the current localtime() or specified time() at call.
+
+Format: 'mm' where 'mm' minutes after each hour (0 - 59)
+
+=item *
+
+get_seconds()
+
+Returns formated seconds for the current localtime() or specified time() at call.
+
+Format: 'ss' where 'ss' seconds after each minute (0 - 59)
 
 =item *
 
 get_day()
 
-Returns the day of month described by $STRING, not `now', where day of month (01-31).
+Returns the day of month described by $STRING, not `now', where day of month (01-31), calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_month()
 
-Returns the month described by $STRING, not `now', where month (01-12).
+Returns the month described by $STRING, not `now', where month (01-12), calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_year()
 
-Returns the year described by $STRING, not `now', where year (YYYY).
-  
+Returns the year described by $STRING, not `now', where year (YYYY), calculated for the current localtime() or specified time() at call.
+
 =back
 
 =head1 EXPORT
@@ -229,14 +221,13 @@ Returns the year described by $STRING, not `now', where year (YYYY).
 
 ALL
 
+ SEC MIN HOUR DAY WEEK
+
  get_timeslot()
  get_yearMonthDay()
  get_yyyymmddhhmmsswday()
  get_datetimeSignal()
  get_datetime()
- get_hour()
- get_min()
- get_seconds()
  get_logfiledate()
  get_csvfiledate()
  get_csvfiletime()
@@ -244,20 +235,18 @@ ALL
  get_epoch()
  get_week()
  get_wday()
+ get_seconds()
+ get_min()
+ get_hour()
  get_day()
  get_month()
  get_year()
 
 =item *
 
-DATE
+EPOCHTIME
 
- get_epoch()
- get_week()
- get_wday()
- get_day()
- get_month()
- get_year()
+ SEC MIN HOUR DAY WEEK
 
 =item *
 
@@ -268,12 +257,19 @@ LOCATTIME
  get_yyyymmddhhmmsswday()
  get_datetimeSignal()
  get_datetime()
- get_hour()
- get_min()
- get_seconds()
  get_logfiledate()
  get_csvfiledate()
  get_csvfiletime()
+
+ get_epoch()
+ get_week()
+ get_wday()
+ get_seconds()
+ get_min()
+ get_hour()
+ get_day()
+ get_month()
+ get_year()
 
 =back
 
@@ -288,6 +284,7 @@ ASNMTAP::Asnmtap
 =head1 DEPENDENCIES
 
  Carp
+ Date::Calc
  Time::Local
 
 =head1 COPYRIGHT NOTICE
@@ -297,14 +294,14 @@ ASNMTAP::Asnmtap
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 

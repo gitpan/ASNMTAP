@@ -24,15 +24,15 @@ my $plugin = 'check_template-ldap.pl';
 if ( $installed and -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
-  $t += checkCmd( "$prefix/$plugin", 3, '/Missing host/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com", 3, '/Missing port/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389", 3, '/Missing dn/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be'", 3, '/Missing dnPass/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult'", 3, '/Missing base/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be'", 3, '/Missing scope/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB'", 3, '/Missing filter/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB' --filter='(uid=alexpeeters)'", 3, '/Missing password/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB' --filter='(uid=alexpeeters)' --password=password", 3, "/ERROR: Can't get an connection to ldapserver/" );
+  $t += checkCmd( "$prefix/$plugin", 3, '/Missing command line argument host/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com", 3, '/Missing command line argument port/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389", 3, '/Missing command line argument password/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password", 3, '/Missing command line argument dn/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be'", 3, '/Missing command line argument dnPass/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult'", 3, '/Missing command line argument base/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be'", 3, '/Missing command line argument scope/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB'", 3, '/Missing command line argument filter/');
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB' --filter='(uid=alexpeeters)'", 3, "/ERROR: Can't get an connection to ldapserver/" );
 } else {
   $t += skipMissingCmd( "$prefix/$plugin", $tests );
 }

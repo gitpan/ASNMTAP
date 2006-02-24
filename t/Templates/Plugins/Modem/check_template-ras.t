@@ -2,7 +2,7 @@
 #
 # ... Tests via check_template-ras.pl
 #
-# $Id: check_template-ras.t, v 1.0 2006/02/01 Alex Peeters Exp $
+# $Id: check_template-ras.t, v 1.0 2006/02/26 Alex Peeters Exp $
 #
 
 use strict;

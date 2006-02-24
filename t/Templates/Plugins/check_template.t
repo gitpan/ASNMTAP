@@ -19,9 +19,9 @@ my $plugin = 'check_template.pl';
 if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");
   $t += checkCmd( "$prefix/$plugin -h", 3);
-  $t += checkCmd( "$prefix/$plugin", 3, "/Missing hostname\/ip address/");
-  $t += checkCmd( "$prefix/$plugin -H hostname", 3, "/Missing warning threshold/");
-  $t += checkCmd( "$prefix/$plugin -H hostname -w 10", 3, "/Missing critical threshold/");
+  $t += checkCmd( "$prefix/$plugin", 3, "/Missing command line argument host/");
+  $t += checkCmd( "$prefix/$plugin -H hostname", 3, "/Missing command line argument warning/");
+  $t += checkCmd( "$prefix/$plugin -H hostname -w 10", 3, "/Missing command line argument critical/");
   $t += checkCmd( "$prefix/$plugin -H hostname -w 10 -c 20", 2);
 }
 

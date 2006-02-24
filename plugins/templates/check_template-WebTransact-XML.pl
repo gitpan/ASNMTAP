@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML.pl',
   _programDescription => "WebTransact XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -50,7 +50,7 @@ my ($returnCode, $result, $xml);
   { Method => "GET",  Url => 'http://asnmtap.citap.com/ServletTestRunner.xml', Qs_var => [], Qs_fixed => [], Exp => "\Q<testsuites>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "ServletTestRunner.xml", Msg_Fault => "ServletTestRunner.xml" },
 );
 
-$returnCode = $objectWebTransact->check ( { }, newAgent => 1 );
+$returnCode = $objectWebTransact->check ( { } );
 undef $objectWebTransact;
 $objectPlugins->exit (7) if ( $returnCode );
 

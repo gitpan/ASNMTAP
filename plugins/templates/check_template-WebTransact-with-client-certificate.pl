@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/12, v3.000.004, making Asnmtap v3.000.004 compatible
+# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.004;
+use ASNMTAP::Asnmtap::Plugins v3.000.005;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-with-client-certificate.pl',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION' with client certificate",
-  _programVersion     => '3.000.004',
+  _programVersion     => '3.000.005',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _clientCertificate  => { certFile => 'ssl/crt/alex-peeters.crt', keyFile => 'ssl/key/alex-peeters-nopass.key'},
   _timeout            => 30,
@@ -42,7 +42,7 @@ $objectPlugins->pluginValue ( message => 'www.citap.be/www.citap.com' );
   { Method => "GET",  Url => "https://secure.citap.be/certificate", Qs_var => [], Qs_fixed => [], Exp => "Testing Client Certificate", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Certificate", Msg_Fault => "Testing Client Certificate" },
 );
 
-my $returnCode = $objectWebTransact->check ( { }, newAgent => 1 );
+my $returnCode = $objectWebTransact->check ( { } );
 
 # methode 2: my
 my $urlCom = "https://secure.citap.com/certificate";
@@ -51,7 +51,7 @@ my $urlCom = "https://secure.citap.com/certificate";
   { Method => "GET",  Url => $urlCom, Qs_var => [], Qs_fixed => [], Exp => "Testing Client Certificate", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Certificate", Msg_Fault => "Testing Client Certificate" },
 );
 
-$returnCode = $objectWebTransact->check ( { }, newAgent => 0 );
+$returnCode = $objectWebTransact->check ( { } );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

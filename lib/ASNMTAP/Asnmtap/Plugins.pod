@@ -1,8 +1,8 @@
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugin provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
+ASNMTAP::Asnmtap::Plugins provides a nice object oriented interface for building ASNMTAP (http://asnmtap.citap.be) compatible plugins.
 
-ASNMTAP::Asnmtap::Plugin Subclass of ASNMTAP::Asnmtap
+ASNMTAP::Asnmtap::Plugins Subclass of ASNMTAP::Asnmtap
 
 =head1 SYNOPSIS
 
@@ -16,26 +16,26 @@ This module that provides a nice object oriented interface for building ASNMTAP 
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP);
+ use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP);
 
-my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
-  _programName        => 'check_template.pl',
-  _programDescription => "General plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.004',
-  _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
-  _programHelpPrefix  => "-H, --hostname=HOST
-   Name or IP address of host to check
--w, --warning=INTEGER
-   Percentage strength below which a WARNING status will result
--c, --critical=INTEGER
-   Percentage strength below which a CRITICAL status will result",
-  _programGetOptions => ['H=s', 'hostname', 'w=i', 'warning=i', 'c=i', 'critical=i'],
-  _timeout           => 30,
-  _debug             => 0);
+ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
+   _programName        => 'check_template.pl',
+   _programDescription => "General plugin template for the '$APPLICATION'",
+   _programVersion     => '3.000.005',
+   _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
+   _programHelpPrefix  => "-H, --hostname=HOST
+    Name or IP address of host to check
+ -w, --warning=INTEGER
+    Percentage strength below which a WARNING status will result
+ -c, --critical=INTEGER
+    Percentage strength below which a CRITICAL status will result",
+   _programGetOptions => ['hostname|H=s', 'warning|w=i', 'critical|c=i'],
+   _timeout           => 30,
+   _debug             => 0);
 
-$objectPlugins->dumpData ();
+ $objectPlugins->dumpData ();
 
-$objectPlugins->exit (7);
+ $objectPlugins->exit (7);
 
 =head1 ATTRIBUTES
 
@@ -73,7 +73,7 @@ $objectPlugins->exit (7);
     A(dmin)       : long screendebugging on for Admins
     S(erver Admin): long screendebugging on for Server Admins
 
-=item Reserved command line options (autoinsertions)
+=item reserved command line options (autoinsertions)
 
  -t, --timeout=<TIMEOUT>
 
@@ -160,14 +160,6 @@ $objectPlugins->exit (7);
 
     autoadd -C, --community=<SNMP COMMUNITY> to _programHelpSuffix
 
- -p, --password/--passwd=<PASSWORD>
-
-    add: new ... (_programGetOptions => ['password|passwd|p:s' or 'password|passwd|p=s'])
-
-    autoadd [-p|--password|--passwd <PASSWORD>] to _programUsageSuffix
-
-    autoadd -p, --password/--passwd=<PASSWORD> to _programHelpSuffix
-
  -u, --username/--loginname=<USERNAME>
 
     add: new ... (_programGetOptions => ['username|u|loginname:s' or 'username|u|loginname=s'])
@@ -175,6 +167,14 @@ $objectPlugins->exit (7);
     autoadd [-u|--username|--loginname <USERNAME>] to _programUsageSuffix
 
     autoadd -u, --username/--loginname=<USERNAME> to _programHelpSuffix
+
+ -p, --password/--passwd=<PASSWORD>
+
+    add: new ... (_programGetOptions => ['password|passwd|p:s' or 'password|passwd|p=s'])
+
+    autoadd [-p|--password|--passwd <PASSWORD>] to _programUsageSuffix
+
+    autoadd -p, --password/--passwd=<PASSWORD> to _programHelpSuffix
 
  -F, --filename=<FILENAME>
 
@@ -210,7 +210,7 @@ $objectPlugins->exit (7);
 
     year, format: [19|20|21]yy
 
-    add: new ... (_programGetOptions => ['interval|i:i' or 'interval|i=i'])
+    add: new ... (_programGetOptions => ['year|i:i' or 'year|i=i'])
 
     autoadd [-Y|--year <YEAR>] to _programUsageSuffix
 
@@ -236,7 +236,7 @@ $objectPlugins->exit (7);
 
     autoadd -M, --month=<MONTH> ... to _programHelpSuffix
 
-=item Reserved command line options
+=item reserved command line options (without autoinsertion)
 
  -w, --warning=<WARNING>
 
@@ -276,7 +276,9 @@ scalar, the program command line entered options returned values (the equivalent
 
 =over 4
 
-=item --asnmtapEnv=[F|T]|[F|T][F|T]
+=item asnmtapEnv
+
+--asnmtapEnv=[F|T]|[F|T][F|T]
 
 [boolean_screenDebug]|[boolean_debug_all]|[boolean_debug_NOK]
 
@@ -467,13 +469,13 @@ the password
 
 =back
 
-=back
-
 =item _timeout
 
 specifies how much time we give remote servers to respond before the library disconnects and creates an internal timeout response.
 
 scalar, default 10
+
+=back
 
 =head1 INHERITS from ASNMTAP::Asnmtap
 
@@ -513,10 +515,6 @@ get_yyyymmddhhmmsswday()
 get_datetimeSignal()
 get_datetime()
 
-get_hour()
-get_min()
-get_seconds()
-
 get_logfiledate()
 get_csvfiledate()
 get_csvfiletime()
@@ -524,6 +522,9 @@ get_csvfiletime()
 get_epoch()
 get_week()
 get_wday()
+get_hour()
+get_min()
+get_seconds()
 get_day()
 get_month()
 get_year()
@@ -1023,7 +1024,7 @@ c - a continous counter (such as bytes transmitted on an interface)
 =back
 
 =back
-	
+
 =back
 
 =back
@@ -1040,8 +1041,8 @@ ALL
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH
-  $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   %ERRORS %STATE %TYPE
 
 =item *
@@ -1050,14 +1051,14 @@ PLUGINS
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH
+  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
   %ERRORS %STATE %TYPE
 
 =item *
- 
+
 COMMANDS
 
-  $PERLCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
 =item *
 
@@ -1089,14 +1090,14 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins::Nagios
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
 
-Purpose: CronTab (CT, sysdCT),
-         Disk Filesystem monitoring (DF, sysdDF),
-         Intrusion Detection for FW-1 (ID, sysdID)
-         Process System daemons (PS, sysdPS),
-         Reachability of Remote Hosts on a network (RH, sysdRH),
-         Rotate Logfiles (system activity files) (RL),
-         Remote Socket monitoring (RS, sysdRS),
-         System Activity monitoring (SA, sysdSA).
+ Purpose: CronTab (CT, sysdCT),
+          Disk Filesystem monitoring (DF, sysdDF),
+          Intrusion Detection for FW-1 (ID, sysdID)
+          Process System daemons (PS, sysdPS),
+          Reachability of Remote Hosts on a network (RH, sysdRH),
+          Rotate Logfiles (system activity files) (RL),
+          Remote Socket monitoring (RS, sysdRS),
+          System Activity monitoring (SA, sysdSA).
 
 'Process System daemons' is based on 'sysdaemon 1.60' written by Trans-Euro I.T Ltd
 
