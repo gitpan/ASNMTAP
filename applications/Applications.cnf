@@ -1,0 +1,223 @@
+# ----------------------------------------------------------------------------------------------------------
+# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# ----------------------------------------------------------------------------------------------------------
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.xxx
+# ----------------------------------------------------------------------------------------------------------
+
+# Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#<COMMON>
+#    ASNMTAPMANUAL   ApplicationMonitorVersion2.000.xxx.pdf
+
+#    SMTPUNIXSYSTEM  1
+#    SERVERLISTSMTP  localhost
+#    SERVERSMTP      localhost
+#    SENDMAILFROM    asnmtap@localhost
+
+#    HTTPSSERVER     asnmtap.localhost
+#    REMOTE_HOST     localhost
+#    REMOTE_ADDR     127.0.0.1
+
+#    SSHLOGONNAME    asnmtap
+#    RSYNCIDENTITY   rsync
+#    SSHIDENTITY     asnmtap
+#    WWWIDENTITY     ssh
+
+#    RMDEFAULTUSER   admin
+
+#    RECORDSONPAGE   10
+#    NUMBEROFFTESTS  9
+#    VERIFYNUMBEROK  3
+#    VERIFYMINUTEOK  30
+#    FIRSTSTARTDATE  2004-10-31
+#    STRICTDATE      0
+#    STATUSHEADER01  De resultaten worden weergegeven binnen timeslots van vastgestelde duur per groep. De testen binnen éénzelfde groep worden sequentieel uitgevoerd.
+
+#  <HTMLTOPD>
+#    PRG             htmldoc                # '<nihil>' or 'htmldoc'
+#    HOW             shell                  # '<nihil>', 'cgi' or 'shell'
+#    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/citap.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
+#  </HTMLTOPD>
+#</COMMON>
+
+<PATH>
+#    HTTPS            /opt/asnmtap-3.000.xxx/htmlroot
+#    IMAGES           /opt/asnmtap-3.000.xxx/htmlroot/img
+#    PDPHELP          /opt/asnmtap-3.000.xxx/htmlroot/pdf
+#    RESULTS          /opt/results
+    SSHKEY           /home
+    WWWKEY           /var/www
+</PATH>
+
+#<DATABASE_ACCOUNT>
+#  <READONLY>
+#    HOST            localhost
+#    PORT            3306
+#    USERNAME        asnmtapro
+#    PASSWORD        asnmtapro
+#  </READONLY>
+
+#  <READWRITE>
+#    HOST            localhost
+#    PORT            3306
+#    USERNAME        asnmtap
+#    PASSWORD        asnmtap
+#  </READWRITE>
+#</DATABASE_ACCOUNT>
+
+#<COLORS>
+#    OK              99CC99
+#    WARNING         FFFF00
+#    CRITICAL        FF4444
+#    UNKNOWN         FFFFFF
+#    DEPENDENT       D8D8BF
+#    OFFLINE         0000FF
+#    NO_DATA         CC00CC
+#    IN_PROGRESS     99CC99
+#    NO_TEST         99CC99
+#    _NIHIL_         CC00CC
+#    TRENDLINE       ffa000
+
+#  <PIE>
+#    OK              0x00BA00
+#    WARNING         0xffff00
+#    CRITICAL        0xff0000
+#    UNKNOWN         0x99FFFF
+#    DEPENDENT       0xD8D8BF
+#    OFFLINE         0x0000FF
+#    NO_DATA         0xCC00CC
+#    IN_PROGRESS     0x99CC99
+#    NO_TEST         0x444444
+#    _NIHIL_         0xCC00CC
+#    TRENDLINE       0xffa000
+#  </PIE>
+
+#  <RRD>
+#    OK              0x00BA00
+#    WARNING         0xffff00
+#    CRITICAL        0xff0000
+#    UNKNOWN         0x99FFFF
+#    DEPENDENT       0xD8D8BF
+#    OFFLINE         0x0000FF
+#    NO_DATA         0xCC00CC
+#    IN_PROGRESS     0x99CC99
+#    NO_TEST         0x000000
+#    _NIHIL_         0xCC00CC
+#    TRENDLINE       0xffa000
+#  </RRD>
+
+#  <TABLE>
+#    TABLE           333344
+#    NOBLOCK         335566
+#    ENDBLOCK        665555
+#    STARTBLOCK      996666
+#  </TABLE>
+#</COLORS>
+
+#<ICONS>
+#    OK              green.gif
+#    WARNING         yellow.gif
+#    CRITICAL        red.gif
+#    UNKNOWN         clear.gif
+#    DEPENDENT       
+#    OFFLINE         blue.gif
+#    NO_DATA         purple.gif
+#    IN_PROGRESS     running.gif
+#    NO_TEST         notest.gif
+#    TRENDLINE       orange.gif
+
+#  <ACK>
+#    OK              green-ack.gif
+#    WARNING         yellow-ack.gif
+#    CRITICAL        red-ack.gif
+#    UNKNOWN         clear-ack.gif
+#    DEPENDENT       
+#    OFFLINE         blue-ack.gif
+#    NO_DATA         purple-ack.gif
+#    IN_PROGRESS     running.gif
+#    NO_TEST         notest-ack.gif
+#    TRENDLINE       orange-ack.gif
+#  </ACK>
+
+#  <RECORD>
+#    maintenance     maintenance.gif
+#    duplicate       recordDuplicate.gif
+#    delete          recordDelete.gif
+#    details         recordDetails.gif
+#    query           recordQuery.gif
+#    edit            recordEdit.gif
+#    table           recordTable.gif
+#    up              1arrowUp.gif
+#    down            1arrowDown.gif
+#    left            1arrowLeft.gif
+#    right           1arrowRight.gif
+#    first           2arrowLeft.gif
+#    last            2arrowRight.gif
+#  </RECORD>
+
+#  <SYSTEM>
+#    pidKill         pidKill.gif
+#    pidRemove       pidRemove.gif
+#    daemonReload    daemonReload.gif
+#    daemonStart     daemonStart.gif
+#    daemonStop      daemonStop.gif
+#    daemonRestart   daemonRestart.gif
+#  </SYSTEM>
+#</ICONS>
+
+#<SOUND>
+#    0               attention.wav
+#    1               warning.wav
+#    2               critical.wav
+#    3               unknown.wav
+#    4               attention.wav
+#    5               attention.wav
+#    6               attention.wav
+#    7               nodata.wav
+#    8               attention.wav
+#    9               warning.wav
+#</SOUND>
+
+# -----------------------------------------------------------------------
+# DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
+# -----------------------------------------------------------------------
+
+#<SUBDIR>
+#    CONFIG           config
+#    CGISESS          cgisess                    # for the cgisess_ files
+#    DEBUG            debug
+#    REPORT           reports
+#    RESULTS          results
+#</SUBDIR>
+
+#<URL>
+#    HTTPS            /asnmtap
+#    IMAGES           /asnmtap/img
+#    PDPHELP          /asnmtap/pdf
+#    RESULTS          /results
+#</URL>
+
+#<DATABASE>
+#    ASNMTAP          asnmtap
+#</DATABASE>
+
+#<TABLES>
+#    COLLECTORDAEMONS collectorDaemons
+#    COMMENTS         comments
+#    COUNTRIES        countries
+#    CRONTABS         crontabs
+#    DISPLAYDAEMONS   displayDaemons
+#    DISPLAYGROUPS    displayGroups
+#    EVENTS           events
+#    HOLIDAYS         holidays
+#    HOLIDAYSBUNDLE   holidaysBundle
+#    LANGUAGE         language
+#    PAGEDIRS         pagedirs
+#    PLUGINS          plugins
+#    REPORTS          reports
+#    RESULTSDIR       resultsdir
+#    SERVERS          servers
+#    USERS            users
+#    VIEWS            views
+#</TABLES>
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

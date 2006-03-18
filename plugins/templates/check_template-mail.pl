@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,19 +19,20 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail.pl',
   _programDescription => "Mail plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.005',
-  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'environment|e:s', 'timeout|t:i', 'trendline|T:i'],
+  _programVersion     => '3.000.006',
+  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $username = $objectPlugins->getOptionsArgv ('username');
-my $password = $objectPlugins->getOptionsArgv ('password');
+my $username    = $objectPlugins->getOptionsArgv ('username');
+my $password    = $objectPlugins->getOptionsArgv ('password');
+my $environment = $objectPlugins->getOptionsArgv ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.005;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.006;
 
 my $body = "
 
@@ -43,8 +44,8 @@ my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
   _asnmtapInherited => \$objectPlugins,
   _SMTP             => { smtp => [ qw(smtp.citap.be) ], mime => 0 },
   _POP3             => { pop3 => 'pop3.citap.be', username => $username, password => $password },
-# _POP3             => { pop3 => [ qw(pop3.citap.be pop3.citap.com) ], username => 'asnmtap', password => 'asnmtap' },
   _mailType         => 0,
+  _text             => { SUBJECT => 'uKey=MAIL_'. $environment .'_0001' },
   _mail             => {
                          from   => 'alex.peeters@citap.com',
                          to     => 'asnmtap@citap.com',
@@ -61,12 +62,11 @@ my ($returnCode, $numberOfMatches);
 
 # Receiving Fingerprint Mails - - - - - - - - - - - - - - - - - - - - - -
 
-($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, receivedState => 0 );
-$objectPlugins->pluginValues ( { alert => $numberOfMatches .' email(s)' }, $TYPE{APPEND} ) if ( defined $numberOfMatches and $numberOfMatches );
+($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, receivedState => 0, perfdataLabel => 'email(s) received' );
 
 # Sending Fingerprint Mail  - - - - - - - - - - - - - - - - - - - - - - -
 
-($returnCode) = $objectMAIL->sending_fingerprint_mail();
+$returnCode = $objectMAIL->sending_fingerprint_mail( perfdataLabel => 'email send' );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -90,7 +90,7 @@ sub actionOnMailBody {
   $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => 'OKIDO' }, $TYPE{REPLACE} );
 
   # put here your code for deleting the email from the Mailbox  - - - - -
-  $pop3->delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue('debug') or $$asnmtapInherited->getOptionsValue('onDemand') );
+  $pop3->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
   $self->{defaultArguments}->{numberOfMatches}++;
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

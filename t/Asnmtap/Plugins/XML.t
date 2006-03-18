@@ -1,5 +1,3 @@
-# change 'tests => 1' to 'tests => last_test_to_print';
-
 use Test::More tests => 23;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::XML' ) };
@@ -9,15 +7,15 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(&extract_XML) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.005;
+  use ASNMTAP::Asnmtap::Plugins v3.000.006;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'XML.t',
     _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::XML',
-    _programVersion     => '3.000.005',
-    _timeout           => 30,
-    _debug             => 0);
+    _programVersion     => '3.000.006',
+    _timeout            => 30,
+    _debug              => 0);
 
   isa_ok( $objectPlugins, 'ASNMTAP::Asnmtap::Plugins' );
   can_ok( $objectPlugins, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
@@ -65,10 +63,10 @@ EOT
   ($returnCode, $xml) = extract_XML ( asnmtapInherited => \$objectPlugins, filenameXML => "../plugins/templates/xml/Monitoring-$schema.xml", headerXML => HEADER, footerXML => FOOTER, validateDTD => 1, filenameDTD => "../plugins/templates/dtd/Monitoring-$schema.dtd" );
   ok ($returnCode == 0, 'ASNMTAP::Asnmtap::Plugins::XML::extract_XML(): filenameXML with validateDTD = 1');
   
-  $errorStatus = ($returnCode != 0) ? $returnCode : ($xml->{'Monitoring'}{'Schema'}{'Value'} eq $schema and $xml->{'Monitoring'}{'Results'}{'Details'}{'Host'} eq 'Host Name ...' and $xml->{'Monitoring'}{'Results'}{'Details'}{'Service'} eq 'Service Name ...' and $xml->{'Monitoring'}{'Results'}{'Details'}{'Environment'} =~ /^L/i);
+  $errorStatus = ($returnCode != 0) ? $returnCode : ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Host} eq 'Host Name ...' and $xml->{Monitoring}{Results}{Details}{Service} eq 'Service Name ...' and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^L/i);
   ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::XML::extract_XML: XML Monitoring validation OK');
 
-  $errorStatus = ! ($xml->{'Monitoring'}{'Schema'}{'Value'} eq $schema and $xml->{'Monitoring'}{'Results'}{'Details'}{'Host'} eq '... Host Name ...' and $xml->{'Monitoring'}{'Results'}{'Details'}{'Service'} eq '... Service Name ...' and $xml->{'Monitoring'}{'Results'}{'Details'}{'Environment'} =~ /^L/i);
+  $errorStatus = ! ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Host} eq '... Host Name ...' and $xml->{Monitoring}{Results}{Details}{Service} eq '... Service Name ...' and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^L/i);
   ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::XML::extract_XML: XML Monitoring validation NOK');
 
   ($returnCode, $xml) = extract_XML ( asnmtapInherited => \$objectPlugins );

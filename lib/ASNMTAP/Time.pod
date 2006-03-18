@@ -4,7 +4,6 @@ ASNMTAP::Time is a Perl module that provides date and time functions used by ASN
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Time v3.000.005;
   use ASNMTAP::Time qw(:ALL);
 
   print "Timeslot current  : ", get_timeslot (), "\n";
@@ -26,12 +25,12 @@ ASNMTAP::Time is a Perl module that provides date and time functions used by ASN
   print "get csvfile date  : ", get_csvfiledate (), "\n";
   print "get csvfile time  : ", get_csvfiletime (), "\n";
 
-  print "epoch 1 days ago  : ", get_epoch ('1 days ago'), "\n";
-  print "week  1 week ago  : ", get_week ('1 week ago'), "\n";
-  print "wday  1 days ago  : ", get_wday ('1 days ago'), "\n";
-  print "day   1 days ago  : ", get_day ('1 days ago'), "\n";
-  print "month 1 month ago : ", get_month ('1 month ago'), "\n";
-  print "year  1 year ago  : ", get_year ('1 year ago'), "\n";
+  print "epoch 1 days ago  : ", get_epoch ('-1 days'), "\n";
+  print "week  1 week ago  : ", get_week ('-1 week'), "\n";
+  print "wday  1 days ago  : ", get_wday ('-1 days'), "\n";
+  print "day   1 days ago  : ", get_day ('-1 days'), "\n";
+  print "month 1 month ago : ", get_month ('-1 month'), "\n";
+  print "year  1 year ago  : ", get_year ('-1 year'), "\n";
 
 =head1 DESCRIPTION
 
@@ -45,7 +44,7 @@ Provides date and time functions used by ASNMTAP and ASNMTAP-based applications 
 
 get_timeslot()
 
-Returns an formated date/time for the current localtime().
+Returns an epochtime for the current/specified localtime(), where the seconds are equal to 0.
 
 current time  : get_timeslot()
 
@@ -153,19 +152,19 @@ Format: 'hh:mm:ss' where
 
 get_epoch()
 
-Returns the epoch time described by $STRING, not `now'.
+Returns the epoch time described by $STRING.
 
 =item *
 
 get_week()
 
-Returns the week and year described by $STRING, not `now', where week (01-53) started on a Monday, calculated for the current localtime() or specified time() at call.
+Returns the week and year described by $STRING, where week (01-53) started on a Monday, calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_wday()
 
-Returns the day of week described by $STRING, not `now', where day of week (1-7) first day of week is Monday, calculated for the current localtime() or specified time() at call.
+Returns the day of week described by $STRING, where day of week (1-7) first day of week is Monday, calculated for the current localtime() or specified time() at call.
 
 =item *
 
@@ -195,19 +194,36 @@ Format: 'ss' where 'ss' seconds after each minute (0 - 59)
 
 get_day()
 
-Returns the day of month described by $STRING, not `now', where day of month (01-31), calculated for the current localtime() or specified time() at call.
+Returns the day of month described by $STRING, where day of month (01-31), calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_month()
 
-Returns the month described by $STRING, not `now', where month (01-12), calculated for the current localtime() or specified time() at call.
+Returns the month described by $STRING, where month (01-12), calculated for the current localtime() or specified time() at call.
 
 =item *
 
 get_year()
 
-Returns the year described by $STRING, not `now', where year (YYYY), calculated for the current localtime() or specified time() at call.
+Returns the year described by $STRING, where year (YYYY), calculated for the current localtime() or specified time() at call.
+
+=item *
+
+$STRING
+
+can be on of the following options:
+  +/- n sec
+  +/- n min
+  +/- n hour
+  +/- n day(s)
+  +/- n week(s)
+  +/- n month(s)
+  +/- n year(s)
+  now
+  today
+  tomorrow
+  yesterday
 
 =back
 

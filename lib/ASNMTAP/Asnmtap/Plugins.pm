@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -32,7 +32,7 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS = (ALL      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH $LOGPATH $RUNPATH
+                                                              $PREFIXPATH $LOGPATH $PIDPATH
                                                               %ERRORS %STATE %TYPE
 
                                                               $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -48,7 +48,7 @@ BEGIN {
 
                                              PLUGINS  => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+                                                              $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
                                                               %ERRORS %STATE %TYPE) ],
 
                                              COMMANDS => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.006;
 }
 
 our $ALARM_OFF = 0;
@@ -71,9 +71,9 @@ sub _init {
   $_[0]->SUPER::_init($_[1]);
   carp ('ASNMTAP::Asnmtap::Plugins: _init') if ( $_[0]->{_debug} );
 
-  # --httpdump - tijdelijk voor backwards compatibiliteit !!!
+  # --httpdump & --dumphttp tijdelijk voor backwards compatibiliteit !!!
 
-  $_[0]->{_programUsageSuffix} = ' [-S|--status N] [-A|asnmtapEnv [F|T]|[F|T]|[F|T]] [-O|onDemand F|T|N|Y] [-L|--logging <LOGGING>] [-D|--debugfile|--httpdump <DEBUGFILE>] [-d|--debug F|T|L|M|A|S] '. $_[0]->{_programUsageSuffix};
+  $_[0]->{_programUsageSuffix} = ' [-S|--status N] [-A|asnmtapEnv [F|T]|[F|T]|[F|T]] [-O|onDemand F|T|N|Y] [-L|--logging <LOGGING>] [-D|--debugfile|--httpdump|--dumphttp <DEBUGFILE>] [-d|--debug F|T|L|M|A|S] '. $_[0]->{_programUsageSuffix};
 
   $_[0]->{_programHelpSuffix}  = "
 -S, --status=N
@@ -92,7 +92,7 @@ sub _init {
    T(true)/Y(es) : plugin launched on demand
 -L, --logging=LOGGING
    write logging to file LOGGING
--D, --debugfile, --httpdump=DEBUGFILE
+-D, --debugfile, --httpdump, --dumphttp=DEBUGFILE
    write debug to file DEBUGFILE
 -d, --debug=F|T|L|M|A|S
    F(alse)       : screendebugging off (default)
@@ -103,7 +103,7 @@ sub _init {
    S(erver Admin): long screendebugging on for Server Admins
 " . $_[0]->{_programHelpSuffix};
 
-  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|httpdump|D:s', 'debug|d:s' );
+  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|dumphttp|httpdump|D:s', 'debug|d:s' );
 
   my ($_programUsageSuffix, $_programHelpSuffix);
 
@@ -139,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.005 postfix; nl-BE; rv:3.000.005) Gecko/20060115 libwww-perl/5.803";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.006 postfix; nl-BE; rv:3.000.006) Gecko/20060115 libwww-perl/5.803";
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }
@@ -168,6 +168,15 @@ sub _getOptions {
   my ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
   $_[0]->{_pluginValues}->{startTime}  = $startTimeSeconds .'.'. $startTimeMicroseconds;
   $_[0]->{_pluginValues}->{endTime}    = $_[0]->{_pluginValues}->{startTime};
+
+
+  # Options that are unknown, ambiguous or supplied with an invalid option value are passed through in @ARGV
+
+  if ( @ARGV ) {
+    $_[0]->{_pluginValues}->{error} = "Unknown option(s) @ARGV";
+    $_[0]->{_exit_} = 2;
+    $_[0]->exit(0);
+  }
 
   # Default command line options  - - - - - - - - - - - - - - - - - - - -
 
@@ -453,11 +462,6 @@ sub pluginValue {
         my $stateValue = $_[0]->{_pluginValues}->{stateValue} == $ERRORS{DEPENDENT} ? $ERRORS{$_[2]} : ( $_[0]->{_pluginValues}->{stateValue} > $ERRORS{$_[2]} ? $_[0]->{_pluginValues}->{stateValue} : $ERRORS{$_[2]} );
         $_[0]->{_pluginValues}->{stateValue} = $stateValue;
         $_[0]->{_pluginValues}->{stateError} = $STATE{$stateValue};
-      } elsif ( $_[1] eq 'message' ) {
-        if ( defined $_[2] ) {
-          $_[0]->{_pluginValues}->{message} = $_[2];
-          $_[0]->{_pluginValues}->{message} .= ' ('. $_[0]->{_getOptionsValues}->{environment} .')' if ( defined $_[0]->{_getOptionsValues}->{environment} );
-        }
       } else {
         $_[0]->{_pluginValues}->{$_[1]} = $_[2] if ( defined $_[2] );
       }
@@ -622,7 +626,10 @@ sub exit {
 
   $_[0]->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'HELP, THERE IS A PROBLEM WITH THE PLUGIN' }, $TYPE{APPEND} ) if ( $_[0]->{_pluginValues}->{stateValue} == $ERRORS{DEPENDENT} or ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 2 ) );
 
+  $_[0]->appendPerformanceData('Status='. $_[0]->{_pluginValues}->{stateValue} .';1;2;0;3') if ( defined $_[1] &&  $_[1] =~ /^[1357]$/ );
+
   my $duration = $_[0]->setEndTime_and_getResponsTime ($_[0]->{_pluginValues}->{startTime});
+  $_[0]->appendPerformanceData('Compilation='. ($_[0]->setEndTime_and_getResponsTime ($^T) - $duration) .'ms;;;0;') if ( $_[1] =~ /^[2367]$/ );
 
   if ( $_[0]->{_getOptionsArgv}->{trendline} ) {
     my $responseTimeSeconds = ( $duration / 1000 );  # convert to seconds
@@ -664,13 +671,7 @@ sub exit {
   $returnMessage .= ' '. $_[0]->{_pluginValues}->{alert} if ( $_[0]->{_pluginValues}->{alert} );
   $returnMessage .= ' ERROR: '. $_[0]->{_pluginValues}->{error} if (defined $_[0]->{_pluginValues}->{error});
 
-  if (defined $_[1]) {
-    $_[0]->appendPerformanceData('Status='. $_[0]->{_pluginValues}->{stateValue} .';1;2;0;3') if ( $_[1] =~ /^[1357]$/ );
-  }
-
-  $_[0]->appendPerformanceData('Compilation='. ($_[0]->setEndTime_and_getResponsTime ($^T) - $duration) .'ms;;;0;');
-
-  $_[0]->appendPerformanceData('Execution='. $_[0]->setEndTime_and_getResponsTime ($^T) .'ms;;;0;');
+  $_[0]->appendPerformanceData('Execution='. $_[0]->setEndTime_and_getResponsTime ($^T) .'ms;;;0;') if ( $_[1] =~ /^[2367]$/ );
 
   if ( defined $_[0]->{_pluginValues}->{performanceData} ) {
     $_[0]->{_pluginValues}->{performanceData} =~ s/^\s+//g;
@@ -678,7 +679,7 @@ sub exit {
   }
 
   if ( $_[0]->{_getOptionsArgv}->{logging} ) {
-    if (! $CAPTUREOUTPUT) {
+    unless ( $CAPTUREOUTPUT ) {
       my $loggedStatus = ( $_[0]->{_getOptionsArgv}->{debugfile} ) ? $_[0]->{_getOptionsArgv}->{debugfile} : $_[0]->{_getOptionsArgv}->{logging};
       $loggedStatus .= "-status.txt";
 

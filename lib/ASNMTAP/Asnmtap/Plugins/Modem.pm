@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,13 +26,13 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE $CHATCOMMAND $KILLALLCOMMAND $PPPDCOMMAND 
 BEGIN {
   use Exporter ();
 
-  @ASNMTAP::Asnmtap::Plugins::Modem::ISA         = qw(Exporter ASNMTAP::Asnmtap::Plugins);
+  @ASNMTAP::Asnmtap::Plugins::Modem::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
   %ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS = ( ALL => [ qw(&get_modem_request) ] );
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = 3.000.006;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,7 +68,7 @@ sub get_modem_request {
   my $asnmtapInherited = $parms{asnmtapInherited};
   unless ( defined $asnmtapInherited ) { cluck ( 'ASNMTAP::Asnmtap::Plugins::XML: asnmtapInherited missing' ); exit $ERRORS{UNKNOWN} }
 
-  my $debug = $$asnmtapInherited->getOptionsValue ( 'debug' );
+  my $debug = $$asnmtapInherited->getOptionsValue ( 'debug' ) || 0;
 
   unless ( defined $parms{phonenumber} ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing phonenumber' }, $TYPE{APPEND} );
@@ -401,7 +401,7 @@ sub get_modem_request {
 
       if ( RasHangUp($hrasconn, 3) ) {
         print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::RAS: RAS connection was terminated successfully.\n" if ($debug);
-      } elsif ( !Win32::RASE::GetLastError ) {
+      } elsif ( ! Win32::RASE::GetLastError ) {
         print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::RAS: Timeout. RAS connection is still active.\n" if ($debug);
         $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Timeout. RAS connection is still active.' }, $TYPE{APPEND} );
       } else {

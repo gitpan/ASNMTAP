@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ no warnings 'deprecated';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap qw(:ASNMTAP :_HIDDEN);
+use ASNMTAP::Asnmtap qw(:_HIDDEN %ERRORS %TYPE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.006;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -42,8 +42,8 @@ BEGIN {
 sub new (@) {
   my $classname = shift;
 
-  if (! defined $classname) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
-  if (  ref     $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
+  unless ( defined $classname ) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
+  if ( ref $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
 
   use fields;
 
@@ -70,7 +70,7 @@ sub new (@) {
                              _mailType           => 0,
                              _text               => 
                                {
-                                 SUBJECT         => 'ASNMTAP',
+                                 SUBJECT         => 'uKey=ASNMTAP',
                                  from            => 'From:',
                                  to              => 'To:',
                                  subject         => 'Subject:',
@@ -153,20 +153,12 @@ sub _init {
     return ( $ERRORS{UNKNOWN} );
   }
 
-  $_[0]->[ $_[0]->[0]{_environment_} = @{$_[0]} ] = 'LOCAL';
+  my %environment = ( P => 'PROD', S => 'SIM', A => 'ACC', T => 'TEST', D => 'DEV', L => 'LOCAL' );
+  $_[0]->[ $_[0]->[0]{_environment_} = @{$_[0]} ] = $environment { $$asnmtapInherited->getOptionsArgv('environment') };
 
-  for ( $$asnmtapInherited->getOptionsArgv('environment') ) {
-    /P/ && do { $_[0]->{_environment_} = "PROD";  last; };
-    /S/ && do { $_[0]->{_environment_} = "SIM";   last; };
-    /A/ && do { $_[0]->{_environment_} = "ACC";   last; };
-    /T/ && do { $_[0]->{_environment_} = "TEST";  last; };
-    /D/ && do { $_[0]->{_environment_} = "DEV";   last; };
-    /L/ && do { $_[0]->{_environment_} = "LOCAL"; last; };
-  }
-
-  if ( $$asnmtapInherited->getOptionsValue('debug') ) {
-    $_[0]->{_SMTP}->{debug} = $$asnmtapInherited->getOptionsValue('debug') if ( $_[0]->{_SMTP}->{debug} < $$asnmtapInherited->getOptionsValue('debug') );
-    $_[0]->{_POP3}->{debug} = $$asnmtapInherited->getOptionsValue('debug') if ( $_[0]->{_POP3}->{debug} < $$asnmtapInherited->getOptionsValue('debug') );
+  if ( $$asnmtapInherited->getOptionsValue ('debug') ) {
+    $_[0]->{_SMTP}->{debug} = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_SMTP}->{debug} < $$asnmtapInherited->getOptionsValue ('debug') );
+    $_[0]->{_POP3}->{debug} = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_POP3}->{debug} < $$asnmtapInherited->getOptionsValue ('debug') );
   }
 
   $_[0]->{_POP3}->{timeout} = $$asnmtapInherited->timeout() if ( $_[0]->{_POP3}->{timeout} == 120 );
@@ -213,44 +205,49 @@ sub _init {
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub sending_fingerprint_mail {
-  &_checkAccObjRef ( $_[0] ); &_checkReadOnly0;
+  my $self = shift; &_checkAccObjRef ( $self ); 
 
-  my $asnmtapInherited = $_[0]->{_asnmtapInherited};
-  return ( $$asnmtapInherited->pluginValue ('stateValue') ) unless ( exists $_[0]->{_subject_} );
+  my $asnmtapInherited = $self->{_asnmtapInherited};
+  return ( $$asnmtapInherited->pluginValue ('stateValue') ) unless ( exists $self->{_subject_} );
+
+  my %defaults = ( perfdataLabel => undef );
+  my %parms = (%defaults, @_);
+
+  $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') ) if ( defined $parms{perfdataLabel} );
 
   use Mail::Sendmail qw(sendmail %mailcfg);
-  $mailcfg {smtp}    = $_[0]->{_SMTP}->{smtp};
-  $mailcfg {port}    = $_[0]->{_SMTP}->{port};
-  $mailcfg {retries} = $_[0]->{_SMTP}->{retries};
-  $mailcfg {delay}   = $_[0]->{_SMTP}->{delay};
-  $mailcfg {mime}    = $_[0]->{_SMTP}->{mime};
-  $mailcfg {tz}      = $_[0]->{_SMTP}->{tx} if ( defined $_[0]->{_SMTP}->{tx} );
+  $mailcfg {smtp}    = $self->{_SMTP}->{smtp};
+  $mailcfg {port}    = $self->{_SMTP}->{port};
+  $mailcfg {retries} = $self->{_SMTP}->{retries};
+  $mailcfg {delay}   = $self->{_SMTP}->{delay};
+  $mailcfg {mime}    = $self->{_SMTP}->{mime};
+  $mailcfg {tz}      = $self->{_SMTP}->{tx} if ( defined $self->{_SMTP}->{tx} );
   $mailcfg {debug}   = $$asnmtapInherited->getOptionsValue ('debug');
 
   my $message;
 
-  if ( $_[0]->{_mailType} ) {
+  if ( $self->{_mailType} ) {
     use Time::Local;
     my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
     my $mailEpochtime = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-    $message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE FingerprintEmail SYSTEM \"dtd/FingerprintEmail-1.0.dtd\"><FingerprintEmail><Schema Value=\"1.0\"/><Fingerprint From=\"". $_[0]->{_mail}->{from} ."\" To=\"". $_[0]->{_mail}->{to} ."\" Destination=\"ASNMTAP\" Plugin=\"". $$asnmtapInherited->{_programName} ."\" Description=\"". $$asnmtapInherited->{_programDescription} ."\" Environment=\"". $_[0]->{_environment_} ."\" Date=\"$currentYear/$currentMonth/$currentDay\" Time=\"$currentHour:$currentMin:$currentSec\" Epochtime=\"$mailEpochtime\" Status=\"". $_[0]->{_mail}->{status} ."\" /></FingerprintEmail>\n";
+    $message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE FingerprintEmail SYSTEM \"dtd/FingerprintEmail-1.0.dtd\"><FingerprintEmail><Schema Value=\"1.0\"/><Fingerprint From=\"". $self->{_mail}->{from} ."\" To=\"". $self->{_mail}->{to} ."\" Destination=\"ASNMTAP\" Plugin=\"". $$asnmtapInherited->{_programName} ."\" Description=\"". $$asnmtapInherited->{_programDescription} ."\" Environment=\"". $self->{_environment_} ."\" Date=\"$currentYear/$currentMonth/$currentDay\" Time=\"$currentHour:$currentMin:$currentSec\" Epochtime=\"$mailEpochtime\" Status=\"". $self->{_mail}->{status} ."\" /></FingerprintEmail>\n";
   } else {
     use ASNMTAP::Time qw(&get_datetimeSignal);
-    $message = $_[0]->{_subject_} ."\n". $_[0]->{_branding_} ."\n". $_[0]->{_timestamp_} ." ". get_datetimeSignal() ."\n". $_[0]->{_status_} ."\n";
+    $message = $self->{_subject_} ."\n". $self->{_branding_} ."\n". $self->{_timestamp_} .' '. get_datetimeSignal() ."\n". $self->{_status_} ."\n";
   }
 
-  $message .= $_[0]->{_mail}->{body} ."\n";
-  my %mail = ( To => $_[0]->{_mail}->{to}, From => $_[0]->{_mail}->{from}, Subject => $_[0]->{_subject_}, Message => $message );
+  $message .= $self->{_mail}->{body} ."\n";
+  my %mail = ( To => $self->{_mail}->{to}, From => $self->{_mail}->{from}, Subject => $self->{_subject_}, Message => $message );
 
   my $returnCode = (sendmail %mail) ? $ERRORS{OK} : $ERRORS{CRITICAL};
+  $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email send' ) . ( $returnCode ? ' failed' : '' ) }, $TYPE{APPEND} );
 
-  unless ( $returnCode ) {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{OK}, alert => 'email sended' }, $TYPE{APPEND} );
-  } else {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => 'sending mail failed' }, $TYPE{APPEND} );
+  if ( defined $parms{perfdataLabel} ) {
+    my $responseTime = $$asnmtapInherited->setEndTime_and_getResponsTime ( $$asnmtapInherited->pluginValue ('endTime') );
+    $$asnmtapInherited->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $responseTime .'ms;;;;' );
   }
 
-  print "\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log, "\n" if ( $$asnmtapInherited->getOptionsValue('debug') );
+  print "\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log, "\n" if ( $$asnmtapInherited->getOptionsValue ('debug') );
   return ( $returnCode );
 }
 
@@ -260,16 +257,16 @@ sub receiving_fingerprint_mails {
   my $self = shift; &_checkAccObjRef ( $self ); 
 
   my $asnmtapInherited = $self->{_asnmtapInherited};
-
   return ( $$asnmtapInherited->pluginValue ('stateValue') ) unless ( exists $self->{_subject_} );
 
-  my %defaults = ( custom          => undef,
-                   customArguments => undef,
-                   numberOfLines   => 7,
-                   receivedState   => 0,
-                   outOfDate       => undef
+  my %defaults = ( custom           => undef,
+                   customArguments  => undef,
+                   checkFingerprint => 1,
+                   receivedState    => 0,
+                   outOfDate        => undef,
+                   perfdataLabel    => undef
                  );
-
+			 
   my %parms = (%defaults, @_);
 
   if ( $self->{_mailType} ) {
@@ -283,6 +280,16 @@ sub receiving_fingerprint_mails {
 
   $self->[ $self->[0]{defaultArguments} = @{$self} ] = { date => undef, day => undef, month => undef, year => undef, time => undef, hour => undef, min => undef, sec => undef, numberOfMatches => undef, result => undef };
 
+  unless ($parms{checkFingerprint} =~ /^[01]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Parameter checkFingerprint must be 0 or 1' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  unless ($parms{receivedState} =~ /^[01]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Parameter receivedState must be 0 or 1' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
   if ( defined $self->{_POP3}->{pop3} ) {
     unless ( defined $self->{_POP3}->{username} ) {
       $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing Mail POP3 parameter username' }, $TYPE{APPEND} );
@@ -293,47 +300,39 @@ sub receiving_fingerprint_mails {
       $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing Mail POP3 parameter password' }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
     }
-	
-    use Net::POP3;
-    my $pop3 = Net::POP3->new(Host => ( ref $self->{_POP3}->{pop3} eq 'ARRAY' ? $self->{_POP3}->{pop3} : $self->{_POP3}->{pop3} ), Port => $self->{_POP3}->{port}, Timeout => $self->{_POP3}->{timeout}, Debug => ($self->{_POP3}->{debug} >= 3) ? 1 : 0);
 
-    my $servers = ref $self->{_POP3}->{pop3} eq 'ARRAY' ? "@{$self->{_POP3}->{pop3}}" : $self->{_POP3}->{pop3};
+    use Mail::POP3Client;
+    my $pop3 = Mail::POP3Client->new ( HOST => $self->{_POP3}->{pop3}, PORT => $self->{_POP3}->{port}, USER => $self->{_POP3}->{username}, PASSWORD => $self->{_POP3}->{password}, TIMEOUT => $self->{_POP3}->{timeout} ); # , DEBUG => ( $self->{_POP3}->{debug} >= 3 ? 1 : 0 ) );
 
-    unless( $pop3 ) {
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot connect to POP3 server(s): $servers" }, $TYPE{APPEND} );
-      return ( $ERRORS{UNKNOWN} );
-    }
+    my $numberOfMails = $pop3->Count();
 
-    my $numberOfMails = $pop3->login( $self->{_POP3}->{username}, $self->{_POP3}->{password} );
-
-    unless ( defined $numberOfMails ) {
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot login to POP3 server(s): $servers" }, $TYPE{APPEND} );
+    unless ( defined $numberOfMails and $numberOfMails != -1 ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot connect/login to POP3 server: $self->{_POP3}->{pop3}" }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
     }
 
     my $returnCode = $ERRORS{DEPENDENT};
+    $self->{defaultArguments}->{numberOfMatches} = 0;
 
     if ( $numberOfMails ) {
-      $self->{defaultArguments}->{numberOfMatches} = 0;
+      use MIME::Parser;
+      my $parser = new MIME::Parser;
+      $parser->output_to_core(1);
 
       use constant HEADER => '<?xml version="1.0" encoding="UTF-8"?>';
       use constant SYSTEM => 'dtd/FingerprintEmail-1.0.dtd';
       use constant FOOTER => '</FingerprintEmail>';
       my $fingerprintXML  = HEADER .'<!DOCTYPE FingerprintEmail SYSTEM "'. SYSTEM .'"><FingerprintEmail>';
 
-      my $msgnums = $pop3->list;
-      my $debug = $$asnmtapInherited->getOptionsValue('debug');
+      my $debug = $$asnmtapInherited->getOptionsValue ('debug');
+      my $label;
 
-      foreach my $msgnum (keys %$msgnums) {
-        print ref ($self), "::receiving_fingerprint_mails(): message number $msgnum\n" if ( $debug );
-
-        my $msg = ( $parms{numberOfLines} ? $pop3->top($msgnum, $parms{numberOfLines}) : $pop3->top($msgnum) );
-
+      for( my $msgnum = 1; $msgnum <= $numberOfMails; $msgnum++ ) {
+        print "\n", ref ($self), "::receiving_fingerprint_mails(): message number $msgnum\n" if ( $debug );
         my ($fromNotFound, $toNotFound, $subjectNotFound, $fingerprintFound) = (1, 1, 1, 3);
-
         my ($messageNotFound, $brandingNotFound, $timestampNotFound, $statusNotFound, $xmlNotFound) = (0, 0, 0, 0, 0);
 
-        if ( $parms{numberOfLines} ) {
+        if ( $parms{checkFingerprint} ) {
           $statusNotFound = 1;
 
           if ( $self->{_mailType} ) {
@@ -344,56 +343,30 @@ sub receiving_fingerprint_mails {
         }
 
         $self->{defaultArguments}->{result} = '';
+        my $msgbuffer = $pop3->Head( $msgnum );
+        my $entity = $parser->parse_data( $msgbuffer );
+        my $head = $entity->head;
+        $head->unfold;
 
-        my $msgline;
-        my $msglineMerge = 0;
+        if ( $debug >= 2 ) {
+          print ref ($self), "::receiving_fingerprint_mails(): Header\n", $head->stringify, "\n\n";
+          print ref ($self), "::receiving_fingerprint_mails(): MIME-Version: ", $head->get ('MIME-Version'), "\n";
+          print ref ($self), "::receiving_fingerprint_mails(): MIME-Type: ", $head->mime_type, "\n";
+          print ref ($self), "::receiving_fingerprint_mails(): MIME-Encoding: ", $head->mime_encoding, "\n";
+          print ref ($self), "::receiving_fingerprint_mails(): Content-Type Charset: ", $head->mime_attr ('content-type.charset'), "\n"if ( $head->mime_attr('content-type.charset') );
+          print ref ($self), "::receiving_fingerprint_mails(): Content-Type Name: ", $head->mime_attr('content-type.name'), "\n" if ( $head->mime_attr('content-type.name') );
+          print ref ($self), "::receiving_fingerprint_mails(): Multipart Boundary: ", $head->multipart_boundary, "\n" if ( $head->multipart_boundary );
+        }
 
-        my ($mimeVersion, $contentTypeTextPlainCharset, $contentTransferEncoding, $contentDisposition);
+        print "\n", ref ($self), "::receiving_fingerprint_mails(): HEAD\n" if ($debug);
 
-        foreach my $msgbuffer (@$msg) {
-          chomp ($msgbuffer);
-          if ($msgbuffer eq '') { next; }
-
-          if ( ( $self->{_mailType} ? $xmlNotFound : $messageNotFound ) or ! $parms{numberOfLines} ) {
-            if (!defined $mimeVersion and $msgbuffer =~ /^Mime-Version: (.+)$/i) {
-              $mimeVersion = $1;
-              print "......... : $msgbuffer\n   (MIME) : $msgbuffer < $mimeVersion >\n" if ($debug);
-              next;
-            } elsif (!defined $contentTypeTextPlainCharset and $msgbuffer =~ /^Content-type: text\/plain; charset=(.+)$/i) {
-              $contentTypeTextPlainCharset = $1;
-              print "......... : $msgbuffer\n   (MIME) : $msgbuffer < $contentTypeTextPlainCharset >\n" if ($debug);
-              next;
-            } elsif (!defined $contentTransferEncoding and $msgbuffer =~ /^Content-Transfer-Encoding: (.+)$/i) {
-              $contentTransferEncoding = $1;
-              print "......... : $msgbuffer\n   (MIME) : $msgbuffer < $contentTransferEncoding >\n" if ($debug);
-              next;
-            } elsif (!defined $contentDisposition and $msgbuffer =~ /^Content-Disposition: (.+)$/i) {
-              $contentDisposition = $1;
-              print "......... : $msgbuffer\n   (MIME) : $msgbuffer < $contentDisposition >\n" if ($debug);
-              next;
-            }
-          }
-
-          if ( defined $contentTransferEncoding ) {            # RFC 1521
-            if ( $contentTransferEncoding =~ /(?:7bit|quoted-printable|base64|8bit|binary|x-token)/i ) {
-              if ($msgbuffer =~ /=$/) {
-                $msglineMerge = 1;
-                chop($msgbuffer);
-                $msgline = $msgbuffer;
-                next;
-    	      } elsif ($msglineMerge) {
-                $msglineMerge = 0;
-                $msgbuffer = $msgline . $msgbuffer;
-              } 
-            }
-          }
-
-          $msgline = $msgbuffer;
+        foreach my $msgline ( split (/[\n\r]/, $head->stringify) ) {
+          next unless ( $msgline );
 
           if ( $fromNotFound ) {
             if ($msgline =~ /^$self->{_text}->{from}/) {
               print "From .... : $msgline\n" if ($debug);
-              $fromNotFound = ( $msgline !~ /^$self->{_text}->{from}\s+$self->{_mail}->{from}$/ );
+              $fromNotFound = ( $msgline !~ /^$self->{_text}->{from}\s+$self->{_mail}->{from}/ ? 1 : 0 );
               my $label = $fromNotFound ? '    (?)' : '(match)';
               print "  $label : $self->{_text}->{from} $self->{_mail}->{from}\n" if ($debug);
               unless ( $fromNotFound ) { $fingerprintFound--; next; }
@@ -403,7 +376,7 @@ sub receiving_fingerprint_mails {
 		  if ( $toNotFound ) {
             if ($msgline =~ /^$self->{_text}->{to}/) {
               print "To ...... : $msgline\n" if ($debug);
-              $toNotFound = ( $msgline !~ /^$self->{_text}->{to}\s+$self->{_mail}->{to}$/ );
+              $toNotFound = ( $msgline !~ /^$self->{_text}->{to}\s+$self->{_mail}->{to}/ ? 1 : 0  );
               my $label = $toNotFound ? '    (?)' : '(match)';
               print "  $label : $self->{_text}->{to} $self->{_mail}->{to}\n" if ($debug);
               unless ( $toNotFound ) { $fingerprintFound--; next; }
@@ -413,175 +386,182 @@ sub receiving_fingerprint_mails {
 	  	  if ( $subjectNotFound ) {
             if ($msgline =~ /^$self->{_text}->{subject}/) {
               print "Subject . : $msgline\n" if ($debug);
-              $subjectNotFound = ( $msgline !~ /^$self->{_text}->{subject}\s+$self->{_subject_}$/ );
+              $subjectNotFound = ( $msgline !~ /^$self->{_text}->{subject}\s+$self->{_subject_}/ ? 1 : 0  );
               my $label = $subjectNotFound ? '    (?)' : '(match)';
               print "  $label : $self->{_text}->{subject} $self->{_subject_}\n" if ($debug);
               unless ( $subjectNotFound ) { $fingerprintFound--; next; }
 		    }
           }
+        }
 
-          if ( ( $self->{_mailType} ? $xmlNotFound : $fingerprintFound ) and $parms{numberOfLines} and ! ( $fromNotFound or $toNotFound or $subjectNotFound ) ) {
-            if ( $self->{_mailType} ) {
-              if ( $msgline =~ /\Q$fingerprintXML\E/ ) {
-			    $xmlNotFound = 0; $fingerprintFound--;
-  	 	        print "XML ..... : $msgline\n  (match) : $msgline\n" if ( $debug );
-                my ( $returnCode, $xml ) = extract_XML ( asnmtapInherited => $self->{_asnmtapInherited}, resultXML => $msgline, headerXML => HEADER, footerXML => FOOTER, validateDTD => 0, filenameDTD => SYSTEM );
+        unless ( $fromNotFound or $toNotFound or $subjectNotFound ) {
+          print "\n", ref ($self), "::receiving_fingerprint_mails(): BODY\n" if ($debug);
+          $msgbuffer = $pop3->Body( $msgnum );
 
-                unless ( $returnCode ) {
-                  if ( $xml->{Fingerprint}{From} eq $self->{_mail}->{from} and $xml->{Fingerprint}{To} eq $self->{_mail}->{to} and $xml->{Fingerprint}{Destination} eq 'ASNMTAP' and $xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName} and $xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription} and $xml->{Fingerprint}{Environment} eq $self->{_environment_} ) {
-                    use Date::Calc qw(check_date);
+          for ( $head->mime_encoding ) {
+          # /^7bit$/i             && do { last; };
+            /^quoted-printable$/i && do { use MIME::QuotedPrint;
+                                          $msgbuffer = decode_qp($msgbuffer);
+                                          last; };
+            /^base64/i            && do { use MIME::Base64;
+                                          $msgbuffer = decode_base64($msgbuffer);
+                                          last; };
+          # /^8bit/i              && do { last; };
+          # /^binary/i            && do { last; };
+          # /^x-token/i           && do { last; };
+          }
 
-                    $self->{defaultArguments}->{date}  = 0;
-                    $self->{defaultArguments}->{day}   = 0;
-                    $self->{defaultArguments}->{month} = 0;
-                    $self->{defaultArguments}->{year}  = 0;
+          if ( $parms{checkFingerprint} ) {
+            foreach my $msgline ( split (/[\n\r]/, $msgbuffer) ) {
+              next unless ( $msgline );
+              last unless ( $self->{_mailType} ? $xmlNotFound : $fingerprintFound );
 
-                    $self->{defaultArguments}->{time}  = 0;
-                    $self->{defaultArguments}->{hour}  = 0;
-                    $self->{defaultArguments}->{min}   = 0;
-                    $self->{defaultArguments}->{sec}   = 0;
+              if ( $self->{_mailType} ) {
+                if ( $msgline =~ /\Q$fingerprintXML\E/ ) {
+			      $xmlNotFound = 0; $fingerprintFound--;
+  	 	          print "XML ..... : $msgline\n  (match) : $msgline\n" if ( $debug );
+                  my ( $returnCode, $xml ) = extract_XML ( asnmtapInherited => $self->{_asnmtapInherited}, resultXML => $msgline, headerXML => HEADER, footerXML => FOOTER, validateDTD => 0, filenameDTD => SYSTEM );
 
-                    my $currentTimeslot = timelocal ( (localtime)[0,1,2,3,4,5] );
-                    my ($checkEpochtime, $checkDate, $checkTime) = ($xml->{Fingerprint}{Epochtime}, $xml->{Fingerprint}{Date}, $xml->{Fingerprint}{Time});
-                    my ($checkYear, $checkMonth, $checkDay) = split (/\/|-/, $checkDate);
-                    my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
-                    my $xmlEpochtime = timelocal ( $checkSec, $checkMin, $checkHour, $checkDay, ($checkMonth-1), ($checkYear-1900) );
-                    print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > ". $parms{outOfDate} ."\n" if ( $debug );
+                  unless ( $returnCode ) {
+                    if ( $xml->{Fingerprint}{From} =~ /^$self->{_mail}->{from}/ and $xml->{Fingerprint}{To} =~ /^$self->{_mail}->{to}/ and $xml->{Fingerprint}{Destination} eq 'ASNMTAP' and $xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName} and $xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription} and $xml->{Fingerprint}{Environment} eq $self->{_environment_} ) {
+                      use Date::Calc qw(check_date);
 
-                    if (! (check_date($checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec))) {
-                      $returnCode = $ERRORS{CRITICAL};
-                      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Date or Time into Fingerprint XML are wrong: $checkDate $checkTime" }, $TYPE{APPEND} );
-                    } elsif ( $checkEpochtime != $xmlEpochtime ) {
-                      $returnCode = $ERRORS{CRITICAL};
-                      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Epochtime difference from Date and Time into Fingerprint XML are wrong: $checkEpochtime != $xmlEpochtime ($checkDate $checkTime)" }, $TYPE{APPEND} );
-                    } elsif ( $currentTimeslot - $checkEpochtime > $parms{outOfDate} * 2 ) {
-                      $returnCode = $ERRORS{CRITICAL};
-                      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Result into Fingerprint XML are out of date: $checkDate $checkTime" }, $TYPE{APPEND} );
-                    } elsif ( $currentTimeslot - $checkEpochtime > $parms{outOfDate} ) {
-                      $returnCode = $ERRORS{WARNING};
-                      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Result into Fingerprint XML are out of date: $checkDate $checkTime" }, $TYPE{APPEND} );
+                      $self->{defaultArguments}->{date}  = 0;
+                      $self->{defaultArguments}->{year}  = 0;
+                      $self->{defaultArguments}->{month} = 0;
+                      $self->{defaultArguments}->{day}   = 0;
+
+                      $self->{defaultArguments}->{time}  = 0;
+                      $self->{defaultArguments}->{hour}  = 0;
+                      $self->{defaultArguments}->{min}   = 0;
+                      $self->{defaultArguments}->{sec}   = 0;
+
+                      my $currentTimeslot = timelocal ( (localtime)[0,1,2,3,4,5] );
+                      my ($checkEpochtime, $checkDate, $checkTime) = ($xml->{Fingerprint}{Epochtime}, $xml->{Fingerprint}{Date}, $xml->{Fingerprint}{Time});
+                      my ($checkYear, $checkMonth, $checkDay) = split (/\/|-/, $checkDate);
+                      my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
+                      my $xmlEpochtime = timelocal ( $checkSec, $checkMin, $checkHour, $checkDay, ($checkMonth-1), ($checkYear-1900) );
+                      print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > ". $parms{outOfDate} ."\n" if ( $debug );
+
+                      unless ( check_date ( $checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec ) ) {
+                        $returnCode = $ERRORS{CRITICAL};
+                        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Date or Time into Fingerprint XML are wrong: $checkDate $checkTime" }, $TYPE{APPEND} );
+                      } elsif ( $checkEpochtime != $xmlEpochtime ) {
+                        $returnCode = $ERRORS{CRITICAL};
+                        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Epochtime difference from Date and Time into Fingerprint XML are wrong: $checkEpochtime != $xmlEpochtime ($checkDate $checkTime)" }, $TYPE{APPEND} );
+                      } elsif ( $currentTimeslot - $checkEpochtime > $parms{outOfDate} * 2 ) {
+                        $returnCode = $ERRORS{CRITICAL};
+                        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Result into Fingerprint XML are out of date: $checkDate $checkTime" }, $TYPE{APPEND} );
+                      } elsif ( $currentTimeslot - $checkEpochtime > $parms{outOfDate} ) {
+                        $returnCode = $ERRORS{WARNING};
+                        $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => "Result into Fingerprint XML are out of date: $checkDate $checkTime" }, $TYPE{APPEND} );
+                      } else {
+ 				        ($self->{defaultArguments}->{date}, $self->{defaultArguments}->{time}) = ($checkDate, $checkTime);
+                        ($self->{defaultArguments}->{day}, $self->{defaultArguments}->{month}, $self->{defaultArguments}->{year}) = split(/[\/|-]/, $checkDate);
+                        ($self->{defaultArguments}->{hour}, $self->{defaultArguments}->{min}, $self->{defaultArguments}->{sec}) = split(/:/, $checkTime);
+                      }
+
+                      $statusNotFound = ( $xml->{Fingerprint}{Status} ne $self->{_mail}->{status} );
+                      my $label = $statusNotFound ? '    (?)' : '(match)';
+                      print "  $label : $self->{_text}->{status} < $self->{_mail}->{status} >\n" if ( $debug );
+                      unless ( $statusNotFound ) { $fingerprintFound--; last; }
                     } else {
- 				      ($self->{defaultArguments}->{date}, $self->{defaultArguments}->{time}) = ($checkDate, $checkTime);
-                      ($self->{defaultArguments}->{day}, $self->{defaultArguments}->{month}, $self->{defaultArguments}->{year}) = split(/[\/|-]/, $checkDate);
-                      ($self->{defaultArguments}->{hour}, $self->{defaultArguments}->{min}, $self->{defaultArguments}->{sec}) = split(/:/, $checkTime);
-                    }
+                      if ( $debug ) {
+                        print "  (match) : From ". $xml->{Fingerprint}{From} ."\n" if ($xml->{Fingerprint}{From} =~ /^$self->{_mail}->{from}/);
+                        print "  (match) : To ". $xml->{Fingerprint}{To} ."\n" if ($xml->{Fingerprint}{To} =~ /^$self->{_mail}->{to}/);
+                        print "  (match) : Destination ". $xml->{Fingerprint}{Destination} ."\n" if ($xml->{Fingerprint}{Destination} eq 'ASNMTAP');
+                        print "  (match) : Plugin ". $xml->{Fingerprint}{Plugin} ."\n" if ($xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName});
+                        print "  (match) : Description ". $xml->{Fingerprint}{Description} ."\n" if ($xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription});
+                        print "  (match) : Environment ". $xml->{Fingerprint}{Environment} ."\n" if ($xml->{Fingerprint}{Environment} =~ /^$self->{_environment_}/i);
+                      }
 
-                    $statusNotFound = ( $xml->{Fingerprint}{Status} ne $self->{_mail}->{status} );
-                    my $label = $statusNotFound ? '    (?)' : '(match)';
-                    print "  $label : $self->{_text}->{status} < $self->{_mail}->{status} >\n" if ( $debug );
-                    unless ( $statusNotFound ) { $fingerprintFound--; last; }
-                  } else {
-                    if ( $debug ) {
-                      print "  (match) : From ". $xml->{Fingerprint}{From} ."\n" if ($xml->{Fingerprint}{From} eq $self->{_mail}->{from});
-                      print "  (match) : To ". $xml->{Fingerprint}{To} ."\n" if ($xml->{Fingerprint}{To} eq $self->{_mail}->{to});
-                      print "  (match) : Destination ". $xml->{Fingerprint}{Destination} ."\n" if ($xml->{Fingerprint}{Destination} eq 'ASNMTAP');
-                      print "  (match) : Plugin ". $xml->{Fingerprint}{Plugin} ."\n" if ($xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName});
-                      print "  (match) : Description ". $xml->{Fingerprint}{Description} ."\n" if ($xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription});
-                      print "  (match) : Environment ". $xml->{Fingerprint}{Environment} ."\n" if ($xml->{Fingerprint}{Environment} =~ /^$self->{_environment_}/i);
+                      last;
                     }
-
-                    last;
                   }
-                }
           
-			    next;
-  		      }
-            } else {
-     		  if ( $messageNotFound ) {
-                if ($msgline =~ /^$self->{_subject_}/) {
-      	 	      print "Header .. : $msgline\n  (match) : $msgline\n" if ($debug);
-    			  $messageNotFound = 0; $fingerprintFound--; next;
-    		    }
-              }
+                  next;
+                }
+              } else {
+       		    if ( $messageNotFound ) {
+                  if ($msgline =~ /^$self->{_subject_}/) {
+      	 	        print "Header .. : $msgline\n  (match) : $msgline\n" if ($debug);
+      			    $messageNotFound = 0; $fingerprintFound--; next;
+    		      }
+                }
 
-    		  if ( $brandingNotFound ) {
-                if ( $msgline =~ /$$asnmtapInherited->{_programName}/ ) {
-                  if ( $debug ) {
-                    my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
-      	            print "Branding  : $msglineDebug\n";
+    		    if ( $brandingNotFound ) {
+                  if ( $msgline =~ /$$asnmtapInherited->{_programName}/ ) {
+                    if ( $debug ) {
+                      my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
+       	              print "Branding  : $msglineDebug\n";
+                    }
+
+                    $brandingNotFound = ( $msgline !~ /^$self->{_branding_}/ );
+                    my $label = $brandingNotFound ? '    (?)' : '(match)';
+
+                    if ( $debug ) {
+                      my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
+		              print "  $label : $msglineDebug\n";
+                    }
+
+                    unless ( $brandingNotFound ) { $fingerprintFound--; next; }
+		          }
+                }
+
+	    	    if ( $timestampNotFound ) {
+		          if ( $msgline =~ /^$self->{_timestamp_}/ ) {
+                    print "Timestamp : $msgline\n" if ( $debug );
+                    (undef, $msgline) = split(/:\s+/, $msgline, 2);
+                    ($self->{defaultArguments}->{date}, $self->{defaultArguments}->{time}) = split(/\s+/, $msgline);
+                    ($self->{defaultArguments}->{year}, $self->{defaultArguments}->{month}, $self->{defaultArguments}->{day}) = split(/[\/-]/, $self->{defaultArguments}->{date});
+                    ($self->{defaultArguments}->{hour}, $self->{defaultArguments}->{min}, $self->{defaultArguments}->{sec}) = split(/:/, $self->{defaultArguments}->{time});
+                    print '  (match) : ', $self->{_timestamp_}, ' ', $self->{defaultArguments}->{year}, '/', $self->{defaultArguments}->{month}, '/', $self->{defaultArguments}->{day}, ' ', $self->{defaultArguments}->{hour}, ':', $self->{defaultArguments}->{min}, ':', $self->{defaultArguments}->{sec}, "\n"  if ( $debug );
+                    $timestampNotFound = 0; $fingerprintFound--; next;
                   }
+                }
 
-                  $brandingNotFound = ( $msgline !~ /^$self->{_branding_}$/ );
-                  my $label = $brandingNotFound ? '    (?)' : '(match)';
+	    	    if ( $fingerprintFound == 1 and $statusNotFound ) {
+      		      if ( $msgline =~ /^$self->{_text}->{status}/ ) {
+                    if ( $debug ) {
+                      my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
+                      print "Status .. : $msglineDebug\n";
+                    }
 
-                  if ( $debug ) {
-                    my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
-		            print "  $label : $msglineDebug\n";
+                    $statusNotFound = ( $msgline !~ /^$self->{_text}->{status}\s*<$self->{_mail}->{status}>/ );
+                    my $label = $statusNotFound ? '    (?)' : '(match)';
+                    print "  $label : $self->{_text}->{status} < $self->{_mail}->{status} >\n" if ($debug);
+                    unless ( $statusNotFound ) { $fingerprintFound--; last; }
                   }
-
-                  unless ( $brandingNotFound ) { $fingerprintFound--; next; }
-		        }
-              }
-
-	    	  if ( $timestampNotFound ) {
-		        if ( $msgline =~ /^$self->{_timestamp_}/ ) {
-                  (undef, $msgline) = split(/: /, $msgline, 2);
-                  ($self->{defaultArguments}->{date}, $self->{defaultArguments}->{time}) = split(/ /, $msgline);
-                  ($self->{defaultArguments}->{day}, $self->{defaultArguments}->{month}, $self->{defaultArguments}->{year}) = split(/[\/|-]/, $self->{defaultArguments}->{date});
-                  ($self->{defaultArguments}->{hour}, $self->{defaultArguments}->{min}, $self->{defaultArguments}->{sec}) = split(/:/, $self->{defaultArguments}->{time});
-                  print "Timestamp : $msgline  ". $self->{defaultArguments}->{date}. "  ". $self->{defaultArguments}->{time} ."\n  (match) : $msgline ". $self->{defaultArguments}->{day} .'/'. $self->{defaultArguments}->{month} .'"/'. $self->{defaultArguments}->{year} .'  '. $self->{defaultArguments}->{hour} .':'. $self->{defaultArguments}->{min} .':'. $self->{defaultArguments}->{sec} ."\n" if ( $debug );                  $timestampNotFound = 0; $fingerprintFound--; next;
                 }
               }
 
-	    	  if ( $fingerprintFound == 1 and $statusNotFound ) {
-      		    if ( $msgline =~ /^$self->{_text}->{status}/ ) {
-                  if ( $debug ) {
-                    my $msglineDebug = $msgline; $msglineDebug =~ s/</< /g; $msglineDebug =~ s/>/ >/g;
-                    print "Status .. : $msglineDebug\n";
-                  }
-
-                  $statusNotFound = ( $msgline !~ /^$self->{_text}->{status}\s*<$self->{_mail}->{status}>$/ );
-                  my $label = $statusNotFound ? '    (?)' : '(match)';
-                  print "  $label : $self->{_text}->{status} < $self->{_mail}->{status} >\n" if ($debug);
-                  unless ( $statusNotFound ) { $fingerprintFound--; last; }
-                }
+              unless ( $fingerprintFound ) {
+                $self->{defaultArguments}->{result} .= "$msgline\n";
+                print "- - - - - : $msgline\n" if ($debug);
+                last;
               }
+
+	           print ". . . . . : $msgline\n" if ($debug >= 2);
             }
           }
-
-          unless ( $fingerprintFound ) {
-            $self->{defaultArguments}->{result} .= "$msgline\n";
-            print "- - - - - : $msgline\n" if ($debug);
-            last;
-          }
-
-		  print ". . . . . : $msgline\n" if ($debug >= 2);
         }
 
         if ( $fingerprintFound == 0 ) {
-          $self->{defaultArguments}->{result} = '';
-
-          my $foundBody = 0;
-
-          $msg = $pop3->get($msgnum);
-
-          foreach my $msgline (@$msg) {
-            if ( $foundBody ) {
-              $self->{defaultArguments}->{result} .= $msgline;
-            } else {
-              $foundBody = ( $self->{_mailType} ? $msgline =~ /\Q$fingerprintXML\E/ : $msgline =~ /^$self->{_text}->{status}\s*<$self->{_mail}->{status}>$/ );
-            }
+          if ( $parms{checkFingerprint} ) {
+            my $regexp = ( $self->{_mailType} ? "\Q$fingerprintXML\E" .'.+'. "\Q<\/FingerprintEmail>\E" : $self->{_text}->{status} .'\s+<'. $self->{_mail}->{status} .'>' );
+            $msgbuffer =~ /$regexp/;
+            $self->{defaultArguments}->{result} = ( $' ? $' : '' );
+          } else {
+            $self->{defaultArguments}->{result} = $msgbuffer;
           }
 
-          if ( defined $contentTransferEncoding ) {              # RFC 1521
-            if ($contentTransferEncoding =~ /7bit/i ) {
-            } elsif ( $contentTransferEncoding =~ /quoted-printable/i ) {
-              use MIME::QuotedPrint;
-              $self->{defaultArguments}->{result} = decode_qp($self->{defaultArguments}->{result});
-            } elsif ( $contentTransferEncoding =~ /base64/i ) {
-              use MIME::Base64;
-              $self->{defaultArguments}->{result} = decode_base64($self->{defaultArguments}->{result});
-            } elsif ( $contentTransferEncoding =~ /8bit/i ) {
-            } elsif ( $contentTransferEncoding =~ /binary/i ) {
-            } elsif ( $contentTransferEncoding =~ /x-token/i ) {
-            }
-          } 
+          print "\n", ref ($self), "::receiving_fingerprint_mails(): BODY MESSAGE\n". $self->{defaultArguments}->{result}. "\n" if ($debug >= 2);
 
           if ( defined $parms{custom} ) {
             $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($self, $self->{_asnmtapInherited}, $pop3, $msgnum, $parms{customArguments}) : $parms{custom}->($self, $self->{_asnmtapInherited}, $pop3, $msgnum);
           } else {
             $self->{defaultArguments}->{numberOfMatches}++;
-            $pop3->delete( $msgnum ) if (! ( $debug or $$asnmtapInherited->getOptionsValue('onDemand') ) );
+            $pop3->Delete( $msgnum ) unless ( $debug or $$asnmtapInherited->getOptionsValue ('onDemand') );
           }
         }
 
@@ -593,18 +573,25 @@ sub receiving_fingerprint_mails {
         $self->{defaultArguments}->{hour}  = undef;
         $self->{defaultArguments}->{min}   = undef;
         $self->{defaultArguments}->{sec}   = undef;
+
+        undef $head;
+        $entity->purge;
+        undef $entity;
       }
+
+      undef $parser;
     }
 
     if ( defined $self->{defaultArguments}->{numberOfMatches} and $self->{defaultArguments}->{numberOfMatches} ) {
       $returnCode = $parms{receivedState} ? $ERRORS{CRITICAL} : $ERRORS{OK};
-      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => $self->{defaultArguments}->{numberOfMatches}. ' email(s) received' }, $TYPE{APPEND} );
+      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => $self->{defaultArguments}->{numberOfMatches} .' '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
     } else {
       $returnCode = $parms{receivedState} ? $ERRORS{OK} : $ERRORS{CRITICAL};
-      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => 'No emails received' }, $TYPE{APPEND} );
+      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => 'No '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
     }
-	
-    $pop3->quit;
+
+    $pop3->Close;
+    $$asnmtapInherited->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $self->{defaultArguments}->{numberOfMatches} .';;;;' ) if ( defined $parms{perfdataLabel} );
     return ( $returnCode, $self->{defaultArguments}->{numberOfMatches} );
   } else {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'NO EMAIL CLIENT SPECIFIED !!!' }, $TYPE{APPEND} );

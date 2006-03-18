@@ -1,49 +1,50 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Asnmtap.cnf for ASNMTAP::Asnmtap Object-Oriented Perl v3.000.xxx
+# Asnmtap.cnf for package ASNMTAP::Asnmtap v3.000.xxx
 # ----------------------------------------------------------------------------------------------------------
 
 # SET ENVIRONMENT VARIABLES - - - - - - - - - - - - - - - - - - - - - - -
-<ENV>
-    PATH			/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
-	BASH_ENV
-	ENV
-</ENV>
+#<ENV>
+#    PATH			/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+#    BASH_ENV
+#    ENV
+#</ENV>
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
 <COMMON>
-	APPLICATION      Application Monitoring
-	BUSINESS         CITAP
-	DEPARTMENT       Development
-	COPYRIGHT        2003-2006
-	SENDEMAILTO      alex.peeters@citap.be
+    APPLICATION     Application Monitoring
+    BUSINESS        CITAP
+    DEPARTMENT      Development
+    COPYRIGHT       2003-2006
+    SENDEMAILTO     alex.peeters@citap.be
 </COMMON>
 
-<COMMAND>
-    CHAT            /usr/sbin/chat
-    KILLALL         /usr/bin/killall
-	PERL			/usr/bin/perl
-	PPPD			/usr/sbin/pppd
-    ROUTE           /sbin/route
-	RSYNC			/usr/bin/rsync
-	SCP 			/usr/bin/scp
-	SSH				/usr/bin/ssh
-</COMMAND>
+#<COMMAND>
+#    CHAT            /usr/sbin/chat
+#    KILLALL         /usr/bin/killall
+#    PERL            /usr/bin/perl
+#    PPPD            /usr/sbin/pppd
+#    ROUTE           /sbin/route
+#    RSYNC           /usr/bin/rsync
+#    SCP             /usr/bin/scp
+#    SSH             /usr/bin/ssh
+#</COMMAND>
 
-<IO>
-	CAPTUREOUTPUT	1
-</IO>
+#<IO>
+#    CAPTUREOUTPUT	1
+#</IO>
 
 # -----------------------------------------------------------------------
 # DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
 # -----------------------------------------------------------------------
 
-<SUBDIR>
-	APPLICATIONS	applications
-	PLUGINS			plugins
-    LOG             log
-    RUN             run
-</SUBDIR>
+#<SUBDIR>
+#    APPLICATIONS    applications
+#    PLUGINS         plugins
+#    LOG             log
+#    PID             pid
+#    RUN             run
+#</SUBDIR>
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

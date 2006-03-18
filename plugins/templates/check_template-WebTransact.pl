@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact.pl',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -38,7 +38,8 @@ my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPl
 $objectPlugins->pluginValue ( message => 'www.citap.be/www.citap.com' );
 
 @URLS = (
-  { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+  { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+  { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
 );
 
 my $returnCode = $objectWebTransact->check ( { } );
@@ -51,9 +52,9 @@ unless ( $returnCode ) {
   use constant VAL_SUBMAIN => [0, sub { my %pages = ( 'index.htm' => 'InDeX', 'submain.htm' => 'subMAIN' ); $pages { $_[0] }; } ];
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
   $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,13 +26,13 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE);
 BEGIN {
   use Exporter ();
 
-  @ASNMTAP::Asnmtap::Plugins::XML::ISA         = qw(Exporter);
+  @ASNMTAP::Asnmtap::Plugins::XML::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
   %ASNMTAP::Asnmtap::Plugins::XML::EXPORT_TAGS = ( ALL => [ qw(&extract_XML) ] );
 
   @ASNMTAP::Asnmtap::Plugins::XML::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::XML::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.006;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,7 +53,7 @@ sub extract_XML {
   my $asnmtapInherited = $parms{asnmtapInherited};
   unless ( defined $asnmtapInherited ) { cluck ( 'ASNMTAP::Asnmtap::Plugins::XML: asnmtapInherited missing' ); exit $ERRORS{UNKNOWN} }
 
-  my $debug = $$asnmtapInherited->getOptionsValue ( 'debug' );
+  my $debug = $$asnmtapInherited->getOptionsValue ( 'debug' ) || 0;
 
   my $resultXML = $parms{resultXML};
 

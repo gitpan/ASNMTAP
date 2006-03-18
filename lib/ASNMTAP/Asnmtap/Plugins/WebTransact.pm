@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-#  2006/02/26, v3.000.005, making Asnmtap v3.000.xxx compatible
+#  2006/02/26, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.005; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.006; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -84,7 +84,7 @@ sub new {
     my @keys = keys %$url;
 
     foreach my $key ( @keys ) {
-      if ( ! exists Field_Refs->{$key} ) {
+      unless ( exists Field_Refs->{$key} ) {
         warn "Expected keys: ", join " ", keys %{ (Field_Refs) };
         &_dumpValue ( $url, $object .": Unexpected key \"$key\" in record." );
       }
@@ -99,6 +99,11 @@ sub new {
       if ( ! ref $url->{$key} and Field_Refs->{$key}{is_ref} ) {
         warn "Expected key \"$key\" to be ", Field_Refs->{$key}{type} ? Field_Refs->{$key}{type} .' ref' : 'non ref', "\n";
         &_dumpValue ( $url, $object .": Key \"$key\" not a  reference" );
+      }
+
+      if ( $url->{$key} eq '' ) {
+        warn "Expected key \"$key\" is empty\n";
+        &_dumpValue ( $url, $object .": Key \"$key\" is empty" );
       }
     }
   }
@@ -206,7 +211,7 @@ sub check {
 
     my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
     print ref ($self), ': Response time: ', $responseTime, " - $url\n" if ( $debug );
-    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime ."ms;;;;" ) if ( defined $url_r->{Perfdata_Label} );
+    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime .'ms;;;;' ) if ( defined $url_r->{Perfdata_Label} );
 
     $self->_write_debugfile ( $req_as_string, $res->as_string, $debugfile, $openAppend ) if ( defined $debugfile );
 
@@ -372,7 +377,7 @@ sub check {
 
   if ( defined $parms{perfdataLabel} and defined $startTime ) {
     my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( $startTime );
-    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $parms{perfdataLabel} ."='". $responseTime .'ms;;;;' );
+    ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $responseTime .'ms;;;;' );
   }
 
   ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-Perfdata.pl',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION' with Performance Data",
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -38,11 +38,11 @@ my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPl
 $objectPlugins->pluginValue ( message => 'www.citap.be/www.citap.com perfdata' );
 
 @URLS = (
-  { Method => "GET", Url => "http://www.citap.be/",  Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters" },
-  { Method => "GET", Url => "http://www.citap.be/",  Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => "www.citap.be" },
+  { Method => 'GET', Url => "http://www.citap.be/",  Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters" },
+  { Method => 'GET', Url => "http://www.citap.be/",  Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => "www.citap.be" },
 
-  { Method => "GET", Url => "http://www.citap.com/", Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters" },
-  { Method => "GET", Url => "http://www.citap.com/", Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => "www.citap.com" },
+  { Method => 'GET', Url => "http://www.citap.com/", Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters" },
+  { Method => 'GET', Url => "http://www.citap.com/", Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => "www.citap.com" },
 );
 
 $objectWebTransact->check ( { } );

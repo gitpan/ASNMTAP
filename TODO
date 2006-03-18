@@ -1,0 +1,195 @@
+# -----------------------------------------------------------------------
+# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# -----------------------------------------------------------------------
+
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Author       : Alex Peeters [alex.peeters@citap.be]
+Latest update: 18 Maart 2006
+Version      : 3.000.006
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# TODO  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Warning and Critical: checking threshold range format
+
+Performance Data: checking the expected format
+- 'label'=value[UOM];[warn];[crit];[min];[max]
+
+http://crinaea.smals-mvm.be/asnmtap/nav/index/reports-index.html 
+hier url naar de plugintimes in plaatsen, is makkelijker om te onthouden 
+
+IMAP implementation with Net::IMAP::Simple, Mail::IMAPClient or IMAP::Client
+
+Awstats, ChartDirector, HTMLDOC and PerfParse installation ...
+
+Upgrade HTMLDOC from www.htmldoc.org !!!
+
+fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken
+
+fixRights before restart daemon!!!
+
+.cache files                                                     <- sound
+
+applications/custom/display.pm                         <- custom function
+
+--httpdump & --dumphttp tijdelijk voor backwards compatibiliteit !!!
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+RSYNC testen op werking
+- tail -f /var/log/asnmtap/rsync-wrapper-failover-asnmtap.citap.com.log
+  - log file rsync-wrapper- ...controle op errors
+    ARG[4] <.> Failure
+    ARG[5] </opt/asnmtap-3.000.xxx/results/aanmelden-afmelden/> Failure
+    ARG[7] <> Failure
+    Fri Aug 26 08:32:13 2005 RSYNC REQUEST FAILED INSPECTION - SKIPPING RSYNC
+
+
+# testen dat reverse rsync van slave naar master werkt !!!
+rsync-mirror-failover-master-server-name.sh -r
+
+
+# BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's not a bug, it's a feature!
+
+1) malformed header from script. Bad header=    : generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
+
+
+# CREDITS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+The reporting module from version 1 was originally developed by Bart Maes
+from SmalS-MvM, so credit must also go to the original author:
+
+- Bart Maes [Bart.Maes@SmalS-MvM.be]
+
+Although, nothing remains of the original code... (sorry, Bart :-)
+
+
+# TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Downtime scheduling for ... from 2006-3-3 7:44:44 until 2006-03-03 07:00:00
+                                                        -------------------
+
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+# NEW NEXT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+nieuwe crontab optie: secondes om een crontab te kunnen verschuiven
+
+Mogelijkheid om bepaalde applicaties niet in de view te steken gedurende bepaalde uren. 
+
+On demand run icoontje naar de hamertjes & vraagtekens.
+
+delete user gaat niet omwille van de contrains met comments en events. delet waarbij contrain tijdelijk afzetten
+
+voor plugins, ook optie delete voorzien voor plugins dewelke door acrhiver na x maanden mogen opgekuist worden
+
+offline door holiday of scheduling niet in condenced view
+
+offline door comment in condenced view
+
+useraccounts flag voor wel of geen email
+
+multioffline, status in database offline -> in display als nog te testen weergaven
+
+upload van PDF's (WORD to PDF ?)
+
+reports, deselecteren wat niet geselecteerd mag worden voor de datum keuze
+
+proxy caching statische pagina's
+
+Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
+
+Oproepen van voorgedefineerde stats:
+-> http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=test&pageset=index&debug=F&CGISESSID=9d47b3a72238e67381c46df51b903baa&detailed=on&uKey1=DUMMY-T5&uKey2=none&uKey3=none&startDate=2005-12-31&endDate=&inputType=fromto&year=2005&week=52&month=12&quarter=4&statuspie=on&errorpie=off&bar=off&hourlyAvg=off&dailyAvg=off&details=off&topx=off&pf=off&htmlToPdf=1
+
+Bij Reports -> Problem details -> link maken naar 'Debug Report'
+
+delete plugin, ... met alle dependencies
+
+rename uKey of andere key plus overal waar gebruikt
+
+In view.pl -> selecteer + groeptitle toevoegen
+
+In view.pl -> omvormen naar multiselect 'Display Daemon'
+
+Comments kunnen zetten op een groep testen via multiselect
+
+Debug files into glob field database.
+
+Openen van 'Help en Commands' into new window!
+
+http://www.hswn.dk/hobbitsw/
+
+http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
+
+CRON items database-purge-perfdata, archiver.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
+
+Een optie "send pdf by email" bij de repports. 
+
+Debug file for UNKNOWN !!!
+
+Statistics: Monthly Average <- ASAP
+
+Ingeven downtimes, inetctrl, ..., die niet aangekondigd werden, ingeven op 
+een later tijdstip.  Dit zou moeten mogelijk zijn om bv de statistieken te 
+kunnen corrigeren.
+
+Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
+
+Embedded Perl ondersteuning aangaande de plugins!!!
+
+SNMP compatibility regarding the return status off the plugins
+
+Big Brother / Hobbit compatibility for easy addaptation off these plugins
+
+  
+Sending 'Notifications'
+-----------------------
+
+CREATE TABLE `timeperiods` (
+  `timeperiod` varchar(15) NOT NULL default '',
+  `name` varchar(64) NOT NULL default '',
+  `sunday` varchar(15) default '',
+  `monday` varchar(15) default '00:00-24:00',
+  `tuesday` varchar(15) default '00:00-24:00',
+  `wednesday` varchar(15) default '00:00-24:00',
+  `thursday` varchar(15) default '00:00-24:00',
+  `friday` varchar(15) default '00:00-24:00',
+  `saturday` varchar(15) default '',
+  `activated` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`timeperiod`)
+) TYPE=InnoDB;
+
+# 00:00-24:00 or 00:00-09:00,17:00-24:00 or 00:00-09:00,12:00-44:00,17:00-24:00
+
+plugins -> `timeperiod`, `notificationEnabled`, `notificationOptions`
+users   -> `timeperiod`, `notificationEnabled`, `notificationOptions`, `notificationFormat`, `notificationWhen`,
+                          [0|1]                   [1|2|3] or [W|C|U]    email to start ?      [n fails], after
+                                          [WARNING|CRITICAL|UNKNOWN]    email, pager, sms     test fails n times
+                         `notificationInterval`,                       `notificationRecovered`
+                          [0|n min], 0 once                             [0|n|F], 
+                          repeat every n min until problem solved       n: send notification when problem is solved after after n times ok, 
+						                                                f: send notification when problem is solved using formule
+                                                                           formule: min 3 <= (30 min / interval) <= max 9
+
+
+Notification send where plugins->`notificationEnabled` is set
+  to the users where users->`notificationEnabled` is set
+  for the users->`pagedirs` into the range from plugins->`pagedirs`
+    /<pagedir 1>/<pagedir 2>/<pagedir n>/ into the range from /<pagedir 1>/<pagedir 2>/<pagedir m>/
+  for the plugins->`timeperiod` into the range from users->`timeperiod`
+
+
+# /cgi-bin/admin/titles.pl  - - - - - - - - - - - - - - - - - - - - - - -
+Webinterface to add, edit and delete titles
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

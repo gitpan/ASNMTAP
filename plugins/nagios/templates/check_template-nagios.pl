@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.005;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.006;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,15 +23,15 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-nagios.pl',
-  _programDescription => 'Genarel Nagios Template',
-  _programVersion     => '3.000.005',
-  _timeout           => 30,
-  _debug             => 0);
+  _programDescription => 'General Nagios Template',
+  _programVersion     => '3.000.006',
+  _timeout            => 30,
+  _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $objectNagios->pluginValues ( { stateValue => $ERRORS{OK}, alert => 'OKIDO' }, $TYPE{APPEND} );
-$objectNagios->exit (3);
+$objectNagios->exit (7);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

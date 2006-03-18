@@ -8,7 +8,7 @@ ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions 
 
 =item modem
 
- use ASNMTAP::Asnmtap::Plugins::Modem v3.000.005;
+ use ASNMTAP::Asnmtap::Plugins::Modem v3.000.006;
  use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
  my $returnCode = get_modem_request (
@@ -22,7 +22,7 @@ ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions 
 
 =item RAS
 
- use ASNMTAP::Asnmtap::Plugins::Modem v3.000.005;
+ use ASNMTAP::Asnmtap::Plugins::Modem v3.000.006;
  use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
  my $returnCode = get_modem_request (
@@ -141,25 +141,24 @@ default 0, everytime there is a problem we do $not_connected_guess++
 
 =back
 
-  sub actionOnModemResponse {
-    my ($asnmtapInherited, $parms, $modem, $ok, $answer, $not_connected_guess) = @_;
-    return ($returnCode);
-  }
+ sub actionOnModemResponse {
+   my ($asnmtapInherited, $parms, $modem, $ok, $answer, $not_connected_guess) = @_;
+   return ($returnCode);
+ }
 
 and now with customArguments:
 
-  sub actionOnModemResponse {
-    my ($asnmtapInherited, $parms, $modem, $ok, $answer, $not_connected_guess, $arguments) = @_;
-    return ($returnCode);
-  }
+ sub actionOnModemResponse {
+   my ($asnmtapInherited, $parms, $modem, $ok, $answer, $not_connected_guess, $arguments) = @_;
+   return ($returnCode);
+ }
 
 =item customArguments
 
-optional, when you need to pass parameters to your own custom
-defined function, this can be done with customArguments.
+optional, when you need to pass parameters to your own custom defined function, this can be done with customArguments.
 
-  customArguments: SCALAR, ARRAY, HASH,
-                   REF SCALAR, REF ARRAY, REF HASH
+ customArguments: SCALAR, ARRAY, HASH,
+                  REF SCALAR, REF ARRAY, REF HASH
 
 =back
 

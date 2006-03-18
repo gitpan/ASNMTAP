@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,19 +19,22 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml.pl',
   _programDescription => "Mail XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $username = $objectPlugins->getOptionsArgv ('username');
-my $password = $objectPlugins->getOptionsArgv ('password');
+my $username    = $objectPlugins->getOptionsArgv ('username');
+my $password    = $objectPlugins->getOptionsArgv ('password');
+my $environment = $objectPlugins->getOptionsArgv ('environment');
+
+my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.005;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.006;
 
 my $body = "
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -53,8 +56,8 @@ my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
   _asnmtapInherited => \$objectPlugins,
   _SMTP             => { smtp => [ qw(smtp.citap.be) ], mime => 0 },
   _POP3             => { pop3 => 'pop3.citap.be', username => $username, password => $password },
-# _POP3             => { pop3 => [ qw(pop3.citap.be pop3.citap.com) ], username => 'asnmtap', password => 'asnmtap' },
   _mailType         => 0,
+  _text             => { SUBJECT => 'uKey=MAIL_'. $environment .'_0003' },
   _mail             => {
                          from   => 'alex.peeters@citap.com',
                          to     => 'asnmtap@citap.com',
@@ -64,10 +67,6 @@ my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
   );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-my $environment = $objectPlugins->getOptionsArgv('environment');
-
-my $environmentText = $objectPlugins->getOptionsValue('environment');
 
 my ($returnCode, $numberOfMatches, $debugfileMessage, @xml);
 
@@ -84,12 +83,10 @@ $debugfileMessage  = "\n<HTML><HEAD><TITLE>Mail XML plugin template \@ $APPLICAT
 $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR style=\"font: normal 68% bold verdana,arial,helvetica; text-align:left; background:#a6caf0;\"><TH>Server</TH><TH>Name</TH><TH>Environment</TH><TH>First Occurence Date</TH><TH>First Occurence Time</TH><TH>Errors</TH></TR>\n";
 $debugfileMessage .= "<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">$environmentText</H3>";
 
-($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, customArguments => \{ xml => \@xml, header => HEADER, footer => FOOTER, validateDTD => 0, filenameDTD => '' }, receivedState => 0 );
+($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, customArguments => \{ xml => \@xml, header => HEADER, footer => FOOTER, validateDTD => 0, filenameDTD => '' }, receivedState => 0, perfdataLabel => 'email(s) received' );
 
 if ( defined $numberOfMatches and $numberOfMatches ) { 
   my $debug = $objectPlugins->getOptionsValue ('debug');
-  $objectPlugins->pluginValues ( { alert => $numberOfMatches .' email(s)' }, $TYPE{APPEND} ); 
-
   my $fixedAlert = "+";
 
   foreach my $xml (@xml) {
@@ -102,12 +99,12 @@ if ( defined $numberOfMatches and $numberOfMatches ) {
   $objectPlugins->pluginValues ( { alert => $fixedAlert }, $TYPE{COMMA_APPEND} ) if ($fixedAlert ne "+");
 }
 
-$debugfileMessage .= "\n</TABLE>\n</BODY>\n</HTML>";
+$debugfileMessage .= "\n</TABLE><P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on:". scalar(localtime()) ."</P>\n</BODY>\n</HTML>";
 $objectPlugins->write_debugfile ( \$debugfileMessage, 0 );
 
 # Sending Fingerprint Mail  - - - - - - - - - - - - - - - - - - - - - - -
 
-($returnCode) = $objectMAIL->sending_fingerprint_mail();
+$returnCode = $objectMAIL->sending_fingerprint_mail( perfdataLabel => 'email send' );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -153,8 +150,9 @@ sub actionOnMailBody {
 
     my $tXml = ${$$arguments}{xml};
     my $environment = $$asnmtapInherited->getOptionsArgv('environment');
+    my %environment = ( P => 'PROD', A => 'ACC' , S => 'SIM', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
-    if ((($environment eq 'P') && $xml->{Ressource}->{Environment} =~ /^prod$/i) or (($environment eq 'S') && $xml->{Ressource}->{Environment} =~ /^sim$/i) or (($environment eq 'A') && $xml->{Ressource}->{Environment} =~ /^acc$/i) or (($environment eq 'T') && $xml->{Ressource}->{Environment} =~ /^test$/i) or (($environment eq 'D') && $xml->{Ressource}->{Environment} =~ /^dev$/i) or (($environment eq 'L') && $xml->{Ressource}->{Environment} =~ /^local$/i)) {
+    if ( $xml->{Ressource}->{Environment} =~ /^$environment{$environment}$/i ) {
       my $push = 0;
 
       foreach my $tmpXML (@{$tXml}) {
@@ -171,13 +169,13 @@ sub actionOnMailBody {
         }
       }
 
-      if (! $push) {
+      unless (  $push ) {
         $xml->{Ressource}->{Errors} = 1;
         push (@{$tXml}, $xml);
       }
 
       $xml->{Ressource}->{ErrorDetail} = '' if ( $debug != 2 );
-      $pop3->delete( $msgnum ) unless ( $debug or $$asnmtapInherited->getOptionsValue('onDemand') );
+      $pop3->Delete( $msgnum ) unless ( $debug or $$asnmtapInherited->getOptionsValue ('onDemand') );
       $self->{defaultArguments}->{numberOfMatches}++;
     }
 
@@ -187,7 +185,7 @@ sub actionOnMailBody {
       }
     }
   } else {
-    $pop3->delete( $msgnum ) unless ( $debug >= 4 and $$asnmtapInherited->getOptionsValue('onDemand') );
+    $pop3->Delete( $msgnum ) unless ( $debug >= 4 and $$asnmtapInherited->getOptionsValue ('onDemand') );
   }
 
   return ( $returnCode );

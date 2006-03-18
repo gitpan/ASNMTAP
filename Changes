@@ -5,13 +5,52 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 26 Februari 2006
-Version      : 3.000.005
+Latest update: 18 Maart 2006
+Version      : 3.000.006
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.006, 2006/03/18, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::IO
+                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications
+                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::CGI
+                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::Display
+                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::Collector
+
+ASNMTAP::Asnmtap::Plugins::Mail
+- Mail::POP3Client instead of Net::POP3
+  replace $pop3->delete with $pop3->Delete in your mail scripts!!!
+- MIME::Tools
+
+Asnmtap plugins added:
+- check_file-counter.pl
+- check_template-mail.pl
+- check_template-mail-fingerprint-xml.pl
+- check_template-mail-xml-fingerprint-xml.pl
+- check_template-mail-xml-fingerprint-xml-monitoring.pl
+- check_template-mail-xml.pl
+- check_sendAndReceiveMail.pl
+
+Nagios plugins added:
+- check_memory-free.pl
+- check_memory-top.pl
+- check_swap.pl
+- check_swap-allocated.pl
+
+Getopt::Long::Configure ('bundling', 'pass_through')
+- 'pass_through' added
+
+Tested on:
+- Cygwin
+- Solaris 2.8-2.9
+- Freebsd 6.1
+- Linux 2.4.21-37.EL (Centos 3.x)
+- Linux 2.6.9-22.0.2.EL (Centos 4.x)
+
+
+Version 3.000.005, 2006/02/26
 
 - check_MySQL-database-replication.pl (MySQL database replication)
   - Bit::Vector 6.3
@@ -77,13 +116,7 @@ in any other medium. In all cases copyright and header must remain intact.
 Version 3.000.002, 2006/01/08, we actually started a total rewrite into Object Oriented Perl: ASNMTAP Package Object Oriented Perl
 
 package ASNMTAP::Asnmtap
-package ASNMTAP::Asnmtap::IO
 package ASNMTAP::Asnmtap::Time
-
-package ASNMTAP::Asnmtap::Applications
-package ASNMTAP::Asnmtap::Applications::CGI
-package ASNMTAP::Asnmtap::Applications::Display
-package ASNMTAP::Asnmtap::Applications::Collector
 
 package ASNMTAP::Asnmtap::Plugins
 package ASNMTAP::Asnmtap::Plugins::Mail
@@ -98,7 +131,6 @@ package ASNMTAP::Asnmtap::Plugins::XML
 Version 3.000.001, 2006/01/01, we actually started a total rewrite of v2.002.000: ASNMTAP Package
 
 package ASNMTAP::Asnmtap
-package ASNMTAP::Asnmtap::IO
 package ASNMTAP::Asnmtap::Time
 
 package ASNMTAP::Asnmtap::Applications

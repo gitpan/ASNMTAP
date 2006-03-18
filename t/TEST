@@ -33,15 +33,16 @@ if (@ARGV) {
     }
   }
 } else {
-  @tests = (<IO.t>, <Time.t>, <Asnmtap.t>);
+  @tests = (<Time.t>, <Asnmtap.t>);
 
   if ( -f 'APPLICATIONS_ENABLED' ) {
-#   push ( @tests, (<Asnmtap/Applications.t>, <Asnmtap/Applications/*.t>) );
-#   push ( @tests, () )                                   if ( -f 'APPLICATIONS_CGI_ENABLED' );
+    push ( @tests, (<Asnmtap/Applications.t>, <Asnmtap/Applications/Collector.t>, <Asnmtap/Applications/Display.t>) );
+    push ( @tests, (<Asnmtap/Applications/CGI.t>) )       if ( -f 'APPLICATIONS_CGI_ENABLED' );
   }
 
   if ( -f 'PLUGINS_ENABLED' ) {
     push ( @tests, <Asnmtap/Plugins.t> );
+    push ( @tests, <Asnmtap/Plugins/IO.t> )               if ( -f 'PLUGINS_IO_ENABLED' );
     push ( @tests, <Asnmtap/Plugins/Mail.t> )             if ( -f 'PLUGINS_MAIL_ENABLED' );
     push ( @tests, <Asnmtap/Plugins/Modem.t> )            if ( -f 'PLUGINS_MODEM_ENABLED' );
     push ( @tests, <Asnmtap/Plugins/Nagios.t> )           if ( -f 'PLUGINS_NAGIOS_ENABLED' );
@@ -53,8 +54,17 @@ if (@ARGV) {
       push ( @tests, (<Templates/Plugins/check_dummy.t>, <Templates/Plugins/check_template.t>) );
     # push ( @tests, (<Templates/Plugins/check_dummy.t>, <Templates/Plugins/check_template.t>, <Templates/Plugins/check_MySQL-database-replication.t>) );
 
-      push ( @tests, <Templates/Plugins/XML/*.t> )        if ( -f 'PLUGINS_XML_ENABLED' );
-      push ( @tests, <Templates/Plugins/SOAP/*.t> )       if ( -f 'PLUGINS_SOAP_ENABLED' );
+      push ( @tests, <Templates/Plugins/IO/*.t> )         if ( -f 'PLUGINS_IO_ENABLED' );
+ 
+      if ( -f 'PLUGINS_MAIL_ENABLED' ) {
+        push ( @tests, (<Templates/Plugins/Mail/check_template-mail.t>, <Templates/Plugins/Mail/check_template-mail-without-fingerprint.t>) );
+
+        if ( -f 'PLUGINS_XML_ENABLED' ) {
+          push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring.t>) );
+        }
+      }
+
+      push ( @tests, <Templates/Plugins/Modem/*.t> )      if ( -f 'PLUGINS_MODEM_ENABLED' );
 
       if ( -f 'PLUGINS_NAGIOS_ENABLED' ) {
         push ( @tests, (<Templates/Plugins/Nagios/check_template-nagios.t>, <Templates/Plugins/Nagios/check_template-ftp.t>, <Templates/Plugins/Nagios/check_template-ldap.t>) );
@@ -64,6 +74,8 @@ if (@ARGV) {
         }
       }
 
+      push ( @tests, <Templates/Plugins/SOAP/*.t> )       if ( -f 'PLUGINS_SOAP_ENABLED' );
+
       if ( -f 'PLUGINS_WEBTRANSACT_ENABLED' ) {
         push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t>) );
 
@@ -71,16 +83,8 @@ if (@ARGV) {
           push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact-XML.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t>) );
         }
       }
-	  
-      if ( -f 'PLUGINS_MAIL_ENABLED' ) {
-        push ( @tests, <Templates/Plugins/Mail/check_template-mail.t> );
 
-        if ( -f 'PLUGINS_XML_ENABLED' ) {
-          push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>) );
-        }
-      }
-
-      push ( @tests, <Templates/Plugins/Modem/*.t> )      if ( -f 'PLUGINS_MODEM_ENABLED' );
+      push ( @tests, <Templates/Plugins/XML/*.t> )        if ( -f 'PLUGINS_XML_ENABLED' );
     }
   }
 }

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Cactus-parser.pl',
   _programDescription => "WebTransact XML Cactus parser HTTP/HTTPS plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programGetOptions  => ['filename|f:s', 'environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 300,
   _debug              => 0);
@@ -39,10 +39,10 @@ use constant FOOTER       => '</testsuites>';
 
 use constant TESTSUITE    => 'be.asnmtap.common.businessservices.service.TestAsnmtapServiceRemote';
 use constant URL          => 'http://asnmtap:7205/ripservice.1.4.2.cactus/ServletTestRunner';
-use constant EXP          => '';
+use constant EXP          => '.';
 use constant EXP_FAULT    => '>>>NIHIL<<<';
-use constant MSG          => '';
-use constant MSG_FAULT    => '';
+use constant MSG          => '.';
+use constant MSG_FAULT    => '.';
 
 # Parameters for the example: ServletTestRunner.xml, modify them!!!
 
@@ -71,7 +71,7 @@ if ($httpNotByFile) {
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
   my @URLS = (
-    { Method => "GET",  Url => URL, Qs_var => [], Qs_fixed => [suite => TESTSUITE], Exp => EXP, Exp_Fault => EXP_FAULT, Msg => MSG, Msg_Fault => MSG_FAULT },
+    { Method => 'GET',  Url => URL, Qs_var => [], Qs_fixed => [suite => TESTSUITE], Exp => EXP, Exp_Fault => EXP_FAULT, Msg => MSG, Msg_Fault => MSG_FAULT },
   );
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
@@ -99,7 +99,7 @@ if ( defined $result )  {
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => "No resultXML and filenameXML defined.", result => undef }, $TYPE{APPEND} );
 }
 
-$objectPlugins->exit (3) if ( $returnCode );
+$objectPlugins->exit (7) if ( $returnCode );
 
 if ( $debug ) {
   print "xml->{testsuite}->{name}<->\n", $xml->{testsuite}->{name}, "\n";
@@ -183,7 +183,7 @@ foreach my $testcase (@testcase) {
   }
 }
 
-$debugfileMessage .= "\n</TABLE>\n</BODY>\n</HTML>";
+$debugfileMessage .= "\n</TABLE><P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on:". scalar(localtime()) ."</P>\n</BODY>\n</HTML>";
 
 if (defined $alertMessage) {
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $alertHeader .', '. $objectPlugins->pluginValue ('alert') .' '. $alertMessage .'+', result => undef }, $TYPE{REPLACE} );

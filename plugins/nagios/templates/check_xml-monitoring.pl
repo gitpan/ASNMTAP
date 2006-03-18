@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.005;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.006;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ my $schema = "1.0";
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_xml-monitoring.pl',
   _programDescription => 'Check Nagios by XML Monitoring',
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [-p|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
@@ -37,9 +37,9 @@ my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions => ['filename|F=s', 'hostname|H=s', 'service|s=s', 'plugin|P:s', 'parameters|p:s', 'validation:s', 'interval|i=i', 'environment|e=s'],
-  _timeout           => 30,
-  _debug             => 0);
+  _programGetOptions  => ['filename|F=s', 'hostname|H=s', 'service|s=s', 'plugin|P:s', 'parameters|p:s', 'validation:s', 'interval|i=i', 'environment|e=s'],
+  _timeout            => 30,
+  _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -88,30 +88,31 @@ $objectNagios->exit (3) if ( $returnCode );
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $currentTimeslot = timelocal (0, (localtime)[1,2,3,4,5]);
+my %environment = ( P => 'PROD', S => 'SIM', A => 'ACC', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
-if ($xml->{'Monitoring'}{'Schema'}{'Value'} eq $schema and $xml->{'Monitoring'}{'Results'}{'Details'}{'Host'} eq $hostname and $xml->{'Monitoring'}{'Results'}{'Details'}{'Service'} eq $service and $xml->{'Monitoring'}{'Results'}{'Details'}{'Environment'} =~ /^$environment/i) {
-  my ($checkEpochtime, $checkDate, $checkTime) = ($xml->{'Monitoring'}{'Results'}{'Details'}{'Epochtime'}, $xml->{'Monitoring'}{'Results'}{'Details'}{'Date'}, $xml->{'Monitoring'}{'Results'}{'Details'}{'Time'});
-  my ($checkYear, $checkMonth, $checkDay) = split (/\//, $checkDate);
+if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Host} eq $hostname and $xml->{Monitoring}{Results}{Details}{Service} eq $service and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^$environment{$environment}$/i) {
+  my ($checkEpochtime, $checkDate, $checkTime) = ($xml->{Monitoring}{Results}{Details}{Epochtime}, $xml->{Monitoring}{Results}{Details}{Date}, $xml->{Monitoring}{Results}{Details}{Time});
+  my ($checkYear, $checkMonth, $checkDay) = split (/[\/-]/, $checkDate);
   my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
   my $xmlEpochtime = timelocal ( $checkSec, $checkMin, $checkHour, $checkDay, ($checkMonth-1), ($checkYear-1900) );
-  print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > $resultOutOfDate\n"  if ( $objectNagios->getOptionsValue('debug') );
+  print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > $resultOutOfDate\n"  if ( $objectNagios->getOptionsValue ('debug') );
 
-  if (! (check_date($checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec))) {
+  unless ( check_date ( $checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec ) ) {
     $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Date or Time into XML file '$filename' are wrong: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
   } elsif ( $checkEpochtime != $xmlEpochtime ) {
     $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Epochtime difference from Date and Time into XML file '$filename' are wrong: $checkEpochtime != $xmlEpochtime ($checkDate $checkTime)", result => undef }, $TYPE{APPEND} );
   } elsif ( $currentTimeslot - $checkEpochtime > $resultOutOfDate ) {
     $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Result into XML file '$filename' are out of date: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
   } else {
-    $objectNagios->pluginValues ( { stateError => $STATE{$xml->{'Monitoring'}{'Results'}{'Details'}{'Status'}}, alert => $xml->{'Monitoring'}{'Results'}{'Details'}{'StatusMessage'}, result => $xml->{'Monitoring'}{'Results'}{'Details'}{'content'} }, $TYPE{APPEND} );
-    $objectNagios->appendPerformanceData( $xml->{'Monitoring'}{'Results'}{'Details'}{'PerfData'} ) if ( $xml->{'Monitoring'}{'Results'}{'Details'}{'PerfData'} );
+    $objectNagios->pluginValues ( { stateError => $STATE{$xml->{Monitoring}{Results}{Details}{Status}}, alert => $xml->{Monitoring}{Results}{Details}{StatusMessage}, result => $xml->{Monitoring}{Results}{Details}{content} }, $TYPE{APPEND} );
+    $objectNagios->appendPerformanceData( $xml->{Monitoring}{Results}{Details}{PerfData} ) if ( $xml->{Monitoring}{Results}{Details}{PerfData} );
   }
 } else {
   my $tError = 'Content Error:';
-  $tError .= ' - Schema: '. $xml->{'Monitoring'}{'Schema'}{'Value'} ." ne $schema" if ($xml->{'Monitoring'}{'Schema'}{'Value'} ne $schema);
-  $tError .= ' - Host: '. $xml->{'Monitoring'}{'Results'}{'Details'}{'Host'}. " ne $hostname" if ($xml->{'Monitoring'}{'Results'}{'Details'}{'Host'} ne $hostname);
-  $tError .= ' - Service: '. $xml->{'Monitoring'}{'Results'}{'Details'}{'Service'} ." ne $service" if ($xml->{'Monitoring'}{'Results'}{'Details'}{'Service'} ne $service);
-  $tError .= ' - Environment: ' .$xml->{'Monitoring'}{'Results'}{'Details'}{'Environment'} . " ne $environment" if ($xml->{'Monitoring'}{'Results'}{'Details'}{'Environment'} !~ /^$environment$/i);
+  $tError .= ' - Schema: '. $xml->{Monitoring}{Schema}{Value} ." ne $schema" if ($xml->{Monitoring}{Schema}{Value} ne $schema);
+  $tError .= ' - Host: '. $xml->{Monitoring}{Results}{Details}{Host} ." ne $hostname" if ($xml->{Monitoring}{Results}{Details}{Host} ne $hostname);
+  $tError .= ' - Service: '. $xml->{Monitoring}{Results}{Details}{Service} ." ne $service" if ($xml->{Monitoring}{Results}{Details}{Service} ne $service);
+  $tError .= ' - Environment: ' .$xml->{Monitoring}{Results}{Details}{Environment} ." ne ". $environment{$environment} if ($xml->{Monitoring}{Results}{Details}{Environment} !~ /^$environment{$environment}$/i);
   $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
 }
 

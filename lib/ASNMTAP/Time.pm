@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Time
+# 2006/03/18, v3.000.006, package ASNMTAP::Time making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Time;
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS);
 BEGIN {
   use Exporter ();
 
-  @ASNMTAP::Time::ISA         = qw(Exporter);
+  @ASNMTAP::Time::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
   %ASNMTAP::Time::EXPORT_TAGS = (ALL       => [ qw(SEC MIN HOUR DAY WEEK
                                                    &get_timeslot
@@ -48,7 +48,7 @@ BEGIN {
 
   @ASNMTAP::Time::EXPORT_OK   = ( @{ $ASNMTAP::Time::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Time::VERSION     = 3.000.005;
+  $ASNMTAP::Time::VERSION     = 3.000.006;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

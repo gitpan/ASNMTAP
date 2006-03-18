@@ -14,23 +14,24 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.005;
+  use ASNMTAP::Asnmtap::Plugins v3.000.006;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.005',
+    _programVersion     => '3.000.006',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.005;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.006;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
     _SMTP             => { smtp => qw(smtp.citap.be) },
     _mailType         => 1,
+    _text             => { SUBJECT => 'uKey=MAIL_P_0001' },
     _mail             => {
                            from   => 'alex.peeters@citap.be',
                            to     => 'asnmtap@citap.com',
@@ -123,8 +124,6 @@ Syntax for POP3 host is <hostname>[:<port>] where <hostname> can be a hostname o
 
  single scalar: pop3 => 'pop3.citap.be', 'pop3.citap.be:110', 'xxx.xxx.xxx.xxx' or 'xxx.xxx.xxx.xxx:110'
 
- scalar array : pop3 => [ qw(pop3.citap.be pop3.citap.com) ]  <-<-<- TODO
-
 required when POP3 used for dowloading the receiving mails, default: undef
 
 =item port (reserved)
@@ -182,12 +181,16 @@ When the status and the header plus the first 7 lines of the e-mail agrees to th
 
  SUBJECT / From: Source_email_address To: Application_Monitor_email_address
 
+ SUBJECT: description can be found lateron into this document.
+
 =item Message
 
  SUBJECT / From: Source_email_address To: Application_Monitor_email_address
  <plugin naam> <plugin description>
  Timestamp <Source email address>: dd-mm-yyyy hh:mm:ss[.hhh]
  Status <naam from the service up/down>
+
+ SUBJECT: description can be found lateron into this document.
 
 =back
 
@@ -251,7 +254,18 @@ required textual descriptions
 
 SUBJECT is the textual descriptions for the preffix of the subject
 
-optional, scalar value, default: 'ASNMTAP'
+required, scalar value, default: 'uKey=ASNMTAP'
+
+When you have more then one mail plugin, then you should use for the subject an unique key. Normally we use 'uKey=MAIL_?_nnnn' where '?' is the environment and 'nnnn' the number to make the SUBJECT unique.
+
+ - P(roduction) : 'uKey=MAIL_P_0001', 'uKey=MAIL_P_0002' ... 'uKey=MAIL_P_nnnn'
+ - S(imulation) : 'uKey=MAIL_S_0001', 'uKey=MAIL_S_0002' ... 'uKey=MAIL_S_nnnn'
+ - A(cceptation): 'uKey=MAIL_A_0001', 'uKey=MAIL_A_0002' ... 'uKey=MAIL_A_nnnn'
+ - T(est)       : 'uKey=MAIL_T_0001', 'uKey=MAIL_T_0002' ... 'uKey=MAIL_T_nnnn'
+ - D(evelopment): 'uKey=MAIL_D_0001', 'uKey=MAIL_D_0002' ... 'uKey=MAIL_D_nnnn'
+ - L(ocal)      : 'uKey=MAIL_L_0001', 'uKey=MAIL_L_0002' ... 'uKey=MAIL_L_nnnn'
+
+The reason for this is that the processing from the emails is much faster, because after the verification from the 'To:', 'From:' and 'Subject:' fields from the HEAD of your email you already know if its the required email to process with this plugin, and you don't read everytime the BODY to be sure.
 
 =item from
 
@@ -322,6 +336,18 @@ required, scalar value
 Sending fingerprint emails. The fingerprints can be formated as TXT or XML.
 
 Returns a status for $returnCode (OK..UNKNOWN).
+
+=over 4
+
+=item
+
+=item perfdataLabel
+
+This means that there performance data for the sending time will be created and the name for the label equals the value from perfdataLabel.
+
+Is an scalar (value is a string), default 'email send'
+
+=back
 
 =item receiving_fingerprint_mail()
 
@@ -425,7 +451,7 @@ A new Net::POP3 object is created and all POP3 commands are accessed via method 
     $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => '.' }, $TYPE{APPEND} );
 
     # put here your code for deleting the email from the Mailbox  - - - -
-    $pop3->delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue('debug') or $$asnmtapInherited->getOptionsValue('onDemand') );
+    $pop3->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
     $self->{defaultArguments}->{numberOfMatches}++;
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -446,7 +472,7 @@ and now with customArguments:
     $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => '.' }, $TYPE{APPEND} );
 
     # put here your code for deleting the email from the Mailbox  - - - -
-    $pop3->delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue('debug') or $$asnmtapInherited->getOptionsValue('onDemand') );
+    $pop3->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
     $self->{defaultArguments}->{numberOfMatches}++;
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -457,25 +483,28 @@ and now with customArguments:
 
 =item customArguments
 
-optional, when you need to pass parameters to your own custom
-defined function, this can be done with customArguments.
+optional, when you need to pass parameters to your own custom defined function, this can be done with customArguments.
 
   customArguments: SCALAR, ARRAY, HASH,
                    REF SCALAR, REF ARRAY, REF HASH
 
-=item numberOfLines
+=item checkFingerprint
 
-the first number of lines of the body for the message.
+can be 0 or 1:
 
-optional, scalar value, default 7
+0: email found when when 'From:', 'To:' and 'Subject' matches
+
+1: email found when when 'From:', 'To:', 'Subject' and formated fingerprint matches
+
+optional, scalar value, default 1
 
 =item receivedState
 
-when receivedState == 1:
-  No emails received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
+can be 0 or 1:
 
-when receivedState == 0:
-  x mail(s) received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
+0: x mail(s) received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
+
+1: No emails received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
 
 optinal, scalar value, default 0
 
@@ -484,6 +513,12 @@ optinal, scalar value, default 0
 calculate ...
 
 required when _mailType = 1 (XML), scalar value
+
+=item perfdataLabel
+
+This means that there performance data for the number of matches will be created and the name for the label equals the value from perfdataLabel.
+
+Is an scalar (value is a string), default 'email(s) received'
 
 =back
 
@@ -513,13 +548,22 @@ Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
+  check_template-mail.pl
+  check_template-mail-fingerprint-xml.pl
+  check_template-mail-xml-fingerprint-xml.pl
+  check_template-mail-xml-fingerprint-xml-monitoring.pl
+  check_template-mail-xml.pl
+  check_template-mail-without-fingerprint.pl
+
 =head1 DEPENDENCIES
 
   ASNMTAP::Asnmtap::Plugins
   ASNMTAP::Time
   Date::Calc
+  Mail::POP3Client
   Mail::Sendmail
   MIME::Base64
+  MIME::Parser
   Net::POP3
   Time::Local
 

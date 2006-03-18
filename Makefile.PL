@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.05 2006/02/26 8:14:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.06 2006/03/18 8:14:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.005';
+my $VERSION = '3.000.006';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -24,14 +24,219 @@ my $ASNMTAP_PROXY        = exists $ENV{ASNMTAP_PROXY}        ? $ENV{ASNMTAP_PROX
 my @prerequisites = (
 # [ '<level>', '<feature>',                '<installed module>',                  <dependency hash>, <install by default: 0 = no, 1 = yes, 2 = always, 3 = reserved and 4 = info>, [<directorie>, ...], [[<files>, <x|r>], ...] ];
   [ '*00',     'Package ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap',                    { 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Data::Dumper' => '2.12','Dumpvalue' => '1.11', 'Getopt::Long' => '2.32', 'IO::CaptureOutput' => '1.03', 'Test::Simple' => '0.47', 'Time::Local' => '1.04' }, 2, 
-   [], [
+   [
+    'log', 'pid'
+   ], [
     [ 'Asnmtap.cnf',                                                              'R' ],
    ]
   ],
-  [ '*01',     'IO',                       'ASNMTAP::IO',                         { 'ASNMTAP::Asnmtap' => '*00', 'IO' => '1.20' }, 2, [], [] ],
   [ '*02',     'Time',                     'ASNMTAP::Time',                       { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::Local' => '1.04' }, 2, [], [] ],
-  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00' }, 3, [], [] ],
-  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010' }, 3, [], [] ],
+  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Getopt::Long' => '2.32', 'HTML::Entities' => '1.29', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.04' }, 1,
+   [
+    'applications',
+    'applications/bin',
+    'applications/custom',
+    'applications/etc',
+    'applications/master',
+    'applications/tmp',
+    'applications/tmp/config',
+    'applications/tmp/cgisess',
+    'applications/tools',
+    'applications/tools/mysql',
+    'applications/slave',
+    'applications/sbin',
+
+    'results'
+   ], [
+    [ 'fixRights.sh',                                                             'x' ],
+
+    [ 'applications/archive.pl',                                                  'x' ],
+    [ 'applications/archive.sh',                                                  'x' ],
+    [ 'applications/collector.pl',                                                'x' ],
+    [ 'applications/display.pl',                                                  'x' ],
+    [ 'applications/Applications.cnf',                                            'R' ],
+
+    [ 'applications/bin/generateReports.pl',                                      'x' ],
+    [ 'applications/bin/generateReports.sh',                                      'x' ],
+    [ 'applications/bin/holidayBundleSetDowntimes.pl',                            'x' ],
+    [ 'applications/bin/holidayBundleSetDowntimes.sh',                            'x' ],
+
+    [ 'applications/custom/display.pm',                                           'R' ],
+
+    [ 'applications/sbin/sshWrapperASNMTAP.pl',                                   'x' ],
+
+    [ 'applications/tools/mysql/asnmtap-3.000.006.sql',                           'r' ],
+    [ 'applications/tools/mysql/MySQLBackup.sh',                                  'r' ],
+   ]
+  ],
+  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010', 'CGI::Session' => '', 'Date::Calc' => '5.4', 'NetAddr::IP' => '3.028', 'Time::Local' => '1.04' }, 0,
+   [
+    'applications/htmlroot',
+    'applications/htmlroot/cgi-bin',
+    'applications/htmlroot/cgi-bin/admin',
+    'applications/htmlroot/cgi-bin/moderator',
+    'applications/htmlroot/cgi-bin/sadmin',
+    'applications/htmlroot/img',
+    'applications/htmlroot/img/logos',
+    'applications/htmlroot/nav',
+    'applications/htmlroot/pdf',
+    'applications/htmlroot/sound',
+    'applications/tools/resources',
+    'applications/tools/templates',
+    'applications/tools/templates/master',
+    'applications/tools/templates/slave'
+   ], [
+    [ 'applications/htmlroot/AnchorPosition.js',                                                               'x' ],
+    [ 'applications/htmlroot/asnmtap-results.css',                                                             'x' ],
+    [ 'applications/htmlroot/asnmtap.css',                                                                     'x' ],
+    [ 'applications/htmlroot/CalendarPopup.js',                                                                'x' ],
+    [ 'applications/htmlroot/date.js',                                                                         'x' ],
+    [ 'applications/htmlroot/md5.js',                                                                          'x' ],
+    [ 'applications/htmlroot/PopupWindow.js',                                                                  'x' ],
+    [ 'applications/htmlroot/TimeParserValidator.js',                                                          'x' ],
+
+    [ 'applications/htmlroot/cgi-bin/comments.pl',                                                             'x' ],
+    [ 'applications/htmlroot/cgi-bin/contact.pl',                                                              'x' ],
+    [ 'applications/htmlroot/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl',       'x' ],
+    [ 'applications/htmlroot/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl.book',  'R' ],
+    [ 'applications/htmlroot/cgi-bin/generateChart.pl',                                                        'x' ],
+    [ 'applications/htmlroot/cgi-bin/getArchivedDebug.pl',                                                     'x' ],
+    [ 'applications/htmlroot/cgi-bin/getArchivedReport.pl',                                                    'x' ],
+    [ 'applications/htmlroot/cgi-bin/getArchivedResults.pl',                                                   'x' ],
+    [ 'applications/htmlroot/cgi-bin/getHelpPlugin.pl',                                                        'x' ],
+    [ 'applications/htmlroot/cgi-bin/htmldoc.sh',                                                              'x' ],
+    [ 'applications/htmlroot/cgi-bin/htmlToPdf.pl',                                                            'x' ],
+    [ 'applications/htmlroot/cgi-bin/info.pl',                                                                 'x' ],
+    [ 'applications/htmlroot/cgi-bin/perfparse.pl',                                                            'x' ],
+    [ 'applications/htmlroot/cgi-bin/runCmdOnDemand.pl',                                                       'x' ],
+    [ 'applications/htmlroot/cgi-bin/users.pl',                                                                'x' ],
+
+    [ 'applications/htmlroot/cgi-bin/admin/countries.pl',                                                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/holidays.pl',                                                       'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/holidaysBundle.pl',                                                 'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/index.pl',                                                          'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/languages.pl',                                                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/reports.pl',                                                        'x' ],
+    [ 'applications/htmlroot/cgi-bin/admin/users.pl',                                                          'x' ],
+
+    [ 'applications/htmlroot/cgi-bin/moderator/collectorCrontabSchedulingReports.pl',                          'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/collectorDaemonSchedulingReports.pl',                           'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/generateCollectorCrontabSchedulingReport.pl',                   'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/generateCollectorDaemonSchedulingReport.pl',                    'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl',                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/index.pl',                                                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/pluginCrontabSchedulingReports.pl',                             'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/runStatusOnDemand.pl',                                          'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/sessions.pl',                                                   'x' ],
+
+    [ 'applications/htmlroot/cgi-bin/sadmin/collectorDaemons.pl',                                              'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/crontabs.pl',                                                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/displayDaemons.pl',                                                'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/displayGroups.pl',                                                 'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/generateConfig.pl',                                                'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/index.pl',                                                         'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/pagedirs.pl',                                                      'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/plugins.pl',                                                       'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/resultsdirs.pl',                                                   'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/servers.pl',                                                       'x' ],
+    [ 'applications/htmlroot/cgi-bin/sadmin/views.pl',                                                         'x' ],
+
+    [ 'applications/htmlroot/img/1arrowDown.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/1arrowLeft.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/1arrowRight.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/1arrowUp.gif',                                                                'r' ],
+    [ 'applications/htmlroot/img/2arrowLeft.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/2arrowRight.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/404.jpg',                                                                     'r' ],
+    [ 'applications/htmlroot/img/awstats.gif',                                                                 'r' ],
+    [ 'applications/htmlroot/img/blue-ack.gif',                                                                'r' ],
+    [ 'applications/htmlroot/img/blue.gif',                                                                    'r' ],
+    [ 'applications/htmlroot/img/cal.gif',                                                                     'r' ],
+    [ 'applications/htmlroot/img/clear-ack.gif',                                                               'r' ],
+    [ 'applications/htmlroot/img/clear.gif',                                                                   'r' ],
+    [ 'applications/htmlroot/img/daemonReload.gif',                                                            'r' ],
+    [ 'applications/htmlroot/img/daemonRestart.gif',                                                           'r' ],
+    [ 'applications/htmlroot/img/daemonStart.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/daemonStop.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/data.gif',                                                                    'r' ],
+    [ 'applications/htmlroot/img/dec0.png',                                                                    'r' ],
+    [ 'applications/htmlroot/img/dec1.png',                                                                    'r' ],
+    [ 'applications/htmlroot/img/down.gif',                                                                    'r' ],
+    [ 'applications/htmlroot/img/exclaim.gif',                                                                 'r' ],
+    [ 'applications/htmlroot/img/gears.gif',                                                                   'r' ],
+    [ 'applications/htmlroot/img/green-ack.gif',                                                               'r' ],
+    [ 'applications/htmlroot/img/green.gif',                                                                   'r' ],
+    [ 'applications/htmlroot/img/inc0.png',                                                                    'r' ],
+    [ 'applications/htmlroot/img/inc1.png',                                                                    'r' ],
+    [ 'applications/htmlroot/img/info.gif',                                                                    'r' ],
+    [ 'applications/htmlroot/img/logoff.jpg',                                                                  'r' ],
+    [ 'applications/htmlroot/img/logos/citap.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/maintenance.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/notest-ack.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/notest.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/ondemand.gif',                                                                'r' ],
+    [ 'applications/htmlroot/img/orange-ack.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/orange.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/perfgraph-sm.png',                                                            'r' ],
+    [ 'applications/htmlroot/img/perfparse-logo-asnmtap.png',                                                  'r' ],
+    [ 'applications/htmlroot/img/perfparse-logo-sm-asnmtap.png',                                               'r' ],
+    [ 'applications/htmlroot/img/perfparse-logo-sm.png',                                                       'r' ],
+    [ 'applications/htmlroot/img/perfparse-logo.png',                                                          'r' ],
+    [ 'applications/htmlroot/img/pidKill.gif',                                                                 'r' ],
+    [ 'applications/htmlroot/img/pidremove.gif',                                                               'r' ],
+    [ 'applications/htmlroot/img/purple-ack.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/purple.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/question.gif',                                                                'r' ],
+    [ 'applications/htmlroot/img/recordDelete.gif',                                                            'r' ],
+    [ 'applications/htmlroot/img/recordDetails.gif',                                                           'r' ],
+    [ 'applications/htmlroot/img/recordDuplicate.gif',                                                         'r' ],
+    [ 'applications/htmlroot/img/recordEdit.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/recordQuery.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/recordTable.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/red-ack.gif',                                                                 'r' ],
+    [ 'applications/htmlroot/img/red.gif',                                                                     'r' ],
+    [ 'applications/htmlroot/img/report.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/running.gif',                                                                 'r' ],
+    [ 'applications/htmlroot/img/spacer.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/start.gif',                                                                   'r' ],
+    [ 'applications/htmlroot/img/startRefresh.gif',                                                            'r' ],
+    [ 'applications/htmlroot/img/stop.gif',                                                                    'r' ],
+    [ 'applications/htmlroot/img/stopRefresh.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/toggle.gif',                                                                  'r' ],
+    [ 'applications/htmlroot/img/up.gif',                                                                      'r' ],
+    [ 'applications/htmlroot/img/yellow-ack.gif',                                                              'r' ],
+    [ 'applications/htmlroot/img/yellow.gif',                                                                  'r' ],
+
+    [ 'applications/htmlroot/pdf/ApplicationMonitorVersion2.000.xxx.pdf',                                      'r' ],
+    [ 'applications/htmlroot/pdf/CheckDummy.pdf',                                                              'r' ],
+
+    [ 'applications/htmlroot/sound/attention.wav',                                                             'r' ],
+    [ 'applications/htmlroot/sound/critical.wav',                                                              'r' ],
+    [ 'applications/htmlroot/sound/nodata.wav',                                                                'r' ],
+    [ 'applications/htmlroot/sound/unknown.wav',                                                               'r' ],
+    [ 'applications/htmlroot/sound/warning.wav',                                                               'r' ],
+
+    [ 'applications/tools/resources/CalendarPopup-combined-compact.js',                                        'r' ],
+    [ 'applications/tools/resources/CalendarPopup-combined.js',                                                'r' ],
+
+    [ 'applications/tools/templates/CollectorCT-template.sh',                                                  'x' ],
+    [ 'applications/tools/templates/DisplayCT-template.sh',                                                    'x' ],
+    [ 'applications/tools/templates/FOOTER.html',                                                              'r' ],
+    [ 'applications/tools/templates/HEADER.html',                                                              'r' ],
+
+    [ 'applications/tools/templates/master/rsync-wrapper-distributed-example.sh',                              'x' ],
+    [ 'applications/tools/templates/master/rsync-wrapper-distributed-template.sh',                             'x' ],
+    [ 'applications/tools/templates/master/rsync-wrapper-failover-example.sh',                                 'x' ],
+    [ 'applications/tools/templates/master/rsync-wrapper-failover-template.sh',                                'x' ],
+
+    [ 'applications/tools/templates/slave/rsync-mirror-distributed-example.conf',                              'r' ],
+    [ 'applications/tools/templates/slave/rsync-mirror-distributed-example.sh',                                'x' ],
+    [ 'applications/tools/templates/slave/rsync-mirror-distributed-template.sh',                               'x' ],
+    [ 'applications/tools/templates/slave/rsync-mirror-failover-example.conf',                                 'x' ],
+    [ 'applications/tools/templates/slave/rsync-mirror-failover-example.sh',                                   'x' ],
+    [ 'applications/tools/templates/slave/rsync-mirror-failover-template.sh',                                  'x' ],
+   ] 
+  ],
   [ '*0011',   'Subclass Plugins',         'ASNMTAP::Asnmtap::Plugins',           { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::HiRes' => '1.66' }, 2,
    [
     'plugins',
@@ -44,12 +249,18 @@ my @prerequisites = (
     'plugins/tools',
     'plugins/tmp'
    ], [
+    [ 'plugins/check_file-counter.pl',                                            'x' ],
+    [ 'plugins/check_sendAndReceiveMail.pl',                                      'x' ],
+
     [ 'plugins/templates/check_dummy.pl',                                         'x' ],
     [ 'plugins/templates/check_MySQL-database-replication.pl',                    'x' ],
     [ 'plugins/templates/check_template.pl',                                      'x' ],
+    [ 'plugins/templates/check_template-IO.pl',                                   'x' ],
     [ 'plugins/templates/check_template-mail.pl',                                 'x' ],
+    [ 'plugins/templates/check_template-mail-without-fingerprint.pl',             'x' ],
     [ 'plugins/templates/check_template-mail-fingerprint-xml.pl',                 'x' ],
     [ 'plugins/templates/check_template-mail-xml-fingerprint-xml.pl',             'x' ],
+    [ 'plugins/templates/check_template-mail-xml-fingerprint-xml-monitoring.pl',  'x' ],
     [ 'plugins/templates/check_template-mail-xml.pl',                             'x' ],
     [ 'plugins/templates/check_template-modem.pl',                                'x' ],
     [ 'plugins/templates/check_template-ras.pl',                                  'x' ],
@@ -88,6 +299,11 @@ my @prerequisites = (
     'plugins/nagios/templates/dtd',
     'plugins/nagios/templates/xml'
    ], [
+    [ 'plugins/nagios/check_memory-free.pl',                                      'x' ],
+    [ 'plugins/nagios/check_memory-top.pl',                                       'x' ],
+    [ 'plugins/nagios/check_swap.pl',                                             'x' ],
+    [ 'plugins/nagios/check_swap-allocated.pl',                                   'x' ],
+
     [ 'plugins/nagios/templates/check_template-ftp.pl',                           'x' ],
     [ 'plugins/nagios/templates/check_template-ldap.pl',                          'x' ],
     [ 'plugins/nagios/templates/check_template-nagios.pl',                        'x' ],
@@ -103,8 +319,9 @@ my @prerequisites = (
     [ 'plugins/nagios/templates/xml/nagios-1.0.xml-dtd',                          'r' ]
    ]
   ],
-  [ '*001101', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'Net::POP3' => '2.28', 'Time::Local' => '1.04' }, 0, [], [] ],
-  [ '*001102', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.05') ), 'Device::Modem' => '1.43' }, 0,
+  [ '*011101', 'IO support',          'ASNMTAP::Asnmtap::Plugins::IO',          { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20' }, 1, [], [] ],
+  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'MIME::Tools' => '5.419', 'Time::Local' => '1.04' }, 1, [], [] ],
+  [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.05') ), 'Device::Modem' => '1.43' }, 1,
    [
     '/etc/chatscripts',
     '/etc/ppp',
@@ -121,10 +338,10 @@ my @prerequisites = (
     [ '/usr/bin/pon',                                                             'R' ],
    ]
   ],
-  [ '*001103', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.656' }, 0, [], [] ],
-  [ '*001104', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.10', 'Crypt::SSLeay' => '0.51', 'Digest::MD5' => '2.33', 'MIME::Base64' => '3.01', 'Net::FTP' => '2.58', 'URI' => '1.35' }, 0, [], [] ],
-  [ '*001105', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.58', 'XML::Simple' => '2.14' }, 0, [], [] ],
-  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.05', 'Data::Dumper' => '2.12', 'File::Basename' => '2.73', 'IO' => '1.20' }, 0, [], [] ],
+  [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.67' }, 1, [], [] ],
+  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.10', 'Crypt::SSLeay' => '0.51', 'Digest::MD5' => '2.33', 'MIME::Base64' => '3.01', 'Net::FTP' => '2.58', 'URI' => '1.35' }, 1, [], [] ],
+  [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.58', 'XML::Simple' => '2.14' }, 2, [], [] ],
+  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.05', 'Data::Dumper' => '2.12', 'File::Basename' => '2.73', 'IO' => '1.20' }, 1, [], [] ],
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.02', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],
   [ '', 'FTP template',               'check_template-ftp.pl',                  { 'Net::FTP' => '2.58' }, 4, [], [] ],
   [ '', 'LDAP template',              'check_template-ldap.pl',                 { 'Convert::ASN1' => '0.19', 'URI::ldap' => '1.11', 'Digest::MD5' => '2.33', 'XML::Parser' => '2.34', 'Net::LDAP' => '0' }, 4, [], [] ],
@@ -135,9 +352,13 @@ my @prerequisites = (
 
 my @man3pods = qw (
   Asnmtap
-  IO
   Time
+  Asnmtap/Applications
+  Asnmtap/Applications/CGI
+  Asnmtap/Applications/Collector
+  Asnmtap/Applications/Display
   Asnmtap/Plugins
+  Asnmtap/Plugins/IO
   Asnmtap/Plugins/Mail
   Asnmtap/Plugins/Modem
   Asnmtap/Plugins/Nagios
@@ -145,11 +366,6 @@ my @man3pods = qw (
   Asnmtap/Plugins/WebTransact
   Asnmtap/Plugins/XML
 );
-
-# Asnmtap/Applications
-# Asnmtap/Applications/CGI
-# Asnmtap/Applications/Collector
-# Asnmtap/Applications/Display
 
 my %has_module_cache = ();
 
@@ -203,7 +419,8 @@ EOT
   $PERL_AUTOINSTALL = ( ExtUtils::MakeMaker::prompt( "\nAutomatic installation of dependencies via CPAN?" => ( $PERL_AUTOINSTALL ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
   $ENV{PERL_AUTOINSTALL} = $PERL_AUTOINSTALL;
 
-# $ASNMTAP_APPLICATIONS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Applications?" => ( $ASNMTAP_APPLICATIONS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
+  $ASNMTAP_APPLICATIONS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Applications?" => ( $ASNMTAP_APPLICATIONS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
+
   $ASNMTAP_PLUGINS = ( ExtUtils::MakeMaker::prompt( "\nDo you want to install the Plugin templates?" => ( $ASNMTAP_PLUGINS ? 'yes' : 'no' ) ) =~ /^\s*(y)/i );
 
   if ( $ASNMTAP_APPLICATIONS or $ASNMTAP_PLUGINS ) {
@@ -226,6 +443,22 @@ EOT
 if ( $ASNMTAP_APPLICATIONS or $ASNMTAP_PLUGINS ) {
   print "- created (when not already exists): '$ASNMTAP_PATH'\n\n";
   chown ( $ASNMTAP_UID, $ASNMTAP_GID, $ASNMTAP_PATH ) or die "- chown $ASNMTAP_UID:$ASNMTAP_GID $ASNMTAP_PATH failed: $!";
+
+  if ( $ASNMTAP_APPLICATIONS ) {
+    unlink <$ASNMTAP_PATH/applications/htmlroot/nav/*/reports-*.html> if ( -e "$ASNMTAP_PATH/applications/htmlroot/nav" );
+
+    if ( -e "$ASNMTAP_PATH/results" ) {
+      unlink <$ASNMTAP_PATH/results/FOOTER.html>;
+      unlink <$ASNMTAP_PATH/results/*/FOOTER.html>;
+      unlink <$ASNMTAP_PATH/results/*/debug/FOOTER.html>;
+      unlink <$ASNMTAP_PATH/results/*/reports/FOOTER.html>;
+
+      unlink <$ASNMTAP_PATH/results/HEADER.html>;
+      unlink <$ASNMTAP_PATH/results/*/HEADER.html>;
+      unlink <$ASNMTAP_PATH/results/*/debug/HEADER.html>;
+      unlink <$ASNMTAP_PATH/results/*/reports/HEADER.html>;
+    }
+  }
 }
 
 my $intro = <<EOI;
@@ -358,7 +591,7 @@ print "\n";
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if ( $ASNMTAP_PLUGINS ) {
+if ( $ASNMTAP_PLUGINS or $ASNMTAP_APPLICATIONS ) {
   require File::Copy;
 
   foreach my $prerequisite ( @prerequisites ) {
@@ -391,7 +624,7 @@ if ( $ASNMTAP_PLUGINS ) {
           $destination .= '-orig' if ( $mode =~ /^[RX]$/ );
           $file = substr($file, 1) if ( $file =~ /^\// );
           File::Copy::copy ( $file, $destination ) or die "- copy '$file' failed: $!";
-          chmod ( ( $mode =~ /^[xX]$/ ? 0750 : 0640 ), $destination) or die "- chmod $destination $file failed: $!";
+          chmod ( ( $mode =~ /^[xX]$/ ? 0755 : 0644 ), $destination) or die "- chmod $destination $file failed: $!";
           print "- copied file '$destination'\n";
         }
       }
@@ -460,10 +693,9 @@ test: all
 sub libscan {
   my ($self, $path) = @_;
 
-  return '' if $path =~ m:\blib/ASNMTAP/Asnmtap/Applications:;
-  return '' if $path =~ m:\betc/:;
-  return '' if $path =~ m:\busr/:;
-  return '' if $path =~ m:\bCVS/:;
+  return '' if $path =~ m:\betc\/:;
+  return '' if $path =~ m:\busr\/:;
+  return '' if $path =~ m:\bCVS\/:;
   $path;
 }
 

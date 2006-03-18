@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, making Asnmtap v3.000.005 compatible
+# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -27,7 +27,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.005;
+use ASNMTAP::Asnmtap::Plugins v3.000.006;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.005',
+  _programVersion     => '3.000.006',
   _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [--database=<database>] [--binlog=<binlog>] [--table=<table>] [--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
@@ -184,7 +184,7 @@ if ( $exist ) {
             if ( defined $createTime )    { print "T) Create  Time   <$createTime>\n"; }
             if ( defined $updateTime )    { print "T) Update  Time   <$updateTime>\n"; }
 
-            # for(my $i=0; $i<$sth->{'NUM_OF_FIELDS'}; $i++) {
+            # for(my $i=0; $i<$sth->{NUM_OF_FIELDS}; $i++) {
             #   my $field = $$ref[$i];
             #   if ( defined $field ) { print "<", $field, ">\n"; }
             # }

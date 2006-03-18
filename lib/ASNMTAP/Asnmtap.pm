@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -28,7 +28,7 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH $LOGPATH $RUNPATH
+                                                         $PREFIXPATH $LOGPATH $PIDPATH
                                                          %ERRORS %STATE %TYPE
 
                                                          $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -44,7 +44,7 @@ BEGIN {
 
                                     ASNMTAP      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH $LOGPATH $RUNPATH
+                                                         $PREFIXPATH $LOGPATH $PIDPATH
                                                          %ERRORS %STATE %TYPE) ],
 
                                     COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::VERSION     = 3.000.006;
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,10 +92,17 @@ $ENV{ENV}            = ( exists $_config{ENV}{ENV} )      ? $_config{ENV}{ENV}  
 
 # SET ASNMTAP::Asnmtap VARIABLES  - - - - - - - - - - - - - - - - - - -
 
-our $APPLICATIONPATH = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{APPLICATIONS} ) ? $_config{SUBDIR}{APPLICATIONS} : 'applications');
-our $PLUGINPATH      = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{PLUGINS} ) ? $_config{SUBDIR}{PLUGINS} : 'plugins');
-our $LOGPATH         = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{LOG} ) ? $_config{SUBDIR}{LOG} : 'log');
-our $RUNPATH         = $PREFIXPATH .'/'. ( ( exists $_config{SUBDIR}{RUN} ) ? $_config{SUBDIR}{RUN} : 'run');
+our $APPLICATIONPATH = $PREFIXPATH .'/'. 'applications';
+our $PLUGINPATH      = $PREFIXPATH .'/'. 'plugins';
+our $LOGPATH         = $PREFIXPATH .'/'. 'log';
+our $PIDPATH         = $PREFIXPATH .'/'. 'pid';
+
+if ( exists $_config{SUBDIR} ) {
+  $APPLICATIONPATH   = $PREFIXPATH .'/'. $_config{SUBDIR}{APPLICATIONS} if ( exists $_config{SUBDIR}{APPLICATIONS} );
+  $PLUGINPATH        = $PREFIXPATH .'/'. $_config{SUBDIR}{PLUGINS}      if ( exists $_config{SUBDIR}{PLUGINS} );
+  $LOGPATH           = $PREFIXPATH .'/'. $_config{SUBDIR}{LOG}          if ( exists $_config{SUBDIR}{LOG} );
+  $PIDPATH           = $PREFIXPATH .'/'. $_config{SUBDIR}{PID}          if ( exists $_config{SUBDIR}{PID} );
+}
 
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} ) ? $_config{COMMON}{APPLICATION} : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )    ? $_config{COMMON}{BUSINESS}    : 'CITAP';
@@ -105,14 +112,25 @@ our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} ) ? $_config{COMMO
 
 our $CAPTUREOUTPUT   = ( exists $_config{IO}{CAPTUREOUTPUT} )   ? $_config{IO}{CAPTUREOUTPUT}   : 1;
 
-our $CHATCOMMAND     = ( exists $_config{COMMAND}{CHAT} )       ? $_config{COMMAND}{CHAT}       : '/usr/sbin/chat';
-our $KILLALLCOMMAND  = ( exists $_config{COMMAND}{KILLALL} )    ? $_config{COMMAND}{KILLALL}    : '/usr/bin/killall';
-our $PERLCOMMAND     = ( exists $_config{COMMAND}{PERL} )       ? $_config{COMMAND}{PERL}       : '/usr/bin/perl';
-our $PPPDCOMMAND     = ( exists $_config{COMMAND}{PPPD} )       ? $_config{COMMAND}{PPPD}       : '/usr/sbin/pppd';
-our $ROUTECOMMAND    = ( exists $_config{COMMAND}{ROUTE} )      ? $_config{COMMAND}{ROUTE}      : '/sbin/route';
-our $RSYNCCOMMAND    = ( exists $_config{COMMAND}{RSYNC} )      ? $_config{COMMAND}{RSYNC}      : '/usr/bin/rsync';
-our $SCPCOMMAND      = ( exists $_config{COMMAND}{SCP} )        ? $_config{COMMAND}{SCP}        : '/usr/bin/scp';
-our $SSHCOMMAND      = ( exists $_config{COMMAND}{SSH} )        ? $_config{COMMAND}{SSH}        : '/usr/bin/ssh';
+our $CHATCOMMAND     = '/usr/sbin/chat';
+our $KILLALLCOMMAND  = '/usr/bin/killall';
+our $PERLCOMMAND     = '/usr/bin/perl';
+our $PPPDCOMMAND     = '/usr/sbin/pppd';
+our $ROUTECOMMAND    = '/sbin/route';
+our $RSYNCCOMMAND    = '/usr/bin/rsync';
+our $SCPCOMMAND      = '/usr/bin/scp';
+our $SSHCOMMAND      = '/usr/bin/ssh';
+
+if ( exists $_config{COMMAND} ) {
+  $CHATCOMMAND       = $_config{COMMAND}{CHAT}    if ( exists $_config{COMMAND}{CHAT} );
+  $KILLALLCOMMAND    = $_config{COMMAND}{KILLALL} if ( exists $_config{COMMAND}{KILLALL} );
+  $PERLCOMMAND       = $_config{COMMAND}{PERL}    if ( exists $_config{COMMAND}{PERL} );
+  $PPPDCOMMAND       = $_config{COMMAND}{PPPD}    if ( exists $_config{COMMAND}{PPPD} );
+  $ROUTECOMMAND      = $_config{COMMAND}{ROUTE}   if ( exists $_config{COMMAND}{ROUTE} );
+  $RSYNCCOMMAND      = $_config{COMMAND}{RSYNC}   if ( exists $_config{COMMAND}{RSYNC} );
+  $SCPCOMMAND        = $_config{COMMAND}{SCP}     if ( exists $_config{COMMAND}{SCP} );
+  $SSHCOMMAND        = $_config{COMMAND}{SSH}     if ( exists $_config{COMMAND}{SSH} );
+}
 
 undef %_config;
 
@@ -127,8 +145,8 @@ our %TYPE            = ('REPLACE'=>'0','APPEND'=>'1','INSERT'=>'2','COMMA_REPLAC
 sub new (@) {
   my $classname = shift;
 
-  if (! defined $classname) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
-  if (  ref     $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
+  unless ( defined $classname ) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
+  if ( ref $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
 
   use fields;
 
@@ -198,15 +216,16 @@ sub _init {
 sub _getOptions {
   carp ('ASNMTAP::Asnmtap: _getOptions') if ( $_[0]->{_debug} );
 
-  Getopt::Long::Configure ('bundling');
+  Getopt::Long::Configure ('bundling', 'pass_through');
+
   my %getOptionsArgv;
   my $programGetOptions = $_[0]->{_programGetOptions};
   my $resultGetOptions = GetOptions ( \%getOptionsArgv, @$programGetOptions );
+  carp ('ASNMTAP::Asnmtap: _getOptions '. "Unknown option(s): @ARGV") if ( ref $_[0] !~ /ASNMTAP::Asnmtap::Plugins/ );
   $_[0]->[ $_[0]->[0]{_getOptionsArgv} = @{$_[0]} ] = {%getOptionsArgv};
-
   $_[0]->printRevision () if ( exists $_[0]->{_getOptionsArgv}->{version} );
   $_[0]->printHelp () if ( exists $_[0]->{_getOptionsArgv}->{help} );
-  $_[0]->printUsage ('.') if ( exists $_[0]->{_getOptionsArgv}->{'usage'} );
+  $_[0]->printUsage ('.') if ( exists $_[0]->{_getOptionsArgv}->{usage} );
 
   my $verbose = (exists $_[0]->{_getOptionsArgv}->{verbose}) ? $_[0]->{_getOptionsArgv}->{verbose} : 0;
   $_[0]->printUsage ('Invalid verbose option: '. $verbose) unless ($verbose =~ /^[0123]$/);
@@ -276,7 +295,7 @@ Copyright (c) $COPYRIGHT ASNMTAP, Author: Alex Peeters [alex.peeters\@citap.be]
 
 ";
 
-  exit ( (ref $_[0]) =~ /^ASNMTAP::Asnmtap::Plugins/ ? $ERRORS{UNKNOWN} : 0 ) if (! defined $_[1]);
+  exit ( (ref $_[0]) =~ /^ASNMTAP::Asnmtap::Plugins/ ? $ERRORS{UNKNOWN} : 0 ) unless ( defined $_[1] );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

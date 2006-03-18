@@ -1,5 +1,3 @@
-# change 'tests => 1' to 'tests => last_test_to_print';
-
 use Test::More tests => 98;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios' ) };
@@ -15,18 +13,18 @@ TODO: {
   my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::Nagios',
-    _programVersion     => '3.000.005',
-    _programUsagePrefix => '[--hihi]',
-    _programHelpPrefix  => '--hihi ...',
-    _programGetOptions => ['hihi=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
-    _clientCertificate => { certFile       => 'ssl/crt/alex-peeters.crt', 
-                            keyFile        => 'ssl/key/alex-peeters-nopass.key', 
-                            caFile         => 'CA CERT PEER VERIFICATION FILE',
-                            caDir          => 'CA CERT PEER VERIFICATION DIR',
-                            pkcs12File     => 'CLIENT PKCS12 CERT SUPPORT FILE',
-                            pkcs12Password => 'CLIENT PKCS12 CERT SUPPORT PASSWORD'},
-    _timeout           => 30,
-    _debug             => 0);
+    _programVersion     => '3.000.006',
+    _programUsagePrefix => '[--commandLineOption]',
+    _programHelpPrefix  => '--commandLineOption ...',
+    _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
+    _clientCertificate  => { certFile       => 'ssl/crt/alex-peeters.crt', 
+                             keyFile        => 'ssl/key/alex-peeters-nopass.key', 
+                             caFile         => 'CA CERT PEER VERIFICATION FILE',
+                             caDir          => 'CA CERT PEER VERIFICATION DIR',
+                             pkcs12File     => 'CLIENT PKCS12 CERT SUPPORT FILE',
+                             pkcs12Password => 'CLIENT PKCS12 CERT SUPPORT PASSWORD'},
+    _timeout            => 30,
+    _debug              => 0);
 
   isa_ok( $objectNagios, 'ASNMTAP::Asnmtap::Plugins::Nagios' );
   can_ok( $objectNagios, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
@@ -34,7 +32,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.005 postfix; nl-BE; rv:3.000.005) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.006 postfix; nl-BE; rv:3.000.006) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): get');
 
   $returnCode = $objectNagios->browseragent ( 'Mozilla/5.0' ) eq 'Mozilla/5.0' ? 1 : 0;
@@ -95,7 +93,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programDescription(): set');
 
 
-  $returnCode = $objectNagios->programVersion () eq '3.000.005' ? 1 : 0;
+  $returnCode = $objectNagios->programVersion () eq '3.000.006' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programVersion(): get');
 
   $returnCode = $objectNagios->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

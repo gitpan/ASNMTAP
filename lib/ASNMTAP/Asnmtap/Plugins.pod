@@ -16,12 +16,12 @@ This module that provides a nice object oriented interface for building ASNMTAP 
 
 =head1 EXAMPLE
 
- use ASNMTAP::Asnmtap::Plugins qw(:DEFAULT :ASNMTAP);
+ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template.pl',
    _programDescription => "General plugin template for the '$APPLICATION'",
-   _programVersion     => '3.000.005',
+   _programVersion     => '3.000.006',
    _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
    _programHelpPrefix  => "-H, --hostname=HOST
     Name or IP address of host to check
@@ -29,9 +29,9 @@ This module that provides a nice object oriented interface for building ASNMTAP 
     Percentage strength below which a WARNING status will result
  -c, --critical=INTEGER
     Percentage strength below which a CRITICAL status will result",
-   _programGetOptions => ['hostname|H=s', 'warning|w=i', 'critical|c=i'],
-   _timeout           => 30,
-   _debug             => 0);
+   _programGetOptions  => ['hostname|H=s', 'warning|w=i', 'critical|c=i'],
+   _timeout            => 30,
+   _debug              => 0);
 
  $objectPlugins->dumpData ();
 
@@ -600,11 +600,11 @@ item is equal to one of the possible items:
 
 =item stateValue
 
-  $ERROR{OK..UNKNOWN}
+$ERROR{OK..UNKNOWN}
 
 =item stateError
 
-  $STATE{0..3}
+$STATE{0..3}
 
 =item message
 
@@ -612,27 +612,31 @@ item is equal to one of the possible items:
 
 =item alert
 
-...
+scalar, the message description for the alert
 
 =item error
 
-...
+scalar, the message description for the error
 
 =item result
 
-...
+scalar, the returned result from the last test
 
 =item performanceData
 
-...
+look at section 'Performance data'
 
 =item startTime
 
-...
+the time set after the compilation and initialisation off the plugin.
+
+scalar, format: 'seconds.microseconds'
 
 =item endTime
 
-...
+is the time set by the last call off the function setEndTime_and_getResponsTime()
+
+scalar, format: 'seconds.microseconds', default: equals to 'startTime'
 
 =back
 
@@ -699,8 +703,11 @@ optional, scalar
   0: replace alert and/or error
   1: append to alert and/or error
   2: insert to alert and/or error
-
-  %TYPE = ( 'REPLACE' => '0', 'APPEND' => '1', 'INSERT' => '2' )
+  3: add comma and replace alert and/or error
+  4: add comma and append to alert and/or error
+  5: add comma and insert to alert and/or error
+ 
+  %TYPE = ( REPLACE => 0, APPEND => 1, INSERT => 2, COMMA_REPLACE => 3, COMMA_APPEND => 4, COMMA_INSERT => 5 )
 
 =back
 
@@ -837,19 +844,19 @@ scalar, exit value
 
 0 = abnormal exit,
 
-1 = with PerformanceData 'Status'
+1 = with Performance Data for 'Status'
 
-2 = with PerformanceData 'Duration'
+2 = with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
 
-3 = with PerformanceData 'Status' and 'Duration'
+3 = with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
 
 4 = normal exit,
 
-5 = with PerformanceData 'Status'
+5 = with Performance Data for 'Status'
 
-6 = with PerformanceData 'Duration'
+6 = with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
 
-7 = with PerformanceData 'Status' and 'Duration'
+7 = with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
 
 =back
 
@@ -1041,7 +1048,7 @@ ALL
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
   $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   %ERRORS %STATE %TYPE
 
@@ -1051,7 +1058,7 @@ PLUGINS
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
   %ERRORS %STATE %TYPE
 
 =item *
@@ -1075,6 +1082,9 @@ Alex Peeters [alex.peeters@citap.be]
 =head1 SEE ALSO
 
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins::Nagios
+
+  check_file-counter.pl
+  check_sendAndReceiveMail.pl
 
   check_template.pl
 

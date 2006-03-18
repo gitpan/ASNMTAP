@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.005;
+  use ASNMTAP::Asnmtap::Plugins v3.000.006;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-WebTransact-XML.pl',
     _programDescription => "WebTransact-XML plugin template for testing the '$APPLICATION'",
-    _programVersion     => '3.000.005',
+    _programVersion     => '3.000.006',
     _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -32,7 +32,7 @@ ASNMTAP::Asnmtap::Plugins::XML is a Perl module that provides XML functions used
   my ($returnCode, $result, $xml);
 
   @URLS = (
-    { Method => "GET",  Url => 'http://asnmtap.citap.com/ServletTestRunner.xml', Qs_var => [], Qs_fixed => [], Exp => "\Q<testsuites>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "ServletTestRunner.xml", Msg_Fault => "ServletTestRunner.xml" },
+    { Method => 'GET',  Url => 'http://asnmtap.citap.com/ServletTestRunner.xml', Qs_var => [], Qs_fixed => [], Exp => "\Q<testsuites>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "ServletTestRunner.xml", Msg_Fault => "ServletTestRunner.xml" },
   );
 
   $returnCode = $objectWebTransact->check ( { } );
@@ -114,15 +114,10 @@ and now with customArguments:
 
 =item customArguments
 
-optional, when you need to pass parameters to your own custom
-defined function, this can be done with customArguments.
+optional, when you need to pass parameters to your own custom defined function, this can be done with customArguments.
 
   customArguments: SCALAR, ARRAY, HASH,
                    REF SCALAR, REF ARRAY, REF HASH
-
-=item customArguments
-
-reserved
 
 =item resultXML
 

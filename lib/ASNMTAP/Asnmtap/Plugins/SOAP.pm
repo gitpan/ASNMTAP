@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/02/26, v3.000.005, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,13 +26,13 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE);
 BEGIN {
   use Exporter ();
 
-  @ASNMTAP::Asnmtap::Plugins::SOAP::ISA         = qw(Exporter);
+  @ASNMTAP::Asnmtap::Plugins::SOAP::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
   %ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS = ( ALL => [ qw(&get_soap_request) ] );
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.005;
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.006;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -257,7 +257,7 @@ sub get_soap_request {
   use XML::Simple;
   my $xml = XMLin($result);
 
-  if (! defined $xml) {
+  unless ( defined $xml ) {
     print "ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request: Error parsing XML formatted data", "\n" if ( $debug );
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => 'Error parsing XML formatted data' }, $TYPE{APPEND} ); 
     return ($returnCode, undef);

@@ -1,5 +1,3 @@
-# change 'tests => 1' to 'tests => last_test_to_print';
-
 use Test::More tests => 27;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap' ) };
@@ -15,7 +13,7 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $PIDPATH
   %ERRORS %STATE %TYPE
   $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   &_checkAccObjRef
@@ -28,12 +26,12 @@ TODO: {
   my $objectAsnmtap = ASNMTAP::Asnmtap->new (
     _programName        => 'Asnmtap.t',
     _programDescription => 'Test ASNMTAP::Asnmtap',
-    _programVersion     => '3.000.005',
-    _programUsagePrefix => '[--hihi]',
-    _programHelpPrefix  => "--hihi ...",
-    _programGetOptions => ['hihi=s'],
-    _timeout           => 30,
-    _debug             => 0);
+    _programVersion     => '3.000.006',
+    _programUsagePrefix => '[--commandLineOption]',
+    _programHelpPrefix  => "--commandLineOption ...",
+    _programGetOptions  => ['commandLineOption=s'],
+    _timeout            => 30,
+    _debug              => 0);
 
   isa_ok( $objectAsnmtap, 'ASNMTAP::Asnmtap' );
   can_ok( $objectAsnmtap, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp call_system) );
@@ -44,12 +42,12 @@ TODO: {
   is ( $objectAsnmtap->programDescription(), 'Test ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap::programDescription()' );
   is ( $objectAsnmtap->programDescription('-change programDescription-'), '-change programDescription-', 'ASNMTAP::Asnmtap::programDescription(\'-change programDescription-\')' );
 
-  is ( $objectAsnmtap->programVersion(), '3.000.005', 'ASNMTAP::Asnmtap::programVersion()' );
+  is ( $objectAsnmtap->programVersion(), '3.000.006', 'ASNMTAP::Asnmtap::programVersion()' );
   is ( $objectAsnmtap->programVersion('-change programVersion-'), '-change programVersion-', 'ASNMTAP::Asnmtap::programVersion(\'-change programVersion-\')' );
 
-  is ( $objectAsnmtap->getOptionsArgv('hihi'), undef, 'ASNMTAP::Asnmtap::getOptionsArgv(\'hihi\')' );
+  is ( $objectAsnmtap->getOptionsArgv('commandLineOption'), undef, 'ASNMTAP::Asnmtap::getOptionsArgv(\'commandLineOption\')' );
 
-  is ( $objectAsnmtap->getOptionsValue('hihi'), undef, 'ASNMTAP::Asnmtap::getOptionsValue(\'hihi\')' );
+  is ( $objectAsnmtap->getOptionsValue ('commandLineOption'), undef, 'ASNMTAP::Asnmtap::getOptionsValue(\'commandLineOption\')' );
 
   is ( $objectAsnmtap->debug(), 0, 'ASNMTAP::Asnmtap::debug()' );
   is ( $objectAsnmtap->debug(1), 1, 'ASNMTAP::Asnmtap::debug(1)' );

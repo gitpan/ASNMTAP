@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.005;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.006;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -202,7 +202,7 @@ ALL
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
   %ERRORS %STATE %TYPE
   $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   &convert_to_KB &convert_from_KB_to_metric
@@ -213,7 +213,7 @@ NAGIOS
 
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
-  $PREFIXPATH $PLUGINPATH $LOGPATH $RUNPATH
+  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
   %ERRORS %STATE %TYPE
   &convert_to_KB &convert_from_KB_to_metric
 
@@ -232,6 +232,11 @@ Alex Peeters [alex.peeters@citap.be]
 =head1 SEE ALSO
 
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
+
+  check_memory-free.pl
+  check_memory-top.pl
+  check_swap.pl
+  check_swap-allocated.pl
 
   check_template-ftp.pl
   check_template-ldap.pl

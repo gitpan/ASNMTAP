@@ -4,17 +4,17 @@ ASNMTAP::Asnmtap::Plugins::Webtransact is a Perl module that provides WebTransac
 
 =head1 SYNOPSIS
 
-  use ASNMTAP::Asnmtap::Plugins::WebTransact;
+ use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
-  my @URLS = ();
-  my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
+ my @URLS = ();
+ my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
-  @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Perfdata Label 1' },
-  );
+ @URLS = (
+   { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Perfdata Label 1' },
+ );
 
-  $objectWebTransact->check ( { } );
-  undef $objectWebTransact;
+ $objectWebTransact->check ( { } );
+ undef $objectWebTransact;
 
 =head1 DESCRIPTION
 
@@ -66,18 +66,18 @@ This is the constructor for a ASNMTAP::Asnmtap::Plugins::WebTransact->new object
 
 I<Structure of the array of hash references:>
 
-  {
-    Method         => HEAD|GET|POST,
-    Url            => 'http://...',
-    Qs_var         => [ cgi_var_name_1 => val_at_run_time, ... ],
-    Qs_fixed       => [ cgi_var_name_1 => val_1, ... ],
-    Exp            => blah,
-    Exp_Fault      => blurb,
-    Exp_Return     => { var_label_1 => EXP_VAR_LABEL_1, ... },
-    Msg            => 'Status error when not all Exp found',
-    Msg_Fault      => 'Status error when Exp_Fault found',
-    Perfdata_Label => 'Label x'
-  }
+ {
+   Method         => HEAD|GET|POST,
+   Url            => 'http://...',
+   Qs_var         => [ cgi_var_name_1 => val_at_run_time, ... ],
+   Qs_fixed       => [ cgi_var_name_1 => val_1, ... ],
+   Exp            => blah,
+   Exp_Fault      => blurb,
+   Exp_Return     => { var_label_1 => EXP_VAR_LABEL_1, ... },
+   Msg            => 'Status error when not all Exp found',
+   Msg_Fault      => 'Status error when Exp_Fault found',
+   Perfdata_Label => 'Label x'
+ }
 
 Qs_fixed and Qs_var are used to generate a query string.
 
@@ -146,11 +146,11 @@ In this case, the subroutine referred to by coderef is a subroutine with one par
 
 An example may make this more comprehensible !
 
-  use constant CmrDetailPat       => [ qw( name="addr1_data-name1\[1\]"\s+value="(.*?)" ) ];
-  use constant Stars              => '*' x 8;
-  my $star_pat = quotemeta( Stars ) . '$';
-  use constant AddStars_to_Name   => [ 'addr1_data-name1[1]' => [0, sub { $_[0] . Stars }] ];
-  use constant DelStars_from_Name => [ 'addr1_data-name1[1]' => [0, sub { $_[0] =~ s#$star_pat##; $_[0] }] ];
+ use constant CmrDetailPat       => [ qw( name="addr1_data-name1\[1\]"\s+value="(.*?)" ) ];
+ use constant Stars              => '*' x 8;
+ my $star_pat = quotemeta( Stars ) . '$';
+ use constant AddStars_to_Name   => [ 'addr1_data-name1[1]' => [0, sub { $_[0] . Stars }] ];
+ use constant DelStars_from_Name => [ 'addr1_data-name1[1]' => [0, sub { $_[0] =~ s#$star_pat##; $_[0] }] ];
 
 If 'CmrDetailPat' is used as an Exp field, then a subsequent GET or POST can make use of
 Qs_var values 'AddStars_to_Name' and 'DelStars_from_Name' to either append some asterisks to the value of the
@@ -229,7 +229,7 @@ I<Example:>
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
   my @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
@@ -242,7 +242,7 @@ equals to:
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
   $objectWebTransact->urls( \@URLS );
@@ -264,16 +264,16 @@ This hash ref is B<required> and must be set to {} if there are B<no> variables.
 
 I<Structure of the array of hash references:>
 
-  (
-    custom           => undef,
-    perfdataLabel    => undef,
-    newAgent         => undef,
-    openAppend       => 1,
-    cookies          => 1,
-    download_images  => 0,
-    indent_level     => 0,
-    fail_if_1        => 1
-  )
+ (
+   custom           => undef,
+   perfdataLabel    => undef,
+   newAgent         => undef,
+   openAppend       => 1,
+   cookies          => 1,
+   download_images  => 0,
+   indent_level     => 0,
+   fail_if_1        => 1
+ )
 
 B<Possible options are:>
 
@@ -284,19 +284,19 @@ B<Possible options are:>
 Optionally, you can specify an reference to a function. 
 This function give you a extra control to ASNMTAP::Asnmtap::Plugins::WebTransact
 
-  sub customWebTransact {
-    my ($resp_string) = @_;
+ sub customWebTransact {
+   my ($resp_string) = @_;
 
-    for ( $resp_string ) {
-      /Failure of server APACHE bridge/ &&
-        do { return ( $ERRORS{CRITICAL}, 1, 'Failure of server APACHE bridge' ); last; };
-      /Message from the NSAPI plugin:/ && /No backend server available for connection:/ &&
-        do { return ( $ERRORS{CRITICAL}, 1, "'KBOWI - Message from the NSAPI plugin - No backend server available for connection'" ); last; };
-      /\Q<FRAME NAME="NO_INFO" SRC="submain.html" SCROLLING="No" FRAMEBORDER="0" NORESIZE>\E/ &&
-        do { return ( $ERRORS{CRITICAL}, 0, '+submain+' ); last; };
-      return ( $ERRORS{OK}, 0, undef );
-    }
-  }
+   for ( $resp_string ) {
+     /Failure of server APACHE bridge/ &&
+       do { return ( $ERRORS{CRITICAL}, 1, 'Failure of server APACHE bridge' ); last; };
+     /Message from the NSAPI plugin:/ && /No backend server available for connection:/ &&
+       do { return ( $ERRORS{CRITICAL}, 1, "'KBOWI - Message from the NSAPI plugin - No backend server available for connection'" ); last; };
+     /\Q<FRAME NAME="NO_INFO" SRC="submain.html" SCROLLING="No" FRAMEBORDER="0" NORESIZE>\E/ &&
+       do { return ( $ERRORS{CRITICAL}, 0, '+submain+' ); last; };
+     return ( $ERRORS{OK}, 0, undef );
+   }
+ }
 
 Is an scalar, reference to a function, default: undef
 
@@ -309,8 +309,8 @@ set the performancedata label for a group of URLs
 =item I<Example>
 
   my @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
   $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact, perfdataLabel => 'homepage' );
@@ -318,8 +318,8 @@ set the performancedata label for a group of URLs
 equals to:
 
   my @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
   $startTime = $objectPlugins->setEndTime_and_getResponsTime ( $objectPlugins->pluginValue ('endTime') );
@@ -441,7 +441,7 @@ Get the urls
 Set the urls used by the next call from $objectWebTransact->check ( { } )
 
   my @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
+    { Method => 'GET',  Url => 'http://www.citap.be/', Qs_var => [], Qs_fixed => [], Exp => "Consulting Internet Technology Alex Peeters", Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 1' },
   );
 
   $objectWebTransact->urls( \@URLS );
@@ -484,7 +484,7 @@ of URLs, checking the content where the Qs_fixed and Qs_var fields are non null 
 a query string for the request.
 
 For example, the POST request for 'http://external/atmoss/Falcon.Result' is accompanied by
-the query string p_tmno1 = <current_value_of_arg_hash{'tmno'}>
+the query string p_tmno1 = <current_value_of_arg_hash{tmno}>
 
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
@@ -547,8 +547,8 @@ More examples:
   use constant VAL_TICKETNUMBER     => [1, sub { $_[0] }];
 
   @URLS = (
-    { Method => "GET",  Url => "...", Qs_var => [], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => VAL_NAVIGATION_TOKEN, TICKETNUMBER => VAL_TICKETNUMBER], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
+    { Method => 'GET',  Url => "...", Qs_var => [], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => VAL_NAVIGATION_TOKEN, TICKETNUMBER => VAL_TICKETNUMBER], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
   );
 
 equals to:
@@ -560,8 +560,8 @@ equals to:
   # [TICKETNUMBER => 1] means get the second match (from the last set of matches) and use it as the value of TICKETNUMBER.
 
   @URLS = (
-    { Method => "GET",  Url => "...", Qs_var => [], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0, TICKETNUMBER => 1], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
+    { Method => 'GET',  Url => "...", Qs_var => [], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => 0, TICKETNUMBER => 1], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN, EXP_TICKETNUMBER], ... },
   );
 
 =item Example 2
@@ -569,7 +569,7 @@ equals to:
   use constant EXP_NAVIGATION_TOKEN => '<input\s+type="hidden"\s+name="NAVIGATION_TOKEN"\s+value="(-{0,1}\d+)"\s+/>';
 
   @URLS = (
-    { Method => "POST", Url => "...", Qs_var => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
+    { Method => 'POST', Url => "...", Qs_var => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \$objectPlugins, \@URLS );
@@ -579,8 +579,8 @@ equals to:
   my $valNavigationToken = @$matches[0];
   
   @URLS = (
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 'valNavigationToken'], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => 'valNavigationToken'], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
   $returnCode = $objectWebTransact->check( { valNavigationToken => $valNavigationToken } );
@@ -591,9 +591,9 @@ equals to:
   use constant EXP_NAVIGATION_TOKEN => '<input\s+type="hidden"\s+name="NAVIGATION_TOKEN"\s+value="(-{0,1}\d+)"\s+/>';
 
   @URLS = (
-    { Method => "POST", Url => "...", Qs_var => [], Exp => [EXP_NAVIGATION_TOKEN], ... }, Exp_Return => {valNavigationToken => EXP_NAVIGATION_TOKEN},
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
-    { Method => "POST", Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
+    { Method => 'POST', Url => "...", Qs_var => [], Exp => [EXP_NAVIGATION_TOKEN], ... }, Exp_Return => {valNavigationToken => EXP_NAVIGATION_TOKEN},
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
+    { Method => 'POST', Url => "...", Qs_var => [NAVIGATION_TOKEN => 0], Qs_fixed => [], Exp => [EXP_NAVIGATION_TOKEN], ... },
   );
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new( \$objectPlugins, \@URLS );
@@ -646,9 +646,9 @@ equals to:
   use constant VAL_SUBMAIN => [0, sub { my %pages = ( 'index.htm' => 'InDeX', 'submain.htm' => 'subMAIN' ); $pages { $_[0] }; } ];
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
   $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );
@@ -682,9 +682,9 @@ equals to:
   use constant VAL_SUBMAIN => [0, sub { my %pages = ( 'index.htm' => 'InDeX', 'submain.htm' => 'subMAIN' ); $pages { $_[0] }; } ];
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
   $returnCode = $objectWebTransact->check ( { } );
@@ -700,17 +700,66 @@ equals to:
   use constant VAL_SUBMAIN => [0, sub { my %pages = ( 'index.htm' => 'InDeX', 'submain.htm' => 'subMAIN' ); $pages { $_[0] }; } ];
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
   );
 
   $returnCode = $objectWebTransact->check ( { } );
 
   @URLS = (
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
-    { Method => "GET",  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => 0], Qs_fixed => [], Exp => [EXP_SUBMAIN, 'Consulting Internet Technology Alex Peeters'], Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title1 => EXP_TITLE_1 }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 2' },
+    { Method => 'GET',  Url => 'http://www.citap.com/', Qs_var => [parameter => VAL_SUBMAIN], Qs_fixed => [], Exp => 'Consulting Internet Technology Alex Peeters', Exp_Fault => ">>>NIHIL<<<", Exp_Return => { title2 => EXP_TITLE_2, submain => EXP_SUBMAIN }, Msg => "Consulting Internet Technology Alex Peeters", Msg_Fault => "Consulting Internet Technology Alex Peeters", Perfdata_Label => 'Label 3' },
   );
 
   $returnCode = $objectWebTransact->check ( { } );
+
+=back
+
+=head1 TOOLS
+
+=over 4
+
+=item GrinderCaptureConverter.pl
+
+ ./GrinderCaptureConverter.pl -i /opt/grinder-2.8.6/examples/asnmtap/www.citap.be-grinder.proporties -o /opt/grinder-2.8.6/examples/asnmtap/www.citap.com.txt -f WEBTRANSACT
+
+=over 4
+
+=item The Grinder 2
+
+more information can found at: http://grinder.sourceforge.net/
+
+=item Needed to run The Grinder
+
+Java 2 Standard Edition 1.3.1, equivalent, or later
+
+=item How do I start The Grinder to capture?
+
+more information can found at: http://grinder.sourceforge.net/manual/tcpsniffer.html
+
+=item Start an agent process
+
+ mkdir /opt/grinder-2.8.6/capture
+ cd /opt/grinder-2.8.6/capture
+
+ CLASSPATH=/opt/grinder-2.8.6/lib/grinder.jar; export CLASSPATH or CLASSPATH=../../lib/grinder.jar; export CLASSPATH
+ java net.grinder.TCPSniffer -proxy -httpPluginFilter > /opt/grinder-2.8.6/capture/grinder
+ or
+ cd /opt/grinder-2.8.6/examples/asnmtap
+ java -classpath /opt/grinder-2.8.6/lib/grinder.jar net.grinder.TCPSniffer -proxy -httpPluginFilter> /opt/grinder-2.8.6/capture/grinder
+
+=item How do I set Internet Explorer to capture?
+
+Set for internet explorer the proxy setting to 127.0.0.1 with port 8001
+
+=item How do I Capture a website?
+
+Start surfing throug Internet Explorer
+
+=item How do I stop the Capture?
+
+Press 'ctrl C'
+
+=back
 
 =back
 
