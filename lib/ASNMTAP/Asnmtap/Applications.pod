@@ -48,7 +48,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2006/03/18 11:27:36, ASNMTAP v3.000.006 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2006/04/xx 11:27:36, ASNMTAP v3.000.007 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -305,24 +305,6 @@ adduser asnmtap
      Order allow,deny
      Allow from all
    </Directory>
-
-   ScriptAlias /asnmtap/cgi-bin/admin/ "/opt/asnmtap/applications/htmlroot/cgi-bin/admin/"
-
-   <Directory "/opt/asnmtap/applications/htmlroot/cgi-bin/admin">
-     AllowOverride AuthConfig
-     Options ExecCGI
-     Order allow,deny
-     Allow from all
-   </Directory>
-
-   ScriptAlias /asnmtap/cgi-bin/sadmin/ "/opt/asnmtap/applications/htmlroot/cgi-bin/sadmin/"
-
-   <Directory "/opt/asnmtap/applications/htmlroot/cgi-bin/sadmin">
-     AllowOverride AuthConfig
-     Options ExecCGI
-     Order allow,deny
-     Allow from all
-   </Directory>
  </VirtualHost>
 
 =back
@@ -346,9 +328,9 @@ adduser asnmtap
 
 =item onto the master and slave server:
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.006.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.007.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.006.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.007.sql
 
 
 =item onto the master server:
@@ -357,7 +339,7 @@ adduser asnmtap
  mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-master-server' IDENTIFIED BY 'passwd-ro';
- mysql> GRANT SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-slave-server' IDENTIFIED BY 'passwd-replication';
+ mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-slave-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
  mysql> QUIT;
 
@@ -437,7 +419,7 @@ adduser asnmtap
  mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-slave-server' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-slave-server' IDENTIFIED BY 'passwd-ro';
- mysql> GRANT SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-master-server' IDENTIFIED BY 'passwd-replication';
+ mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-master-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
  mysql> QUIT;
 

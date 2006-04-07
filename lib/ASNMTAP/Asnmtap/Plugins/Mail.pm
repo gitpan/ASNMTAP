@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.006;
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.007;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -58,6 +58,15 @@ sub new (@) {
                                  tz              => undef,
                                  debug           => 0
 							   },
+                             _IMAP4              =>
+                               {
+                                 imap4           => undef,
+                                 port            => 143,
+                                 username        => undef,
+                                 password        => undef,
+                                 timeout         => 120,
+                                 debug           => 0
+                               },
                              _POP3               =>
                                {
                                  pop3            => undef,
@@ -97,6 +106,15 @@ sub new (@) {
     $self->{_SMTP}->{mime}          = $args{_SMTP}->{mime}          if ( exists $args{_SMTP}->{mime} );
     $self->{_SMTP}->{tz}            = $args{_SMTP}->{tz}            if ( exists $args{_SMTP}->{tz} );
     $self->{_SMTP}->{debug}         = $args{_SMTP}->{debug}         if ( exists $args{_SMTP}->{debug} );
+  }
+
+  if ( exists $args{_IMAP4} ) {
+    $self->{_IMAP4}->{imap4}        = $args{_IMAP4}->{imap4}        if ( exists $args{_IMAP4}->{imap4} );
+    $self->{_IMAP4}->{port}         = $args{_IMAP4}->{port}         if ( exists $args{_IMAP4}->{port} );
+    $self->{_IMAP4}->{username}     = $args{_IMAP4}->{username}     if ( exists $args{_IMAP4}->{username} );
+    $self->{_IMAP4}->{password}     = $args{_IMAP4}->{password}     if ( exists $args{_IMAP4}->{password} );
+    $self->{_IMAP4}->{timeout}      = $args{_IMAP4}->{timeout}      if ( exists $args{_IMAP4}->{timeout} );
+    $self->{_IMAP4}->{debug}        = $args{_IMAP4}->{debug}        if ( exists $args{_IMAP4}->{debug} );
   }
 
   if ( exists $args{_POP3} ) {
@@ -157,11 +175,14 @@ sub _init {
   $_[0]->[ $_[0]->[0]{_environment_} = @{$_[0]} ] = $environment { $$asnmtapInherited->getOptionsArgv('environment') };
 
   if ( $$asnmtapInherited->getOptionsValue ('debug') ) {
-    $_[0]->{_SMTP}->{debug} = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_SMTP}->{debug} < $$asnmtapInherited->getOptionsValue ('debug') );
-    $_[0]->{_POP3}->{debug} = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_POP3}->{debug} < $$asnmtapInherited->getOptionsValue ('debug') );
+    $_[0]->{_SMTP}->{debug}  = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_SMTP}->{debug}  < $$asnmtapInherited->getOptionsValue ('debug') );
+    $_[0]->{_POP3}->{debug}  = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_POP3}->{debug}  < $$asnmtapInherited->getOptionsValue ('debug') );
+    $_[0]->{_IMAP4}->{debug} = $$asnmtapInherited->getOptionsValue ('debug') if ( $_[0]->{_IMAP4}->{debug} < $$asnmtapInherited->getOptionsValue ('debug') );
   }
 
-  $_[0]->{_POP3}->{timeout} = $$asnmtapInherited->timeout() if ( $_[0]->{_POP3}->{timeout} == 120 );
+  $_[0]->{_POP3}->{timeout}  = $$asnmtapInherited->timeout() if ( $_[0]->{_POP3}->{timeout} == 120 );
+
+  $_[0]->{_IMAP4}->{timeout} = $$asnmtapInherited->timeout() if ( $_[0]->{_IMAP4}->{timeout} == 120 );
 
   unless ($_[0]->{_mailType} =~ /^[01]$/ ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Parameter _mailType must be 0 or 1' }, $TYPE{APPEND} );
@@ -290,7 +311,39 @@ sub receiving_fingerprint_mails {
     return ( $ERRORS{UNKNOWN} );
   }
 
-  if ( defined $self->{_POP3}->{pop3} ) {
+  my ($numberOfMails, $email);
+
+  if ( defined $self->{_IMAP4}->{imap4} ) {
+    unless ( defined $self->{_IMAP4}->{username} ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing Mail IMAP4 parameter username' }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+
+    unless ( defined $self->{_IMAP4}->{password} ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing Mail IMAP4 parameter password' }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+
+    use Net::IMAP::Simple;
+    $email = Net::IMAP::Simple->new ( $self->{_IMAP4}->{imap4}, port => $self->{_IMAP4}->{port}, timeout => $self->{_IMAP4}->{timeout} );
+ 
+    unless ( defined $email ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot connect to IMAP4 server: $self->{_IMAP4}->{imap4}, $Net::IMAP::Simple::errstr" }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+ 
+    unless ( $email->login( $self->{_IMAP4}->{username}, $self->{_IMAP4}->{password} ) ){
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot login to IMAP4 server: $self->{_IMAP4}->{imap4}, ". $email->errstr }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+
+    $numberOfMails = $email->select ( 'INBOX' );
+
+    unless ( defined $numberOfMails ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot select my INBOX on IMAP4 server: $self->{_IMAP4}->{imap4}, ". $email->errstr }, $TYPE{APPEND} );
+      return ( $ERRORS{UNKNOWN} );
+    }
+  } elsif ( defined $self->{_POP3}->{pop3} ) {
     unless ( defined $self->{_POP3}->{username} ) {
       $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing Mail POP3 parameter username' }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
@@ -302,15 +355,20 @@ sub receiving_fingerprint_mails {
     }
 
     use Mail::POP3Client;
-    my $pop3 = Mail::POP3Client->new ( HOST => $self->{_POP3}->{pop3}, PORT => $self->{_POP3}->{port}, USER => $self->{_POP3}->{username}, PASSWORD => $self->{_POP3}->{password}, TIMEOUT => $self->{_POP3}->{timeout} ); # , DEBUG => ( $self->{_POP3}->{debug} >= 3 ? 1 : 0 ) );
+    $email = Mail::POP3Client->new ( HOST => $self->{_POP3}->{pop3}, PORT => $self->{_POP3}->{port}, USER => $self->{_POP3}->{username}, PASSWORD => $self->{_POP3}->{password}, TIMEOUT => $self->{_POP3}->{timeout} ); # , DEBUG => ( $self->{_POP3}->{debug} >= 3 ? 1 : 0 ) );
 
-    my $numberOfMails = $pop3->Count();
+    $numberOfMails = $email->Count();
 
     unless ( defined $numberOfMails and $numberOfMails != -1 ) {
       $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot connect/login to POP3 server: $self->{_POP3}->{pop3}" }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
     }
-
+  } else {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'NO EMAIL CLIENT SPECIFIED !!!' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+  
+  if ( defined $numberOfMails ) {
     my $returnCode = $ERRORS{DEPENDENT};
     $self->{defaultArguments}->{numberOfMatches} = 0;
 
@@ -343,7 +401,15 @@ sub receiving_fingerprint_mails {
         }
 
         $self->{defaultArguments}->{result} = '';
-        my $msgbuffer = $pop3->Head( $msgnum );
+
+        my $msgbuffer;
+
+        if ( defined $self->{_IMAP4}->{imap4} ) {
+          $msgbuffer = $email->top ( $msgnum );
+        } elsif ( defined $self->{_POP3}->{pop3} ) {
+          $msgbuffer = $email->Head ( $msgnum );
+        }
+
         my $entity = $parser->parse_data( $msgbuffer );
         my $head = $entity->head;
         $head->unfold;
@@ -396,15 +462,22 @@ sub receiving_fingerprint_mails {
 
         unless ( $fromNotFound or $toNotFound or $subjectNotFound ) {
           print "\n", ref ($self), "::receiving_fingerprint_mails(): BODY\n" if ($debug);
-          $msgbuffer = $pop3->Body( $msgnum );
+
+          if ( defined $self->{_IMAP4}->{imap4} ) {
+            use Email::Simple;
+            my $mail = Email::Simple->new( join ( '', @{ $email->get ( $msgnum ) } ) );
+            $msgbuffer = $mail->body;
+          } elsif ( defined $self->{_POP3}->{pop3} ) {
+            $msgbuffer = $email->Body ( $msgnum );
+          }
 
           for ( $head->mime_encoding ) {
           # /^7bit$/i             && do { last; };
             /^quoted-printable$/i && do { use MIME::QuotedPrint;
-                                          $msgbuffer = decode_qp($msgbuffer);
+                                          $msgbuffer = decode_qp ( $msgbuffer );
                                           last; };
             /^base64/i            && do { use MIME::Base64;
-                                          $msgbuffer = decode_base64($msgbuffer);
+                                          $msgbuffer = decode_base64 ( $msgbuffer );
                                           last; };
           # /^8bit/i              && do { last; };
           # /^binary/i            && do { last; };
@@ -558,10 +631,17 @@ sub receiving_fingerprint_mails {
           print "\n", ref ($self), "::receiving_fingerprint_mails(): BODY MESSAGE\n". $self->{defaultArguments}->{result}. "\n" if ($debug >= 2);
 
           if ( defined $parms{custom} ) {
-            $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($self, $self->{_asnmtapInherited}, $pop3, $msgnum, $parms{customArguments}) : $parms{custom}->($self, $self->{_asnmtapInherited}, $pop3, $msgnum);
+            $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($self, $self->{_asnmtapInherited}, $email, $msgnum, $parms{customArguments}) : $parms{custom}->($self, $self->{_asnmtapInherited}, $email, $msgnum);
           } else {
             $self->{defaultArguments}->{numberOfMatches}++;
-            $pop3->Delete( $msgnum ) unless ( $debug or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
+            unless ( $debug or $$asnmtapInherited->getOptionsValue ('onDemand') ) {
+              if ( defined $self->{_IMAP4}->{imap4} ) {
+                $email->delete ( $msgnum );
+              } elsif ( defined $self->{_POP3}->{pop3} ) {
+                $email->Delete( $msgnum );
+              }
+            }
           }
         }
 
@@ -590,12 +670,14 @@ sub receiving_fingerprint_mails {
       $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => 'No '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
     }
 
-    $pop3->Close;
+    if ( defined $self->{_IMAP4}->{imap4} ) {
+      $email->quit;
+    } elsif ( defined $self->{_POP3}->{pop3} ) {
+      $email->Close;
+    }
+
     $$asnmtapInherited->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $self->{defaultArguments}->{numberOfMatches} .';;;;' ) if ( defined $parms{perfdataLabel} );
     return ( $returnCode, $self->{defaultArguments}->{numberOfMatches} );
-  } else {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'NO EMAIL CLIENT SPECIFIED !!!' }, $TYPE{APPEND} );
-    return ( $ERRORS{UNKNOWN} );
   }
 }
 

@@ -14,18 +14,18 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.006;
+  use ASNMTAP::Asnmtap::Plugins v3.000.007;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.006',
+    _programVersion     => '3.000.007',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.006;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.007;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
@@ -105,6 +105,42 @@ optional, scalar value, default: undefined (automatic detection at run-time).
 =item debug
 
 prints stuff to STDERR. Current maximum is 6, which prints the whole SMTP session, except data exceeding 500 bytes.
+
+optional, scalar value, default: inherited from the parent object command line option -d or --debug
+
+=back
+
+=item _IMAP4
+
+=over 4
+
+=item imap4
+
+IMAP4 host to connect to.
+
+=item port (reserved)
+
+port used when none is specified in the server name.
+
+optional, scalar value, default: 143
+
+=item username
+
+optional, scalar value, default: undef
+
+=item password
+
+optional, scalar value, default: undef
+
+=item timeout
+
+maximum time, in seconds, to wait for a response from the IPAM4 server
+
+optional, scalar value, default: 120 unless inherited from the parent object attribute _timeout
+
+=item debug
+
+debugging information
 
 optional, scalar value, default: inherited from the parent object command line option -d or --debug
 
@@ -433,14 +469,24 @@ A required reference to an ASNMTAP::Asnmtap::Plugins or ASNMTAP::Asnmtap::Plugin
 
 Through this way of working we inherited the command line option I<--debug>.
 
-=item $pop3:
+=item $email:
+
+=over 4
+
+=item IMAP4
+
+A new Net::IMAP::Simple object is created and all IMAP4 commands are accessed via method calls on this object.
+
+=item POP3
 
 A new Net::POP3 object is created and all POP3 commands are accessed via method calls on this object.
+
+=back
 
 =item $msgnum:
  
   sub actionOnReceivingFingerprintMail {
-    my ($self, $asnmtapInherited, $pop3, $msgnum) = @_;
+    my ($self, $asnmtapInherited, $email, $msgnum) = @_;
 
     no warnings 'deprecated';
     my $returnCode = $ERRORS{OK};
@@ -451,8 +497,15 @@ A new Net::POP3 object is created and all POP3 commands are accessed via method 
     $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => '.' }, $TYPE{APPEND} );
 
     # put here your code for deleting the email from the Mailbox  - - - -
-    $pop3->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
+    # IMAP4
+    # $email->delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
+    # POP3
+    # $email->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
     $self->{defaultArguments}->{numberOfMatches}++;
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     return ( $returnCode );
@@ -461,7 +514,7 @@ A new Net::POP3 object is created and all POP3 commands are accessed via method 
 and now with customArguments:
 
   sub actionOnReceivingFingerprintMail {
-    my ($self, $asnmtapInherited, $pop3, $msgnum, $arguments) = @_;
+    my ($self, $asnmtapInherited, $email, $msgnum, $arguments) = @_;
 
     no warnings 'deprecated';
     my $returnCode = $ERRORS{OK};
@@ -472,8 +525,15 @@ and now with customArguments:
     $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => '.' }, $TYPE{APPEND} );
 
     # put here your code for deleting the email from the Mailbox  - - - -
-    $pop3->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
+    # IMAP4
+    # $email->delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
+    # POP3
+    # $email->Delete( $msgnum ) unless ( $$asnmtapInherited->getOptionsValue ('debug') or $$asnmtapInherited->getOptionsValue ('onDemand') );
+
     $self->{defaultArguments}->{numberOfMatches}++;
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     return ( $returnCode );
@@ -560,10 +620,12 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   ASNMTAP::Asnmtap::Plugins
   ASNMTAP::Time
   Date::Calc
+  Email::Simple
   Mail::POP3Client
   Mail::Sendmail
   MIME::Base64
   MIME::Parser
+  Net::IMAP::Simple
   Net::POP3
   Time::Local
 

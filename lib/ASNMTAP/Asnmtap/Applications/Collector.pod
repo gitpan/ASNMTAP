@@ -49,7 +49,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap-3.000.xxx/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2006/03/18 11:27:36, ASNMTAP v3.000.006 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2006/04/xx 11:27:36, ASNMTAP v3.000.007 or higher
  #
  # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]
  #

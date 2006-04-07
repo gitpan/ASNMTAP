@@ -5,37 +5,107 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 18 Maart 2006
-Version      : 3.000.006
+Latest update: 09 April 2006
+Version      : 3.000.007
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # TODO  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Plugins - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Ledig geworden collector moet overal worden verwijderd !!!
+
+
+Restart Collector and Display:
+
+SERVERNAME / Display for the 'Application Monitoring' / Config DisplayCT-Supervisie succesfuly reloaded/restarted: 2006/04/01 21:11:04 
+----------
+
+
 Warning and Critical: checking threshold range format
 
 Performance Data: checking the expected format
 - 'label'=value[UOM];[warn];[crit];[min];[max]
 
-http://crinaea.smals-mvm.be/asnmtap/nav/index/reports-index.html 
-hier url naar de plugintimes in plaatsen, is makkelijker om te onthouden 
+voor plugins, ook optie delete voorzien voor plugins dewelke door acrhiver na x maanden mogen opgekuist worden
 
-IMAP implementation with Net::IMAP::Simple, Mail::IMAPClient or IMAP::Client
 
-Awstats, ChartDirector, HTMLDOC and PerfParse installation ...
+# Display - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Upgrade HTMLDOC from www.htmldoc.org !!!
+multioffline, status in database offline -> in display als nog te testen weergaven
 
-fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken
+offline door holiday of scheduling niet in condenced view
 
-fixRights before restart daemon!!!
+offline door comment in condenced view
+
+proxy caching statische pagina's
 
 .cache files                                                     <- sound
 
 applications/custom/display.pm                         <- custom function
 
---httpdump & --dumphttp tijdelijk voor backwards compatibiliteit !!!
+On demand run icoontje naar de hamertjes & vraagtekens.
+
+Openen van 'Help en Commands' into new window!
+
+
+# Collector - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+nieuwe crontab optie: seconds om een crontab te kunnen verschuiven
+
+Debug file for UNKNOWN !!!
+
+
+# Reports - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+reports, deselecteren wat niet geselecteerd mag worden voor de datum keuze
+
+mogelijkheid om bepaalde applicaties niet in de view te steken gedurende bepaalde uren. 
+
+Bij Reports -> Problem details -> link maken naar 'Debug Report'
+
+Statistics: Monthly Average <- ASAP
+
+Een optie "send pdf by email" bij de repports. 
+
+Ingeven downtimes, inetctrl, ..., die niet aangekondigd werden, ingeven op 
+een later tijdstip.  Dit zou moeten mogelijk zijn om bv de statistieken te 
+kunnen corrigeren.
+
+Oproepen van voorgedefineerde stats:
+-> http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=test&pageset=index&debug=F&CGISESSID=9d47b3a72238e67381c46df51b903baa&detailed=on&uKey1=DUMMY-T5&uKey2=none&uKey3=none&startDate=2005-12-31&endDate=&inputType=fromto&year=2005&week=52&month=12&quarter=4&statuspie=on&errorpie=off&bar=off&hourlyAvg=off&dailyAvg=off&details=off&topx=off&pf=off&htmlToPdf=1
+
+
+# Applications  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Downtime scheduling for ... from 2006-3-3 7:44:44 until 2006-03-03 07:00:00
+                                                        -------------------
+
+Comments kunnen zetten op een groep testen via multiselect
+
+useraccounts flag voor wel of geen email
+
+rename uKey of andere key plus overal waar gebruikt en delete plugin, ... met alle dependencies,
+
+delete user gaat niet omwille van de contrains met comments en events. delet waarbij contrain tijdelijk afzetten
+
+In view.pl -> selecteer + groeptitle toevoegen
+
+In view.pl -> omvormen naar multiselect 'Display Daemon'
+
+http://crinaea.smals-mvm.be/asnmtap/nav/index/reports-index.html 
+hier url naar de plugintimes in plaatsen, is makkelijker om te onthouden 
+
+fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken
+
+fixRights before restart daemon!!!
+
+upload van PDF's (WORD to PDF ?)
+
+Debug files into glob field database.
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,6 +120,8 @@ RSYNC testen op werking
 
 # testen dat reverse rsync van slave naar master werkt !!!
 rsync-mirror-failover-master-server-name.sh -r
+
+Upgrade HTMLDOC from www.htmldoc.org !!!
 
 
 # BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,80 +145,29 @@ Although, nothing remains of the original code... (sorry, Bart :-)
 
 # ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Downtime scheduling for ... from 2006-3-3 7:44:44 until 2006-03-03 07:00:00
-                                                        -------------------
+CRON items database-purge-perfdata, archiver.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
+
+--httpdump & --dumphttp tijdelijk voor backwards compatibiliteit !!!
+
+Awstats, ChartDirector, HTMLDOC and PerfParse installation ...
+
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
+
+http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
+
+Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
 
 
 # NEW NEXT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-nieuwe crontab optie: secondes om een crontab te kunnen verschuiven
-
-Mogelijkheid om bepaalde applicaties niet in de view te steken gedurende bepaalde uren. 
-
-On demand run icoontje naar de hamertjes & vraagtekens.
-
-delete user gaat niet omwille van de contrains met comments en events. delet waarbij contrain tijdelijk afzetten
-
-voor plugins, ook optie delete voorzien voor plugins dewelke door acrhiver na x maanden mogen opgekuist worden
-
-offline door holiday of scheduling niet in condenced view
-
-offline door comment in condenced view
-
-useraccounts flag voor wel of geen email
-
-multioffline, status in database offline -> in display als nog te testen weergaven
-
-upload van PDF's (WORD to PDF ?)
-
-reports, deselecteren wat niet geselecteerd mag worden voor de datum keuze
-
-proxy caching statische pagina's
-
-Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
-
-Oproepen van voorgedefineerde stats:
--> http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=test&pageset=index&debug=F&CGISESSID=9d47b3a72238e67381c46df51b903baa&detailed=on&uKey1=DUMMY-T5&uKey2=none&uKey3=none&startDate=2005-12-31&endDate=&inputType=fromto&year=2005&week=52&month=12&quarter=4&statuspie=on&errorpie=off&bar=off&hourlyAvg=off&dailyAvg=off&details=off&topx=off&pf=off&htmlToPdf=1
-
-Bij Reports -> Problem details -> link maken naar 'Debug Report'
-
-delete plugin, ... met alle dependencies
-
-rename uKey of andere key plus overal waar gebruikt
-
-In view.pl -> selecteer + groeptitle toevoegen
-
-In view.pl -> omvormen naar multiselect 'Display Daemon'
-
-Comments kunnen zetten op een groep testen via multiselect
-
-Debug files into glob field database.
-
-Openen van 'Help en Commands' into new window!
-
-http://www.hswn.dk/hobbitsw/
-
-http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
-
-CRON items database-purge-perfdata, archiver.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
-
-Een optie "send pdf by email" bij de repports. 
-
-Debug file for UNKNOWN !!!
-
-Statistics: Monthly Average <- ASAP
-
-Ingeven downtimes, inetctrl, ..., die niet aangekondigd werden, ingeven op 
-een later tijdstip.  Dit zou moeten mogelijk zijn om bv de statistieken te 
-kunnen corrigeren.
-
-Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
-
 Embedded Perl ondersteuning aangaande de plugins!!!
 
 SNMP compatibility regarding the return status off the plugins
+
+http://www.hswn.dk/hobbitsw/
 
 Big Brother / Hobbit compatibility for easy addaptation off these plugins
 

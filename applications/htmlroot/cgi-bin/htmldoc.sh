@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, htmldoc.sh for ASNMTAP making Asnmtap v3.000.xxx compatible
+# 2006/04/xx, v3.000.007, htmldoc.sh for ASNMTAP making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.25 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 #

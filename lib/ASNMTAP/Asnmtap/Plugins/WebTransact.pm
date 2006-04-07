@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-#  2006/02/26, v3.000.006, making Asnmtap v3.000.xxx compatible
+# 2006/04/xx, v3.000.007, making Asnmtap v3.000.007 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,14 +28,14 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.006; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.007; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use constant FALSE => 0;
 use constant TRUE  => ! FALSE;
 
-use constant Field_Refs	=> { 
+use constant Field_Refs	=> {
                              Method	        => { is_ref => FALSE, type => ''      },
                              Url            => { is_ref => FALSE, type => ''      },
                              Qs_var	        => { is_ref => TRUE,  type => 'ARRAY' },
@@ -364,9 +364,9 @@ sub check {
     }
 
     if ( $parms{download_images} ) {
-      my ($image_dl_ok, $image_dl_msg, $number_imgs_dl ) = &_download_images ($res, \%parms, \%downloaded);
+      my ($image_dl_nok, $image_dl_msg, $number_imgs_dl) = $self->_download_images ($res, \%parms, \%downloaded);
 
-      unless ( $image_dl_ok ) {
+      if ( $image_dl_nok ) {
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $image_dl_msg }, $TYPE{REPLACE} );
         return ( $ERRORS{CRITICAL} );
       }
@@ -382,6 +382,39 @@ sub check {
 
   ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );
   return ( $returnCode );
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub _download_images {
+  my ($self, $res, $parms_hr, $downloaded_hr) = @_;
+
+  require HTML::LinkExtor;
+  require URI::URL;
+  URI::URL->import(qw(url));
+
+  my @imgs = ();
+
+  my $cb = sub {
+    my ($tag, %attr) = @_;
+    return if $tag ne 'img';           # we only look closer at <img ...>
+    push (@imgs, $attr{src});
+  };
+
+  my $p = HTML::LinkExtor->new($cb);
+  $p->parse($res->as_string);
+  my $base = $res->base;
+  my @imgs_abs = grep ! $downloaded_hr->{$_}++, map { my $x = url($_, $base)->abs; } @imgs;
+  my @img_urls = map { Method => 'GET', Url => $_->as_string, Qs_var => [], Qs_fixed => [], Exp => '.', Exp_Fault => 'NeverInAnImage', Msg => '.', Msg_Fault => 'NeverInAnImage' }, @imgs_abs;
+
+  # url() returns an array ref containing the abs url and the base.
+  if ( my $number_of_images_not_already_downloaded = scalar @img_urls ) {
+    my $img_trx = __PACKAGE__->new( $self->{asnmtapInherited}, \@img_urls );
+    my %image_dl_parms = (%$parms_hr, fail_if_1 => FALSE, download_images => FALSE, indent_level => 1);
+    return ( $img_trx->check( {}, %image_dl_parms), 'Downloaded not all '. $number_of_images_not_already_downloaded .' images found in '. $res->base, $number_of_images_not_already_downloaded );
+  } else {
+    return ( $ERRORS{OK}, 'Downloaded all __zero__ images found in '. $res->base, 0 );
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -529,40 +562,6 @@ sub _write_debugfile {
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-sub _download_images {
-  my ($res, $parms_hr, $downloaded_hr)  = @_;
-
-  require HTML::LinkExtor;
-  require URI::URL;
-  URI::URL->import(qw(url));
-
-  my @imgs = ();
-
-  my $cb = sub {
-    my ($tag, %attr) = @_;
-    return if $tag ne 'img';           # we only look closer at <img ...>
-    push (@imgs, $attr{src});
-  };
-
-  my $p = HTML::LinkExtor->new($cb);
-  $p->parse($res->as_string);
-
-  my $base = $res->base;
-  my @imgs_abs = grep ! $downloaded_hr->{$_}++, map { my $x = url($_, $base)->abs; } @imgs;
-  my @img_urls = map { Method => 'GET', Url => $_->as_string, Qs_var => [], Qs_fixed => [], Exp => '.',  Exp_Fault => 'NeverInAnImage' }, @imgs_abs;
-
-  # url() returns an array ref containing the abs url and the base.
-  if ( my $number_of_images_not_already_downloaded = scalar @img_urls ) {
-    my $img_trx = __PACKAGE__->new(\@img_urls);
-    my %image_dl_parms = (%$parms_hr, fail_if_1 => FALSE, download_images => FALSE, indent_level => 1);
-    return ( $img_trx->check( {}, %image_dl_parms), $number_of_images_not_already_downloaded );
-  } else {
-    return ( $ERRORS{OK}, 'Downloaded all __zero__ images found in '. $res->base, 0 );
-  }
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 sub _next_url {
   my ($resp, $resp_string) = @_;
 
@@ -601,7 +600,7 @@ __END__
 
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugins::Webtransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
+ASNMTAP::Asnmtap::Plugins::WebTransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 DESCRIPTION
 

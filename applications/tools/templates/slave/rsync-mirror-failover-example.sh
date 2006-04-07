@@ -90,7 +90,7 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.006'
+RMVersion='3.000.007'
 echo "rsync-mirror-failover version $RMVersion"
 
 PidPath=/var/run/asnmtap                          # mkdir /var/run/asnmtap/; chown /var/run/asnmtap/

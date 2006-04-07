@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, generateReports.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/04/xx, v3.000.007, generateReports.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.006;
+use ASNMTAP::Asnmtap::Applications v3.000.007;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -40,7 +40,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = '3.000.006';
+my $version     = '3.000.007';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

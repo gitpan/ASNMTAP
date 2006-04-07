@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
+# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +51,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = 3.000.006;
+  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = 3.000.007;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

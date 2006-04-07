@@ -14,7 +14,7 @@ TODO: {
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins',
-    _programVersion     => '3.000.006',
+    _programVersion     => '3.000.007',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => '--commandLineOption ...',
     _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
@@ -33,7 +33,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.006 postfix; nl-BE; rv:3.000.006) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
+  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.007 postfix; nl-BE; rv:3.000.007) Gecko/20060115 libwww-perl/5.803' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::browseragent(): get');
 
   $returnCode = $objectPlugins->browseragent ( 'Mozilla/5.0' ) eq 'Mozilla/5.0' ? 1 : 0;
@@ -94,7 +94,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programDescription(): set');
 
 
-  $returnCode = $objectPlugins->programVersion () eq '3.000.006' ? 1 : 0;
+  $returnCode = $objectPlugins->programVersion () eq '3.000.007' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programVersion(): get');
 
   $returnCode = $objectPlugins->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

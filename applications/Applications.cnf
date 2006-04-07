@@ -5,7 +5,7 @@
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#<COMMON>
+<COMMON>
 #    ASNMTAPMANUAL   ApplicationMonitorVersion2.000.xxx.pdf
 
 #    SMTPUNIXSYSTEM  1
@@ -37,13 +37,13 @@
 #    HOW             shell                  # '<nihil>', 'cgi' or 'shell'
 #    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/citap.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
 #  </HTMLTOPD>
-#</COMMON>
+</COMMON>
 
 <PATH>
-#    HTTPS            /opt/asnmtap-3.000.xxx/htmlroot
-#    IMAGES           /opt/asnmtap-3.000.xxx/htmlroot/img
-#    PDPHELP          /opt/asnmtap-3.000.xxx/htmlroot/pdf
-#    RESULTS          /opt/results
+#    HTTPS            /opt/asnmtap-3.000.xxx/applications/htmlroot
+#    IMAGES           /opt/asnmtap-3.000.xxx/applications/htmlroot/img
+#    PDPHELP          /opt/asnmtap-3.000.xxx/applications/htmlroot/pdf
+#    RESULTS          /opt/asnmtap-3.000.xxx/results
     SSHKEY           /home
     WWWKEY           /var/www
 </PATH>

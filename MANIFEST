@@ -240,7 +240,7 @@ applications/htmlroot/sound/warning.wav
 
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.006.sql
+applications/tools/mysql/asnmtap-3.000.007.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js

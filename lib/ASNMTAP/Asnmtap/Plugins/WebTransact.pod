@@ -1,6 +1,6 @@
 =head1 NAME
 
-ASNMTAP::Asnmtap::Plugins::Webtransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
+ASNMTAP::Asnmtap::Plugins::WebTransact is a Perl module that provides WebTransact functions used by ASNMTAP-based plugins.
 
 =head1 SYNOPSIS
 

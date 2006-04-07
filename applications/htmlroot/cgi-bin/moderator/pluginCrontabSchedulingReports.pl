@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, pluginCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/04/xx, v3.000.007, pluginCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.006;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.007;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "pluginCrontabSchedulingReports.pl";
 my $prgtext     = "Plugin Crontab Scheduling Reports";
-my $version     = '3.000.006';
+my $version     = '3.000.007';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

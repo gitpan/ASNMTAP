@@ -5,14 +5,21 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 18 Maart 2006
-Version      : 3.000.006
+Latest update: 09 April 2006
+Version      : 3.000.007
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Version 3.000.007, 2006/04/xx, bugfix for Applications.cnf
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - bugfix for _download_images
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - added IMAP4 support                             
+
+							   
 Version 3.000.006, 2006/03/18, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::IO
                                ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications
                                ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::CGI

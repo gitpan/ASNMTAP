@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.06 2006/03/18 8:14:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.07 2006/04/xx 18:15:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.006';
+my $VERSION = '3.000.007';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -65,7 +65,7 @@ my @prerequisites = (
 
     [ 'applications/sbin/sshWrapperASNMTAP.pl',                                   'x' ],
 
-    [ 'applications/tools/mysql/asnmtap-3.000.006.sql',                           'r' ],
+    [ 'applications/tools/mysql/asnmtap-3.000.007.sql',                           'r' ],
     [ 'applications/tools/mysql/MySQLBackup.sh',                                  'r' ],
    ]
   ],
@@ -320,7 +320,7 @@ my @prerequisites = (
    ]
   ],
   [ '*011101', 'IO support',          'ASNMTAP::Asnmtap::Plugins::IO',          { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20' }, 1, [], [] ],
-  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'MIME::Tools' => '5.419', 'Time::Local' => '1.04' }, 1, [], [] ],
+  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '1.92', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'MIME::Tools' => '5.419', 'Net::IMAP::Simple' => '1.14', 'Time::Local' => '1.04' }, 1, [], [] ],
   [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.05') ), 'Device::Modem' => '1.43' }, 1,
    [
     '/etc/chatscripts',

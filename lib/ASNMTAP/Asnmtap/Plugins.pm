@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.006;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.007;
 }
 
 our $ALARM_OFF = 0;
@@ -139,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.006 postfix; nl-BE; rv:3.000.006) Gecko/20060115 libwww-perl/5.803";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/5.0 (compatible; MSIE 6.0; ASNMTAP; U; ASNMTAP-3.000.007 postfix; nl-BE; rv:3.000.007) Gecko/20060115 libwww-perl/5.803";
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }

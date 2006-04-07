@@ -5,47 +5,17 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 18 Maart 2006
-Version      : 3.000.006
+Latest update: 09 April 2006
+Version      : 3.000.007
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.006, 2006/03/18, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::IO
-                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications
-                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::CGI
-                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::Display
-                               ASNMTAP CPAN module ASNMTAP::Asnmtap::Applications::Collector
-
-ASNMTAP::Asnmtap::Plugins::Mail
-- Mail::POP3Client instead of Net::POP3
-  replace $pop3->delete with $pop3->Delete in your mail scripts!!!
-- MIME::Parser
-
-Asnmtap plugins added:
-- check_file-counter.pl
-- check_template-mail.pl
-- check_template-mail-fingerprint-xml.pl
-- check_template-mail-xml-fingerprint-xml.pl
-- check_template-mail-xml-fingerprint-xml-monitoring.pl
-- check_template-mail-xml.pl
-- check_sendAndReceiveMail.pl
-
-Nagios plugins added:
-- check_memory-free.pl
-- check_memory-top.pl
-- check_swap.pl
-- check_swap-allocated.pl
-
-Getopt::Long::Configure ('bundling', 'pass_through')
-- 'pass_through' added
-
-Tested on:
-- Cygwin
-- Solaris 5.9
-- Freebsd 6.1
-- Linux 2.4.21-37.EL (Centos 3.x)
-- Linux 2.6.9-22.0.2.EL (Centos 4.x)
+Version 3.000.007, 2006/04/xx, bugfix for Applications.cnf
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - bugfix for _download_images
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - added IMAP4 support                             
 
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -189,8 +159,12 @@ ASNMTAP::Asnmtap::Plugins::Nagios
 
 ASNMTAP::Asnmtap::Plugins::Mail
 - Date::Calc:                    5.4
+- Email::Simple:                 1.92
+- Mail::POP3Client               2.17
 - Mail::Sendmail:                0.79
 - MIME::Base64:                  3.01
+- MIME::Parser                   5.419
+- Net::IMAP::Simple:             1.14
 - Net::POP3:                     2.28
 - Time::Local:                   1.04
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/03/18, v3.000.006, making Asnmtap v3.000.xxx compatible
+# 2006/04/xx, v3.000.007, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 # Linux: swap
 # ----------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.006;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.007;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_swap.pl',
   _programDescription => 'SWAP',
-  _programVersion     => '3.000.006',
+  _programVersion     => '3.000.007',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent>',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn
