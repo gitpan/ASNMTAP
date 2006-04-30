@@ -7,13 +7,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Modem', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Modem', qw(&get_modem_request) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.007;
+  use ASNMTAP::Asnmtap::Plugins v3.000.008;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template-modem.pl',
     _programDescription => "Modem plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.007',
+    _programVersion     => '3.000.008',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);

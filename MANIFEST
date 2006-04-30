@@ -181,29 +181,20 @@ applications/htmlroot/img/daemonRestart.gif
 applications/htmlroot/img/daemonStart.gif
 applications/htmlroot/img/daemonStop.gif
 applications/htmlroot/img/data.gif
-applications/htmlroot/img/dec0.png
-applications/htmlroot/img/dec1.png
 applications/htmlroot/img/down.gif
 applications/htmlroot/img/exclaim.gif
 applications/htmlroot/img/gears.gif
 applications/htmlroot/img/green-ack.gif
 applications/htmlroot/img/green.gif
-applications/htmlroot/img/inc0.png
-applications/htmlroot/img/inc1.png
 applications/htmlroot/img/info.gif
 applications/htmlroot/img/logoff.jpg
-applications/htmlroot/img/logos/citap.gif
+applications/htmlroot/img/logos/bodyimage.gif
 applications/htmlroot/img/maintenance.gif
 applications/htmlroot/img/notest-ack.gif
 applications/htmlroot/img/notest.gif
 applications/htmlroot/img/ondemand.gif
 applications/htmlroot/img/orange-ack.gif
 applications/htmlroot/img/orange.gif
-applications/htmlroot/img/perfgraph-sm.png
-applications/htmlroot/img/perfparse-logo-asnmtap.png
-applications/htmlroot/img/perfparse-logo-sm-asnmtap.png
-applications/htmlroot/img/perfparse-logo-sm.png
-applications/htmlroot/img/perfparse-logo.png
 applications/htmlroot/img/pidKill.gif
 applications/htmlroot/img/pidremove.gif
 applications/htmlroot/img/purple-ack.gif
@@ -240,7 +231,7 @@ applications/htmlroot/sound/warning.wav
 
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.007.sql
+applications/tools/mysql/asnmtap-3.000.008.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js

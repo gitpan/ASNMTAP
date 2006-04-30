@@ -5,15 +5,30 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 09 April 2006
-Version      : 3.000.007
+Latest update: 01 Mei 2006
+Version      : 3.000.008
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.007, 2006/04/xx, bugfix for Applications.cnf
+Version 3.000.008, 2006/05/01, ASNMTAP::Asnmtap::Plugins::Mail
+                               - added 7bit mime decoding
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - making W3C XHTML compatible
+                               - added gzip decompression
+                               - added Keep-Alive support for HTTP/1.1
+                               - added protocol
+                               - indent_level depricated
+                               generateChart.pl
+                               - bugfix missing title chart
+                               - bugfix missing mkdir etc for distributed systems
+                               runCmdOnDemand.pl
+                               - making W3C XHTML compatible
+
+
+Version 3.000.007, 2006/04/09, bugfix for Applications.cnf
                                ASNMTAP::Asnmtap::Plugins::WebTransact
                                - bugfix for _download_images
                                ASNMTAP::Asnmtap::Plugins::WebTransact

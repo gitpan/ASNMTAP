@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, making Asnmtap v3.000.007 compatible
+# 2006/05/01, v3.000.008, making Asnmtap v3.000.008 compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.007; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.008; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -71,7 +71,7 @@ sub new {
   # $urls_ar is a ref to a list of hashes (representing a request record) in a partic format.
 
   # If a hash is __not__ in that format it's much better to cluck since it is
-  # hard to interpret 'not an array ref' messages (from check::_make_req) caused
+  # hard to interpret 'not an array ref' messages (from check::_make_request) caused
   # by mis spelled or mistaken field names.
 
   &_dumpValue ( $asnmtapInherited, $object .': attribute asnmtapInherited is missing.' ) unless ( defined $asnmtapInherited );
@@ -138,7 +138,7 @@ sub new {
   # An array ref to the array containing the matches is stored in the field 'matches'.
 
   # Qs_var = [ form_name_1 => 0, form_name_2 => 1 ..] will lead to a query_string like
-  # form_name_1 = $matches[0] form_name_2 = $matches[1] .. in $self->_make_req() by
+  # form_name_1 = $matches[0] form_name_2 = $matches[1] .. in $self->_make_request() by
   # @matches = $self->matches(); and using 0, 1 etc as indices of @matches.
   
   # XXX FIXME
@@ -156,8 +156,8 @@ sub check {
                    newAgent         => undef,
                    openAppend       => TRUE,
                    cookies          => TRUE,
+                   protocol         => TRUE,
                    download_images  => FALSE,
-                   indent_level     => 0,
                    fail_if_1        => TRUE );
 
   my %parms = (%defaults, @_);
@@ -174,7 +174,7 @@ sub check {
 
   if ( $self->{newAgent} or ! defined $ua ) {
     $self->{newAgent} = 0;
-    $ua = LWP::UserAgent->new ();
+    $ua = LWP::UserAgent->new ( keep_alive => 1 );
     $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
     $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
 
@@ -182,14 +182,20 @@ sub check {
     $ua->default_headers->push_header ( 'Accept-Charset'  => 'iso-8859-1,*,utf-8' );
     $ua->default_headers->push_header ( 'Accept-Encoding' => 'gzip, deflate' );
 
+    $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () );
+    $ua->default_headers->push_header ( 'Connection' => 'Keep-Alive' );
+
+    if ( defined $proxyServer ) {
+      $ua->default_headers->push_header ( 'Proxy-Connection' => 'Keep-Alive' );
+      $ua->proxy ( ['http', 'ftp'] => $proxyServer );
+    }
+
     $ua->cookie_jar ( HTTP::Cookies->new ) if ( $parms{cookies} );
-	$ua->proxy ( ['http', 'ftp'] => $proxyServer ) if ( defined $proxyServer );
     LWP::Debug::level('+') if ( $debug );
   }
 
   my $returnCode = $parms{fail_if_1} ? $ERRORS{OK} : $ERRORS{CRITICAL};
-  my $indent_level = $parms{indent_level};
-  my ($resp_string, $res, $found);
+  my ($response_as_content, $response, $found);
 
   my $startTime;
 
@@ -201,33 +207,49 @@ sub check {
   foreach my $url_r ( @{ $self->{urls} } ) {
     ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
 
-    my $url = $url_r->{Url} ? $url_r->{Url} : &_next_url ($res, $resp_string);
-    my $req = $self->_make_req( $url_r->{Method}, $url, $url_r->{Qs_var}, $url_r->{Qs_fixed}, $cgi_parm_vals_hr );
-	$req->proxy_authorization_basic( $proxyUsername, $proxyPassword ) if ( defined $proxyServer && defined $proxyUsername && defined $proxyPassword );
-    my $req_as_string = $req->as_string;
-    print STDERR ref ($self), '   ' x $indent_level, ' --> ', $req_as_string, "\n" if ( $debug );
-    $res = $ua->request($req);
-    print STDERR ref ($self), '   ' x $indent_level, ' --> ', $res->as_string, "\n" if ( $debug >= 2 );
+    my $url = $url_r->{Url} ? $url_r->{Url} : &_next_url ($response, $response_as_content);
+    my $request = $self->_make_request ( $url_r->{Method}, $url, $url_r->{Qs_var}, $url_r->{Qs_fixed}, $cgi_parm_vals_hr );
+    $request->protocol ('HTTP/1.1') if ( $parms{protocol} );
+	$request->proxy_authorization_basic ( $proxyUsername, $proxyPassword ) if ( defined $proxyServer && defined $proxyUsername && defined $proxyPassword );
+
+    my $request_as_string = $request->as_string;
+    print "\n", ref ($self), '::send_request: ', $request_as_string, "\n" if ( $debug );
+
+    $response = $ua->request ($request);
+
+    if ( defined $response->content_encoding and $response->content_encoding =~ /^gzip$/i ) {
+      use Compress::Zlib;
+      $response_as_content = Compress::Zlib::memGunzip ( $response->content );
+    } else {
+      $response_as_content = $response->content;
+    }
+
+    if ( $debug >= 3 ) {
+      print "\n", ref ($self), '::request: ()', "\n", $response->as_string, "\n\n";
+    } elsif ( $debug >= 2 ) {
+      print "\n", ref ($self), '::content: ()', "\n", $response_as_content, "\n\n";
+    }
 
     my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
-    print ref ($self), ': Response time: ', $responseTime, " - $url\n" if ( $debug );
+    print ref ($self), '::response_time: ', $responseTime, " - $url\n" if ( $debug );
     ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime .'ms;;;;' ) if ( defined $url_r->{Perfdata_Label} );
 
-    $self->_write_debugfile ( $req_as_string, $res->as_string, $debugfile, $openAppend ) if ( defined $debugfile );
+    $self->_write_debugfile ( $request_as_string, $response_as_content, $debugfile, $openAppend ) if ( defined $debugfile );
 
     if ( $parms{fail_if_1} ) {
-      unless ( $res->is_success or $res->is_redirect ) {
-        $resp_string = $res->as_string;
-        $resp_string =~ s#'#_#g;
+      unless ( $response->is_success or $response->is_redirect ) {
+        my $response_as_request = $response->as_string;
 
         # Deal with __Can't__ from LWP.
         # Otherwise notification fails because /bin/sh is called to
         # printf '$OUTPUT' and sh cannot deal with nested quotes (eg Can't echo ''')
+        $response_as_request =~ s#'#_#g;
+
         $returnCode = $ERRORS{CRITICAL};
         my $knownError = 0;
         my $errorMessage = "other than HTTP 200";
 
-        for ( $resp_string ) {
+        for ( $response_as_request ) {
           # ***************************************************************************
           # The 500 series of Web error codes indicate an error with the Web server   *
           # ***************************************************************************
@@ -323,48 +345,46 @@ sub check {
         }
 
         rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
-        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => "'". $errorMessage ."' - ". $url_r->{Msg}, error => &_error_message( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => "'". $errorMessage ."' - ". $url_r->{Msg}, error => &_error_message( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
         return ( $returnCode );
       }
     } else {
-      $returnCode = $ERRORS{OK} if $res->is_success;
+      $returnCode = $ERRORS{OK} if $response->is_success;
     }
 
-    $resp_string = $res->as_string;
-
     if ( $parms{custom} ) {
-	  my ($returnCode, $knownError, $errorMessage) = $parms{custom}->( $resp_string );
+	  my ($returnCode, $knownError, $errorMessage) = $parms{custom}->( $response_as_content );
       rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
 
 	  if ( $returnCode != $ERRORS{OK} and defined $errorMessage ) {
-        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => $errorMessage .' - '. $url_r->{Msg}, error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => $errorMessage .' - '. $url_r->{Msg}, error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
         return ( $returnCode );
 	  }
 	}
 
-    $self->_my_return ( $url_r->{Exp_Return}, $resp_string);
+    $self->_my_return ( $url_r->{Exp_Return}, $response_as_content );
 
-    if ( $self->_my_match ( $url_r->{Exp_Fault}, $resp_string) ) {
+    if ( $self->_my_match ( $url_r->{Exp_Fault}, $response_as_content, 0 ) ) {
       my $fault_ind = $url_r->{Exp_Fault};
-      my ($bad_stuff) = $resp_string =~ /($fault_ind.*\n.*\n)/;
-      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $url_r->{Msg_Fault}, error => &_error_message ( $req->method .' '. $req->uri ), result => $bad_stuff }, $TYPE{REPLACE} );
+      my ($bad_stuff) = $response_as_content =~ /($fault_ind.*\n.*\n)/;
+      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $url_r->{Msg_Fault}, error => &_error_message ( $request->method .' '. $request->uri ), result => $bad_stuff }, $TYPE{REPLACE} );
       return ( $ERRORS{CRITICAL} );
-    } elsif ( ! ($found = $self->_my_match ( $url_r->{Exp}, $resp_string)) ) {
+    } elsif ( ! ($found = $self->_my_match ( $url_r->{Exp}, $response_as_content, 1 )) ) {
       my $exp_type = ref $url_r->{Exp};
       my $exp_str = $exp_type eq 'ARRAY' ? "@{$url_r->{Exp}}" : $url_r->{Exp};
-      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". $exp_str ."' not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+      ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". $exp_str ."' not in response", error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
       return ( $ERRORS{CRITICAL} );
     } elsif (ref $url_r->{Exp} eq 'ARRAY') {
       my $exp_array = @{$url_r->{Exp}};
 
       if ( $exp_array != $found ) {
-        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". ( $exp_array - $found ) ."' element(s) not in response", error => &_error_message ( $req->method .' '. $req->uri ), result => $resp_string }, $TYPE{REPLACE} );
+        ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". ( $exp_array - $found ) ."' element(s) not in response", error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
         return ( $ERRORS{CRITICAL} );
       }
     }
 
     if ( $parms{download_images} ) {
-      my ($image_dl_nok, $image_dl_msg, $number_imgs_dl) = $self->_download_images ($res, \%parms, \%downloaded);
+      my ($image_dl_nok, $image_dl_msg, $number_imgs_dl) = $self->_download_images ($response, \%parms, \%downloaded);
 
       if ( $image_dl_nok ) {
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $image_dl_msg }, $TYPE{REPLACE} );
@@ -380,14 +400,14 @@ sub check {
     ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $responseTime .'ms;;;;' );
   }
 
-  ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $resp_string }, $TYPE{REPLACE} );
+  ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => ( ( $parms{download_images} and ! $returnCode ) ? "downloaded $self->{number_of_images_downloaded} images" : undef ), error => ( $returnCode ? '?' : undef ), result => $response_as_content }, $TYPE{REPLACE} );
   return ( $returnCode );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub _download_images {
-  my ($self, $res, $parms_hr, $downloaded_hr) = @_;
+  my ($self, $response, $parms_hr, $downloaded_hr) = @_;
 
   require HTML::LinkExtor;
   require URI::URL;
@@ -402,24 +422,24 @@ sub _download_images {
   };
 
   my $p = HTML::LinkExtor->new($cb);
-  $p->parse($res->as_string);
-  my $base = $res->base;
+  $p->parse($response->as_string);
+  my $base = $response->base;
   my @imgs_abs = grep ! $downloaded_hr->{$_}++, map { my $x = url($_, $base)->abs; } @imgs;
   my @img_urls = map { Method => 'GET', Url => $_->as_string, Qs_var => [], Qs_fixed => [], Exp => '.', Exp_Fault => 'NeverInAnImage', Msg => '.', Msg_Fault => 'NeverInAnImage' }, @imgs_abs;
 
   # url() returns an array ref containing the abs url and the base.
   if ( my $number_of_images_not_already_downloaded = scalar @img_urls ) {
     my $img_trx = __PACKAGE__->new( $self->{asnmtapInherited}, \@img_urls );
-    my %image_dl_parms = (%$parms_hr, fail_if_1 => FALSE, download_images => FALSE, indent_level => 1);
-    return ( $img_trx->check( {}, %image_dl_parms), 'Downloaded not all '. $number_of_images_not_already_downloaded .' images found in '. $res->base, $number_of_images_not_already_downloaded );
+    my %image_dl_parms = (%$parms_hr, fail_if_1 => FALSE, download_images => FALSE);
+    return ( $img_trx->check( {}, %image_dl_parms), 'Downloaded not all '. $number_of_images_not_already_downloaded .' images found in '. $response->base, $number_of_images_not_already_downloaded );
   } else {
-    return ( $ERRORS{OK}, 'Downloaded all __zero__ images found in '. $res->base, 0 );
+    return ( $ERRORS{OK}, 'Downloaded all __zero__ images found in '. $response->base, 0 );
   }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub _make_req {
+sub _make_request {
   my ($self, $method, $url, $qs_var_ar, $qs_fixed_ar, $name_vals_hr) = @_;
 
   # $qs_var_ar is an array reference containing the name value pairs of any parameters whose
@@ -444,7 +464,7 @@ sub _make_req {
 
   # qs_fixed is an array_ref containing name value pairs
 
-  my ($req, @query_string, $query_string, @qs_var, @qs_fixed, %name_vals, @nvp);
+  my ($request, @query_string, $query_string, @qs_var, @qs_fixed, %name_vals, @nvp);
   my @matches = @{ $self->matches() };
   @qs_var = @$qs_var_ar;
   @qs_fixed = @$qs_fixed_ar;
@@ -462,7 +482,7 @@ sub _make_req {
 
   while ( my ($name, $val) = splice(@qs_var, 0, 2) ) {
     @nvp = ref $val eq 'ARRAY' ? ( $name, &{ $val->[1] }($name_vals{$val->[0]}) ) : ( $name, $name_vals{$val} );
-    splice(@query_string, scalar @query_string, 0, @nvp);
+    splice ( @query_string, scalar @query_string, 0, @nvp );
   }
 
   if ( $method eq 'GET' ) {
@@ -470,14 +490,14 @@ sub _make_req {
 
     if ($query_string) {
       chop($query_string);
-      $req = GET $url .'?'. $query_string;
+      $request = GET $url .'?'. $query_string;
     } else {
-      $req = GET $url;
+      $request = GET $url;
     }
   } elsif ( $method eq 'POST' ) {
-    $req = POST $url, [ @query_string ];
+    $request = POST $url, [ @query_string ];
   } elsif ( $method eq 'HEAD' ) {
-    $req = HEAD $url;
+    $request = HEAD $url;
   } else { # do something to indicate no such method
     &_dumpValue ( $self, ref $self .": Unexpected method \"$method\" for url \"$url\"" );
   }
@@ -486,12 +506,13 @@ sub _make_req {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub _my_match {
-  my ($self, $pat, $str) = @_;
+  my ($self, $pat, $str, $boolean) = @_;
 
+  return $boolean if ( $str eq '' and ref $pat ne 'ARRAY' and $pat eq '...' );
   my $found = 0;
   my @matches = ();
 
-  if ( ref $pat eq 'ARRAY') {
+  if ( ref $pat eq 'ARRAY' ) {
     my $debug = ${$self->{asnmtapInherited}}->getOptionsValue ( 'debug' );
 
     foreach my $p (@$pat) {
@@ -538,22 +559,28 @@ sub _my_return {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub _write_debugfile {
-  my ($self, $req_as_string1, $req_as_string2, $debugfile, $openAppend) = @_;
+  my ($self, $request_as_string, $response_as_content, $debugfile, $openAppend) = @_;
 
-  my $rvOpen = open (HTTPDUMP, ($openAppend ? '>>' : '>') . $debugfile);
+  my $rvOpen = open ( HTTPDUMP, ($openAppend ? '>>' : '>') .$debugfile );
 
   if ($rvOpen) {
-    $req_as_string2 =~ s/(window.location.href)/\/\/$1/gi;
+    print HTTPDUMP '<HR>', $request_as_string, "\n";
 
-    # RFC 1738 -> [ |$|&|+|,|\/|:|;|=|?|@|.|\-|!|*|'|(|)|\w]+
-    $req_as_string2 =~ s/(<META *HTTP-EQUIV *= *\"Refresh\" +CONTENT *= *\"0; *URL *=[ |$|&|+|,|\/|:|;|=|?|@|.|\-|!|*|'|(|)|\w]+\">)/<!--$1-->/img;
+    if ( defined $response_as_content ) {
+      $response_as_content =~ s/(window.location.href)/\/\/$1/gi;
 
-    # comment <SCRIPT></SCRIPT>
-    $req_as_string2 =~ s/<SCRIPT/<!--<SCRIPT/gi;
-    $req_as_string2 =~ s/<\/SCRIPT>/<\/SCRIPT>-->/gi;
+      # RFC 1738 -> [ $&+,\/:;=?@.\-!*'()\w]+
+      $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"0;\s*URL\s*=[ $&+,\/:;=?@.\-!*'()\w]+\"(\s+\/?)?>)/<!--$1-->/img;
 
-    print HTTPDUMP '<HR>', $req_as_string1, "\n";
-    print HTTPDUMP '<HR>', $req_as_string2, "\n";
+      # comment <SCRIPT></SCRIPT>
+      $response_as_content =~ s/<SCRIPT/<!--<SCRIPT/gi;
+      $response_as_content =~ s/<\/SCRIPT>/<\/SCRIPT>-->/gi;
+
+      print HTTPDUMP '<HR>', $response_as_content, "\n";
+    } else {
+      print HTTPDUMP "<HR><B>Empty response</B>\n";
+    }
+
     close(HTTPDUMP);
   } else {
     print ref ($self) .": Cannot open $debugfile to print debug information\n";
@@ -563,21 +590,21 @@ sub _write_debugfile {
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 sub _next_url {
-  my ($resp, $resp_string) = @_;
+  my ($response, $response_as_content) = @_;
 
   # FIXME. Some applications (eg IIS module for SAP R3) have an action field relative to hostname.
   # Others (eg ADDS v2) have use a refresh header with relative to hostname/path ..
 
-  if ( $resp_string =~ m#META\s+http-equiv="refresh"\s+content="\d+;\s+url=([^"]+)"# ) {
+  if ( $response_as_content =~ m#META\s+http-equiv="refresh"\s+content="\d+;\s+url=([^"]+)"# ) {
     my $rel_url = $1;
-    my $base = $resp->base;
+    my $base = $response->base;
     $base =~ m#(http://.+/).+?$#;
     my $url =  $1 . $rel_url;
     return $url;
-  } elsif ( $resp_string =~ m#form name="[^"]+"\s+method="post"\s+action="([^"]+)"#i or $resp_string =~ m#form\s+method="post"\s+action="([^"]+)"#i ) {
+  } elsif ( $response_as_content =~ m#form name="[^"]+"\s+method="post"\s+action="([^"]+)"#i or $response_as_content =~ m#form\s+method="post"\s+action="([^"]+)"#i ) {
     # Attachmate eVWP product doesn't have a form name.
     my $rel_url = $1;
-    my $base = $resp->base;
+    my $base = $response->base;
     $base =~ m#(http://.+?)/#;	 		            # only want hostname
     my $url =  $1 . $rel_url;
     return $url;

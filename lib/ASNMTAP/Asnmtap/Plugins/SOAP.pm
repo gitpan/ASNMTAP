@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2006/05/01, v3.000.008, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.007;
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.008;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,9 +210,7 @@ sub get_soap_request {
 
   my $returnCode = _soapCheckTransportStatus ($asnmtapInherited, $service, $debug);
 
-  if ( $returnCode ) {
-    $returnCode = _soapCheckFault ($asnmtapInherited, $som, $debug) if ( defined $som->fault );
-  } else {
+  unless ( $returnCode ) {
     unless ( defined $som->fault ) {
       $result = UNIVERSAL::isa($som => 'SOAP::SOM') ? (wantarray ? $som->paramsall : $som->result) : $som;
 

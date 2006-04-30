@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2006/05/01, v3.000.008, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.007;
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.008;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -472,16 +472,18 @@ sub receiving_fingerprint_mails {
           }
 
           for ( $head->mime_encoding ) {
-          # /^7bit$/i             && do { last; };
+            /^7bit$/i             && do { use MIME::QuotedPrint;
+                                          $msgbuffer = decode_qp ( $msgbuffer );
+                                          last; };
             /^quoted-printable$/i && do { use MIME::QuotedPrint;
                                           $msgbuffer = decode_qp ( $msgbuffer );
                                           last; };
             /^base64/i            && do { use MIME::Base64;
                                           $msgbuffer = decode_base64 ( $msgbuffer );
                                           last; };
-          # /^8bit/i              && do { last; };
-          # /^binary/i            && do { last; };
-          # /^x-token/i           && do { last; };
+            /^8bit/i              && do { last; };
+            /^binary/i            && do { last; };
+            /^x-token/i           && do { last; };
           }
 
           if ( $parms{checkFingerprint} ) {

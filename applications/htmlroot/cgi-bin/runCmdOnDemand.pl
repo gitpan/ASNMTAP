@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.007;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = '3.000.007';
+my $version     = '3.000.008';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -136,7 +136,7 @@ EndOfHtml
         $capture =~ s/\r$//g;
         $capture =~ s/\n$//g;
 
-        if ( $capture =~ /^--> GET/ or $capture =~ /^--> POST/ ) {
+        if ( $capture =~ /^--> URL: (?:GET|POST)/ ) {
           $capture_long = $capture_html = $capture_text = $capture_debug = 0;
           print "<tr><th class=\"RunCmdOnDemandCaptureHeader\">$capture</th></tr>\n";
         } elsif ( $capture =~ /LWP::UserAgent::request: Simple response:/ ) {
@@ -159,7 +159,7 @@ EndOfHtml
           }
 
           print "</td></tr><tr><td class=\"RunCmdOnDemandCaptureDebug\"><pre>$capture\n";
-        } elsif ($capture =~ /^WebTransact Responstime: /) {
+        } elsif ($capture =~ /WebTransact::response_time: /) {
           push (@WebTransactResponstime, $capture);
         } elsif ($capture ne '') {
           if ($capture_debug) {
@@ -169,8 +169,8 @@ EndOfHtml
           } elsif ($capture_html) {
             $capture =~ s/(window.location.href)/\/\/$1/gi;
 
-            # RFC 1738 -> [ |$|&|+|,|\/|:|;|=|?|@|.|\-|!|*|'|(|)|\w]+
-            $capture =~ s/(<META *HTTP-EQUIV *= *\"Refresh\" +CONTENT *= *\"0; *URL *=[ |$|&|+|,|\/|:|;|=|?|@|.|\-|!|*|'|(|)|\w]+\">)/<!--$1-->/img;
+            # RFC 1738 -> [ $&+,\/:;=?@.\-!*'()\w]+
+            $capture =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"0;\s*URL\s*=[ $&+,\/:;=?@.\-!*'()\w]+\"(\s+\/?)?>)/<!--$1-->/img;
 
             # comment <SCRIPT></SCRIPT>
             $capture =~ s/<SCRIPT/<!--<SCRIPT/gi;

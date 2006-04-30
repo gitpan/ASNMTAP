@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, holidayBundleSetDowntimes.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, holidayBundleSetDowntimes.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
  
 use strict;
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.007;
+use ASNMTAP::Asnmtap::Applications v3.000.008;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -37,7 +37,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = '3.000.007';
+my $version     = '3.000.008';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

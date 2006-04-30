@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # COPYRIGHT NOTICE
 # © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
@@ -29,10 +29,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.007;
+use ASNMTAP::Time v3.000.008;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.007;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +43,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = '3.000.007';
+my $version     = '3.000.008';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -759,7 +759,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
                 $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
-                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug) if ($typeServers);
+                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
+
+                if ($typeServers) {
+                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
+                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/etc", $debug);
+                }
 
                 $rvOpen = open(ArchiveCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/ArchiveCT");
 
@@ -831,6 +836,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
+                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
                 $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
@@ -954,6 +960,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
+                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave", $debug) if ($typeMonitoring);
                 $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
@@ -1342,7 +1349,7 @@ STARTUPFILE
       print AsnmtapCollectorCTscript <<STARTUPFILE;
 $choise() {
   # $choise daemons
-  echo "$choise: '\$AMNAME' ..."
+  echo "\u$choise: '\$AMNAME' ..."
   cd \$AMPATH
 STARTUPFILE
 
@@ -1474,7 +1481,7 @@ STARTUPFILE
       print AsnmtapDisplayCTscript <<STARTUPFILE;
 $choise() {
   # $choise daemons
-  echo "$choise: '\$AMNAME' ..."
+  echo "\u$choise: '\$AMNAME' ..."
   cd \$AMPATH
 STARTUPFILE
 
@@ -2084,7 +2091,7 @@ sub do_compare_view {
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
           $compareText = "Replace '$server:$APPLICATIONPATH/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
 
-		  if (($filename =~ /^DisplayCT-[\w-]+$/) or ($filename =~ /^CollectorCT-[\w-]+$/)) {
+		  if (($filename =~ /^etc\/DisplayCT-[\w-]+$/) or ($filename =~ /^etc\/CollectorCT-[\w-]+$/)) {
             $compareText .= '<br>';
             $compareText .= "$server:$APPLICATIONPATH/";
 			$compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';

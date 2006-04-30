@@ -26,7 +26,7 @@ TODO: {
   my $objectAsnmtap = ASNMTAP::Asnmtap->new (
     _programName        => 'Asnmtap.t',
     _programDescription => 'Test ASNMTAP::Asnmtap',
-    _programVersion     => '3.000.007',
+    _programVersion     => '3.000.008',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => "--commandLineOption ...",
     _programGetOptions  => ['commandLineOption=s'],
@@ -42,7 +42,7 @@ TODO: {
   is ( $objectAsnmtap->programDescription(), 'Test ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap::programDescription()' );
   is ( $objectAsnmtap->programDescription('-change programDescription-'), '-change programDescription-', 'ASNMTAP::Asnmtap::programDescription(\'-change programDescription-\')' );
 
-  is ( $objectAsnmtap->programVersion(), '3.000.007', 'ASNMTAP::Asnmtap::programVersion()' );
+  is ( $objectAsnmtap->programVersion(), '3.000.008', 'ASNMTAP::Asnmtap::programVersion()' );
   is ( $objectAsnmtap->programVersion('-change programVersion-'), '-change programVersion-', 'ASNMTAP::Asnmtap::programVersion(\'-change programVersion-\')' );
 
   is ( $objectAsnmtap->getOptionsArgv('commandLineOption'), undef, 'ASNMTAP::Asnmtap::getOptionsArgv(\'commandLineOption\')' );

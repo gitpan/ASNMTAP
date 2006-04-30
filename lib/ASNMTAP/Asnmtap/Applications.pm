@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, package ASNMTAP::Asnmtap::Applications making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, package ASNMTAP::Asnmtap::Applications making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -144,7 +144,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.007;
+  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.008;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -243,7 +243,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = '3.000.007';
+our $RMVERSION = '3.000.008';
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -335,7 +335,7 @@ if ( exists $_config{URL} ) {
 
 our $HTMLTOPDFPRG   = ( exists $_config{COMMON}{HTMLTOPD}{PRG}     ? $_config{COMMON}{HTMLTOPD}{PRG}     : 'htmldoc' );
 our $HTMLTOPDFHOW   = ( exists $_config{COMMON}{HTMLTOPD}{HOW}     ? $_config{COMMON}{HTMLTOPD}{HOW}     : 'shell' );
-our $HTMLTOPDFOPTNS = ( exists $_config{COMMON}{HTMLTOPD}{OPTIONS} ? $_config{COMMON}{HTMLTOPD}{OPTIONS} : "--bodyimage $IMAGESPATH/logos/citap.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ..." );
+our $HTMLTOPDFOPTNS = ( exists $_config{COMMON}{HTMLTOPD}{OPTIONS} ? $_config{COMMON}{HTMLTOPD}{OPTIONS} : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ..." );
 
 our $DATABASE       = ( exists $_config{DATABASE}{ASNMTAP}         ? $_config{DATABASE}{ASNMTAP}         : 'asnmtap' );
 
@@ -528,7 +528,7 @@ sub read_table {
   my @table = ();
   my $rvOpen = open(CT, "$APPLICATIONPATH/etc/$filename");
 
-  if ($rvOpen) {
+  if ( $rvOpen ) {
     while (<CT>) {
       chomp;
 
@@ -541,7 +541,7 @@ sub read_table {
 	
     close(CT);
 
-	if ($email) {
+	if ( $email ) {
       my $debug = $tDebug;
       $debug = 0 if ($tDebug eq 'F');
       $debug = 1 if ($tDebug eq 'T');

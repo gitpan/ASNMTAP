@@ -270,8 +270,8 @@ I<Structure of the array of hash references:>
    newAgent         => undef,
    openAppend       => 1,
    cookies          => 1,
+   protocol         => 1,
    download_images  => 0,
-   indent_level     => 0,
    fail_if_1        => 1
  )
 
@@ -356,15 +356,17 @@ Is an scalar, open debugfile as 'Writes, Appends, and Creates' mode when 1, othe
 
 Is an scalar, value is 0 or 1 (default)
 
+=item I<protocol>
+
+0 = default and 1 = force 'HTTP/1.1'
+
+Is an scalar, value is 0 or 1 (default)
+
 =item I<download_images>
 
 get the images found by HTML::LinkExtor in the page, provided those images have not already been ed.
 
 Is an scalar, value is 0 (default) or 1
-
-=item I<indent_level>
-
-Is an scalar, value is number, default: 0
 
 =item I<fail_if_1>
 
@@ -787,6 +789,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   ASNMTAP::Asnmtap::Plugins
   Bundle::LWP
   CGI
+  Compress::Zlib
   Digest::MD5
   Crypt::SSLeay
   MIME::Base64

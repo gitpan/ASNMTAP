@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.007;
+use ASNMTAP::Asnmtap::Plugins v3.000.008;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-ras.pl',
   _programDescription => "RAS plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.007',
+  _programVersion     => '3.000.008',
   _programUsagePrefix => '--phonenumber=<phonenumber> [--port=<port>] [--baud=<baud rate>]',
   _programHelpPrefix  => '--phonenumber<phonenumber>
 --port=<port>
@@ -46,7 +46,7 @@ $objectPlugins->printUsage ('Missing command line argument Baud') unless (define
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Modem v3.000.007;
+use ASNMTAP::Asnmtap::Plugins::Modem v3.000.008;
 use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 09 April 2006
-Version      : 3.000.007
+Latest update: 01 Mei 2006
+Version      : 3.000.008
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,6 +22,8 @@ Restart Collector and Display:
 
 SERVERNAME / Display for the 'Application Monitoring' / Config DisplayCT-Supervisie succesfuly reloaded/restarted: 2006/04/01 21:11:04 
 ----------
+
+Indien een mailtest offline is -> intresseert het resultaat ons niet, display offline, plugin toch draaien maar die mails deleten. 
 
 
 Warning and Critical: checking threshold range format

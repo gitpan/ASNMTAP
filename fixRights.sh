@@ -76,6 +76,8 @@ chmod 644 *.*
 cd $AMPATH/applications/tmp/cgisess
 chmod 644 *.*
 
+chmod 775 $AMPATH/applications/tmp/config
+
 cd $AMPATH/applications/tools/
 chmod 644 *.*
 

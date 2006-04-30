@@ -4,13 +4,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail', qw(:ALL) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.007;
+  use ASNMTAP::Asnmtap::Plugins v3.000.008;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.007',
+    _programVersion     => '3.000.008',
     _programGetOptions  => ['environment|e:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -21,7 +21,7 @@ TODO: {
 
   my $body = "\nThis is the body of the email !!! ...\n";
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.007;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.008;
 
   $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,

@@ -22,6 +22,24 @@ We are working onto an new Object Oriented version for the ASNMTAP Applications
 
 General configuration file for the ASNMTAP Applications
 
+=over 4
+
+=item HTML to PDF
+
+For testing HTML to PDF you can rename /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif
+
+You can lateron copy your wanted bodyimage picture to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPD>OPTIONS into the Application.cnf config file.
+
+ <COMMON>
+   <HTMLTOPD>
+     OPTIONS --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
+   </HTMLTOPD>
+ </COMMON>
+
+If you change the --bodyimage parameter, don't forget also to change the same parameter into the file /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/htmldoc.sh for the on the fly HTML to PDF generating.
+
+=back
+
 =back
 
 =item located at /opt/asnmtap-3.000.xxx/applications/etc
@@ -48,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2006/04/xx 11:27:36, ASNMTAP v3.000.007 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2006/05/01 8:11:16, ASNMTAP v3.000.008 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -79,15 +97,287 @@ when the Application CGI module and CGI applications are installed, this config 
 
 ...
 
+=item linux
+
+=over 4
+
+=item standalone
+
+ ln -s /opt/asnmtap-3.000.xxx/applications/master/root-display.sh   /etc/init.d/root-display
+
+ ln -s /etc/init.d/root-display /etc/rc3.d/S99root-display
+ ln -s /etc/init.d/root-display /etc/rc3.d/K99root-display
+ ln -s /etc/init.d/root-display /etc/rc2.d/S99root-display
+ ln -s /etc/init.d/root-display /etc/rc2.d/K99root-display
+ 
+ ln -s /opt/asnmtap-3.000.xxx/applications/master/root-collector.sh /etc/init.d/root-collector
+
+ ln -s /etc/init.d/root-collector /etc/rc3.d/S99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc3.d/K99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc2.d/S99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc2.d/K99root-collector
+
+=item failover
+
+ more /opt/asnmtap.sh
+ #!/bin/sh
+ # ---------------------------------------------------------------
+ # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # ---------------------------------------------------------------
+ # This shell script takes care of starting and stopping
+
+ AMNAME="All ASNMTAP"
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ start() {
+   # Start daemons
+   echo "Start: '$AMNAME' ..."
+   /etc/init.d/root-display start
+   /etc/init.d/root-collector start
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ stop() {
+   # Stop daemons
+   echo "Stop: '$AMNAME' ..."
+   /etc/init.d/root-display stop
+   /etc/init.d/root-collector stop
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ # See how we were called.
+ case "$1" in
+   start)
+            start
+            ;;
+   stop)
+            stop
+            ;;
+   *)
+            echo "Usage: '$AMNAME' {start|stop}"
+            exit 1
+ esac
+
+ exit 0
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ln -s /opt/asnmtap.sh /etc/init.d/asnmtap
+
+ ln -s /etc/init.d/asnmtap /etc/rc3.d/S99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc3.d/K99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc2.d/S99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc2.d/K99asnmtap
+
+=back
+
+=item solaris
+
+=over 4
+
+=item standalone
+
+ ln -s /opt/asnmtap-3.000.xxx/applications/master/root-display.sh   /etc/init.d/root-display
+
+ ln -s /etc/init.d/root-display /etc/rc3.d/S99root-display
+ ln -s /etc/init.d/root-display /etc/rc3.d/K99root-display
+ ln -s /etc/init.d/root-display /etc/rc0.d/S99root-display
+ ln -s /etc/init.d/root-display /etc/rc0.d/K99root-display
+ 
+ ln -s /opt/asnmtap-3.000.xxx/applications/master/root-collector.sh /etc/init.d/root-collector
+
+ ln -s /etc/init.d/root-collector /etc/rc3.d/S99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc3.d/K99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc0.d/S99root-collector
+ ln -s /etc/init.d/root-collector /etc/rc0.d/K99root-collector
+
+=item failover
+
+ more /opt/asnmtap.sh
+ #!/bin/sh
+ # ---------------------------------------------------------------
+ # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # ---------------------------------------------------------------
+ # This shell script takes care of starting and stopping
+
+ AMNAME="All ASNMTAP"
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ start() {
+   # Start daemons
+   echo "Start: '$AMNAME' ..."
+   /etc/init.d/root-display start
+   /etc/init.d/root-collector start
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ stop() {
+   # Stop daemons
+   echo "Stop: '$AMNAME' ..."
+   /etc/init.d/root-display stop
+   /etc/init.d/root-collector stop
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ # See how we were called.
+ case "$1" in
+   start)
+            start
+            ;;
+   stop)
+            stop
+            ;;
+   *)
+            echo "Usage: '$AMNAME' {start|stop}"
+            exit 1
+ esac
+
+ exit 0
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ln -s /opt/asnmtap.sh /etc/init.d/asnmtap
+
+ ln -s /etc/init.d/asnmtap /etc/rc3.d/S99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc3.d/K99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc2.d/S99asnmtap
+ ln -s /etc/init.d/asnmtap /etc/rc2.d/K99asnmtap
+
+=back
+
 =back
 
 =item located at /opt/asnmtap-3.000.xxx/applications/slave
 
 =over 4
 
-=item ...
+=item linux
 
-...
+=over 4
+
+=item failover
+
+ more /opt/asnmtap.sh
+ #!/bin/sh
+ # ---------------------------------------------------------------
+ # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # ---------------------------------------------------------------
+ # This shell script takes care of starting and stopping
+
+ AMNAME="All ASNMTAP"
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ start() {
+   # Start daemons
+   echo "Start: '$AMNAME' ..."
+   /etc/init.d/root-display start
+   /etc/init.d/root-collector start
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ stop() {
+   # Stop daemons
+   echo "Stop: '$AMNAME' ..."
+   /etc/init.d/root-display stop
+   /etc/init.d/root-collector stop
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ # See how we were called.
+ case "$1" in
+   start)
+            start
+            ;;
+   stop)
+            stop
+            ;;
+   *)
+            echo "Usage: '$AMNAME' {start|stop}"
+            exit 1
+ esac
+
+ exit 0
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ln -s /opt/asnmtap.sh /etc/init.d/asnmtap
+
+ /etc/rc3.d/S99asnmtap /etc/init.d/asnmtap
+ /etc/rc3.d/K99asnmtap /etc/init.d/asnmtap
+ /etc/rc2.d/S99asnmtap /etc/init.d/asnmtap
+ /etc/rc2.d/K99asnmtap /etc/init.d/asnmtap
+
+=back
+
+=item solaris
+
+=over 4
+
+=item failover
+
+ more /opt/asnmtap.sh
+ #!/bin/sh
+ # ---------------------------------------------------------------
+ # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # ---------------------------------------------------------------
+ # This shell script takes care of starting and stopping
+
+ AMNAME="All ASNMTAP"
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ start() {
+   # Start daemons
+   echo "Start: '$AMNAME' ..."
+   /etc/init.d/root-display start
+   /etc/init.d/root-collector start
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ stop() {
+   # Stop daemons
+   echo "Stop: '$AMNAME' ..."
+   /etc/init.d/root-display stop
+   /etc/init.d/root-collector stop
+ }
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ # See how we were called.
+ case "$1" in
+   start)
+ #            start
+            ;;
+   stop)
+ #            stop
+            ;;
+   *)
+            echo "Usage: '$AMNAME' {start|stop}"
+            exit 1
+ esac
+
+ exit 0
+
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ln -s /opt/asnmtap.sh /etc/init.d/asnmtap
+
+ /etc/rc3.d/S99asnmtap /etc/init.d/asnmtap
+ /etc/rc3.d/K99asnmtap /etc/init.d/asnmtap
+ /etc/rc0.d/S99asnmtap /etc/init.d/asnmtap
+ /etc/rc0.d/K99asnmtap /etc/init.d/asnmtap
+
+=back
 
 =back
 
@@ -247,7 +537,7 @@ adduser asnmtap
  [/opt/asnmtap-3.000.xxx/applications/htmlroot]# ln -s citap.html  index.html
  [/opt/asnmtap-3.000.xxx/applications/htmlroot]# ln -s citap-cv.html  index-cv.html
 
- vi /etc/httpd/conf/httpd.conf
+ vi /etc/httpd/conf.d/asnmtap.conf
 
  AddHandler cgi-script .cgi .pl
 
@@ -257,7 +547,7 @@ adduser asnmtap
    ServerName asnmtap.citap.com
    ServerAlias asnmtap.citap.be
    ServerAdmin webmaster@citap.com
-   DocumentRoot /opt/www/ape/asnmtap.citap.com
+   DocumentRoot /opt/asnmtap/applications/htmlroot
    ErrorLog /var/log/httpd/asnmtap.citap.com-error.log
    CustomLog /var/log/httpd/asnmtap.citap.com-combined.log combined
    IndexIgnore *.png *nok.txt *all.txt *.html
@@ -328,9 +618,9 @@ adduser asnmtap
 
 =item onto the master and slave server:
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.007.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.008.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.007.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.008.sql
 
 
 =item onto the master server:

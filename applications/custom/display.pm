@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/04/xx, v3.000.007, making package ASNMTAP::Asnmtap::Applications::Display making Asnmtap v3.000.xxx compatible
+# 2006/05/01, v3.000.008, making package ASNMTAP::Asnmtap::Applications::Display making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;

@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.07 2006/04/xx 18:15:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.08 2006/05/01 21:15:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.007';
+my $VERSION = '3.000.008';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -65,7 +65,7 @@ my @prerequisites = (
 
     [ 'applications/sbin/sshWrapperASNMTAP.pl',                                   'x' ],
 
-    [ 'applications/tools/mysql/asnmtap-3.000.007.sql',                           'r' ],
+    [ 'applications/tools/mysql/asnmtap-3.000.008.sql',                           'r' ],
     [ 'applications/tools/mysql/MySQLBackup.sh',                                  'r' ],
    ]
   ],
@@ -159,29 +159,20 @@ my @prerequisites = (
     [ 'applications/htmlroot/img/daemonStart.gif',                                                             'r' ],
     [ 'applications/htmlroot/img/daemonStop.gif',                                                              'r' ],
     [ 'applications/htmlroot/img/data.gif',                                                                    'r' ],
-    [ 'applications/htmlroot/img/dec0.png',                                                                    'r' ],
-    [ 'applications/htmlroot/img/dec1.png',                                                                    'r' ],
     [ 'applications/htmlroot/img/down.gif',                                                                    'r' ],
     [ 'applications/htmlroot/img/exclaim.gif',                                                                 'r' ],
     [ 'applications/htmlroot/img/gears.gif',                                                                   'r' ],
     [ 'applications/htmlroot/img/green-ack.gif',                                                               'r' ],
     [ 'applications/htmlroot/img/green.gif',                                                                   'r' ],
-    [ 'applications/htmlroot/img/inc0.png',                                                                    'r' ],
-    [ 'applications/htmlroot/img/inc1.png',                                                                    'r' ],
     [ 'applications/htmlroot/img/info.gif',                                                                    'r' ],
     [ 'applications/htmlroot/img/logoff.jpg',                                                                  'r' ],
-    [ 'applications/htmlroot/img/logos/citap.gif',                                                             'r' ],
+    [ 'applications/htmlroot/img/logos/bodyimage.gif',                                                         'R' ],
     [ 'applications/htmlroot/img/maintenance.gif',                                                             'r' ],
     [ 'applications/htmlroot/img/notest-ack.gif',                                                              'r' ],
     [ 'applications/htmlroot/img/notest.gif',                                                                  'r' ],
     [ 'applications/htmlroot/img/ondemand.gif',                                                                'r' ],
     [ 'applications/htmlroot/img/orange-ack.gif',                                                              'r' ],
     [ 'applications/htmlroot/img/orange.gif',                                                                  'r' ],
-    [ 'applications/htmlroot/img/perfgraph-sm.png',                                                            'r' ],
-    [ 'applications/htmlroot/img/perfparse-logo-asnmtap.png',                                                  'r' ],
-    [ 'applications/htmlroot/img/perfparse-logo-sm-asnmtap.png',                                               'r' ],
-    [ 'applications/htmlroot/img/perfparse-logo-sm.png',                                                       'r' ],
-    [ 'applications/htmlroot/img/perfparse-logo.png',                                                          'r' ],
     [ 'applications/htmlroot/img/pidKill.gif',                                                                 'r' ],
     [ 'applications/htmlroot/img/pidremove.gif',                                                               'r' ],
     [ 'applications/htmlroot/img/purple-ack.gif',                                                              'r' ],
@@ -321,7 +312,7 @@ my @prerequisites = (
   ],
   [ '*011101', 'IO support',          'ASNMTAP::Asnmtap::Plugins::IO',          { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20' }, 1, [], [] ],
   [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '1.92', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.01', 'MIME::Tools' => '5.419', 'Net::IMAP::Simple' => '1.14', 'Time::Local' => '1.04' }, 1, [], [] ],
-  [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.05') ), 'Device::Modem' => '1.43' }, 1,
+  [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.20', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.05') ), 'Device::Modem' => '1.43' }, 0,
    [
     '/etc/chatscripts',
     '/etc/ppp',
@@ -339,7 +330,7 @@ my @prerequisites = (
    ]
   ],
   [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.67' }, 1, [], [] ],
-  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.10', 'Crypt::SSLeay' => '0.51', 'Digest::MD5' => '2.33', 'MIME::Base64' => '3.01', 'Net::FTP' => '2.58', 'URI' => '1.35' }, 1, [], [] ],
+  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.10', 'Compress::Zlib' => '1.41', 'Crypt::SSLeay' => '0.51', 'Digest::MD5' => '2.33', 'MIME::Base64' => '3.01', 'Net::FTP' => '2.58', 'URI' => '1.35' }, 1, [], [] ],
   [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.58', 'XML::Simple' => '2.14' }, 2, [], [] ],
   [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.05', 'Data::Dumper' => '2.12', 'File::Basename' => '2.73', 'IO' => '1.20' }, 1, [], [] ],
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.02', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],

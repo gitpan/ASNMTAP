@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::IO is a Perl module that provides IO functions used b
 
 =head1 DESCRIPTION
 
- use ASNMTAP::Asnmtap::Plugins v3.000.007;
+ use ASNMTAP::Asnmtap::Plugins v3.000.008;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-IO.pl',
    _programDescription => "IO plugin template for the '$APPLICATION'",
-   _programVersion     => '3.000.007',
+   _programVersion     => '3.000.008',
    _programUsagePrefix => '--service <service> --protocol <protocol> --request <request>',
    _programHelpPrefix  => '--service=<service>
  --protocol=<protocol>
@@ -27,7 +27,7 @@ ASNMTAP::Asnmtap::Plugins::IO is a Perl module that provides IO functions used b
  my $username = $objectPlugins->getOptionsArgv ('username');
  my $password = $objectPlugins->getOptionsArgv ('password');
 
- use ASNMTAP::Asnmtap::Plugins::IO v3.000.007;
+ use ASNMTAP::Asnmtap::Plugins::IO v3.000.008;
  use ASNMTAP::Asnmtap::Plugins::IO qw(:SOCKET);
 
  my $returnCode = scan_socket_info (
