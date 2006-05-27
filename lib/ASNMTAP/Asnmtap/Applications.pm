@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, package ASNMTAP::Asnmtap::Applications making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, package ASNMTAP::Asnmtap::Applications making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -144,7 +144,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.008;
+  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.009;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -243,7 +243,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = '3.000.008';
+our $RMVERSION = '3.000.009';
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -550,8 +550,10 @@ sub read_table {
       $debug = 4 if ($tDebug eq 'A');
       $debug = 5 if ($tDebug eq 'S');
 
-      my $subject = "$prgtext / Config $APPLICATIONPATH/etc/$filename succesfuly reloaded/restarted: " . get_datetimeSignal();
-      my $message = get_datetimeSignal() . " Config $APPLICATIONPATH/etc/$filename succesfuly reloaded/restarted\n";
+      use Sys::Hostname;
+      my $action = $email == 2 ? 'reloaded' : 'restarted';
+      my $subject = "$prgtext\@". hostname() .": Config $APPLICATIONPATH/etc/$filename succesfuly $action at ". get_datetimeSignal();
+      my $message = $subject ."\n";
       my $returnCode = sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $message, $debug );
       print "Problem sending email to the '$APPLICATION' server administrators\n" unless ( $returnCode );
     }
@@ -743,7 +745,7 @@ sub create_header {
     my $rvOpen = open(HEADER, ">$filename");
 
     if ($rvOpen) {
-      print_header (*HEADER, "index", "index-cv", $APPLICATION, "Debug", 3600, "", 'F', "", undef, "asnmtap-results.css");
+      print_header (*HEADER, "index", "index-cv", $APPLICATION, "Debug", 3600, '', 'F', '', undef, "asnmtap-results.css");
       print HEADER '<br>', "\n", '<table WIDTH="100%" border=0><tr><td class="DataDirectory">', "\n";
       close(HEADER);
     } else {

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, collector.pl for ASNMTAP::Asnmtap::Applications::Collector making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, collector.pl for ASNMTAP::Asnmtap::Applications::Collector making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.008;
+use ASNMTAP::Time v3.000.009;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.000.008;
+use ASNMTAP::Asnmtap::Applications::Collector v3.000.009;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -194,7 +194,7 @@ if ($mode eq 'C') {
         # Catch signals implementation
         if ($boolean_signal_hup) {
 		  printDebugAll ("read table: <$collectorlist>");
-		  @crontabtable = read_table($prgtext, $collectorlist, 1, $debug);
+		  @crontabtable = read_table($prgtext, $collectorlist, 2, $debug);
           resultsdirCreate();
 		  $boolean_signal_hup = 0;
 		}

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, display.pl for ASNMTAP::Asnmtap::Applications::Display making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, display.pl for ASNMTAP::Asnmtap::Applications::Display making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,10 +17,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.008;
+use ASNMTAP::Time v3.000.009;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.008;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.009;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_T $opt_l $PROG
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -160,7 +160,7 @@ unless (fork) {                                  # unless ($pid = fork) {
     do {
       # Catch signals implementation
       if ($boolean_signal_hup) {
-        @checklisttable = read_table($prgtext, $checklist, 1, $debug);
+        @checklisttable = read_table($prgtext, $checklist, 2, $debug);
         resultsdirCreate();
         $boolean_signal_hup = 0;
       }
@@ -555,10 +555,10 @@ sub errorTrapDBI {
 sub printHtmlHeader {
   my $htmlTitle = shift(@_);
 
-  print_header (*HTML, $pagedir, "$pageset-cv", $htmlTitle, "Full View", 60, "ONLOAD=\"startRefresh();\"", 'T', "", undef);
+  print_header (*HTML, $pagedir, "$pageset-cv", $htmlTitle, "Full View", 60, "ONLOAD=\"startRefresh();\"", 'T', '', undef);
   print HTML '<TABLE WIDTH="100%">', "\n";
 
-  print_header (*HTMLCV, $pagedir, "$pageset", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh();\"", 'T', "", undef);
+  print_header (*HTMLCV, $pagedir, "$pageset", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh();\"", 'T', '', undef);
   print HTMLCV '<TABLE WIDTH="100%">', "\n";
 }
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # COPYRIGHT NOTICE
 # © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
@@ -29,7 +29,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +40,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "crontabs.pl";
 my $prgtext     = "Crontabs";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -89,7 +89,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
     $formDisabledAll = $formDisabledPrimaryKey = "";
@@ -111,7 +111,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $htmlTitle    = "Crontab $ClineNumber, $CuKey inserted";
         my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLCRONTABS. ' SET lineNumber="' .$ClineNumber. '", uKey="' .$CuKey. '", collectorDaemon="' .$CcollectorDaemon. '", arguments="' .$Carguments. '", minute="' .$Cminute. '", hour="' .$Chour. '", dayOfTheMonth="' .$CdayOfTheMonth. '", monthOfTheYear="' .$CmonthOfTheYear. '", dayOfTheWeek="' .$CdayOfTheWeek. '", noOffline="' .$CnoOffline. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq "crontabView") {
@@ -126,7 +126,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq "delete") {
       $htmlTitle    = "Crontab $ClineNumber, $CuKey deleted";
       $sql = 'DELETE FROM ' .$SERVERTABLCRONTABS. ' WHERE lineNumber="' .$ClineNumber. '" and uKey="' .$CuKey. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "displayView") {
       $formDisabledPrimaryKey = $formDisabledAll = "disabled";
@@ -141,7 +141,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Crontab $ClineNumber, $CuKey updated";
       my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
       $sql = 'UPDATE ' .$SERVERTABLCRONTABS. ' SET lineNumber="' .$ClineNumber. '", uKey="' .$CuKey. '", collectorDaemon="' .$CcollectorDaemon. '", arguments="' .$Carguments. '", minute="' .$Cminute. '", hour="' .$Chour. '", dayOfTheMonth="' .$CdayOfTheMonth. '", monthOfTheYear="' .$CmonthOfTheYear. '", dayOfTheWeek="' .$CdayOfTheWeek. '", noOffline="' .$CnoOffline. '", activated="' .$dummyActivated. '" WHERE lineNumber="' .$ClineNumber. '" and uKey="' .$CuKey. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView" or $action eq "crontab") {
       my ($sqlWhereCount, $sqlWhereList, $urlWithAccessParametersQuery);
@@ -174,9 +174,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       my ($lineNumber, $uKey, $groupName, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $activated, $title);
       $sql = "select $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.uKey, $SERVERTABLCLLCTRDMNS.groupName, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline, $SERVERTABLCRONTABS.activated, $SERVERTABLPLUGINS.title from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS, $SERVERTABLCLLCTRDMNS where $sqlWhereList $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-      $sth->bind_columns( \$lineNumber, \$uKey, \$groupName, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline, \$activated, \$title ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$lineNumber, \$uKey, \$groupName, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline, \$activated, \$title ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
         my $actionPressend = ($iconAdd or $iconDelete or $iconDetails or $iconEdit) ? 1 : 0;
@@ -205,19 +205,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         $matchingCrontabs .= "        <tr><td colspan=\"7\">$navigationBar</td></tr>\n" if ($navigationBar);
         $matchingCrontabs .= "      </table>\n";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
       $sql = "select lineNumber, uKey, collectorDaemon, arguments, minute, hour, dayOfTheMonth, monthOfTheYear, dayOfTheWeek, noOffline, activated from $SERVERTABLCRONTABS where lineNumber='$ClineNumber' and uKey='$CuKey'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($ClineNumber, $CuKey, $CcollectorDaemon, $Carguments, $Cminute, $Chour, $CdayOfTheMonth, $CmonthOfTheYear, $CdayOfTheWeek, $CnoOffline, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if ($sth->rows);
+        ($ClineNumber, $CuKey, $CcollectorDaemon, $Carguments, $Cminute, $Chour, $CdayOfTheMonth, $CmonthOfTheYear, $CdayOfTheWeek, $CnoOffline, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
         $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
     }
 
@@ -234,14 +234,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $collectorDaemonSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcollectorDaemon, 'collectorDaemon', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView" or $action eq "crontabView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
 
       my $crontabFormatDigits           = '(?:[0-9]{1,2})';
       my $crontabValueDigitsMin         = '(?:[0-9]|[1-5][0-9])';
@@ -422,11 +422,11 @@ HTML
 <form action="$ENV{SCRIPT_NAME}" method="post" name="crontabs" onSubmit="return validateForm();">
 HTML
     } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"crontabs\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
     }
 
     if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView" or $action eq "crontabView") {
@@ -498,7 +498,7 @@ HTML
 
         print <<HTML;
         <tr><td><b>Arguments: </b></td><td>
-          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="100" $formDisabledAll>
+          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="254" $formDisabledAll>
         </td></tr>
         <tr><td><b>Minute: </b></td><td>
           <input type="text" name="minute" value="$Cminute" size="100" maxlength="167" $formDisabledAll>&nbsp;&nbsp;format: 0,1,2-29,30-58/2,59|*|*/n&nbsp;&nbsp;value: 0-59

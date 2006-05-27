@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, info.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, info.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # COPYRIGHT NOTICE
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be].                          All Rights Reserved.
@@ -29,7 +29,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI $ASNMTAPMANUAL);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +40,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "info.pl";
 my $prgtext     = "$APPLICATION Info";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +65,7 @@ print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug       
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
 
   print <<HTML;
   <br>

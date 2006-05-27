@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, package ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, package ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -129,7 +129,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = 3.000.008;
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = 3.000.009;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -252,7 +252,7 @@ sub user_session_and_access_control {
     $subTitle = setAccessControlParameters( $level, $pagedir, $pageset, $debug, $cgi, $session, $sessionID, $subTitle, $queryString );
     return ($sessionID, $session->param('iconAdd'), $session->param('iconDelete'), $session->param('iconDetails'), $session->param('iconEdit'), $session->param('iconQuery'), $session->param('iconTable'), $errorUserAccessControl, $session->param('remoteUser'), $session->param('remoteAddr'), $session->param('remoteNetmask'), $session->param('givenName'), $session->param('familyName'), $session->param('email'), $session->param('password'), $session->param('userType'), $session->param('pagedir'), $session->param('activated'), $session->param('keyLanguage'), $subTitle) if ($accessGranted);
 
-    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, "", 'F', '', $sessionID);
+    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     $errorUserAccessControl = "You don\'t have enough permissions!";
     print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n";
     return ("", 0, 0, 0, 0, 1, 1, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle);
@@ -304,16 +304,16 @@ sub user_session_and_access_control {
 
         if (defined $CremoteUser) {
           my ($dbh, $sth, $sql);
-          $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", $sessionID);
+          $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID);
 
           if ($dbh and $rv) {
             $sql = "select remoteAddr, remoteNetmask, givenName, familyName, email, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
               if ($sth->rows) {
-                ($CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", $sessionID);
+                ($CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID);
 
                 if ( $rv ) {
                   $errorUserAccessControl = "Remote User '$CremoteUser' not yet activated." if ($Cactivated != 1);
@@ -324,7 +324,7 @@ sub user_session_and_access_control {
                 $errorUserAccessControl = "Remote User '$CremoteUser' invalid.";
               }
 
-              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", $sessionID) if $rv;
+              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if $rv;
             } else {
               $errorUserAccessControl = "Problems with a MySQL database statement.";
             }
@@ -439,7 +439,7 @@ sub user_session_and_access_control {
 
     if( $logonRequest eq "logonView" ) {
       $logonTimestamp = time();
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, "Logon", 3600, "", 'F', "<script language=\"JavaScript1.2\" type=\"text/javascript\" src=\"$HTTPSURL/md5.js\"></script>", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', 'F', "<script language=\"JavaScript1.2\" type=\"text/javascript\" src=\"$HTTPSURL/md5.js\"></script>", $sessionID);
       print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n" if ( defined $errorUserAccessControl );
 
       print <<HTML;
@@ -501,7 +501,7 @@ HTML
       $errorUserAccessControl = $logonRequest;
     }
   } elsif( $logonRequest eq "logoff" ) {
-    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, "Logoff", 3600, "", 'F', "", $sessionID);
+    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, "Logoff", 3600, '', 'F', '', $sessionID);
     $errorUserAccessControl = "Logged off remote user: " .$session->param('givenName'). " " .$session->param('familyName');
     print "<br>\n<h1 align=\"center\">$errorUserAccessControl</h1>\n";
     $session->delete();
@@ -517,10 +517,10 @@ HTML
 sub do_action_DBI {
   my ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
 
-  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
   my $numberRecordsIntoQuery = ($rv) ? $sth->fetchrow_array() : 0;
-  $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
   return ($rv, $numberRecordsIntoQuery);
 }
@@ -553,9 +553,9 @@ sub check_record_exist {
   my ($rv, $dbh, $sql, $titleTXT, $keyTXT, $nameTXT, $matchingRecords, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
 
   my ($key, $title);
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$title ) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$title ) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
   if ( $rv ) {
     if ( $sth->rows ) {
@@ -564,7 +564,7 @@ sub check_record_exist {
       $matchingRecords .= "</table>\n";
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   return ($rv, $matchingRecords);
@@ -618,9 +618,9 @@ sub get_title {
 
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $title, $trendline, $step, $applicationTitle, $trendValue, $stepValue);
   $sql = "select title, trendline, step from $SERVERTABLPLUGINS WHERE uKey = '$uKey'";
-  $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", $refresh, "", $sessionID);
-  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", $refresh, "", $sessionID) if $rv;
-  $sth->bind_columns( \$title, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", $refresh, "", $sessionID) if $rv;
+  $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", $refresh, '', $sessionID);
+  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
+  $sth->bind_columns( \$title, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
 
   if ( $rv ) {
     while( $sth->fetch() ) {
@@ -630,7 +630,7 @@ sub get_title {
       $stepValue = $step;
     }
 
-    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", $refresh, "", $sessionID);
+    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", $refresh, '', $sessionID);
   }
 
   if ( $refresh == 0 ) {
@@ -648,9 +648,9 @@ sub get_sql_crontab_scheduling_report_data {
   my ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, $uKeys, $labels, $stepValue, $uKeysSqlWhere, $debug) = @_;
 
   my ($collectorDaemon, $uKey, $lineNumber, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $applicationTitle, $step);
-  my $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
-  $sth->bind_columns( \$collectorDaemon, \$uKey, \$lineNumber, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+  $sth->bind_columns( \$collectorDaemon, \$uKey, \$lineNumber, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
   my $numberOfLabels = 0;
 
@@ -683,7 +683,7 @@ sub get_sql_crontab_scheduling_report_data {
       $hight = $hightMin; $rv = 0; $errorMessage = "There are no Crontabs available";
     }
 
-    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
   }
 
   return ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels);
@@ -870,9 +870,9 @@ sub create_combobox_from_DBI {
 
   my ($key, $value);
 
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
   my $comboSelect  = "<select name=\"$selectName\" $formDisabled $onChange>\n";
 
@@ -896,7 +896,7 @@ sub create_combobox_from_DBI {
       $comboSelect .= ">$value</option>\n";
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   $comboSelect .= "        </select>\n";
@@ -909,9 +909,9 @@ sub create_combobox_multiple_from_DBI {
   my ($rv, $dbh, $sql, $action, $Ckey, $selectName, $selectValue, $selectSize, $textareaCols, $formDisabled, $onChange, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
 
   my ($key, $value);
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
   my $comboboxSelect = "";
 
@@ -943,7 +943,7 @@ sub create_combobox_multiple_from_DBI {
       $comboboxSelect = $selectValue;
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   return ($rv, $comboboxSelect);
@@ -954,8 +954,8 @@ sub create_combobox_multiple_from_DBI {
 sub record_navigation_table {
   my ($rv, $dbh, $sql, $label, $keyLabels, $keyNumbers, $ignoreFieldNumbers, $translationFieldsKeysAndValues, $addAccessParameters, $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
   
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
   my $matchingRecords = '';
 
@@ -1030,7 +1030,7 @@ sub record_navigation_table {
 
     $matchingRecords .= "        <tr><td colspan=\"$colspan\">$navigationBar</td></tr>\n" if ($navigationBar);
     $matchingRecords .= "      </table>\n";
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
     $nextAction = "listView";
   }
 

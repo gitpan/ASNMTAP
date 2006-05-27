@@ -21,7 +21,7 @@ use Data::Dumper;
 use Test;
 
 use vars qw($VERSION);
-$VERSION = do { my @r = (q$Revision: 1.2 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r }; # must be all one line, for MakeMaker
+$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r }; # must be all one line, for MakeMaker
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ NPTest - Simplify the testing of Nagios Plugins
 
 This modules provides convenience functions to assist in the testing
 of Nagios Plugins, making the testing code easier to read and write;
-hopefully encouraging the development of more complete test suite for
+hopefully encouraging the development of a more complete test suite for
 the Nagios Plugins. It is based on the patterns of testing seen in the
 1.4.0 release, and continues to use the L<Test> module as the basis of
 testing.
@@ -44,23 +44,23 @@ default via the C<use NPTest;> statement.
 
 =over
 
-=item C<getTestParameter(...)>
+=item getTestParameter( "ENV_VARIABLE", $brief_description, $default )
 
-A flexible and user override-able method of collecting, storing and
-retrieving test parameters. This function allows the test harness
+$default is optional.
+
+This function allows the test harness
 developer to interactively request test parameter information from the
-user, when the no means of obtaining the information automatically has
-been successful. The user is provided with the option of accepting
-test harness developer's default value for the parameter, if a suggested
-default is provided.
+user. The user can accept the developer's default value or reply "none"
+which will then be returned as "" for the test to skip if appropriate.
 
-User supplied responses are stored in an external (file-based)
-cache. These values are retrieved on subsequent runs alleviating the
-user of reconfirming the previous entered responses. The user is able
-to override the value of a parameter on any given run by setting the
-associated environment variable. These environment variable based
-overrides are not stored in the cache, allowing one-time and what-if
-based tests on the command line without polluting the cache.
+If a parameter needs to be entered and the test is run without a tty 
+attached (such as a cronjob), this routine will die causing the test to 
+fail.
+
+Responses are stored in an external, file-based
+cache so subsequent test runs will use these values. The user is able
+to change the values by amending the values in the file /var/tmp/NPTest.pm,
+or by setting the appropriate environment variable before running the test.
 
 The option exists to store parameters in a scoped means, allowing a
 test harness to a localise a parameter should the need arise. This
@@ -73,14 +73,23 @@ called "check_disk.t" requesting the parameter "mountpoint_valid", the
 cache is first searched for "check_disk"/"mountpoint_valid", if this
 fails, then a search is conducted for "mountpoint_valid".
 
-The facilitate quick testing setup, it is possible to accept all the
+To facilitate quick testing setup, it is possible to accept all the
 developer provided defaults by setting the environment variable
 "NPTEST_ACCEPTDEFAULT" to "1" (or any other perl truth value). Note
 that, such defaults are not stored in the cache, as there is currently
 no mechanism to edit existing cache entries, save the use of text
 editor or removing the cache file completely.
 
+=item C<testCmd($command)>
+
+Call with ASNMTAP::Asnmtap::Plugins::NPTest->testCmd("./check_disk ...."). This returns a NPTest object
+which you can then run $object->return_code or $object->output against.
+
+Testing of results would be done in your test script, not in this module.
+
 =item C<checkCmd(...)>
+
+This function is obsolete. Use C<testCmd()> instead.
 
 This function attempts to encompass the majority of test styles used
 in testing Nagios Plugins. As each plug-in is a separate command, the
@@ -88,7 +97,7 @@ typical tests we wish to perform are against the exit status of the
 command and the output (if any) it generated. Simplifying these tests
 into a single function call, makes the test harness easier to read and
 maintain and allows additional functionality (such as debugging) to be
-provided withoutadditional effort on the part of the test harness
+provided without additional effort on the part of the test harness
 developer.
 
 It is possible to enable debugging via the environment variable
@@ -213,20 +222,13 @@ sub checkCmd
 {
   my( $command, $desiredExitStatus, $desiredOutput, %exceptions ) = @_;
 
-  my $output     = `${command}`;
-  my $exitStatus = $? >> 8;
+  my $result = ASNMTAP::Asnmtap::Plugins::NPTest->testCmd($command);
+
+  my $output     = $result->output;
+  my $exitStatus = $result->return_code;
 
   $output = "" unless defined( $output );
   chomp( $output );
-
-  if ( exists( $ENV{'NPTEST_DEBUG'} ) && $ENV{'NPTEST_DEBUG'} )
-  {
-    my( $pkg, $file, $line ) = caller(0);
-
-    print "checkCmd: Called from line $line in $file\n";
-    print "Testing : ${command}\n";
-    print "Result  : ${exitStatus} AND '${output}'\n";
-  }
 
   my $testStatus;
 
@@ -264,6 +266,7 @@ sub checkCmd
     if ( %exceptions && exists( $exceptions{$exitStatus} ) )
     {
       $testStatus += skip( $exceptions{$exitStatus}, $exitStatus, $desiredExitStatus );
+      $testOutput = "skip";
     }
     else
     {
@@ -303,7 +306,16 @@ sub skipMissingCmd
 
 sub getTestParameter
 {
-  my( $param, $envvar, $default, $brief, $scoped ) = @_;
+  my( $param, $envvar, $default, $brief, $scoped );
+  my $new_style;
+  if (scalar @_ <= 3) {
+	($param, $brief, $default) = @_;
+	$envvar = $param;
+	$new_style = 1;
+  } else {
+	( $param, $envvar, $default, $brief, $scoped ) = @_;
+	$new_style = 0;
+  }
 
   # Apply default values for optional arguments
   $scoped = ( defined( $scoped ) && $scoped );
@@ -312,12 +324,17 @@ sub getTestParameter
 
   if ( defined( $envvar ) &&  exists( $ENV{$envvar} ) && $ENV{$envvar} )
   {
-    return $ENV{$envvar}
+    return $ENV{$envvar};
   }
 
   my $cachedValue = SearchCache( $param, $testharness );
-  if ( defined( $cachedValue ) && $cachedValue )
+  if ( defined( $cachedValue ) )
   {
+    # This save required to convert to new style because the key required is
+    # changing to the environment variable
+    if ($new_style == 0) {
+      SetCacheParameter( $envvar, undef, $cachedValue );
+    }
     return $cachedValue;
   }
 
@@ -329,6 +346,8 @@ sub getTestParameter
     return $default;
   }
 
+  die "Need to manually enter test parameter $param" unless (-t STDERR);
+
   my $userResponse = "";
 
   while ( $userResponse eq "" )
@@ -336,9 +355,9 @@ sub getTestParameter
     print STDERR "\n";
     print STDERR "Test Harness         : $testharness\n";
     print STDERR "Test Parameter       : $param\n";
-    print STDERR "Environment Variable : $envvar\n";
+    print STDERR "Environment Variable : $envvar\n" if ($param ne $envvar);
     print STDERR "Brief Description    : $brief\n";
-    print STDERR "Enter value ", ($defaultValid ? "[${default}]" : "[]"), " => ";
+    print STDERR "Enter value (or 'none') ", ($defaultValid ? "[${default}]" : "[]"), " => ";
     $userResponse = <STDIN>;
     $userResponse = "" if ! defined( $userResponse ); # Handle EOF
     chomp( $userResponse );
@@ -349,6 +368,10 @@ sub getTestParameter
   }
 
   print STDERR "\n";
+
+  if ($userResponse =~ /^(na|none)$/) {
+	$userResponse = "";
+  }
 
   # define all user responses at global scope
   SetCacheParameter( $param, ( $scoped ? $testharness : undef ), $userResponse );
@@ -375,6 +398,7 @@ sub SearchCache
   {
     return $CACHE{$param};
   }
+  return undef;	# Need this to say "nothing found"
 }
 
 sub SetCacheParameter
@@ -543,10 +567,66 @@ sub TestsFrom
 
   closedir( DIR );
 
-  return @tests;
+  return sort @tests;
 }
 
+# All the new object oriented stuff below
 
+sub new { 
+	my $type = shift;
+	my $self = {};
+	return bless $self, $type;
+}
+
+# Accessors
+sub return_code {
+	my $self = shift;
+	if (@_) {
+		return $self->{return_code} = shift;
+	} else {
+		return $self->{return_code};
+	}
+}
+sub output {
+	my $self = shift;
+	if (@_) {
+		return $self->{output} = shift;
+	} else {
+		return $self->{output};
+	}
+}
+
+sub perf_output {
+	my $self = shift;
+	$_ = $self->{output};
+	/\|(.*)$/;
+	return $1 || "";
+}
+
+sub testCmd {
+	my $class = shift;
+	my $command = shift or die "No command passed to testCmd";
+	my $object = $class->new;
+	
+	my $output = `$command`;
+	$object->return_code($? >> 8);
+	$_ = $? & 127;
+	if ($_) {
+		die "Got signal $_ for command $command";
+	}
+	chomp $output;
+	$object->output($output);
+
+	if ($ENV{'NPTEST_DEBUG'}) {
+		my ($pkg, $file, $line) = caller(0);
+		print "testCmd: Called from line $line in $file", $/;
+		print "Testing: $command", $/;
+		print "Output:  ", $object->output, $/;
+		print "Return code: ", $object->return_code, $/;
+	}
+
+	return $object;
+}
 
 1;
 #

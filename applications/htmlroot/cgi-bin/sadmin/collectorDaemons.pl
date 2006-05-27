@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, collectorDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, collectorDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # COPYRIGHT NOTICE
 # © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
@@ -29,7 +29,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +40,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "collectorDaemons.pl";
 my $prgtext     = "Collector Daemons";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -89,7 +89,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
     $formDisabledAll = $formDisabledPrimaryKey = "";
@@ -111,7 +111,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $htmlTitle  = "Collector Daemon $CcollectorDaemon inserted";
         my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLCLLCTRDMNS. ' SET collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq "deleteView") {
@@ -126,7 +126,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  if ($matchingCollectorDaemon eq "") {
         $htmlTitle = "Collector Daemon $CcollectorDaemon deleted";
         $sql = 'DELETE FROM ' .$SERVERTABLCLLCTRDMNS. ' WHERE collectorDaemon="' .$CcollectorDaemon. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
       } else {
         $htmlTitle = "Collector Daemon $CcollectorDaemon not deleted, still used by";
@@ -146,7 +146,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Collector Daemon $CcollectorDaemon updated";
       my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
       $sql = 'UPDATE ' .$SERVERTABLCLLCTRDMNS. ' SET collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '" WHERE collectorDaemon="' .$CcollectorDaemon. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
       $htmlTitle    = "All Collector Daemons listed";
@@ -162,14 +162,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
       $sql = "select collectorDaemon, groupName, serverID, mode, dumphttp, status, debugDaemon, debugAllScreen, debugAllFile, debugNokFile, activated from $SERVERTABLCLLCTRDMNS where collectorDaemon='$CcollectorDaemon'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CcollectorDaemon, $CgroupName, $CserverID, $Cmode, $Cdumphttp, $Cstatus, $CdebugDaemon, $CdebugAllScreen, $CdebugAllFile, $CdebugNokFile, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if ($sth->rows);
+        ($CcollectorDaemon, $CgroupName, $CserverID, $Cmode, $Cdumphttp, $Cstatus, $CdebugDaemon, $CdebugAllScreen, $CdebugAllFile, $CdebugNokFile, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
 
         $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
     }
 
@@ -178,14 +178,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $serversSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CserverID, 'serverID', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -332,11 +332,11 @@ HTML
 <form action="$ENV{SCRIPT_NAME}" method="post" name="collectorDaemon" onSubmit="return validateForm();">
 HTML
     } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"collectorDaemon\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
     }
 
     if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {

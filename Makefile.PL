@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.08 2006/05/01 21:15:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.09 2006/06/xx 21:15:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.008';
+my $VERSION = '3.000.009';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -56,6 +56,8 @@ my @prerequisites = (
     [ 'applications/display.pl',                                                  'x' ],
     [ 'applications/Applications.cnf',                                            'R' ],
 
+    [ 'applications/bin/generateCollectorDaemonSchedulingReports.pl',             'x' ],
+    [ 'applications/bin/generateCollectorDaemonSchedulingReports.sh',             'x' ],
     [ 'applications/bin/generateReports.pl',                                      'x' ],
     [ 'applications/bin/generateReports.sh',                                      'x' ],
     [ 'applications/bin/holidayBundleSetDowntimes.pl',                            'x' ],
@@ -65,7 +67,7 @@ my @prerequisites = (
 
     [ 'applications/sbin/sshWrapperASNMTAP.pl',                                   'x' ],
 
-    [ 'applications/tools/mysql/asnmtap-3.000.008.sql',                           'r' ],
+    [ 'applications/tools/mysql/asnmtap-3.000.009.sql',                           'r' ],
     [ 'applications/tools/mysql/MySQLBackup.sh',                                  'r' ],
    ]
   ],

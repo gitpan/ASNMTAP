@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # ---------------------------------------------------------------------------------------------------------
 #
-# Copyright (c)2004-2006 Yves Van den Hove (yves.vandenhove@smals-mvm.be)
+# Copyright (c)2004-2006 Yves Van den Hove (yves\@vandenhove.tk)
 #
 # ---------------------------------------------------------------------------------------------------------
 # 2006-03-10 - Version 1.12: "POST" --> 'POST', "GET" --> 'GET', bug fixed for missing 0 in values
@@ -234,7 +234,8 @@ sub print_revision() {
 sub print_help() {
   print_revision();
   print_usage();
-  print "Send an email to yves.vandenhove\@smals-mvm.be if you have any questions regarding the use of this software.\n";
+
+  print "Send an email to yves\@vandenhove.tk if you have any questions regarding the use of this software.\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

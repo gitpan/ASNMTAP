@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use Shell;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getHelpPlugin.pl";
 my $prgtext     = "Get help for one '$APPLICATION' plugin";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,11 +59,11 @@ unless ( defined $errorUserAccessControl ) {
   my $sql = "select title, helpPluginFilename from $SERVERTABLPLUGINS where uKey = '$uKey'";
 
   my $rv  = 1;
-  my $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", $sessionID);	
+  my $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', $sessionID);	
 
   if ($dbh and $rv) {
-    my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", $sessionID);
-    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+    my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
     if ( $rv ) {
       while (my ($title, $helpPluginFilename) = $sth->fetchrow_array()) {
@@ -71,7 +71,7 @@ unless ( defined $errorUserAccessControl ) {
         $htmlHelpPluginFilename = $helpPluginFilename;
       }
 
-      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", $sessionID);
+      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', $sessionID);
 
       if ($htmlHelpPluginFilename ne '<NIHIL>') {
         $fileHelpPluginFilename = $PDPHELPPATH .'/'. $htmlHelpPluginFilename;
@@ -88,7 +88,7 @@ unless ( defined $errorUserAccessControl ) {
         $htmlHelpPluginFilename = "There is no helpfile defined into the plugin database!";
       }
 
-      print_header (*STDOUT, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
 
       print '<br>', "\n", '<table WIDTH="100%" border=0><tr><td class="HelpPluginFilename">', "\n";
 
@@ -101,7 +101,7 @@ unless ( defined $errorUserAccessControl ) {
       print '</td></tr></table>', "\n";
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, "", $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   print '<BR>', "\n";

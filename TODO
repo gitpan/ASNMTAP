@@ -5,26 +5,40 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 01 Mei 2006
-Version      : 3.000.008
+Latest update: 01 Juni 2006
+Version      : 3.000.009
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # TODO  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Calculations for Trendline evolutions:
+- AVG w(1-4) * 1.25
+- if (current trendline < calculated trendline)
+  -> new = calculated trendline 
+- if (current trendline > calculated trendline)
+  -> new = calculated trendline + (current trendline - calculated trendline) / 2 
+
+500 SSL negotiation failed
+- http://www.issociate.de/board/post/214066/LWP_and_SSL.html
+- SSL: { if (index($resp->status_line, 'SSL negotiation failed') !=-1) { sleep 1; redo SSL unless $tries++ == 3; } }
+
+depricate --httpdump & --dumphttp: tijdelijk voor backwards compatibiliteit !!!
+
+
 # Plugins - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Ledig geworden collector moet overal worden verwijderd !!!
-
+Extra controle voor plugins.pl en/of generateConfig.pl
+- controle of de opgegeven helpPluginFilename files bestaan op disk 
+- upload van PDF's (WORD to PDF ?)
 
 Restart Collector and Display:
 
-SERVERNAME / Display for the 'Application Monitoring' / Config DisplayCT-Supervisie succesfuly reloaded/restarted: 2006/04/01 21:11:04 
-----------
+Ledig geworden collector moet overal worden verwijderd !!!
 
 Indien een mailtest offline is -> intresseert het resultaat ons niet, display offline, plugin toch draaien maar die mails deleten. 
-
+MAW Bij plugin moet dit kunnen worden opgegeven als plugintype of iets dergelijks!!!
 
 Warning and Critical: checking threshold range format
 
@@ -82,8 +96,7 @@ Oproepen van voorgedefineerde stats:
 
 # Applications  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Downtime scheduling for ... from 2006-3-3 7:44:44 until 2006-03-03 07:00:00
-                                                        -------------------
+In collector daemon sheduling reports alleen de collectors laten zien voor overeenkomstige probe of server.
 
 Comments kunnen zetten op een groep testen via multiselect
 
@@ -97,33 +110,12 @@ In view.pl -> selecteer + groeptitle toevoegen
 
 In view.pl -> omvormen naar multiselect 'Display Daemon'
 
-http://crinaea.smals-mvm.be/asnmtap/nav/index/reports-index.html 
-hier url naar de plugintimes in plaatsen, is makkelijker om te onthouden 
+http://asnmtap.citap.be/asnmtap/nav/index/reports-index.html 
+hier url naar de plugin times in plaatsen, is makkelijker om te onthouden 
 
-fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken
-
-fixRights before restart daemon!!!
-
-upload van PDF's (WORD to PDF ?)
+fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken and launch fixRights before restart daemon.
 
 Debug files into glob field database.
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-RSYNC testen op werking
-- tail -f /var/log/asnmtap/rsync-wrapper-failover-asnmtap.citap.com.log
-  - log file rsync-wrapper- ...controle op errors
-    ARG[4] <.> Failure
-    ARG[5] </opt/asnmtap-3.000.xxx/results/aanmelden-afmelden/> Failure
-    ARG[7] <> Failure
-    Fri Aug 26 08:32:13 2005 RSYNC REQUEST FAILED INSPECTION - SKIPPING RSYNC
-
-
-# testen dat reverse rsync van slave naar master werkt !!!
-rsync-mirror-failover-master-server-name.sh -r
-
-Upgrade HTMLDOC from www.htmldoc.org !!!
 
 
 # BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -133,23 +125,11 @@ It's not a bug, it's a feature!
 1) malformed header from script. Bad header=    : generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
 
 
-# CREDITS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-The reporting module from version 1 was originally developed by Bart Maes
-from SmalS-MvM, so credit must also go to the original author:
-
-- Bart Maes [Bart.Maes@SmalS-MvM.be]
-
-Although, nothing remains of the original code... (sorry, Bart :-)
-
-
 # TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CRON items database-purge-perfdata, archiver.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
-
---httpdump & --dumphttp tijdelijk voor backwards compatibiliteit !!!
+CRON items database-purge-perfdata, archiver.pl, generateCollectorDaemonSchedulingReports.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
 
 Awstats, ChartDirector, HTMLDOC and PerfParse installation ...
 
@@ -216,3 +196,38 @@ Webinterface to add, edit and delete titles
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SNMPTT testing:
+---------------
+
+Try the following:
+
+-Copy examples\snmptt.conf.generic to /etc/snmp/
+-Change:
+
+ snmptt_conf_files = <<END
+ /etc/snmp/snmptt.conf
+ /etc/snmp/snmptt-udc-snmp.conf
+ /etc/snmp/snmptt-bea-weblogic.conf
+ END
+
+ to:
+
+ snmptt_conf_files = <<END
+ /etc/snmp/snmptt.conf.generic
+ END
+
+-shut down snmptt
+-shut down snmptrapd
+-extract the snmptt-unknown-300-test-traps.tgz file to /var/spool/snmptt/ (attached to this bug report)
+-purge your snmptt_unknown table
+-set statistics_interval = 10 in snmptt.ini to enable statistics monitoring (every 10 seconds)
+-start snmptt in daemon mode
+-wait until /var/spool/snmptt is empty
+-wait 30 seconds
+-check syslog to see how many traps were processed.  You *should* see:
+ Total traps received=300,Total traps translated=0,Total traps ignored=0,Total unknown traps=300
+-check the snmptt_unknown table to see how many records there are.  You should see 300.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

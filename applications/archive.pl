@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, archive.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, archive.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,10 +17,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.008;
+use ASNMTAP::Time v3.000.009;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.008;
+use ASNMTAP::Asnmtap::Applications v3.000.009;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,26 +46,28 @@ my $debug       = 0;                         # default
 # Don't edit below here unless you know what you are doing. -------------
 #------------------------------------------------------------------------
 
-my $gzipDaysAgo          = 8;                                                 # GZIP files older then n date
-my $removeGzipDaysAgo    = 31;                                                # Remove files older then n days ago
-my $removeAllNokDaysAgo  = 8;                                                 # Remove files older then n days ago
-my $gzipDebugDaysAgo     = 3;                                                 # Remove files older then n days ago
-my $removeDebugDaysAgo   = 31;                                                # Remove files older then n days ago
-my $removeGzipWeeksAgo   = 53;                                                # Remove files older then n weeks ago
-my $removeCgisessDaysAgo = 2;                                                 # Remove files older then n days ago
-my $removeReportWeeksAgo = 53;                                                # Remove files older then n weeks ago
+my $gzipDaysAgo          = 8;                                                     # GZIP files older then n date
+my $removeGzipDaysAgo    = 31;                                                    # Remove files older then n days ago
+my $removeAllNokDaysAgo  = 8;                                                     # Remove files older then n days ago
+my $gzipDebugDaysAgo     = 3;                                                     # Remove files older then n days ago
+my $removeDebugDaysAgo   = 31;                                                    # Remove files older then n days ago
+my $removeGzipWeeksAgo   = 53;                                                    # Remove files older then n weeks ago
+my $removeCgisessDaysAgo = 2;                                                     # Remove files older then n days ago
+my $removeReportWeeksAgo = 53;                                                    # Remove files older then n weeks ago
 
-my $gzipEpoch            = get_epoch ('-'. $gzipDaysAgo .' days');            # GZIP files older then n date
-my $removeAllNokEpoch    = get_epoch ('-'. $removeAllNokDaysAgo .' days');    # Remove files older then n days ago
-my $removeGzipEpoch      = get_epoch ('-'. $removeGzipDaysAgo .' days');      # Remove files older then n days ago
-my $gzipDebugEpoch       = get_epoch ('-'. $gzipDebugDaysAgo .' days');       # GZIP files older then n date
-my $removeDebugEpoch     = get_epoch ('-'. $removeDebugDaysAgo .' days');     # Remove files older then n days ago
-my $removeWeeksEpoch     = get_epoch ('-'. $removeGzipWeeksAgo .' weeks');    # Remove files older then n weeks ago
-my $removeCgisessEpoch   = get_epoch ('-'. $removeCgisessDaysAgo .' days');   # Remove files older then n days ago
-my $removeReportsEpoch   = get_epoch ('-'. $removeReportWeeksAgo .' weeks');  # Remove files older then n weeks ago
-my $firstDayOfWeekEpoch  = get_epoch ('-'. (get_wday ('yesterday')).' days'); # First day current week epoch date
-my $yesterdayEpoch       = get_epoch ('yesterday');                           # Yesterday epoch date
-my $currentEpoch         = get_epoch ('today');                # time()       # Current epoch date
+my $gzipEpoch            = get_epoch ('-'. $gzipDaysAgo .' days');                # GZIP files older then n date
+my $removeAllNokEpoch    = get_epoch ('-'. $removeAllNokDaysAgo .' days');        # Remove files older then n days ago
+my $removeGzipEpoch      = get_epoch ('-'. $removeGzipDaysAgo .' days');          # Remove files older then n days ago
+my $gzipDebugEpoch       = get_epoch ('-'. $gzipDebugDaysAgo .' days');           # GZIP files older then n date
+my $removeDebugEpoch     = get_epoch ('-'. $removeDebugDaysAgo .' days');         # Remove files older then n days ago
+my $removeWeeksEpoch     = get_epoch ('-'. $removeGzipWeeksAgo .' weeks');        # Remove files older then n weeks ago
+my $removeCgisessEpoch   = get_epoch ('-'. $removeCgisessDaysAgo .' days');       # Remove files older then n days ago
+my $removeReportsEpoch   = get_epoch ('-'. $removeReportWeeksAgo .' weeks');      # Remove files older then n weeks ago
+
+my $firstDayOfWeekEpoch  = get_epoch ('-'. (get_wday ('yesterday') + 1).' days'); # First day current week epoch date
+my $yesterdayEpoch       = get_epoch ('yesterday');                               # Yesterday epoch date
+
+my $currentEpoch         = get_epoch ('today');                                   # time() or Current epoch date
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -474,7 +476,6 @@ sub doBackupCsvSqlErrorWeekDebugReport {
 
     foreach $dtest (@stest) {
       my ($uKey, $test) = split(/\#/, $dtest);
-
       ($command, undef) = split(/\.pl/, $test);
       my ( $tWeek, $tYear ) = get_week('yesterday');
       $weekFilename = get_year('yesterday') ."w$tWeek-$command-$uKey-csv-week.txt";
@@ -642,7 +643,7 @@ sub catAllCsvFilesYesterdayWeek {
           }
 
           close(CSV);
-          my ( $tWeek, $tYear ) = get_week ('today');
+          my ( $tWeek, $tYear ) = get_week ('yesterday');
           print "WF <week$tWeek><$filename>\nW  <$path/$weekFilename>\n" if ($debug);
         } else {
           print "Cannot open $filename!\n";
@@ -843,4 +844,3 @@ email to $SENDEMAILTO
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

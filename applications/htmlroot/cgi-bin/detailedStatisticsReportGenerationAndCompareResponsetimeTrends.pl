@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -86,13 +86,13 @@ unless ( defined $errorUserAccessControl ) {
 
   # open connection to database and query data
   $rv  = 1;
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
     $sqlQuery = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where pagedir REGEXP '/$pagedir/' and production = '1' and activated = 1 order by optionValueTitle";
-    $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-    $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+    $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+    $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
     if ( $rv ) {
       $dummy = ($uKey1 eq "none") ? " selected" : "";
@@ -117,7 +117,7 @@ unless ( defined $errorUserAccessControl ) {
         $uKeySelect3 .= "          <option value=\"$uKey\"$dummy>$title</option>\n";
       }
 
-      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
       if ($htmlToPdf) {
         print <<EndOfHtml;
@@ -131,7 +131,7 @@ unless ( defined $errorUserAccessControl ) {
 <BODY>
 EndOfHtml
       } else {
-        print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
+        print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
       }
 
       # Section: FromTo
@@ -290,11 +290,11 @@ EndOfHtml
         if ($details eq "on" and ! defined $errorMessage) {
           # Details: General information  - - - - - - - - - - - - - - - - -
           $sqlInfo  = "select count(id) as numbersOfTests, max(step) as step";
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlInfo, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "", "group by uKey", "", "", "ALL");
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlInfo, "force index (key_startDate)", $sqlWhere, $sqlPeriode, '', "group by uKey", '', "", "ALL");
 
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$numbersOfTestsQ, \$stepQ ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$numbersOfTestsQ, \$stepQ ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             while( $sth->fetch() ) {
@@ -302,14 +302,14 @@ EndOfHtml
 			  $step = $stepQ if (defined $stepQ);
             }
 
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
 
           # Average: General information  - - - - - - - - - - - - - - - - -
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlAverage, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK'", "", "", "", "ALL");
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$averageQ ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlAverage, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK'", '', "", '', "ALL");
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$averageQ ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             my $numberOffAverage = 0;
@@ -322,7 +322,7 @@ EndOfHtml
             }
 
             $average /= $numberOffAverage if ($numberOffAverage != 0);
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
 
           # General information table - - - - - - - - - - - - - - - - - - -
@@ -349,10 +349,10 @@ EndOfHtml
           $errorList     = "<H1>Problem details</H1>\n";
           $responseTable = "<H1>Response time warnings</H1>\n";
 
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", "", "", "order by startDateQ, startTime", "ALL");
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", '', "", "order by startDateQ, startTime", "ALL");
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
   
           if ( $rv ) {
             $firstrun = 1; $oneblock = $tel = $wtel = 0;
@@ -401,13 +401,13 @@ EndOfHtml
               $errorList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\"  bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No problems for this period!</td></tr></table>\n";
             }
 
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
 
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK' AND statusMessage regexp ': Response time [[:alnum:]]+.[[:alnum:]]+ > trendline [[:alnum:]]+'", "", "", "order by startDateQ, startTime", "ALL");
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime,\$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK' AND statusMessage regexp ': Response time [[:alnum:]]+.[[:alnum:]]+ > trendline [[:alnum:]]+'", '', "", "order by startDateQ, startTime", "ALL");
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime,\$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             $oneblock = $wtel = 0; 
@@ -437,14 +437,14 @@ EndOfHtml
               $responseTable .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No response time warnings for this period!</td></tr></table>\n";
             }
 
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
 
           # Problem Summary - - - - - - - - - - - - - - - - - - - - - - -
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlErrors, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", "", "order by aantal desc, statusmessage", "ALL");
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$statusMessage, \$count ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlErrors, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "order by aantal desc, statusmessage", "ALL");
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$statusMessage, \$count ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             my (%problemSummary);
@@ -484,17 +484,17 @@ EndOfHtml
               $errorDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No errors for this period!</td></tr></table>";
             }
 
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
         }
 
         if ($topx eq 'on' and ! defined $errorMessage) {
           # Top X List  - - - - - - - - - - - - - - - - - - - - - - - - -
           my ($startDatetx, $durationtx, $startTimetx);
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, startTime, duration", "force index (key_startDate)", $sqlWhere, $sqlPeriode, "and status <> 'OFFLINE' and status <> 'CRITICAL' and duration > 0", "", "", "order by duration desc, startDate desc, startTime desc limit 20", "ALL");
-          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID);
-          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
-          $sth->bind_columns( \$startDatetx, \$startTimetx,\$durationtx ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, "", "", "", "", -1, "", $sessionID) if $rv;
+          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, startTime, duration", "force index (key_startDate)", $sqlWhere, $sqlPeriode, "and status <> 'OFFLINE' and status <> 'CRITICAL' and duration > 0", '', "", "order by duration desc, startDate desc, startTime desc limit 20", "ALL");
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$startDatetx, \$startTimetx,\$durationtx ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             $topxTable .= "<H1>Top 20 Slow Tests </H1>\n";
@@ -510,7 +510,7 @@ EndOfHtml
 
             $topxTable .= "<tr><td width=\"400\">No top 20 slow tests for this period!</td></tr>\n" if ($teltopx == 1);
             $topxTable .= "</table>";
-            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", -1, "", $sessionID);
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
         }
       }
@@ -519,7 +519,7 @@ EndOfHtml
     }
 
     # Close database connection - - - - - - - - - - - - - - - - - - - - -
-    $dbh->disconnect or $rv = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, "", "", "", "", "", -1, "", $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', -1, '', $sessionID);
   }
 
   if ( $rv ) {

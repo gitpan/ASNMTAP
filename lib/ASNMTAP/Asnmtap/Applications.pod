@@ -66,11 +66,13 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2006/05/01 8:11:16, ASNMTAP v3.000.008 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2006/06/xx 9:01:36, ASNMTAP v3.000.009 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+ #
+ _ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl
  #
  test-01#DUMMY-T1#check_dummy.pl
  #
@@ -407,13 +409,26 @@ the Archiver.
 Shell script to run archive.pl with the default command line options
 
  crontab -e
- 0  0 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh >/dev/null 2>&1
+  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh >/dev/null 2>&1
 
 =back
 
 =item located at /opt/asnmtap-3.000.xxx/applications/bin
 
 =over 4
+
+=item generateCollectorDaemonSchedulingReports.pl
+
+this program generating automatically Collector Daemon Scheduling Reports in PDF format
+
+ Located at URL: http://asnmtap.citap.be/results/_ASNMTAP/reports/
+
+=item generateCollectorDaemonSchedulingReports.sh
+
+Shell script to run generateCollectorDaemonSchedulingReports.pl with the default command line options
+
+ crontab -e
+  0  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateCollectorDaemonSchedulingReports.sh >/dev/null 2>&1
 
 =item generateReports.pl
 
@@ -423,6 +438,9 @@ this program generate automatically reports in PDF format, defined by the CGI pr
 
 Shell script to run generateReports.pl with the default command line options
 
+ crontab -e
+ 30  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateReports.sh >/dev/null 2>&1
+
 =item holidayBundleSetDowntimes.pl
 
 this program automatically set the plugin downtimes, defined by the CGI program plugin.pl and holidaysBundle.pl
@@ -430,6 +448,9 @@ this program automatically set the plugin downtimes, defined by the CGI program 
 =item holidayBundleSetDowntimes.sh
 
 Shell script to run holidayBundleSetDowntimes.pl with the default command line options
+
+ crontab -e
+ 15  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/holidayBundleSetDowntimes.sh >/dev/null 2>&1
 
 =back
 
@@ -531,7 +552,7 @@ adduser asnmtap
 
  install openssh, openssl, openssl096 & openssl-devel
 
-=item update httpd.conf
+=item add /etc/httpd/conf.d/asnmtap.conf
 
  Link index.html and index-cv.html to the default screens
  [/opt/asnmtap-3.000.xxx/applications/htmlroot]# ln -s citap.html  index.html
@@ -618,9 +639,9 @@ adduser asnmtap
 
 =item onto the master and slave server:
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.008.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.009.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.008.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.009.sql
 
 
 =item onto the master server:

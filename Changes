@@ -5,13 +5,34 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 01 Mei 2006
-Version      : 3.000.008
+Latest update: 01 Juni 2006
+Version      : 3.000.009
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.009, 2006/06/xx, ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - RFC 1738 optimalisations
+                               - added '500 SSL negotiation failed'
+                               - added Perfdata_Label => 'IMAGE URL' to _download_images()
+                               ASNMTAP::Asnmtap::Applications
+                               - email SUBJECT changed to Display/Collector for the 'Application Monitoring'@HOSTNAME: ...
+                               NPTest, v1.11
+							   - Will die if signal received from a testCmd
+                               archiver.pl
+                               - bugfix: First day current week epoch date
+                               command.pl
+                               - bugfix regarding date.utc() - The month (0=Jan - 11=Dec)
+                                 - replaced 'suspentionDate.substring(5, 7);' with 'suspentionDate.substring(5, 7) - 1;'
+                               generateCollectorDaemonSchedulingReports.pl
+                               - NEW, generating automatically Collector Daemon Scheduling PDF Reports
+                               - http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-FQDN-Daily.pdf
+                               database asnmtap, table plugins and crontab
+                               - `arguments` from varchar(100) to varchar(254)
+                               - `argumentsOndemand` from varchar(100) to varchar(254)
+
 
 Version 3.000.008, 2006/05/01, ASNMTAP::Asnmtap::Plugins::Mail
                                - added 7bit mime decoding

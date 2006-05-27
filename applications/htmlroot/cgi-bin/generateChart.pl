@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -121,7 +121,7 @@ if ( $selChart eq "Status" ) {
 
 if ( $rv ) {
   # open connection to database and query data
-  $dbh = DBI->connect("DBI:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Cannot connect to the database", $debug, "", "", "", "", "", 0, "", $sessionID);
+  $dbh = DBI->connect("DBI:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Cannot connect to the database", $debug, '', "", '', "", '', 0, '', $sessionID);
 
   if ( $dbh and $rv ) {
     if ( $uKey1 eq "none" ) {
@@ -201,10 +201,10 @@ if ( $rv ) {
         if ( $rv and $uKey1 ne "none" ) {
           if ( $selChart eq "Status" ) {
             my ($title, $status, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, status, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", "", "", "ALL");
-            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
-            $sth->bind_columns( \$title, \$status, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, status, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
+            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+            $sth->bind_columns( \$title, \$status, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
 		    if ( $rv ) {
   		      if ( $sth->rows ) {
@@ -247,14 +247,14 @@ if ( $rv ) {
 			    $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (1)";
               }
 
-              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
             }
           } elsif ( $selChart eq "ErrorDetails" ) {
             my ($title, $statusmessage, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, statusmessage, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", "", "", "ALL");
-            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
-            $sth->bind_columns( \$title, \$statusmessage, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, statusmessage, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "", "ALL");
+            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+            $sth->bind_columns( \$title, \$statusmessage, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
 		    if ( $rv ) {
   		      if ( $sth->rows ) {
@@ -285,15 +285,15 @@ if ( $rv ) {
 			    $hight = 380; $rv = 0; $errorMessage = "NO ERRORS FOR THIS PERIOD";
               }
 
-              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
             }
           } elsif ( $selChart eq "Bar" ) {
             my ($seconden, $duration, $startDate, $startTime, $status, $step);
             my ($dataOK, $dataWarning, $dataCritical, $dataUnknown, $dataNoTest, $dataOffline);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select duration, startDate, startTime, status, step", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "", "", "", "order by startDate, startTime", "ALL");
-            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
-            $sth->bind_columns( \$duration, \$startDate, \$startTime, \$status, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select duration, startDate, startTime, status, step", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, '', "", '', "order by startDate, startTime", "ALL");
+            $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+            $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+            $sth->bind_columns( \$duration, \$startDate, \$startTime, \$status, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
 		    if ( $rv ) {
   		      if ( $sth->rows ) {
@@ -348,7 +348,7 @@ if ( $rv ) {
 			    $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (2)";
               }
 
-              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+              $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
             }
           } elsif ( $selChart eq "HourlyAverage" or $selChart eq "DailyAverage" ) {
             ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = getAverage( 1, $dbh, $rv, $uKey1, $sqlStartDate, $sqlEndDate, $sqlPeriode, $selChart, $debug );
@@ -399,7 +399,7 @@ if ( $rv ) {
 	  }
     }
 
-    $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, "", "", "", "", "", 0, "", $sessionID);
+    $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', 0, '', $sessionID);
   }
 }
 
@@ -562,18 +562,18 @@ sub getAverage {
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $startDate, $hour, $average, @avg, @labels);
 
   if ( $selChart eq "HourlyAverage" ) {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, hour(startTime) as hour, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", "", "order by startDate, hour", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, hour(startTime) as hour, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
   } else {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", "", "order by startDate", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
   }
 
-  $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+  $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+  $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
   if ( $selChart eq "HourlyAverage" ) {
-    $sth->bind_columns( \$startDate, \$hour, \$average ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+    $sth->bind_columns( \$startDate, \$hour, \$average ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
   } else {
-    $sth->bind_columns( \$startDate, \$average ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+    $sth->bind_columns( \$startDate, \$average ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
   }
 
   if ( $rv ) {
@@ -591,7 +591,7 @@ sub getAverage {
       $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (3)";
     }
 
-    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+    $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
   }
 
   if ( $number == 1 ) {

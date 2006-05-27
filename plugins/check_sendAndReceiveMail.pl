@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, check_sendAndReceiveMail.pl
+# 2006/06/01, v3.000.009, check_sendAndReceiveMail.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.008;
+use ASNMTAP::Asnmtap::Plugins v3.000.009;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_sendAndReceiveMail.pl',
   _programDescription => 'Send and Receive Mail',
-  _programVersion     => '3.000.008',
+  _programVersion     => '3.000.009',
   _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'interval|i=i', 'environment|e:s', 'timeout|t:i', 'trendline|T=i'],
   _timeout            => 30,
   _debug              => 0);
@@ -34,7 +34,7 @@ my $environment = $objectPlugins->getOptionsArgv ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.008;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.009;
 
 my $body = "
 

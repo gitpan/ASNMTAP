@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, making Asnmtap v3.000.008 compatible
+# 2006/06/01, v3.000.009, making Asnmtap v3.000.xxx compatible
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.008; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.009; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -256,13 +256,14 @@ sub check {
 
           # The server had some sort of internal error trying to fulfil the request. The client may see a partial page or error message.
           # It's a fault in the server and happens all too frequently.
-          /500 Can_t connect to/     && do { $knownError = 1; $errorMessage = "500 Can't connect to ..."; $returnCode = $ERRORS{UNKNOWN}; last; };
-          /500 Connect failed/       && do { $knownError = 1; $errorMessage = "500 Connect failed"; $returnCode = $ERRORS{UNKNOWN}; last; };
-          /500 proxy connect failed/ && do { $knownError = 1; $errorMessage = "500 Proxy connect failed"; $returnCode = $ERRORS{UNKNOWN}; last; };
-          /500 Server Error/         && do { $knownError = 1; $errorMessage = "500 Server Error"; $returnCode = $ERRORS{UNKNOWN}; last; };
-          /500 SSL read timeout/     && do { $knownError = 1; $errorMessage = "500 SSL read timeout"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 Can_t connect to/       && do { $knownError = 1; $errorMessage = "500 Can't connect to ..."; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 Connect failed/         && do { $knownError = 1; $errorMessage = "500 Connect failed"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 proxy connect failed/   && do { $knownError = 1; $errorMessage = "500 Proxy connect failed"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 Server Error/           && do { $knownError = 1; $errorMessage = "500 Server Error"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 SSL negotiation failed/ && do { $knownError = 1; $errorMessage = "500 SSL negotiation failed"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /500 SSL read timeout/       && do { $knownError = 1; $errorMessage = "500 SSL read timeout"; $returnCode = $ERRORS{UNKNOWN}; last; };
 
-          /Internal Server Error/    && do { $knownError = 0; $errorMessage = "500 Internal Server Error"; $returnCode = $ERRORS{UNKNOWN}; last; };
+          /Internal Server Error/      && do { $knownError = 0; $errorMessage = "500 Internal Server Error"; $returnCode = $ERRORS{UNKNOWN}; last; };
 
           # Function not implemented in Web server software. The request needs functionality not available on the server
           /501 (?:No Server|Not Implemented)/ && do { $errorMessage = "501 Not Implemented"; last; };
@@ -425,7 +426,7 @@ sub _download_images {
   $p->parse($response->as_string);
   my $base = $response->base;
   my @imgs_abs = grep ! $downloaded_hr->{$_}++, map { my $x = url($_, $base)->abs; } @imgs;
-  my @img_urls = map { Method => 'GET', Url => $_->as_string, Qs_var => [], Qs_fixed => [], Exp => '.', Exp_Fault => 'NeverInAnImage', Msg => '.', Msg_Fault => 'NeverInAnImage' }, @imgs_abs;
+  my @img_urls = map { Method => 'GET', Url => $_->as_string, Qs_var => [], Qs_fixed => [], Exp => '.', Exp_Fault => 'NeverInAnImage', Msg => '.', Msg_Fault => 'NeverInAnImage', Perfdata_Label => $_->as_string }, @imgs_abs;
 
   # url() returns an array ref containing the abs url and the base.
   if ( my $number_of_images_not_already_downloaded = scalar @img_urls ) {
@@ -569,8 +570,9 @@ sub _write_debugfile {
     if ( defined $response_as_content ) {
       $response_as_content =~ s/(window.location.href)/\/\/$1/gi;
 
-      # RFC 1738 -> [ $&+,\/:;=?@.\-!*'()\w]+
-      $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"0;\s*URL\s*=[ $&+,\/:;=?@.\-!*'()\w]+\"(\s+\/?)?>)/<!--$1-->/img;
+      # RFC 1738 -> [ $\/:;=?@.\-!*'()\w&+,]+
+    # $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[ $\/:;=?@.\-!*'()\w&+,]+\"(?:\s+\/?)?>)/<!--$1-->/img;
+      $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[^"]+\"(?:\s+\/?)?>)/<!--$1-->/img;
 
       # comment <SCRIPT></SCRIPT>
       $response_as_content =~ s/<SCRIPT/<!--<SCRIPT/gi;

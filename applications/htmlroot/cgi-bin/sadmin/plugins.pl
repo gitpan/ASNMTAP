@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 # COPYRIGHT NOTICE
 # © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
@@ -29,7 +29,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +40,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -94,7 +94,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
     $formDisabledAll = $formDisabledUniqueKey = "";
@@ -118,7 +118,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
         my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq "deleteView") {
@@ -142,7 +142,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  if ($matchingPlugins eq "") {
         $htmlTitle = "Plugin $CuKey deleted";
         $sql = 'DELETE FROM ' .$SERVERTABLPLUGINS. ' WHERE uKey="' .$CuKey. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       } else {
         $htmlTitle = "Plugin $CuKey not deleted, still used by";
       }
@@ -163,7 +163,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
       my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
       $sql = 'UPDATE ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
       $htmlTitle     = "All plugins listed";
@@ -180,16 +180,16 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
       $sql = "select uKey, test, arguments, argumentsOndemand, title, trendline, step, ondemand, production, pagedir, resultsdir, helpPluginFilename, holidayBundleID, activated from $SERVERTABLPLUGINS where uKey = '$CuKey'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CuKey, $Ctest, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if ($sth->rows);
+        ($CuKey, $Ctest, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
         $Condemand   = ($Condemand == 1) ? "on" : "off";
         $Cproduction = ($Cproduction == 1) ? "on" : "off";
         $Cactivated  = ($Cactivated == 1) ? "on" : "off";
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
     }
 
@@ -211,9 +211,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       $matchingViewsCrontabs .= "<tr><th colspan=\"3\">Servers, Display Daemons, Views &amp; Display Groups:</th></tr>\n";
       $sql = "select $SERVERTABLVIEWS.displayDaemon, $SERVERTABLVIEWS.activated, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLDSPLYGRPS.activated, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.groupName, $SERVERTABLDSPLYDMNS.activated, $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.serverTitle, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.activated from $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDSPLYDMNS, $SERVERTABLDSPLYGRPS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.uKey = '$CuKey' and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDSPLYDMNS.displayDaemon and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYDMNS.serverID = $SERVERTABLSERVERS.serverID order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLVIEWS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-      $sth->bind_columns( \$VdisplayDaemon, \$Vactivated, \$DGgroupTitle, \$DGactivated, \$DDdisplayDaemon, \$DDgroupName, \$DDactivated, \$SserverID, \$SserverTitle, \$StypeServers, \$StypeMonitoring, \$SmasterFQDN, \$SslaveFQDN, \$Sactivated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$VdisplayDaemon, \$Vactivated, \$DGgroupTitle, \$DGactivated, \$DDdisplayDaemon, \$DDgroupName, \$DDactivated, \$SserverID, \$SserverTitle, \$StypeServers, \$StypeMonitoring, \$SmasterFQDN, \$SslaveFQDN, \$Sactivated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
         $prevSserverID = $prevDDdisplayDaemon = "";
@@ -261,14 +261,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           $matchingViewsCrontabs .= "<tr><td>No records found</td></tr>\n";
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
       $matchingViewsCrontabs .= "<tr bgcolor=\"#000000\"><td colspan=\"3\">&nbsp;</td></tr><tr><th colspan=\"3\">Servers, Collector Daemons &amp; Crontabs:</th></tr>\n";
       $sql = "select $SERVERTABLCRONTABS.linenumber, $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.arguments, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline, $SERVERTABLCRONTABS.activated, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.groupName, $SERVERTABLCLLCTRDMNS.activated, $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.serverTitle, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.activated from $SERVERTABLPLUGINS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.uKey = '$CuKey' and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.linenumber";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
-      $sth->bind_columns( \$CTlinenumber, \$CTcollectorDaemon, \$CTarguments, \$CTminute, \$CThour, \$CTdayOfTheMonth, \$CTmonthOfTheYear, \$CTdayOfTheWeek, \$CTnoOffline, \$CTactivated, \$CDcollectorDaemon, \$CDgroupName, \$CDactivated, \$SserverID, \$SserverTitle, \$StypeServers, \$StypeMonitoring, \$SmasterFQDN, \$SslaveFQDN, \$Sactivated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$CTlinenumber, \$CTcollectorDaemon, \$CTarguments, \$CTminute, \$CThour, \$CTdayOfTheMonth, \$CTmonthOfTheYear, \$CTdayOfTheWeek, \$CTnoOffline, \$CTactivated, \$CDcollectorDaemon, \$CDgroupName, \$CDactivated, \$SserverID, \$SserverTitle, \$StypeServers, \$StypeMonitoring, \$SmasterFQDN, \$SslaveFQDN, \$Sactivated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
         $prevSserverID = $prevCDcollectorDaemon = "";
@@ -323,20 +323,20 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           $matchingViewsCrontabs .= "<tr><td>No records found</td></tr>\n";
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
       $matchingViewsCrontabs .= "</table>\n";
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -406,11 +406,11 @@ HTML
 <form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" onSubmit="return validateForm();">
 HTML
     } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"plugins\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "", 'F', "", $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
     }
 
     if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
@@ -465,9 +465,9 @@ HTML
         <tr><td><b>Plugin Filename: </b></td><td>
           <input type="text" name="test" value="$Ctest" size="100" maxlength="100" $formDisabledAll>
         <tr><td>Common Arguments: </td><td>
-          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="100" $formDisabledAll>
+          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="254" $formDisabledAll>
         <tr><td>On Demand Arguments: </td><td>
-          <input type="text" name="argumentsOndemand" value="$CargumentsOndemand" size="100" maxlength="100" $formDisabledAll>
+          <input type="text" name="argumentsOndemand" value="$CargumentsOndemand" size="100" maxlength="254" $formDisabledAll>
         <tr><td><b>Trendline: </b></td><td>
           <input type="text" name="trendline" value="$Ctrendline" size="6" maxlength="6" $formDisabledAll>
         <tr><td><b>Step: </b></td><td>

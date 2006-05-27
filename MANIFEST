@@ -101,6 +101,8 @@ applications/display.pl
 applications/display-test.pl
 applications/Applications.cnf
 
+applications/bin/generateCollectorDaemonSchedulingReports.pl
+applications/bin/generateCollectorDaemonSchedulingReports.sh
 applications/bin/generateReports.pl
 applications/bin/generateReports.sh
 applications/bin/holidayBundleSetDowntimes.pl
@@ -231,7 +233,7 @@ applications/htmlroot/sound/warning.wav
 
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.008.sql
+applications/tools/mysql/asnmtap-3.000.009.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js

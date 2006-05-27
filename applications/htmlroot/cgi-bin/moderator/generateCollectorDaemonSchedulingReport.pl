@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/06/01, v3.000.009, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.008;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReport.pl";
 my $prgtext     = "Collector Daemon Scheduling Report";
-my $version     = '3.000.008';
+my $version     = '3.000.009';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -95,7 +95,7 @@ $rv = ($masterOrSlave eq '<NIHIL>') ? 0 : 1;
 
 if ( $rv ) {
   # open connection to database and query data
-  $dbh = DBI->connect("DBI:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Cannot connect to the database", $debug, "", "", "", "", "", 0, "", $sessionID);
+  $dbh = DBI->connect("DBI:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Cannot connect to the database", $debug, '', "", '', "", '', 0, '', $sessionID);
 
   if ( $dbh and $rv ) {
     my $uKeysSqlWhere = '';
@@ -107,9 +107,9 @@ if ( $rv ) {
       $uKeysSqlWhere = "AND ($uKeysSqlWhere)" if ($uKeysSqlWhere);
       $sql = "SELECT $SERVERTABLEVENTS.uKey, $SERVERTABLEVENTS.startDate, $SERVERTABLEVENTS.startTime, $SERVERTABLEVENTS.endDate, $SERVERTABLEVENTS.endTime, $SERVERTABLEVENTS.status, $SERVERTABLEVENTS.timeslot, $SERVERTABLEVENTS.step FROM $SERVERTABLEVENTS FORCE INDEX (key_timeslot), $SERVERTABLPLUGINS WHERE $SERVERTABLEVENTS.timeslot between '$sqlStartDate' AND '$sqlEndDate' $uKeysSqlWhere and $SERVERTABLEVENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLEVENTS.title, $SERVERTABLEVENTS.uKey";
 
-      $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, "", "", "", "", 0, "", $sessionID);
-      $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
-      $sth->bind_columns( \$uKey, \$startDate, \$startTime, \$endDate, \$endTime, \$status, \$timeslot, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, "", "", "", "", 0, "", $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+      $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+      $sth->bind_columns( \$uKey, \$startDate, \$startTime, \$endDate, \$endTime, \$status, \$timeslot, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -144,11 +144,11 @@ if ( $rv ) {
           $hight = $hightMin; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD";
         }
 
-        $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, "", "", "", "", 0, "", $sessionID);
+        $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
       }
     }
 
-    $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, "", "", "", "", "", 0, "", $sessionID);
+    $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', 0, '', $sessionID);
   }
 
   if ( $rv ) {

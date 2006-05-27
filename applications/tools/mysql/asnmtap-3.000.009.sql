@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/05/01, v3.000.008, create_countries.sql
+# 2006/06/01, v3.000.009, create_countries.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -353,7 +353,7 @@ CREATE TABLE `crontabs` (
   `lineNumber` char(2) NOT NULL default '',
   `uKey` varchar(11) NOT NULL default '',
   `collectorDaemon` varchar(64) NOT NULL default '',
-  `arguments` varchar(100) default '',
+  `arguments` varchar(254) default '',
   `minute` varchar(167) NOT NULL default '*',
   `hour` varchar(61) NOT NULL default '*',
   `dayOfTheMonth` varchar(83) NOT NULL default '*',
@@ -733,8 +733,8 @@ DROP TABLE IF EXISTS `plugins`;
 CREATE TABLE `plugins` (
   `uKey` varchar(11) NOT NULL default '',
   `test` varchar(100) NOT NULL default '',
-  `arguments` varchar(100) default '',
-  `argumentsOndemand` varchar(100) default '',
+  `arguments` varchar(254) default '',
+  `argumentsOndemand` varchar(254) default '',
   `title` varchar(75) NOT NULL default '',
   `trendline` smallint(6) NOT NULL default '0',
   `step` smallint(6) NOT NULL default '0',
