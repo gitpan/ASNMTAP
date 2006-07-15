@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.009;
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = 3.000.010;
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -

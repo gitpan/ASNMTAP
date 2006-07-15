@@ -2,21 +2,8 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, servers.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, servers.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
-# COPYRIGHT NOTICE
-# © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
-#
-# Asnmtap may be used and modified free of charge by anyone so long as this copyright notice and the comments
-# above remain intact.  By using this code you agree to indemnify Alex Peeters from any liability that might
-# arise from it's use.
-#
-# Selling the code for this program without prior written consent is expressly forbidden.    In other words,
-# please ask first before you try and make money off of my program.
-#
-# Obtain permission before redistributing this software over the Internet or in any other medium.
-# In all cases copyright and header must remain intact.
-# ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;           # Must be used in test mode only. This reduce a little process speed
@@ -29,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "servers.pl";
 my $prgtext     = "Servers";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -282,27 +269,29 @@ HTML
     }
   }
 
-  if ( document.servers.masterDatabaseFQDN.value == null || document.servers.masterDatabaseFQDN.value == '' ) {
-    document.servers.masterDatabaseFQDN.focus();
-    alert('Please enter a master database FQDN!');
-    return false;
-  } else {
-    if ( ! objectRegularExpressionFQDNValue.test(document.servers.masterDatabaseFQDN.value) ) {
+  if ( ! document.servers.masterDatabaseFQDN.disabled ) {
+    if ( document.servers.masterDatabaseFQDN.value == null || document.servers.masterDatabaseFQDN.value == '' ) {
       document.servers.masterDatabaseFQDN.focus();
-      alert('Please re-enter master database FQDN: Bad master database FQDN value!');
+      alert('Please enter a master database FQDN!');
       return false;
+    } else {
+      if ( ! objectRegularExpressionFQDNValue.test(document.servers.masterDatabaseFQDN.value) ) {
+        document.servers.masterDatabaseFQDN.focus();
+        alert('Please re-enter master database FQDN: Bad master database FQDN value!');
+        return false;
+      }
     }
-  }
 
-  if ( document.servers.masterDatabasePort.value == null || document.servers.masterDatabasePort.value == '' ) {
-    document.servers.masterDatabasePort.focus();
-    alert('Please enter a master database port!');
-    return false;
-  } else {
-    if ( ! objectRegularExpressionDatabasePort.test(document.servers.masterDatabasePort.value) ) {
+    if ( document.servers.masterDatabasePort.value == null || document.servers.masterDatabasePort.value == '' ) {
       document.servers.masterDatabasePort.focus();
-      alert('Please re-enter master database port: Bad master database port value!');
+      alert('Please enter a master database port!');
       return false;
+    } else {
+      if ( ! objectRegularExpressionDatabasePort.test(document.servers.masterDatabasePort.value) ) {
+        document.servers.masterDatabasePort.focus();
+        alert('Please re-enter master database port: Bad master database port value!');
+        return false;
+      }
     }
   }
 
@@ -313,16 +302,18 @@ HTML
       return false;
     }
 
-    if ( document.servers.slaveDatabaseFQDN.value == null || document.servers.slaveDatabaseFQDN.value == '' ) {
-      document.servers.slaveDatabaseFQDN.focus();
-      alert('Please enter a slave database FQDN!');
-      return false;
-    }
+    if ( ! document.servers.slaveDatabaseFQDN.disabled ) {
+      if ( document.servers.slaveDatabaseFQDN.value == null || document.servers.slaveDatabaseFQDN.value == '' ) {
+        document.servers.slaveDatabaseFQDN.focus();
+        alert('Please enter a slave database FQDN!');
+        return false;
+      }
 
-    if ( document.servers.slaveDatabasePort.value == null || document.servers.slaveDatabasePort.value == '' ) {
-      document.servers.slaveDatabasePort.focus();
-      alert('Please enter a slave database port!');
-      return false;
+      if ( document.servers.slaveDatabasePort.value == null || document.servers.slaveDatabasePort.value == '' ) {
+        document.servers.slaveDatabasePort.focus();
+        alert('Please enter a slave database port!');
+        return false;
+      }
     }
   }
 

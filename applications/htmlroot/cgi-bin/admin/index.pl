@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, index.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, index.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,12 +11,12 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use DBI;
 use CGI;
+use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "index.pl";
 my $prgtext     = "$APPLICATION Admin";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -63,6 +63,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  <tr><td class="StatusItem"><a href="../moderator/sessions.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Session Console (for the Display)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="../moderator/runStatusOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Status Console (for the Collector/Display)</a></td></tr>
+	  <tr><td class="StatusItem">&nbsp;</td></tr>
+	  <tr><td class="StatusItem"><a href="../moderator/trendlineCorrectionReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Trendline Correction Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="../moderator/pluginCrontabSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Plugin Crontab Scheduling Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem"><a href="../moderator/collectorCrontabSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Collector Crontab Scheduling Reports (for the Collector)</a></td></tr>

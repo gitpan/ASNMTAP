@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.09 2006/06/xx 21:15:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.10 2006/07/xx 21:15:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker qw(WriteMakefile prompt);
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = '3.000.009';
+my $VERSION = '3.000.010';
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -31,7 +31,7 @@ my @prerequisites = (
    ]
   ],
   [ '*02',     'Time',                     'ASNMTAP::Time',                       { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::Local' => '1.04' }, 2, [], [] ],
-  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Getopt::Long' => '2.32', 'HTML::Entities' => '1.29', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.04' }, 1,
+  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Bundle::DBI' => '0', 'Bundle::DBD::mysql' => '0', 'Config::General' => '2.30', 'Config::General::Interpolated' => '2.06', 'Getopt::Long' => '2.32', 'HTML::Entities' => '1.29', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.04' }, 1,
    [
     'applications',
     'applications/bin',
@@ -51,7 +51,7 @@ my @prerequisites = (
     [ 'fixRights.sh',                                                             'x' ],
 
     [ 'applications/archive.pl',                                                  'x' ],
-    [ 'applications/archive.sh',                                                  'x' ],
+    [ 'applications/archive.sh',                                                  'X' ],
     [ 'applications/collector.pl',                                                'x' ],
     [ 'applications/display.pl',                                                  'x' ],
     [ 'applications/Applications.cnf',                                            'R' ],
@@ -67,11 +67,11 @@ my @prerequisites = (
 
     [ 'applications/sbin/sshWrapperASNMTAP.pl',                                   'x' ],
 
-    [ 'applications/tools/mysql/asnmtap-3.000.009.sql',                           'r' ],
+    [ 'applications/tools/mysql/asnmtap-3.000.010.sql',                           'r' ],
     [ 'applications/tools/mysql/MySQLBackup.sh',                                  'r' ],
    ]
   ],
-  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010', 'CGI::Session' => '', 'Date::Calc' => '5.4', 'NetAddr::IP' => '3.028', 'Time::Local' => '1.04' }, 0,
+  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010', 'CGI::Session' => '', 'Date::Calc' => '5.4', 'Proc::ProcessTable' => '0.39', 'NetAddr::IP' => '3.028', 'Time::Local' => '1.04' }, 0,
    [
     'applications/htmlroot',
     'applications/htmlroot/cgi-bin',
@@ -130,6 +130,7 @@ my @prerequisites = (
     [ 'applications/htmlroot/cgi-bin/moderator/pluginCrontabSchedulingReports.pl',                             'x' ],
     [ 'applications/htmlroot/cgi-bin/moderator/runStatusOnDemand.pl',                                          'x' ],
     [ 'applications/htmlroot/cgi-bin/moderator/sessions.pl',                                                   'x' ],
+    [ 'applications/htmlroot/cgi-bin/moderator/trendlineCorrectionReports.pl',                                 'x' ],
 
     [ 'applications/htmlroot/cgi-bin/sadmin/collectorDaemons.pl',                                              'x' ],
     [ 'applications/htmlroot/cgi-bin/sadmin/crontabs.pl',                                                      'x' ],

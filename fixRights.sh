@@ -1,12 +1,12 @@
 #!/bin/sh
 
 AMPATH=/opt/asnmtap-3.000.xxx
-WWWUSER=apache
+ASNMTAPUSER=asnmtap
+WWWUSER=apache                                               # nobody
 
-chmod 755 $AMPATH
-chown -R  asnmtap:asnmtap $AMPATH
-chown -R $WWWUSER:asnmtap $AMPATH/applications/tmp
-chown -R $WWWUSER:asnmtap $AMPATH/plugins/tmp
+chown -R $ASNMTAPUSER:$ASNMTAPUSER $AMPATH
+chown -R $ASNMTAPUSER:$WWWUSER $AMPATH/applications/tmp
+chown -R $ASNMTAPUSER:$WWWUSER $AMPATH/plugins/tmp
 
 cd $AMPATH
 chmod 644 *.*
@@ -32,7 +32,7 @@ chmod 644 *.*
 
 cd $AMPATH/applications/htmlroot/cgi-bin
 chmod 644 *.*
-chmod 755 *.cgi *.php *.pl *.sh 
+chmod 755 *.cgi *.php *.pl *.sh  perf*.png
 
 cd $AMPATH/applications/htmlroot/cgi-bin/admin
 chmod 644 *.*

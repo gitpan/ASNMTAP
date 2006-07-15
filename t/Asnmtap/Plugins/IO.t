@@ -12,7 +12,7 @@ TODO: {
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'IO.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::IO',
-    _programVersion     => '3.000.009',
+    _programVersion     => '3.000.010',
     _timeout            => 30,
     _debug              => 0);
 

@@ -64,9 +64,6 @@
 # ------------------------------------------------------------------------------
 # Setup example:
 #
-# <both server>:
-# mkdir /var/run/asnmtap/; chown /var/run/asnmtap/
-# 
 # <slave server>:
 #   ssh-keygen -q -t rsa -f /home/asnmtap/.ssh/rsync -N ""
 # or
@@ -90,11 +87,12 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.009'
+RMVersion='3.000.010'
 echo "rsync-mirror-failover version $RMVersion"
 
-PidPath=/var/run/asnmtap                          # mkdir /var/run/asnmtap/; chown /var/run/asnmtap/
+PidPath=/opt/asnmtap-3.000.xxx/pid/asnmtap
 
+Rsync=/usr/local/bin/rsync                        # <-- need to be adjusted
 KeyRsync=/home/asnmtap/.ssh/rsync                 # <-- need to be adjusted
 ConfFile=rsync-mirror-failover.conf
 ConfPath=/opt/asnmtap-3.000.xxx/applications/slave
@@ -173,11 +171,11 @@ Lock='yes'
   case "$Source" in
     */)
       echo Mirroring directory "$Source" to "$Target"
-      rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     *)
       echo Mirroring "$Source" to "$Target"
-      rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     esac
 done

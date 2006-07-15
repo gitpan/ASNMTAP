@@ -1,10 +1,12 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         ASNMTAP
-version:      3.000.009
+version:      3.000.010
 version_from: 
 installdirs:  site
 requires:
+    Bundle::DBD::mysql:            0
+    Bundle::DBI:                   0
     Bundle::LWP:                   1.11
     CGI:                           3.10
     CGI::Session:                  
@@ -30,6 +32,7 @@ requires:
     Net::FTP:                      2.58
     Net::IMAP::Simple:             1.14
     NetAddr::IP:                   3.028
+    Proc::ProcessTable:            0.39
     SOAP::Lite:                    0.67
     Test::Simple:                  0.47
     Time::HiRes:                   1.66

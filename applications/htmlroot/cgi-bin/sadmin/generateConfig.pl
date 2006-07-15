@@ -2,21 +2,8 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
-# COPYRIGHT NOTICE
-# © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
-#
-# Asnmtap may be used and modified free of charge by anyone so long as this copyright notice and the comments
-# above remain intact.  By using this code you agree to indemnify Alex Peeters from any liability that might
-# arise from it's use.
-#
-# Selling the code for this program without prior written consent is expressly forbidden.    In other words,
-# please ask first before you try and make money off of my program.
-#
-# Obtain permission before redistributing this software over the Internet or in any other medium.
-# In all cases copyright and header must remain intact.
-# ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;           # Must be used in test mode only. This reduce a little process speed
@@ -29,10 +16,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.009;
+use ASNMTAP::Time v3.000.010;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +30,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1610,6 +1597,7 @@ RMVersion='$RMVERSION'
 echo "rsync-mirror-failover-$slaveFQDN.sh version \$RMVersion"
 
 PidPath=$PIDPATH
+Rsync=$RSYNCCOMMAND
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-failover-$slaveFQDN.conf
 ConfPath=$APPLICATIONPATH/slave
@@ -1799,6 +1787,7 @@ RMVersion='$RMVERSION'
 echo "rsync-mirror-distributed-$masterFQDN.sh version \$RMVersion"
 
 PidPath=$PIDPATH
+Rsync=$RSYNCCOMMAND
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$masterFQDN.conf
 ConfPath=$APPLICATIONPATH/slave
@@ -1865,6 +1854,7 @@ RMVersion='$RMVERSION'
 echo "rsync-mirror-distributed-$slaveFQDN.sh version \$RMVersion"
 
 PidPath=$PIDPATH
+Rsync=$RSYNCCOMMAND
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$slaveFQDN.conf
 ConfPath=$APPLICATIONPATH/slave
@@ -2090,10 +2080,11 @@ sub do_compare_view {
           $compareText = "Replace '$server:$APPLICATIONPATH/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
 
 		  if (($filename =~ /^etc\/DisplayCT-[\w-]+$/) or ($filename =~ /^etc\/CollectorCT-[\w-]+$/)) {
+            $filename =~ s/etc\///g;
             $compareText .= '<br>';
             $compareText .= "$server:$APPLICATIONPATH/";
-			$compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';
-			$compareText .= "/$filename.sh reload";
+            $compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';
+            $compareText .= "/$filename.sh reload";
 #		  } elsif (($filename =~ /^(slave|master)\/asnmtap-display.sh$/)   or ($filename =~ /^(slave|master)\/asnmtap-collector.sh$/)
 #              or ($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
 		  } elsif (($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {

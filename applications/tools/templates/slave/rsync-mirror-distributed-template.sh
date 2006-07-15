@@ -68,11 +68,11 @@ Lock='yes'
   case "$Source" in
     */)
       echo Mirroring directory "$Source" to "$Target"
-      rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     *)
       echo Mirroring "$Source" to "$Target"
-      rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     esac
 done

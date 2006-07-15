@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, check_dummy.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.009;
+use ASNMTAP::Asnmtap::Plugins v3.000.010;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_dummy.pl',
   _programDescription => "Dummy plugin for testing the '$APPLICATION'",
-  _programVersion     => '3.000.009',
+  _programVersion     => '3.000.010',
   _programUsagePrefix => '-r|--returnCode <VALUE>',
   _programHelpPrefix  => '-r, --returnCode=<VALUE>
    VALUE = 0-3

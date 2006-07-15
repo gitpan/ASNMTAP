@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, sshWrapperASNMTAP.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, sshWrapperASNMTAP.pl for ASNMTAP::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.009;
+use ASNMTAP::Asnmtap::Applications v3.000.010;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS $APPLICATIONPATH $PIDPATH);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($opt_C $PROGNAME);
 
 $PROGNAME       = 'sshWrapperASNMTAP.pl';
 my $prgtext     = "ASNMTAP SSH Wrapper for the '$APPLICATION'";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

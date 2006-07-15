@@ -26,7 +26,7 @@ use strict;
 my $chrootDir = '/opt/asnmtap-3.000.xxx/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my $filename = '/var/log/asnmtap/rsync-wrapper-failover.log';
+my $filename = '/opt/asnmtap-3.000.xxx/log/asnmtap/rsync-wrapper-failover.log';
 
 # What you want sent if access is denied.
 my $denyString = 'Access Denied! Sorry';

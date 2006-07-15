@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Linux: memory
 # ----------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.009;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.010;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.009',
+  _programVersion     => '3.000.010',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent>',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

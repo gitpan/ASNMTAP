@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, holidayBundleSetDowntimes.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
  
 use strict;
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.009;
+use ASNMTAP::Asnmtap::Applications v3.000.010;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -37,7 +37,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -207,7 +207,7 @@ if ($dbh and $rv) {
                               $alert .= "\n  E = $sendEmailTo" if ($debug >= 2);
                               my $header = $commentData;
                               my $subject = "$BUSINESS / $DEPARTMENT / $APPLICATION / $header";
-                              my $message = "Geachte, Cher,\n\n$header\n\n-- $APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
+                              my $message = "Geachte, Cher,\n\n$header\n\n-- Administrator\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
                               my $returnCode = sending_mail ( $SERVERLISTSMTP, $sendEmailTo, $SENDMAILFROM, $subject, $message, $debug );
                               print "Problem sending email to the '$APPLICATION' members\n" unless ( $returnCode );
                             }

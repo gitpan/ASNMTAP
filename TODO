@@ -5,26 +5,182 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 01 Juni 2006
-Version      : 3.000.009
+Latest update: 15 Juli 2006
+Version      : 3.000.010
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # TODO  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Calculations for Trendline evolutions:
-- AVG w(1-4) * 1.25
-- if (current trendline < calculated trendline)
-  -> new = calculated trendline 
-- if (current trendline > calculated trendline)
-  -> new = calculated trendline + (current trendline - calculated trendline) / 2 
+# TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+'statusMessage': varchar -> memo ASAP !!!
+
+http://search.cpan.org/~cbarratt/File-RsyncP-0.52/lib/File/RsyncP.pm
+or
+http://www.cis.upenn.edu/~bcpierce/unison/
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#!/bin/sh
+# ---------------------------------------------------------------
+# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# ---------------------------------------------------------------
+# This shell script takes care of starting and stopping
+
+AMNAME="Collector ASNMTAP probe00-environment-probe" AMPATH=/asnmtap-3.000.xxx/applications
+AMCMD=collector.pl
+AMPARA="--hostname=probedev --mode=C --collectorlist=CollectorCT-probe00-environment-probe --dumphttp=U --status=N --debug=F --screenDebug=F --allDebug=F --nokDebug=F" PIDPATH=/asnmtap-3.000.xxx/pid
+PIDNAME=CollectorCT-probe00-environment-probe.pid
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -f $AMPATH/$AMCMD ] || exit 0
+
+if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
+  PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
+fi
+
+MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
+export MANPATH PERL5LIB
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+start() {
+  # Start daemons
+  if [ -f $PIDPATH/$PIDNAME ]
+  then
+    echo "'$AMNAME' already running, otherwise remove '$PIDNAME'"
+  else
+    echo "Start: '$AMNAME' ..."
+    cd $AMPATH
+
+   PATH=$PATH MANPATH=$MANPATH PERL5LIB=$PERL5LIB LANG=$HTTPD_LANG LD_LIBRARY_PATH=/usr/local/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$AMCMD $AMPARA &
+  fi
+}
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#!/bin/sh
+
+PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/supervision/cpan-shared/lib/perl5
+MANPATH=${MANPATH:+$MANPATH:}/opt/supervision/cpan-sharedshare/man
+export PERL5LIB MANPATH
+
+AMPATH=/opt/asnmtap-3.000.xxx/applications
+
+cd $AMPATH; /usr/local/bin/perl archive.pl -A ArchiveCT -c T -r T -d F
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+replace
+
+  rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+
+with
+
+  ssh=<sshpath>
+  ...
+  $Rsync -e "$ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  
+when:
+
+  perl Makefile.PL PREFIX=/opt/supervision/cpan-shared SITELIBEXP=/opt/supervision/cpan-shared/lib/perl5 LIB=/opt/supervision/cpan-shared/lib/perl5 INSTALLMAN1DIR=/opt/supervision/cpan-shared/share/man/man1 INSTALLMAN3DIR=/opt/supervision/cpan-shared/share/man/man3 INSTALLSITEMAN1DIR=/opt/supervision/cpan-shared/share/man/man1 INSTALLSITEMAN3DIR=/opt/supervision/cpan-shared/share/man/man3
+
+replace
+
+  my $prompt = ( $opt_n || grep /^LIB=/, @ARGV ) ? 0 : 1;
+
+with
+
+  my $prompt = ( $opt_n || grep /^LIB=/, @ARGV ) ? 1 : 1;
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<!--<SCRIPT language="Javascript">
+   document.SAMLRedirectionForm.submit();
+</SCRIPT>-->
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+NCPL CPAN modules not used by ASNMTAP:
+   CGI::Simple
+   Net::Nslookup
+   Tie::IxHash
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+send email on stop daemon
+
+Detailed Statistics and Report Generation: Adding a checkbox, to choose output destination: HTML/PDF 
+
+yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED !!!
+
+chromeless function update for MSIE 7.0 en Firefox !!!
+
+
+Trendline Correction Reports (for the Collector):
+- De beste manier is volgens mij lineair te gaan interpoleren en te gaan 
+  kijken naar de richtingscoëfficiënt van de rechte. Het algoritme kan ik 
+  echter niet zo direct neerschrijven ...
+- Steekproefgemiddelde berekenen
+  - http://www.let.leidenuniv.nl/history/res/stat/html/les8.html
+  - trendline email -> no automatically updates -> table plugins: field trendlineAutoUpdate []
+
 
 500 SSL negotiation failed
 - http://www.issociate.de/board/post/214066/LWP_and_SSL.html
-- SSL: { if (index($resp->status_line, 'SSL negotiation failed') !=-1) { sleep 1; redo SSL unless $tries++ == 3; } }
+  SSL: { if (index($response->status_line, 'SSL negotiation failed') !=-1) { sleep 1; redo SSL unless $tries++ == 3; } }
+  - or
+  SSL: { if ( 'SSL negotiation failed' =~ /$response->status_line/ ) { sleep 1; redo SSL unless $tries++ == 3; } }
+
+
+Apache:
+- Browser Agent: BrowserMatch: Mozilla/3.0, nokeepalive, force-response-1.0
+  - verify if the env-variable keepalive and/or force-response-1.1 exists
+- BrowserMatch regex [!]env-variable[=value] [[!]env-variable[=value]] ...
+  vi /etc/httpd/conf/httpd.conf or vi /usr/local/apache2/conf/httpd.conf
+  BrowserMatch "Mozilla/4.0 (compatible; MSIE 7.0; ASNMTAP; U; ASNMTAP-3.000.010 postfix; nl-BE; rv:3.000.010) Gecko/200607xx libwww-perl/5.805", keepalive, force-response-1.1
+                                                                       n nnn nnn                    n nnn nnn        nnnnnnnn             n nnn
+
+smoothline (spline layers) for trendline and bar statistics
+
+update into all tables the numeric int where needed: http://dev.mysql.com/doc/refman/5.0/en/numeric-types.html
+
+database-purge-perfdata, archiver.pl, generateCollectorDaemonSchedulingReports.pl, generateReports.pl 
+& holidayBundleSetDowntimes.pl laten uitvoeren door de enkelvoudig crontab script.
+
+Bekijken van de rechten die apache nodig heeft: htmlroot, log, master, slave, pid, results, ...
+fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken and launch fixRights before restart daemon.
+
+'Problem regarding finding master or slave' in grafieken. Misschien beter in menu onderdukken.
+
+Menu voor Moderator, Admin en Sadmin aanpassen ingeval van Distributed servers. Hier moeten sommige menuonderdelen onderdrukt worden.
+
+generateReports.sh:	error undefined value wanneer er geen records zijn :)
+
+Email message restarted means start/stop/restart. Message should also been start, stop or restart instead of restarted !!!
+
+Rsync: KeyRsync kan verschillend zijn per server
+
+Display & Collector startup script: hostname = Central FQDN Database Server by default. For a probe must this be the central database server
+
+
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 depricate --httpdump & --dumphttp: tijdelijk voor backwards compatibiliteit !!!
+
+Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
+
+http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
+
+Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
 
 
 # Plugins - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,10 +188,6 @@ depricate --httpdump & --dumphttp: tijdelijk voor backwards compatibiliteit !!!
 Extra controle voor plugins.pl en/of generateConfig.pl
 - controle of de opgegeven helpPluginFilename files bestaan op disk 
 - upload van PDF's (WORD to PDF ?)
-
-Restart Collector and Display:
-
-Ledig geworden collector moet overal worden verwijderd !!!
 
 Indien een mailtest offline is -> intresseert het resultaat ons niet, display offline, plugin toch draaien maar die mails deleten. 
 MAW Bij plugin moet dit kunnen worden opgegeven als plugintype of iets dergelijks!!!
@@ -49,6 +201,8 @@ voor plugins, ook optie delete voorzien voor plugins dewelke door acrhiver na x 
 
 
 # Display - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Restart Collector and Display: Ledig geworden collector moet overal worden verwijderd !!!
 
 multioffline, status in database offline -> in display als nog te testen weergaven
 
@@ -65,13 +219,6 @@ applications/custom/display.pm                         <- custom function
 On demand run icoontje naar de hamertjes & vraagtekens.
 
 Openen van 'Help en Commands' into new window!
-
-
-# Collector - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-nieuwe crontab optie: seconds om een crontab te kunnen verschuiven
-
-Debug file for UNKNOWN !!!
 
 
 # Reports - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,15 +243,20 @@ Oproepen van voorgedefineerde stats:
 
 # Applications  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Email mailtemplates om mailboodschappen taalonafhangkelijk te maken
+-> "Geachte, Cher,\n\n$header\n\n$CcommentData\n\n-- $APPLICATION\n$DEPARTMENT\n$BUSINESS\n"
+
 In collector daemon sheduling reports alleen de collectors laten zien voor overeenkomstige probe of server.
 
 Comments kunnen zetten op een groep testen via multiselect
+# update comments set activationTime='hh:mm:ss', activationTimeslot='1149836400', suspentionDate='yyyy-mm-dd',  suspentionTimeslot='hh:mm:ss', suspentionTimeslot='1149854400', downtime=1 where entryDate='yyyy-mm-dd' and remoteUser='...'
+
 
 useraccounts flag voor wel of geen email
 
 rename uKey of andere key plus overal waar gebruikt en delete plugin, ... met alle dependencies,
 
-delete user gaat niet omwille van de contrains met comments en events. delet waarbij contrain tijdelijk afzetten
+delete user gaat niet omwille van de contrains met comments en events. delete waarbij contrain tijdelijk afzetten
 
 In view.pl -> selecteer + groeptitle toevoegen
 
@@ -113,37 +265,17 @@ In view.pl -> omvormen naar multiselect 'Display Daemon'
 http://asnmtap.citap.be/asnmtap/nav/index/reports-index.html 
 hier url naar de plugin times in plaatsen, is makkelijker om te onthouden 
 
-fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken and launch fixRights before restart daemon.
-
-Debug files into glob field database.
-
 
 # BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 It's not a bug, it's a feature!
 
 1) malformed header from script. Bad header=    : generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
 
 
-# TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-CRON items database-purge-perfdata, archiver.pl, generateCollectorDaemonSchedulingReports.pl, generateReports.pl & holidayBundleSetDowntimes.pl uitvoeren door de COLLECTOR test environment !!!
-
-Awstats, ChartDirector, HTMLDOC and PerfParse installation ...
-
-
-# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
-
-http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
-
-Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
-
-
 # NEW NEXT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Embedded Perl ondersteuning aangaande de plugins!!!
 
@@ -152,6 +284,18 @@ SNMP compatibility regarding the return status off the plugins
 http://www.hswn.dk/hobbitsw/
 
 Big Brother / Hobbit compatibility for easy addaptation off these plugins
+
+
+# Applications  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Debug files into glob field database.
+
+
+# Collector - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+nieuwe crontab optie: seconds om een crontab te kunnen verschuiven
+
+Debug file for UNKNOWN !!!
 
   
 Sending 'Notifications'

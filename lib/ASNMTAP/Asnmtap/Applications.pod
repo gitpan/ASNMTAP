@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2006/06/xx 9:01:36, ASNMTAP v3.000.009 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2006/07/xx 9:01:36, ASNMTAP v3.000.010 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -97,7 +97,39 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item rsync-wrapper-failover-*.sh
 
-...
+=over 4
+
+=item rsync
+
+ mkdir /home/asnmtap/.ssh
+ chown -R asnmtap:asnmtap /home/asnmtap/.ssh
+
+ ssh-keygen -t rsa -f /home/asnmtap/.ssh/rsync -N ""
+ # or
+ ssh-keygen -t dsa -f /home/asnmtap/.ssh/rsync -N ""
+
+=item testing
+
+ ssh -i /home/asnmtap/.ssh/rsync asnmtap@probe
+   ... Access Denied! Sorry
+   Connection to probe closed.
+
+ rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap-3.000.xxx/results/test/ asnmtap@probe.citap.be:/opt/asnmtap-3.000.xxx/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt
+   building file list ... done
+   ./
+   yyyymmdd-check_dummy-PROBE-01-T1-csv.txt
+   ...
+
+ /opt/asnmtap/applications/slave/rsync-mirror-distributed-probe.citap.be.sh
+   building file list ... done
+   yyyymmdd-check_dummy-PROBE-01-T5-csv.txt
+   ...
+   sent nnnn bytes received nnnn bytes nnnn.nn bytes/sec
+   total size is nnnn speedup is nnnn.nn
+
+   when problems: check value off 'KeyRsync'
+
+=back
 
 =item linux
 
@@ -406,6 +438,18 @@ the Archiver.
 
 =item archive.sh
 
+=over 4
+
+=item Central
+
+ archive.pl -A ArchiveCT -c T -r T -d T
+
+=item Distributed
+
+ archive.pl -A ArchiveCT -c T -r T -d F
+
+=back
+
 Shell script to run archive.pl with the default command line options
 
  crontab -e
@@ -491,8 +535,35 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
    ssh: ALL
 
    ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'killall number'
-   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'remove /var/run/asnmtap/CollectorCT-zombie.pid'
+   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-zombie.pid'
    ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-test.sh stop'
+
+ Test sshWrapperASNMTAP.pl:
+
+    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'killall number'
+      SSH REQUEST FAILED INSPECTION - SKIPPING 'killall number'
+      EVALUATING 'killall number'
+    or
+      Couldn't open log '/opt/asnmtap-3.000.xxx/log/sshWrapperASNMTAP.log'!
+
+    chmod 664 /opt/asnmtap/log/sshWrapperASNMTAP.log 
+
+    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      EVALUATING 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      SSH REQUEST PASSED INSPECTION - INITIATING '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      EXECUTE '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop' COMPLETED
+
+    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
+      EVALUATING 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
+      SSH REQUEST PASSED INSPECTION - INITIATING '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
+      EXECUTE '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
+      '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid' COMPLETED
+  
+    more /opt/asnmtap/log/sshWrapperASNMTAP.log 
+      ... EVALUATING: 'killall number'
+      ... SSH REQUEST FAILED INSPECTION - SKIPPING 'killall number'
+      ...
 
  Dependencies:
 
@@ -516,7 +587,41 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 
 =item create user asnmtap
 
-adduser asnmtap
+ groupadd -g 32005 asnmtap
+ useradd -u 32005 -g asnmtap -c ASNMTAP Configuration User -d /home/asnmtap -s /bin/ksh -m asnmtap
+
+ /usr/sbin/groupadd asnmtapcmd
+ /usr/sbin/usermod -G asnmtapcmd asnmtap
+ /usr/sbin/usermod -G asnmtapcmd nobody
+
+=item .profile example
+ 
+ export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:/usr/local/mysql/bin:${PATH}
+
+ export LD_LIBRARY_PATH=/usr/local/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib
+
+ export http_proxy=http://proxy.citap.be:8080
+ export ftp_proxy=http://proxy.citap.be:8080
+
+ alias su=/usr/bin/su
+ alias perl=/usr/local/bin/perl
+
+ if [ -d /opt/cpan-shared/lib/perl5 ]; then
+   PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/cpan-shared/lib/perl5
+ fi
+
+ MANPATH=${MANPATH:+$MANPATH:}/opt/cpan-shared/share/man
+ export MANPATH PERL5LIB
+
+ bash
+
+=item .bash_profile example
+
+ MAIL=/usr/mail/${LOGNAME:?}
+
+ export PATH
+
+ umask 022
 
 =item create ssh key
 
@@ -639,9 +744,9 @@ adduser asnmtap
 
 =item onto the master and slave server:
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.009.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.010.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.009.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.010.sql
 
 
 =item onto the master server:
@@ -837,17 +942,17 @@ We use the 'Pipe to Perfparse' methode
 
 =item Compiling Perfparse
 
- wget http://belnet.dl.sourceforge.net/sourceforge/perfparse/perfparse-0.105.7.tar.gz
+ wget http://belnet.dl.sourceforge.net/sourceforge/perfparse/perfparse-0.106.1.tar.gz
  cd /export/download/
- tar -xvzf perfparse-0.105.7.tar.gz
- cd /export/download/perfparse-0.105.7
- ./configure --prefix=/opt/asnmtap-3.000.xxx/perfparse --with-imagedir=/opt/asnmtap-3.000.xxx/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap
+ tar -xvzf perfparse-0.106.1.tar.gz
+ cd /export/download/perfparse-0.106.1
+ ./configure --prefix=/opt/asnmtap-3.000.xxx/perfparse --with-imagedir=/opt/asnmtap-3.000.xxx/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap --disable-phpui
  make
  make install-strip
 
 =item Installing Perfparse database
 
- cd /export/download/perfparse-0.105.7/scripts
+ cd /export/download/perfparse-0.106.1/scripts
  cat mysql_create.sql | mysql -u root -p -D asnmtap
 
 =item Configuration of Perfparse for ASNMTAP
@@ -863,8 +968,8 @@ We use the 'Pipe to Perfparse' methode
    Service_Log "-"
    ...
    # Error handling :
-   Error_Log =                  "/var/log/perfparse-asnmtap-all"
-   Drop_File =                  "/var/log/perfparse-asnmtap-drop"
+   Error_Log =                  "/opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-all"
+   Drop_File =                  "/opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-drop"
    ...
 
   # Database managment :
@@ -897,8 +1002,13 @@ We use the 'Pipe to Perfparse' methode
    $TIMET$		$HOSTNAME$		 	    $SERVICEDESC$		$OUTPUT$											$SERVICESTATE$	$PERFDATA$
    1107692805	chablis.dvkhosting.com	process ColdFusion	OK - 40 processes running with command name cfusion	OK				label=1;2;3;4;5
 
-   Test command:
+   Test ASNMTAP Perfparse integration:
    /usr/bin/printf "%b" "1107692900\tDUMMY-T1\tDUMMY-T1\tCRITICAL - Check Dummy: +DUMMY-T2+\tCRITICAL\ttperfdata=1;1;;;\n" | /opt/asnmtap-3.000.xxx/perfparse/bin/perfparse-log2mysql -c /opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg
+
+   Look for results into the database and the logfile located at /opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-all.yyyymmdd.log
+
+   more /opt/asnmtap-3.000.xxx/log/perfparse-asmtap-all.yyyymmdd.log 
+   yyyy/mm/dd hh:mmss1 [   storage.c:95    nnnn  ] storage_mysql module successfully loaded
 
 =item Database Maintenance
 
@@ -921,19 +1031,28 @@ HTMLDOC: http://www.htmldoc.org/
 
  Get the software from http://www.htmldoc.org/
    cd /export/download
-   wget http://ftp.easysw.com/pub/htmldoc/1.8.25/htmldoc-1.8.25-source.tar.gz
+   wget http://ftp.easysw.com/pub/htmldoc/1.8.26/htmldoc-1.8.26-source.tar.gz
 
 =item Installing the Software
 
- After downloading the software, install the software using the following commands:
-   cd /export/download/directory
-   rpm -i htmldoc-1.8.25-linux-intel.rpm
-   /usr/bin/htmldoc
-   tar -xvzf htmldoc-1.8.25-source.tar.gz
-   cd /export/download/htmldoc-1.8.25
-   ./configure
-   make
-   make install
+=over 4
+
+=item Linux
+
+ cd /export/download/directory
+ rpm -i htmldoc-1.8.26-linux-intel.rpm
+ /usr/bin/htmldoc
+
+=item Solaris
+
+ cd /export/download/directory
+ tar -xvzf htmldoc-1.8.26-source.tar.gz
+ cd /export/download/htmldoc-1.8.26
+ ./configure
+ make
+ make install
+
+=back
 
 =item Licensing the Software
 
@@ -951,35 +1070,84 @@ Click on the Update License button to add a license to your system
  AddHandler cgi-script .cgi .pl
  Options ExecCGI FollowSymLinks
 
+=item Testing the Software
+
+ htmldoc -f '/opt/asnmtap-3.000.xxx/results/_ASNMTAP/reports/yyyydmmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-probe02-Daily.pdf' --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 21mm --bottom 10mm --left 26mm --right 10mm --fontsize 8.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 8.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage 'http://localhost/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?htmlToPdf=1&amp;sqlPeriode=3600&amp;width=1000&amp;xOffset=300&amp;yOffset=42&amp;labelOffset=32&amp;AreaBOffset=78&amp;hightMin=195'
+ cd /opt/asnmtap/applications/bin
+ ./generateCollectorDaemonSchedulingReports.pl -D L
+ ls /opt/asnmtap/results/_ASNMTAP/reports/
+
 =back
 
 =item Install ChartDirector 4.x for Perl
 
+=over 4
+
+=item Linux
+
  download chartdir_perl_linux.tar.gz from http://www.advsofteng.com/
    wget http://www.advsofteng.com/chartdir_perl_linux.tar.gz
    mv chartdir_perl_linux.tar.gz /opt/.
+   cd /opt
    tar -xvzf chartdir_perl_linux.tar.gz
    rm chartdir_perl_linux.tar.gz
 
+=item Solaris
+
+ download chartdir_perl_sunos.tar.gz from http://www.advsofteng.com/
+   wget http://www.advsofteng.com/chartdir_perl_sunos.tar.gz
+   mv chartdir_perl_sunos.tar.gz /opt/.
+   cd /opt
+   tar -xvzf chartdir_perl_sunos.tar.gz
+   rm chartdir_perl_sunos.tar.gz
+
+=back
+
 =item Install Awstats
 
- # vi /usr/local/apache2/conf/httpd.conf
+ vi /usr/local/apache2/conf/httpd.conf
  CustomLog logs/access_log combined
 
- # wget http://belnet.dl.sourceforge.net/sourceforge/awstats/awstats-6.3.tgz
- # tar -xvzf awstats-6.3.gz
- # chown -R nagios.nagios awstats-6.3
- # mv awstats-6.3 /usr/local/
- # mv /usr/local/awstats-6.3 /usr/local/awstats
- # cd /usr/local/awstats/tools
- # ./awstats_configure.pl
+ wget http://belnet.dl.sourceforge.net/sourceforge/awstats/awstats-6.5.tgz
+ tar -xvzf awstats-6.5.gz
+ chown -R asnmtap:asnmtap awstats-6.5
+ mv awstats-6.5 /usr/local/
+ mv /usr/local/awstats-6.5 /usr/local/awstats
+ cd /usr/local/awstats/tools
+ ./awstats_configure.pl
 
- # mkdir /var/lib
- # mkdir /var/lib/awstats
+ mkdir /var/lib
+ mkdir /var/lib/awstats
 
- # chown -R nobody /usr/local/awstats/wwwroot
+ chown -R nobody /usr/local/awstats/wwwroot
 
- # vi /var/spool/cron/crontabs/root
+
+ vi /usr/local/awstats/wwwroot/cgi-bin/awstats.model.conf
+ # replace
+ SiteDomain=""
+ # with
+ SiteDomain="citap.be"
+ ...
+ # replace
+ HostAliases="localhost 127.0.0.1 REGEX[myserver\.com$"
+ # with
+ HostAliases="localhost 127.0.0.1 asnmtap]"
+ ...
+ # replace
+ LogFile="/var/log/httpd/mylog.log"
+ # with
+ LogFile="/var/log/httpd/asnmtap.citap.be-combined.log"
+
+
+ cd /usr/local/awstats
+ ./awstats_configure.pl
+
+ /etc/init.d/httpd restart
+
+ /usr/local/bin/perl /usr/local/awstats/awstats_updateall.pl now -awstatsprog=/usr/local/awstats/wwwroot/cgi-bin/awstats.pl -configdir=/usr/local/awstats/etc/
+
+
+ vi /var/spool/cron/crontabs/root
  15 * * * * /usr/local/awstats/tools/awstats_updateall.pl now > /dev/null 2> &1
 
  http://awstats.sourceforge.net/docs/awstats_setup.html
@@ -1038,6 +1206,126 @@ asyncroon scheduling required
 
 perl -MCPAN -e 'CPAN::Shell->install(CPAN::Shell->r)'
 
+=item using CPAN with a non-root account for ASNMTAP
+
+ mkdir /opt/cpan-shared
+ mkdir /opt/cpan-shared/lib
+ mkdir /opt/cpan-shared/lib/perl5
+ mkdir /opt/cpan-shared/share
+ mkdir /opt/cpan-shared/share/man
+ mkdir /opt/cpan-shared/share/man/man1
+ mkdir /opt/cpan-shared/share/man/man3
+
+ chmod -R 775 /opt/cpan-shared
+ chown -R asnmtap:asnmtapcmd /opt/cpan-shared
+
+ mkdir -p ~/.cpan/CPAN
+ chown -R asnmtap:asnmtap ~/.cpan/CPAN
+
+ cd  ~/.cpan/CPAN
+
+ vi MyConfig.pm
+ # <-- MyConfig.pm
+ $CPAN::Config = {
+  'build_cache' => q[10],
+  'build_dir' => q[/home/asnmtap/.cpan/build],
+  'cache_metadata' => q[1],
+  'cpan_home' => q[/home/asnmtap/.cpan],
+  'ftp' => q[/usr/kerberos/bin/ftp],
+  'ftp_proxy' => q[http://proxyorg:8080],
+  'getcwd' => q[cwd],
+  'gpg' => q[/usr/bin/gpg],
+  'gzip' => q[/bin/gzip],
+  'histfile' => q[/home/asnmtap/.cpan/histfile],
+  'histsize' => q[100],
+  'http_proxy' => q[http://proxyorg:8080],
+  'inactivity_timeout' => q[0],
+  'index_expire' => q[1],
+  'inhibit_startup_message' => q[0],
+  'keep_source_where' => q[/home/asnmtap/.cpan/sources],
+  'links' => q[],
+  'make' => q[/usr/local/bin/make],
+  'make_arg' => q[],
+  'make_install_arg' => q[],
+  'makepl_arg' => q[PREFIX=/opt/cpan-shared SITELIBEXP=/opt/cpan-shared/lib/perl5 LIB=/opt/cpan-shared/lib/perl5 INSTALLMAN1DIR=/opt/cpan-shared/share/man/man1 INSTALLMAN3DIR=/opt/cpan-shared/share/man/man3 INSTALLSITEMAN1DIR=/opt/cpan-shared/share/man/man1 INSTALLSITEMAN3DIR=/opt/cpan-shared/share/man/man3],
+  'ncftp' => q[],
+  'ncftpget' => q[],
+  'no_proxy' => q[],
+  'pager' => q[/usr/bin/less],
+  'prerequisites_policy' => q[ask],
+  'proxy_user' => q[],
+  'scan_cache' => q[atstart],
+  'shell' => q[/bin/bash],
+  'tar' => q[/bin/tar],
+  'term_is_latin' => q[1],
+  'unzip' => q[/usr/bin/unzip],
+  'urllist' => [q[http://cpan.llarian.net/], q[http://ftp.easynet.be/pub/CPAN/], q[http://cpan.mirrors.skynet.be/pub/CPAN], q[http://ftp.belnet.be/packages/cpan/], q[ftp://http.kulnet.kuleuven.ac.be/pub/mirror/CPAN/], q[http://ftp.scarlet.be/pub/cpan/]],
+  'wget' => q[/usr/bin/wget],
+ };
+ 1;
+ __END__
+ # MyConfig.pm -->
+
+
+ su - asnmtap
+ perl -c MyConfig.pm
+ perl -MCPAN -e 'reload index'
+
+
+ vi ~/.bash_profile
+ ...
+ if [ -d /opt/cpan-shared/lib/perl5 ]; then 
+   PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/cpan-shared/lib/perl5
+ fi
+
+ MANPATH=${MANPATH:+$MANPATH:}/opt/cpan-shared/share/man
+ export MANPATH PERL5LIB
+
+
+ vi /etc/init.d/httpd
+ ...
+ if [ -d /opt/cpan-shared/lib/perl5 ]; then
+   PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/cpan-shared/lib/perl5
+ fi
+
+ MANPATH=${MANPATH:+$MANPATH:}/opt/cpan-shared/share/man
+ export MANPATH PERL5LIB
+ ...
+ start() {
+          echo -n $"Starting $prog: "
+          check13 || exit 1
+          PATH=$PATH MANPATH=$MANPATH PERL5LIB=$PERL5LIB LANG=$HTTPD_LANG daemon $httpd $OPTIONS
+          RETVAL=$?
+          echo
+          [ $RETVAL = 0 ] && touch ${lockfile}
+          return $RETVAL
+ }
+ ...
+
+
+ sudo /etc/init.d/httpd restart
+
+
+ more /etc/httpd/conf.d/asnmtap.conf
+ ...
+ <VirtualHost *:80>
+   ...
+   SetEnv PERL5LIB /opt/cpan-shared/lib/perl5
+   ...
+ </VirtualHost>
+
+
+ # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ vi Makefile.pl
+ ...
+ use lib qw(/opt/cpan-shared/lib/perl5/.);
+ ...
+
+ # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
+ perl Makefile.PL -LIB /opt/cpan-shared -PREFIX /opt/cpan-shared 
+ make
+ make install
+
 =back
 
 =item Apache
@@ -1052,35 +1340,35 @@ http://www.vanemery.com/Linux/Apache/apache-SSL.html
 
 =item Step 1: Setup your own CA (Certificate Authority)
 
- # openssl genrsa -des3 -out server-ca.key 2048
- # openssl req -new -x509 -days 3650 -key server-ca.key -out server-ca.crt
- To remove the pass phrase from the key file, execute this: 
- # openssl rsa -in server-ca.key -out server-ca-nopass.key
- # openssl x509 -in server-ca.crt -text -noout
+ openssl genrsa -des3 -out server-ca.key 2048
+ openssl req -new -x509 -days 3650 -key server-ca.key -out server-ca.crt
+ # To remove the pass phrase from the key file, execute this: 
+ openssl rsa -in server-ca.key -out server-ca-nopass.key
+ openssl x509 -in server-ca.crt -text -noout
 
 =item Step 2: Make a key and a certificate for the web server:
 
- # openssl genrsa -des3 -out citap-server.key 1024
- # openssl req -new -key citap-server.key -out citap-server.csr
+ openssl genrsa -des3 -out citap-server.key 1024
+ openssl req -new -key citap-server.key -out citap-server.csr
    ...
    Common Name (eg, your name or your server's hostname) []:secure.citap.com <=== This must be the real FQDN of your server!!!
- # openssl rsa -in citap-server.key -out citap-server-nopass.key
- # openssl x509 -req -in citap-server.csr -out citap-server.crt -sha1 -CA server-ca.crt -CAkey server-ca.key -CAcreateserial -days 3650
- # openssl x509 -in citap-server.crt -text -noout
+ openssl rsa -in citap-server.key -out citap-server-nopass.key
+ openssl x509 -req -in citap-server.csr -out citap-server.crt -sha1 -CA server-ca.crt -CAkey server-ca.key -CAcreateserial -days 3650
+ openssl x509 -in citap-server.crt -text -noout
 
 =item Step 3: Creating Client Certificates for Authentication 
 
- # openssl genrsa -des3 -out alex-peeters.key 1024
- # openssl req -new -key alex-peeters.key -out alex-peeters.csr
- # openssl x509 -req -in alex-peeters.csr -out alex-peeters.crt -sha1 -CA server-ca.crt -CAkey server-ca.key -CAcreateserial -days 3650
- # openssl pkcs12 -export -in alex-peeters.crt -inkey alex-peeters.key -name "Alex Peeters" -out alex-peeters.p12
- # openssl pkcs12 -in alex-peeters.p12 -clcerts -nokeys -info
+ openssl genrsa -des3 -out alex-peeters.key 1024
+ openssl req -new -key alex-peeters.key -out alex-peeters.csr
+ openssl x509 -req -in alex-peeters.csr -out alex-peeters.crt -sha1 -CA server-ca.crt -CAkey server-ca.key -CAcreateserial -days 3650
+ openssl pkcs12 -export -in alex-peeters.crt -inkey alex-peeters.key -name "Alex Peeters" -out alex-peeters.p12
+ openssl pkcs12 -in alex-peeters.p12 -clcerts -nokeys -info
 
  when:
    [error] Re-negotiation handshake failed: Not accepted by client!?
    [error] Certificate Verification: Error (20): unable to get local issuer certificate
 
- # vi /etc/httpd/cond.d/ssl.conf
+ vi /etc/httpd/cond.d/ssl.conf
    SSLCertificateFile /etc/httpd/conf/ssl.crt/citap-server.crt
    SSLCertificateKeyFile /etc/httpd/conf/ssl.key/citap-server.key
    SSLCertificateChainFile /etc/httpd/conf/ssl.crt/server-ca.crt
@@ -1194,6 +1482,178 @@ Index prefixes on foreign key columns are not supported. One consequence of this
 =item How to import drop a InnoDB table that is referenced by a FOREIGN KEY constraint?
 
 InnoDB does not allow you to drop a table that is referenced by a FOREIGN KEY constraint, unless you do SET FOREIGN_KEY_CHECKS=0. When you drop a table, the constraints that were defined in its create statement are also dropped. 
+
+=back
+
+=back
+
+=head1 REQUIREMENTS
+
+=over 4
+
+=item Linux (Centos/Redhat EL3 and EL4)
+
+ Staring from a core installation you need:
+
+ rpm -i autoconf-2.59-5.noarch.rpm
+ rpm -i automake-1.9.2-3.noarch.rpm
+
+ rpm -i libtool-1.5.6-4.EL4.1.i386.rpm
+ rpm -i libtool-libs-1.5.6-4.EL4.1.i386.rpm
+
+ rpm -i libstdc++-devel-3.4.5-2.i386.rpm
+ rpm -i gcc-c++-3.4.5-2.i386.rpm
+
+ rpm -i libpng10-1.0.16-1.i386.rpm
+ rpm -i libpng10-devel-1.0.16-1.i386.rpm
+
+ rpm -i libpng-1.2.7-1.el4.2.i386.rpm
+ rpm -i libpng-devel-1.2.7-1.el4.2.i386.rpm
+
+ rpm -i libjpeg-6b-33.i386.rpm
+ rpm -i libjpeg-devel-6b-33.i386.rpm
+
+ rpm -i freetype-2.1.9-1.i386.rpm
+ rpm -i freetype-devel-2.1.9-1.i386.rpm
+ rpm -i freetype-utils-2.1.9-1.i386.rpm
+
+ rpm -i fontconfig-2.2.3-7.i386.rpm
+ rpm -i fontconfig-devel-2.2.3-7.i386.rpm
+
+ rpm -i glib2-2.4.7-1.i386.rpm
+ rpm -i glib2-devel-2.4.7-1.i386.rpm
+
+ rpm -i zlib-devel-1.2.1.2-1.2.i386.rpm
+ rpm -i e2fsprogs-devel-1.35-12.3.EL4.i386.rpm
+ rpm -i krb5-devel-1.3.4-27.i386.rpm
+ rpm -i openssl-devel-0.9.7a-43.8.i386.rpm
+
+ rpm -i libtool-libs-1.5.6-4.EL4.1.i386.rpm
+ rpm -i gd-2.0.33-4.4E.1.i386.rpm
+ rpm -i gd-devel-2.0.33-4.4E.1.i386.rpm
+ rpm -i gd-progs-2.0.33-4.4E.1.i386.rpm
+
+ rpm -i libmcrypt-2.5.7-1.2.el4.rf.i386.rpm
+ rpm -i libxml2-2.6.16-6.i386.rpm
+
+ rpm -i httpd-2.0.52-22.ent.i386.rpm httpd-suexec-2.0.52-22.ent.i386.rpm
+ rpm -i mysql-4.1.12-3.RHEL4.1.i386.rpm
+ rpm -i mysql-devel-4.1.12-3.RHEL4.1.i386.rpm
+
+ perl -MCPAN -e 'install Bundle::CPAN'
+ perl -MCPAN -e 'install Pod::Coverage'
+ perl -MCPAN -e 'install Test::Pod'
+ perl -MCPAN -e 'install Module::Signature'
+
+ rpm -i perl-HTML-Tagset-3.03-30.noarch.rpm
+ rpm -i perl-HTML-Parser-3.35-6.i386.rpm
+ rpm -i perl-URI-1.30-4.noarch.rpm
+ rpm -i perl-libwww-perl-5.79-5.noarch.rpm
+ rpm -i perl-Crypt-SSLeay-0.51-5.i386.rpm
+ rpm -i perl-Date-Calc-5.3-9.i386.rpm
+
+ rpm -i perl-DBI-1.40-8.i386.rpm
+ rpm -i perl-DBD-MySQL-2.9004-3.1.i386.rpm
+
+ rpm -i perl-Time-HiRes-1.55-3.i386.rpm
+
+ rpm -i perl-XML-Parser-2.34-5.i386.rpm
+ rpm -i perl-XML-Dumper-0.71-2.noarch.rpm
+
+=item Solaris 9
+
+ Starting from a core installation you need:
+
+=over 4
+
+=item sunfreeware.com
+
+ pkgadd -d bash-3.1-sol9-sparc-local
+ pkgadd -d coreutils-4.5.4-sol9-sparc-local
+ pkgadd -d libiconv-1.8-sol9-sparc-local
+ pkgadd -d ncurses-5.4-sol9-sparc-local
+ pkgadd -d perl-5.8.7-sol9-sparc-local
+ pkgadd -d popt-1.7-sol9-sparc-local
+ pkgadd -d tar-1.15.1-sol9-sparc-local
+ pkgadd -d tcp_wrappers-7.6-sol9-sparc-local
+ pkgadd -d tcpdump-3.9.3-sol9-sparc-local
+ pkgadd -d wget-1.10.2-sol9-sparc-local
+ pkgadd -d zlib-1.2.3-sol9-sparc-local
+
+ pkgadd -d apache-2.0.55-sol9-sparc-local
+ pkgadd -d autoconf-2.59-sol9-sparc-local
+ pkgadd -d automake-1.9-sol9-sparc-local
+ pkgadd -d bison-1.875d-sol9-sparc-local
+ pkgadd -d bzip2-1.0.2-sol9-sparc-local
+ pkgadd -d db-4.2.52.NC-sol9-sparc-local
+ pkgadd -d diffutils-2.8.1-sol9-sparc-local
+ pkgadd -d expat-1.95.5-sol9-sparc-local
+ pkgadd -d flex-2.5.31-sol9-sparc-local
+ pkgadd -d fping-2.4b2-sol9-sparc-local
+ pkgadd -d fontconfig-2.2.98-sol9-sparc-local
+ pkgadd -d freetype-2.1.9-sol9-sparc-local
+ pkgadd -d gcc-3.4.2-sol9-sparc-local
+ pkgadd -d gd-2.0.33-sol9-sparc-local
+ pkgadd -d gdbm-1.8.3-sol9-sparc-local
+ pkgadd -d glib-2.6.2-sol9-sparc-local
+ pkgadd -d jpeg-6b-sol9-sparc-local
+ pkgadd -d libnet-1.1.1-sol9-sparc-local
+ pkgadd -d libpcap-0.9.3-sol9-sparc-local
+ pkgadd -d libpng-1.2.8-sol9-sparc-local
+ pkgadd -d librsync-0.9.7-sol9-sparc-local
+ pkgadd -d libtool-1.5-sol9-sparc-local
+ pkgadd -d libxml2-2.6.16-sol9-sparc-local
+ pkgadd -d m4-1.4.2-sol9-sparc-local
+ pkgadd -d make-3.80-sol9-sparc-local
+ pkgadd -d mrtg-2.10.15-sol9-sparc-local
+ pkgadd -d openssl-0.9.8b-sol9-sparc-local
+ pkgadd -d openssl-0.9.7g-sol9-sparc-local
+ pkgadd -d pkgconfig-0.15.0-sol9-sparc-local
+ pkgadd -d prngd-0.9.25-sol9-sparc-local
+ pkgadd -d readline-5.1-sol9-sparc-local
+ pkgadd -d rsync-2.6.8-sol9-sparc-local
+ pkgadd -d texinfo-4.2-sol9-sparc-local
+ pkgadd -d unzip-5.50-sol9-sparc-local
+ pkgadd -d xpm-3.4k-sol9-sparc-local
+
+=item blastwave.org
+
+ pkgadd -d pkg_get.pkg
+ pkgadd -d common-1.4.3,REV=2006.01.22-SunOS5.8-sparc-CSW.pkg
+ pkgadd -d awstats-6.4-SunOS5.8-all-CSW.pkg
+ pkgadd -d binutils-2.16.1-SunOS5.8-sparc-CSW.pkg
+
+=item libmcrypt
+
+ tar -xvzf libmcrypt-2.5.7.tar.gz
+ cd libmcrypt-2.5.7
+ ./configure
+ make
+ make install
+
+=item MySQL
+
+ tar -xvzf mysql-4.1.20.tar.gz 
+ cd mysql-4.1.20
+ ./configure --without-server --enable-local-infile 
+ make
+ make install
+
+ /usr/local/bin/mysql_client_test --host asnmtap
+
+=item Perl
+
+ perl -MCPAN -e 'reload index'
+ perl -MCPAN -e 'install Date::Manip'
+ perl -MCPAN -e 'install LWP::UserAgent'
+ perl -MCPAN -e 'install Statistics::Descriptive'
+ perl -MCPAN -e 'install Text::ParseWords'
+ perl -MCPAN -e 'install Test::Pod'
+ perl -MCPAN -e 'install Net::Daemon'
+ perl -MCPAN -e 'install Bundle::DBI'
+ perl -MCPAN -e 'install Bundle::DBD::mysql'
+ perl -MCPAN -e 'install Net::SNMP'
+ perl -MCPAN -e 'install Config::IniFiles'
 
 =back
 

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, package ASNMTAP::Asnmtap::Plugins::IO making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Plugins::IO
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::IO;
@@ -33,7 +33,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::IO::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::IO::EXPORT_TAGS{ALL} } );
   
-  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = 3.000.009;
+  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = 3.000.010;
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -

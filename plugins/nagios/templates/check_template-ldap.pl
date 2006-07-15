@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, check_template-ldap.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.009;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.010;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,7 +24,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-ldap.pl',
   _programDescription => 'LDAP Nagios Template',
-  _programVersion     => '3.000.009',
+  _programVersion     => '3.000.010',
   _programGetOptions  => ['host|H=s', 'port|P=i', 'dn=s', 'dnPass=s', 'base=s', 'scope=s', 'filter=s', 'username|u|loginname:s', 'password|passwd|p=s', 'environment|e:s'],
   _programUsagePrefix => '-0|--dn <dn> -1|--dnPass <dn pass> -b|--base <base> -s|--scope <scope> -f|--filter <filter>',
   _programHelpPrefix  => "-0, --dn=<DN>

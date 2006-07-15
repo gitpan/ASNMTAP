@@ -152,6 +152,7 @@ applications/htmlroot/cgi-bin/moderator/index.pl
 applications/htmlroot/cgi-bin/moderator/pluginCrontabSchedulingReports.pl
 applications/htmlroot/cgi-bin/moderator/runStatusOnDemand.pl
 applications/htmlroot/cgi-bin/moderator/sessions.pl
+applications/htmlroot/cgi-bin/moderator/trendlineCorrectionReports.pl
 
 applications/htmlroot/cgi-bin/sadmin/collectorDaemons.pl
 applications/htmlroot/cgi-bin/sadmin/crontabs.pl
@@ -233,7 +234,7 @@ applications/htmlroot/sound/warning.wav
 
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.009.sql
+applications/tools/mysql/asnmtap-3.000.010.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js

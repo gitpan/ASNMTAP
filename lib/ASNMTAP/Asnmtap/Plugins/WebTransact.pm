@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.009; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.010; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -187,6 +187,8 @@ sub check {
 
     if ( defined $proxyServer ) {
       $ua->default_headers->push_header ( 'Proxy-Connection' => 'Keep-Alive' );
+
+      # don't use $ua->proxy ( ['http', 'https', 'ftp'] => $proxyServer ); or $ua->proxy ( 'https' => undef ) ;
       $ua->proxy ( ['http', 'ftp'] => $proxyServer );
     }
 

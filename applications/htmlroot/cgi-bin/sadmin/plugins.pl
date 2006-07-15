@@ -2,21 +2,8 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
-# COPYRIGHT NOTICE
-# © Copyright 2005 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
-#
-# Asnmtap may be used and modified free of charge by anyone so long as this copyright notice and the comments
-# above remain intact.  By using this code you agree to indemnify Alex Peeters from any liability that might
-# arise from it's use.
-#
-# Selling the code for this program without prior written consent is expressly forbidden.    In other words,
-# please ask first before you try and make money off of my program.
-#
-# Obtain permission before redistributing this software over the Internet or in any other medium.
-# In all cases copyright and header must remain intact.
-# ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;           # Must be used in test mode only. This reduce a little process speed
@@ -29,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,6 +46,8 @@ my $Carguments          = (defined $cgi->param('arguments'))          ? $cgi->pa
 my $CargumentsOndemand  = (defined $cgi->param('argumentsOndemand'))  ? $cgi->param('argumentsOndemand')  : "";
 my $Ctitle              = (defined $cgi->param('title'))              ? $cgi->param('title')              : "";
 my $Ctrendline          = (defined $cgi->param('trendline'))          ? $cgi->param('trendline')          : 0;
+my $Cpercentage         = (defined $cgi->param('percentage'))         ? $cgi->param('percentage')         : 25;
+my $Ctolerance          = (defined $cgi->param('tolerance'))          ? $cgi->param('tolerance')          : 5;
 my $Cstep               = (defined $cgi->param('step'))               ? $cgi->param('step')               : 0;
 my $Condemand           = (defined $cgi->param('ondemand'))           ? $cgi->param('ondemand')           : "off";
 my $Cproduction         = (defined $cgi->param('production'))         ? $cgi->param('production')         : "off";
@@ -81,10 +70,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Plugins", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($holidayBundleSelect, $pagedirsSelect, $resultsdirSelect, $matchingPlugins, $navigationBar, $matchingViewsCrontabs, $generatePluginCrontabSchedulingReport);
@@ -117,7 +106,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyOndemand   = ($Condemand eq "on") ? 1 : 0;
         my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
         my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -162,7 +151,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyOndemand   = ($Condemand eq "on") ? 1 : 0;
       my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
       my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '"';
+      $sql = 'UPDATE ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
@@ -179,12 +168,13 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select uKey, test, arguments, argumentsOndemand, title, trendline, step, ondemand, production, pagedir, resultsdir, helpPluginFilename, holidayBundleID, activated from $SERVERTABLPLUGINS where uKey = '$CuKey'";
+      $sql = "select uKey, test, arguments, argumentsOndemand, title, trendline, percentage, tolerance, step, ondemand, production, pagedir, resultsdir, helpPluginFilename, holidayBundleID, activated from $SERVERTABLPLUGINS where uKey = '$CuKey'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CuKey, $Ctest, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+        ($CuKey, $Ctest, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cpercentage, $Ctolerance, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+
         $Condemand   = ($Condemand == 1) ? "on" : "off";
         $Cproduction = ($Cproduction == 1) ? "on" : "off";
         $Cactivated  = ($Cactivated == 1) ? "on" : "off";
@@ -381,6 +371,18 @@ HTML
     return false;
   }
 
+  if ( document.plugins.percentage.value == null || document.plugins.percentage.value == '' ) {
+    document.plugins.percentage.focus();
+    alert('Please enter a percentage!');
+    return false;
+  }
+
+  if ( document.plugins.tolerance.value == null || document.plugins.tolerance.value == '' ) {
+    document.plugins.tolerance.focus();
+    alert('Please enter a tolerance!');
+    return false;
+  }
+
   if ( document.plugins.step.value == null || document.plugins.step.value == '' ) {
     document.plugins.step.focus();
     alert('Please enter a step!');
@@ -470,6 +472,10 @@ HTML
           <input type="text" name="argumentsOndemand" value="$CargumentsOndemand" size="100" maxlength="254" $formDisabledAll>
         <tr><td><b>Trendline: </b></td><td>
           <input type="text" name="trendline" value="$Ctrendline" size="6" maxlength="6" $formDisabledAll>
+        <tr><td><b>Percentage: </b></td><td>
+          <input type="text" name="percentage" value="$Cpercentage" size="2" maxlength="2" $formDisabledAll>&nbsp;&nbsp;Proposal = MAX ( week ( hour ( AVG ( Duration ), 9-17 ), 1-4 ) ) * 1.percentage
+        <tr><td><b>Tolerance: </b></td><td>
+          <input type="text" name="tolerance" value="$Ctolerance" size="2" maxlength="2" $formDisabledAll>&nbsp;&nbsp;Proposal * 0.tolerance < Trendline < Proposal * 1.tolerance where Tolerance=0 means FIXED Trendline
         <tr><td><b>Step: </b></td><td>
           <input type="text" name="step" value="$Cstep" size="6" maxlength="6" $formDisabledAll>
         <tr><td><b>Run On Demand: </b></td><td>

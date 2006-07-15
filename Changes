@@ -5,22 +5,62 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 01 Juni 2006
-Version      : 3.000.009
+Latest update: 15 Juli 2006
+Version      : 3.000.010
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.009, 2006/06/xx, ASNMTAP::Asnmtap::Plugins::WebTransact
+Version 3.000.010, 2006/07/xx, Trendline Correction Reports (for the Collector)
+                               - added /cgi-bin/moderator/trendlineCorrectionReports.pl
+                               Application.pod
+                               - using CPAN with a non-root account for ASNMTAP
+                               - install procedure updated for Linux and Solaris
+                               - perl cpan module version and install procedure updates
+                               archiver.pl
+                               - bugfix regarding debug mode and wrong use of EMAILREPORT
+                               comments.pl
+                               - added $givenNameLoggedOn & $familyNameLoggedOn to email message
+                               display.pl
+                               - make openPngImage firefox size compatible
+                               fixRights.sh
+                               - added ASNMTAPUSER=asnmtap
+                               generateCollectorCrontabSchedulingReport.pl & generateCollectorDaemonSchedulingReport.pl
+                               - bugfix when ! defined $numberOfLabels
+                               generateConfig.pl
+                               - bugfix removed '/etc' from 'servername:/asnmtap-3.000.xxx/applications/master/etc/CollectorCT-...sh reload'
+                               holidayBundleSetDowntimes.pl
+                               - added Administrator to email message
+                               Makefile.PL
+                               - added Proc::ProcessTable to CGI perl prerequisites list
+                               plugins.pl
+                               - added fields percentage and tolerance
+
+							   ASNMTAP::Asnmtap::Plugins
+                               - replaced 'Mozilla/5.0 (compatible; MSIE 6.0;' with 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1;'
+                                 De XP-versie als                     'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+                                 De plusversie kan worden herkend als 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)'
+
+                               asnmtap-3.000.010.sql
+                                 CREATE TABLE `plugins` (
+                                   ...
+                                   `trendline` smallint(6) NOT NULL default '0',
+                                 + `percentage` tinyint(1) NOT NULL default '25',
+                                 + `tolerance` tinyint(1) NOT NULL default '5',
+                                   `step` smallint(6) NOT NULL default '0',
+                                   ...
+
+
+Version 3.000.009, 2006/06/01, ASNMTAP::Asnmtap::Plugins::WebTransact
                                - RFC 1738 optimalisations
                                - added '500 SSL negotiation failed'
                                - added Perfdata_Label => 'IMAGE URL' to _download_images()
                                ASNMTAP::Asnmtap::Applications
                                - email SUBJECT changed to Display/Collector for the 'Application Monitoring'@HOSTNAME: ...
                                NPTest, v1.11
-							   - Will die if signal received from a testCmd
+                               - Will die if signal received from a testCmd
                                archiver.pl
                                - bugfix: First day current week epoch date
                                command.pl

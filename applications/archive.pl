@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, archive.pl for ASNMTAP::Applications making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,10 +17,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.009;
+use ASNMTAP::Time v3.000.010;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.009;
+use ASNMTAP::Asnmtap::Applications v3.000.010;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -177,7 +177,12 @@ if ( $rvOpen ) {
   my @sqlErrorTxtFiles = glob("$RESULTSPATH/*-MySQL-sql-error.txt");
 
   foreach my $sqlErrorTxtFile (@sqlErrorTxtFiles) {
-    print EMAILREPORT "E- unlink <$sqlErrorTxtFile>\n";
+    if ($debug) {
+      print "E- unlink <$sqlErrorTxtFile>\n";
+    } else {
+      print EMAILREPORT "E- unlink <$sqlErrorTxtFile>\n";
+    }
+
     unlink ($sqlErrorTxtFile);
   }
 } else {
@@ -559,7 +564,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
     } elsif ( $staart eq "$command-$uKey.sql" ) {
       if ($debug) {
         print "S+ <$datum><", get_yearMonthDay($gzipEpoch), "><$path><$filename>\n" if ($datum le get_yearMonthDay($gzipEpoch));
-      } else {
+      } elsif (! $doDatabase) {
         # Init parameters
         my ($rv, $dbh, $sql);
 

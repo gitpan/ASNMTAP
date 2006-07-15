@@ -2,21 +2,8 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, index.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, index.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
-# COPYRIGHT NOTICE
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be].                                All Rights Reserved.
-#
-# Asnmtap may be used and modified free of charge by anyone so long as this copyright notice and the comments
-# above remain intact.  By using this code you agree to indemnify Alex Peeters from any liability that might
-# arise from it's use.
-#
-# Selling the code for this program without prior written consent is expressly forbidden.    In other words,
-# please ask first before you try and make money off of my program.
-#
-# Obtain permission before redistributing this software over the Internet or in any other medium.
-# In all cases copyright and header must remain intact.
-# ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;           # Must be used in test mode only. This reduce a little process speed
@@ -24,12 +11,12 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use DBI;
 use CGI;
+use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "index.pl";
 my $prgtext     = "$APPLICATION Moderator";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,6 +63,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  <tr><td class="StatusItem"><a href="sessions.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Session Console (for the Display)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="runStatusOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Status Console (for the Collector/Display)</a></td></tr>
+	  <tr><td class="StatusItem">&nbsp;</td></tr>
+	  <tr><td class="StatusItem"><a href="trendlineCorrectionReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Trendline Correction Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="pluginCrontabSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Plugin Crontab Scheduling Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem"><a href="collectorCrontabSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Collector Crontab Scheduling Reports (for the Collector)</a></td></tr>

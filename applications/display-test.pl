@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, display.pl for ASNMTAP::Asnmtap::Applications::Display making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,10 +17,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.009;
+use ASNMTAP::Time v3.000.010;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.009;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.010;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_T $opt_l $PROG
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -661,8 +661,8 @@ EOM
   $inProgressNumber = -1;
 
   $itemCondensedView .= '  <TR>'."\n".'    '.$comments.$helpfile."\n".'    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\'';
-  print HTML $RESULTSURL, '/', $resultsdir, '/', $command, "-" , $uniqueKey, "-sql.html',910,550,null,null,'ChartDirector',10,false,'ChartDirector');\">", encode_html_entities('T', $test), '</A></TD>', "\n";
-  $itemCondensedView .= $RESULTSURL .'/'. $resultsdir .'/'. $command . "-" . $uniqueKey . "-sql.html',910,550,null,null,'ChartDirector',10,false,'ChartDirector');\">" . encode_html_entities('T', $test) . '</A></TD>' . "\n";
+  print HTML $RESULTSURL, '/', $resultsdir, '/', $command, "-" , $uniqueKey, "-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">", encode_html_entities('T', $test), '</A></TD>', "\n";
+  $itemCondensedView .= $RESULTSURL .'/'. $resultsdir .'/'. $command . "-" . $uniqueKey . "-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">" . encode_html_entities('T', $test) . '</A></TD>' . "\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, comments.pl for ASNMTAP::Asnmtap::Applications::CGI making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.009;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = '3.000.009';
+my $version     = '3.000.010';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -292,7 +292,7 @@ unless ( defined $errorUserAccessControl ) {
               my $header = "Downtime scheduling for $Ctitle from $CactivationDate $CactivationTime until ";
               $header .= ($CsuspentionDate eq '0000-00-00') ? "????-??-?? ??:??:??" : "$CsuspentionDate $CsuspentionTime.";
               my $subject = "$BUSINESS / $DEPARTMENT / $APPLICATION / $header";
-              my $message = "Geachte, Cher,\n\n$header\n\n$CcommentData\n\n-- $APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
+              my $message = "Geachte, Cher,\n\n$header\n\n$CcommentData\n\n-- $givenNameLoggedOn $familyNameLoggedOn\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
 
               if (defined $sendEmailTo) {
                 my $returnCode = sending_mail ( $SERVERLISTSMTP, $sendEmailTo, $SENDMAILFROM, $subject, $message, $tDebug );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, package ASNMTAP::Asnmtap::Applications::Collector making Asnmtap v3.000.xxx compatible
+# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -86,7 +86,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = 3.000.009;
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = 3.000.010;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

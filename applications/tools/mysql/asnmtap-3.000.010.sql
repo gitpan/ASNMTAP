@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/06/01, v3.000.009, create_countries.sql
+# 2006/07/15, v3.000.010, asnmtap-3.000.010.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -737,6 +737,8 @@ CREATE TABLE `plugins` (
   `argumentsOndemand` varchar(254) default '',
   `title` varchar(75) NOT NULL default '',
   `trendline` smallint(6) NOT NULL default '0',
+  `percentage` tinyint(1) NOT NULL default '25',
+  `tolerance` tinyint(1) NOT NULL default '5',
   `step` smallint(6) NOT NULL default '0',
   `ondemand` char(1) NOT NULL default '0',
   `production` char(1) NOT NULL default '0',
@@ -757,11 +759,11 @@ CREATE TABLE `plugins` (
 # Data for the table plugins
 #
 
-insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1',0,2,'1','1','/test/','test-01',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2',1,2,'1','1','/test/','test-02',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3',2,2,'1','1','/test/','test-03',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4',3,2,'1','1','/test/','test-04',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test',5,2,'1','1','/test/','test-05',NULL,'<NIHIL>',1);
+insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1',0,25,5,2,'1','1','/test/','test-01',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2',1,25,5,2,'1','1','/test/','test-02',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3',2,25,5,2,'1','1','/test/','test-03',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4',3,25,5,2,'1','1','/test/','test-04',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test',5,25,5,2,'1','1','/test/','test-05',NULL,'<NIHIL>',1);
 
 #
 # Table structure for table reports
