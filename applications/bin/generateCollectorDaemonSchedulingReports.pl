@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, generateCollectorDaemonSchedulingReports.pl
+# 2006/09/16, v3.000.011, generateCollectorDaemonSchedulingReports.pl
 # ---------------------------------------------------------------------------------------------------------
 #  http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-FQDN-Daily.pdf
 # ---------------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.010;
+use ASNMTAP::Asnmtap::Applications v3.000.011;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -37,7 +37,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReports.pl";
 my $prgtext     = "Generate Collector Daemon Scheduling Reports for the '$APPLICATION'";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

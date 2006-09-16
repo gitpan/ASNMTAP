@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedResults.pl";
 my $prgtext     = "Get Archived Results";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,6 +43,9 @@ my $csvWeekly   = (defined $cgi->param('csvWeekly')) ? $cgi->param('csvWeekly') 
 my $sqlData     = (defined $cgi->param('sqlData'))   ? $cgi->param('sqlData')   : "off";
 my $sqlError    = (defined $cgi->param('sqlError'))  ? $cgi->param('sqlError')  : "off";
 my $archived    = (defined $cgi->param('archived'))  ? $cgi->param('archived')  : "off";
+
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
 
 my $htmlTitle   = "Get Archived Debug Report(s)";
 
@@ -67,7 +70,7 @@ unless ( defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.pagedir REGEXP '/$pagedir/' order by optionValueTitle";
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2006/09/16, v3.000.011, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,10 +17,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.010;
+use ASNMTAP::Time v3.000.011;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.010;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.011;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_T $opt_l $PROG
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -135,9 +135,8 @@ resultsdirCreate();
 
 my $directory = $HTTPSPATH .'/nav/'. $pagedir;
 create_dir ($directory) unless ( -e "$directory" );
-$htmlOutput = $directory .'/'. $pageset;
 
-print "$htmlOutput\n";
+my $pagedirOrig = $pagedir;
 
 unless (fork) {                                  # unless ($pid = fork) {
   unless (fork) {
@@ -167,7 +166,19 @@ unless (fork) {                                  # unless ($pid = fork) {
 
       # Crontab implementation
       read_tableSoundStatusCache ($checklist, $debug);
-      do_crontab ();
+      foreach ('P', 'A', 'S', 'T', 'D', 'L') { do_crontab ($_); }
+
+      if ( $loop ) {
+        my ($prevSecs, $currSecs);
+        $currSecs = int((localtime)[0]);
+
+        do {
+          sleep 5;
+          $prevSecs = $currSecs;
+          $currSecs = int((localtime)[0]);
+        } until ($currSecs < $prevSecs);
+      }
+
       write_tableSoundStatusCache ($checklist, $debug);
     } until ($boolean_daemonQuit);
 
@@ -247,6 +258,13 @@ sub write_tableSoundStatusCache {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub do_crontab {
+  my ($Cenvironment) = @_;
+
+  $pagedir = $pagedirOrig;
+  $pagedir .= "/$Cenvironment" unless ($Cenvironment eq 'P');
+  my $directory = $HTTPSPATH .'/nav/'. $pagedir;
+  create_dir ($directory) unless ( -e "$directory" );
+  $htmlOutput = $directory .'/'. $pageset;
   $rvOpen = open(HTML, ">$htmlOutput.tmp");
 
   unless ( $rvOpen ) {
@@ -264,7 +282,9 @@ sub do_crontab {
   $prevGroep = "";
   my ($dstatusMessage, @itemStatusMessage, @printStatusMessage);
   @itemStatusMessage = @printStatusMessage = ();
-  printHtmlHeader($APPLICATION);
+
+  my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+  printHtmlHeader($APPLICATION .' - '. $ENVIRONMENT{$Cenvironment});
 
   my $currentDate = time();
 
@@ -289,6 +309,7 @@ sub do_crontab {
     foreach $dchecklist (@checklisttable) {
       ($tinterval, $tgroep, $resultsdir, $ttest) = split(/\#/, $dchecklist, 4);
       my @stest = split(/\|/, $ttest);
+
       my $showGroepHeader = ($prevGroep ne $tgroep) ? 1 : 0;
       my $showGroepFooter = (($prevGroep ne "") && $showGroepHeader) ? 1 : 0;
       printGroepCV($prevGroep, $showGroepHeader, 1);
@@ -299,9 +320,13 @@ sub do_crontab {
       foreach $dtest (@stest) {
         my ($uniqueKey, $title, $test, $help) = split(/\#/, $dtest);
         my ($command, undef) = split(/\.pl/, $test);
+
+        my $environment = (($test =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
+        next if (defined $environment and $environment ne $Cenvironment);
+
         my $trendline = get_trendline_from_test($test);
 
-        print "<", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
+        print "<", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         printItemHeader($resultsdir, $uniqueKey, $command, $title, $help);
         my $number = 1;
         my $statusIcon;
@@ -457,17 +482,6 @@ sub do_crontab {
   close(HTMLCV);
   rename("$htmlOutput.tmp", "$htmlOutput.html") if (-e "$htmlOutput.tmp");
   rename("$htmlOutput-cv.tmp", "$htmlOutput-cv.html") if (-e "$htmlOutput-cv.tmp");
-
-  if ( $loop ) {
-    my ($prevSecs, $currSecs);
-    $currSecs = int((localtime)[0]);
-
-    do {
-      sleep 5;
-      $prevSecs = $currSecs;
-      $currSecs = int((localtime)[0]);
-    } until ($currSecs < $prevSecs);
-  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -583,7 +597,7 @@ sub printStatusHeader {
   my ($emptyFullViewMessage, $emptyCondencedViewMessage);
 
   if ($emptyFullView) {
-    $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!!!';
+  # $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!!!';
   } elsif ($emptyCondencedView) {
     $emptyCondencedViewMessage = 'All Monitored Applications are OK';
   }

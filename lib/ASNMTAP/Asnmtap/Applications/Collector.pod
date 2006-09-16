@@ -49,7 +49,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap-3.000.xxx/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2006/07/xx 8:11:16, ASNMTAP v3.000.010 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2006/09/16 8:11:16, ASNMTAP v3.000.011 or higher
  #
  # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]
  #
@@ -111,6 +111,50 @@ when the Application CGI module and CGI applications are installed, these config
 =item collector.pl
 
 this program is the Collector, executes the plugins and generate the charts used through the CGI interface.
+
+=over 4
+
+=item PerfParse:
+
+=over 4
+
+=item Methodes:
+
+=over 4
+
+=item 1) Periodic ASNMTAP Log Parse
+
+ $perfParseMethode = 'PALP'
+
+ ... TODO
+
+=item 2) ASNMTAP Invokes Perfparse
+
+ $perfParseMethode = 'AIP', default
+
+=item 3) Periodic User Log Parse
+
+ $perfParseMethode = 'PULP'
+
+ when 'crontab': 0,5,10,15,20,25,30,35,40,45,50,55 * * * * /opt/asnmtap/applications/sbin/perfparse_crontab.sh > /dev/null 2>&1
+
+=item 4) Pipe to Perfparse
+
+ $perfParseMethode = 'PTP'
+
+ ... TODO
+
+=item 5) Perfparse Daemon Server
+
+ $perfParseMethode = 'PDS'
+
+ ... TODO
+
+=back
+
+=back
+
+=back
 
 =item collector-test.pl
 

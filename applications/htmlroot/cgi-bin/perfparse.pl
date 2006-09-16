@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, perfparse.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, perfparse.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use Shell;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "perfparse.pl";
 my $prgtext     = "Launch PerfParse";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -38,9 +38,11 @@ my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : "index
 my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : "index-cv"; $pageset =~ s/\+/ /g;
 my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : "F";
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
 
-my $htmlTitle = $APPLICATION;
+my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "PerfParse", undef);

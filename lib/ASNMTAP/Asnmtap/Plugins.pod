@@ -21,7 +21,7 @@ This module that provides a nice object oriented interface for building ASNMTAP 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template.pl',
    _programDescription => "General plugin template for the '$APPLICATION'",
-   _programVersion     => '3.000.010',
+   _programVersion     => '3.000.011',
    _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
    _programHelpPrefix  => "-H, --hostname=HOST
     Name or IP address of host to check
@@ -419,7 +419,7 @@ when performanceData defined
 
 specifies the name that your application should use when it presents itself on the network.
 
-scalar, default 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U; ASNMTAP-3.000.010 postfix; nl-BE; rv:3.000.010) Gecko/200607xx libwww-perl/5.805'
+scalar, default 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/2006xxxx libwww-perl/5.805'
 
 =item _clientCertificate: the following keys are possible
 

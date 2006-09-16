@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         ASNMTAP
-version:      3.000.010
+version:      3.000.011
 version_from: 
 installdirs:  site
 requires:
@@ -27,13 +27,13 @@ requires:
     IO::CaptureOutput:             1.03
     Mail::POP3Client:              2.17
     Mail::Sendmail:                0.79
-    MIME::Base64:                  3.01
+    MIME::Base64:                  3.07
     MIME::Tools:                   5.419
     Net::FTP:                      2.58
     Net::IMAP::Simple:             1.14
     NetAddr::IP:                   3.028
     Proc::ProcessTable:            0.39
-    SOAP::Lite:                    0.67
+    SOAP::Lite:                    0.69
     Test::Simple:                  0.47
     Time::HiRes:                   1.66
     Time::Local:                   1.04

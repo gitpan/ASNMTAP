@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use Date::Calc qw(Monday_of_Week Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedReport.pl";
 my $prgtext     = "Get Archived Report";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,9 @@ my $week        = (defined $cgi->param('week'))      ? $cgi->param('week')      
 my $month       = (defined $cgi->param('month'))     ? $cgi->param('month')     : "off";
 my $quarter     = (defined $cgi->param('quarter'))   ? $cgi->param('quarter')   : "off";
 my $year        = (defined $cgi->param('year'))      ? $cgi->param('year')      : "off";
+
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
 
 my $htmlTitle   = "Get Archived Report(s)";
 
@@ -68,7 +71,7 @@ unless ( defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.pagedir REGEXP '/$pagedir/' order by optionValueTitle";
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {

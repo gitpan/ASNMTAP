@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, check_template-ftp.pl
+# 2006/09/16, v3.000.011, check_template-ftp.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.010;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.011;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,7 +24,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-ftp.pl',
   _programDescription => 'FTP Nagios Template',
-  _programVersion     => '3.000.010',
+  _programVersion     => '3.000.011',
   _programGetOptions  => ['host|H=s', 'username|u|loginname=s', 'password|passwd|p=s', 'environment|e=s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);

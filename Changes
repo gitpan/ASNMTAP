@@ -5,15 +5,35 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 15 Juli 2006
-Version      : 3.000.010
+Latest update: 09 Sep 2006
+Version      : 3.000.011
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.010, 2006/07/xx, Trendline Correction Reports (for the Collector)
+Version 3.000.011, 2006/09/16, ASNMTAP::Asnmtap::Applications
+                               - added `environment` char(1) NOT NULL default 'L' to TABLE `plugins`
+                               display.pl, plugins.pl & generateConfig.pl
+                               - added environment
+                               collector.pl
+                               - added $perfParseMethode
+                               - NEW perfparse_asnmtap_pulp_command.pl
+                               - NEW perfparse_crontab.sh
+                               generateConfig.pl
+                               - bugfix: added activated = 1 to all sql queries
+                               Makefile.pl
+                               - update SOAP::Lite to version 0.69
+                               - update MIME::Base64 to version 3.07
+                               ASNMTAP::Asnmtap::Plugins::SOAP
+                               - bugfix: replaced 'defined $som->fault' with 'defined $som and defined $som->fault'
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW check_iowait.pl
+                               - NEW check_snmptt_traps.pl
+
+
+Version 3.000.010, 2006/07/15, Trendline Correction Reports (for the Collector)
                                - added /cgi-bin/moderator/trendlineCorrectionReports.pl
                                Application.pod
                                - using CPAN with a non-root account for ASNMTAP

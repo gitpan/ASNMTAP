@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 15 Juli 2006
-Version      : 3.000.010
+Latest update: 09 Sep 2006
+Version      : 3.000.011
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -17,6 +17,58 @@ Version      : 3.000.010
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+                               ASNMTAP::Asnmtap::Plugins::WSFR
+                               ...
+
+                               - http://search.cpan.org/~tonvoon/Nagios-Plugin-0.10
+                               - /lib/Nagios/Plugin/Performance.pm
+                               - ...
+
+                               ASNMTAP::Asnmtap::Plugins::SOAP
+                               - $SOAP::Constants::PATCH_HTTP_KEEPALIVE = 1;
+
+WSRF:
+To use the Container you need to install the SOAP::Lite, LWP, XML::DOM, DateTime, DateTime::Format::Epoch and DateTime::Format::W3CDTF modules. 
+To use WS-Security for signing or verifying messages you will also need: Crypt::OpenSSL::RSA, MIME::Base64, Digest::SHA1, and Crypt::OpenSSL::X509 and XML::Canonocalize.
+
+Dependencies WSRF::Lite:
+XML::DOM 							1.44
+DateTime 							0.34
+DateTime::Format::Epoch             0.10
+DateTime::Format::W3CDTF
+Digest::SHA1 						2.11
+Crypt::OpenSSL::RSA                 0.23
+Crypt::OpenSSL::X509                0.3.1
+HTTP::Daemon::SSL         		    1.02
+XML::CanonicalizeXML                0.03
+
+-  if ( $debug >= 4 ) {
+-    eval "use SOAP::Lite +trace => 'all'";
+-  } elsif ($debug == 1) {
+-    eval "use SOAP::Lite +trace => qw( debug )";
+-  } else {
+-    eval "use SOAP::Lite";
+-  }
+
++ if ( $debug >= 4 ) {
++   eval "use WSRF::Lite +trace => 'all'";
++ } elsif ($debug == 1) {
++   eval "use WSRF::Lite +trace => qw( debug )";
++ } else {
++   eval "use WSRF::Lite";
++ }
+
++ $ENV{WSS_SIGN} = 'true';
+
+  my ($alert, $error, $result);
+
+- my $service = new SOAP::Lite
+
++ my $service = WSRF::Lite
++ -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 'statusMessage': varchar -> memo ASAP !!!
 
@@ -146,7 +198,7 @@ Apache:
   - verify if the env-variable keepalive and/or force-response-1.1 exists
 - BrowserMatch regex [!]env-variable[=value] [[!]env-variable[=value]] ...
   vi /etc/httpd/conf/httpd.conf or vi /usr/local/apache2/conf/httpd.conf
-  BrowserMatch "Mozilla/4.0 (compatible; MSIE 7.0; ASNMTAP; U; ASNMTAP-3.000.010 postfix; nl-BE; rv:3.000.010) Gecko/200607xx libwww-perl/5.805", keepalive, force-response-1.1
+  BrowserMatch "Mozilla/4.0 (compatible; MSIE 7.0; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/200607xx libwww-perl/5.805", keepalive, force-response-1.1
                                                                        n nnn nnn                    n nnn nnn        nnnnnnnn             n nnn
 
 smoothline (spline layers) for trendline and bar statistics

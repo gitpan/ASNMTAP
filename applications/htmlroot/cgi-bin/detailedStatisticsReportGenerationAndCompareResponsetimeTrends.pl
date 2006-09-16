@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -63,6 +63,9 @@ my $topx        = (defined $cgi->param('topx'))      ? $cgi->param('topx')      
 my $pf          = (defined $cgi->param('pf'))        ? $cgi->param('pf')        : "off";
 my $htmlToPdf   = (defined $cgi->param('htmlToPdf')) ? $cgi->param('htmlToPdf') : 0;
 
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
+
 if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ""; }
 my $htmlTitle   = ( $selDetailed eq "on" ) ? "Detailed Statistics and Report Generation" : "Compare Response Time Trends";
 
@@ -89,7 +92,7 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    $sqlQuery = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where pagedir REGEXP '/$pagedir/' and production = '1' and activated = 1 order by optionValueTitle";
+    $sqlQuery = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 order by optionValueTitle";
     $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
     $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -129,7 +129,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = 3.000.010;
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = 3.000.011;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -237,6 +237,8 @@ sub user_session_and_access_control {
     my $Tpagedir  = (defined $session->param('pagedir'))  ? $session->param('pagedir')  : '<NIHIL>';
     my $accessGranted = 0;
 
+    my ($Rpagedir, undef) = split (/\//, $pagedir, 2);
+
     if ($level eq 'sadmin') {                   # Server Administrator
       $accessGranted = 1 if ($TuserType == 8);
     } elsif ($level eq 'admin') {               # Administrator
@@ -244,9 +246,9 @@ sub user_session_and_access_control {
     } elsif ($level eq 'moderator') {           # Moderator
       $accessGranted = 1 if ($TuserType >= 2);
     } elsif ($level eq 'member') {              # Member
-      $accessGranted = 1 if ($TuserType >= 1 and $pagedir ne '<NIHIL>' and ($Tpagedir =~ /\/$pagedir\//));
+      $accessGranted = 1 if ($TuserType >= 1 and $pagedir ne '<NIHIL>' and ($Tpagedir =~ /\/$Rpagedir\//));
     } else {                                    # Guest
-      $accessGranted = 1 if ($pagedir ne '<NIHIL>' and ($Tpagedir =~ /\/$pagedir\//));
+      $accessGranted = 1 if ($pagedir ne '<NIHIL>' and ($Tpagedir =~ /\/$Rpagedir\//));
     }
 
     $subTitle = setAccessControlParameters( $level, $pagedir, $pageset, $debug, $cgi, $session, $sessionID, $subTitle, $queryString );
@@ -364,6 +366,8 @@ sub user_session_and_access_control {
 		  unless ( defined $errorUserAccessControl ) {
             my $accessGranted = 0;
 
+            my ($Rpagedir, undef) = split (/\//, $pagedir, 2);
+
             if ($level eq 'sadmin') {                   # Server Administrator
               $accessGranted = 1 if ($CuserType == 8);
             } elsif ($level eq 'admin') {               # Administrator
@@ -371,9 +375,9 @@ sub user_session_and_access_control {
             } elsif ($level eq 'moderator') {           # Moderator
               $accessGranted = 1 if ($CuserType >= 2);
             } elsif ($level eq 'member') {              # Member
-              $accessGranted = 1 if ($CuserType >= 1 and $pagedir ne '<NIHIL>' and ($Cpagedir =~ /\/$pagedir\//));
+              $accessGranted = 1 if ($CuserType >= 1 and $pagedir ne '<NIHIL>' and ($Cpagedir =~ /\/$Rpagedir\//));
             } else {                                    # Guest
-              $accessGranted = 1 if ($pagedir ne '<NIHIL>' and ($Cpagedir =~ /\/$pagedir\//));
+              $accessGranted = 1 if ($pagedir ne '<NIHIL>' and ($Cpagedir =~ /\/$Rpagedir\//));
             }
 
             $errorUserAccessControl = "You are onto the wrong place to be!" unless ( $accessGranted );

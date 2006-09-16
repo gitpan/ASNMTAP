@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,10 +16,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.010;
+use ASNMTAP::Time v3.000.011;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +30,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -87,7 +87,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
     if ($dbh and $rv) {
-      my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $uKey, $test, $interval, $title, $helpPluginFilename, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
+      my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $uKey, $test, $interval, $title, $helpPluginFilename, $environment, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
       my ($prevServerID, $prevTypeServers, $prevTypeMonitoring, $prevMasterFQDN, $prevSlaveFQDN, $prevDisplayDaemon, $prevCollectorDaemon, $prevResultsdir, $prevGroupTitle, $prevPagedir, $prevUniqueKey);
       my ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveDatabaseFQDN);
 
@@ -580,7 +580,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # servers <-> collectorDaemons  - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLCLLCTRDMNS.serverID group by $SERVERTABLSERVERS.serverID";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -599,7 +599,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.serverID=$SERVERTABLSERVERS.serverID group by $SERVERTABLCLLCTRDMNS.serverID";
+      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.serverID=$SERVERTABLSERVERS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -619,7 +619,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # servers <-> displayDaemons  - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDSPLYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLDSPLYDMNS.serverID group by $SERVERTABLSERVERS.serverID";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDSPLYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLDSPLYDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -638,7 +638,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLDSPLYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDSPLYDMNS.serverID=$SERVERTABLSERVERS.serverID group by $SERVERTABLDSPLYDMNS.serverID";
+      $sql = "SELECT $SERVERTABLDSPLYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDSPLYDMNS.serverID=$SERVERTABLSERVERS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLDSPLYDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -795,10 +795,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
@@ -844,7 +844,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
 
               if ($rvOpen) {
-                print DisplayCT "$interval#$groupTitle#$resultsdir#$uKey#$title#$test --trendline=$trendline#";
+                print DisplayCT "$interval#$groupTitle#$resultsdir#$uKey#$title#$test --environment=$environment --trendline=$trendline#";
                 (! defined $helpPluginFilename or $helpPluginFilename eq '<NIHIL>') ? print DisplayCT "0" : print DisplayCT "1";
                 print DisplayCT "\n";
               }
@@ -919,10 +919,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # CollectorCT - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$uKey, \$resultsdir, \$title, \$test, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
@@ -971,9 +971,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
               if ($rvOpen) {
                 print CollectorCT "$minute $hour $dayOfTheMonth $monthOfTheYear $dayOfTheWeek $interval $uKey#$resultsdir#$title#$test";
+                print CollectorCT " --environment=$environment --trendline=$trendline";
                 print CollectorCT " $argumentsCommon" if ( $argumentsCommon ne "" );
                 print CollectorCT " $argumentsCrontab" if ( $argumentsCrontab ne "" );
-                print CollectorCT " --trendline=$trendline";
                 print CollectorCT "#$noOffline" if ( $noOffline ne "" );
                 print CollectorCT "\n";
               }

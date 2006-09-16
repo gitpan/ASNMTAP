@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,6 +39,12 @@ my $uKey    = (defined $cgi->param('uKey'))    ? $cgi->param('uKey')    : '<NIHI
 my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : "index";    $pagedir =~ s/\+/ /g;
 my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : "index-cv"; $pageset =~ s/\+/ /g;
 my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : "F";
+
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
+
+my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 my $selectF = ($debug eq 'F') ? "selected" : "";
 my $selectT = ($debug eq 'T') ? "selected" : "";
@@ -50,8 +56,6 @@ my $selectS = ($debug eq 'S') ? "selected" : "";
 my $command = "";
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-my $htmlTitle = $APPLICATION;
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "On demand", "uKey=$uKey");
@@ -66,18 +70,19 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where pagedir REGEXP '/$pagedir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') order by optionValueTitle";
+    $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') order by optionValueTitle";
     ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
     if ( $rv ) {
       if ($uKey ne '<NIHIL>') {
-        $sql = "select test, arguments, argumentsOndemand, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle, trendline from $SERVERTABLPLUGINS where uKey = '$uKey'";
+        $sql = "select test, environment, arguments, argumentsOndemand, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle, trendline from $SERVERTABLPLUGINS where uKey = '$uKey'";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
-          my ($dCommand, $arguments, $argumentsOndemand, $title, $trendline) = $sth->fetchrow_array();
+          my ($dCommand, $environment, $arguments, $argumentsOndemand, $title, $trendline) = $sth->fetchrow_array();
           $command = $dCommand;
+          if ($environment ne "") { $command .= " --environment=" . $environment; }
           if ($arguments ne "") { $command .= " " . $arguments; }
           if ($argumentsOndemand ne "") { $command .= " " . $argumentsOndemand; }
           if (int($trendline) > 0) { $command .= " --trendline=" . $trendline; }

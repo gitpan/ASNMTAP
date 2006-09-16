@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, asnmtap-3.000.010.sql
+# 2006/09/16, v3.000.011, asnmtap-3.000.011.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -742,6 +742,7 @@ CREATE TABLE `plugins` (
   `step` smallint(6) NOT NULL default '0',
   `ondemand` char(1) NOT NULL default '0',
   `production` char(1) NOT NULL default '0',
+  `environment` char(1) NOT NULL default 'L',
   `pagedir` varchar(254) NOT NULL default '',
   `resultsdir` varchar(64) NOT NULL default '',
   `helpPluginFilename` varchar(100) default '<NIHIL>',

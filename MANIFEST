@@ -233,8 +233,10 @@ applications/htmlroot/sound/unknown.wav
 applications/htmlroot/sound/warning.wav
 
 applications/sbin/sshWrapperASNMTAP.pl
-
-applications/tools/mysql/asnmtap-3.000.010.sql
+applications/sbin/perfparse_asnmtap_pulp_command.pl
+applications/sbin/perfparse_crontab.sh
+	
+applications/tools/mysql/asnmtap-3.000.011.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -260,8 +262,10 @@ applications/tools/templates/slave/rsync-mirror-failover-template.sh
 plugins/check_file-counter.pl
 plugins/check_sendAndReceiveMail.pl
 
+plugins/nagios/check_iowait.pl
 plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
+plugins/nagios/check_snmptt_traps.pl
 plugins/nagios/check_swap.pl
 plugins/nagios/check_swap-allocated.pl
 

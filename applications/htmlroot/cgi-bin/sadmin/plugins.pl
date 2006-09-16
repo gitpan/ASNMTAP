@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,6 +42,7 @@ my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->pa
 my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : "listView";
 my $CuKey               = (defined $cgi->param('uKey'))               ? $cgi->param('uKey')               : "";
 my $Ctest               = (defined $cgi->param('test'))               ? $cgi->param('test')               : "";
+my $Cenvironment        = (defined $cgi->param('environment'))        ? $cgi->param('environment')        : "L";
 my $Carguments          = (defined $cgi->param('arguments'))          ? $cgi->param('arguments')          : "";
 my $CargumentsOndemand  = (defined $cgi->param('argumentsOndemand'))  ? $cgi->param('argumentsOndemand')  : "";
 my $Ctitle              = (defined $cgi->param('title'))              ? $cgi->param('title')              : "";
@@ -70,13 +71,13 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Plugins", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&environment=$Cenvironment&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($holidayBundleSelect, $pagedirsSelect, $resultsdirSelect, $matchingPlugins, $navigationBar, $matchingViewsCrontabs, $generatePluginCrontabSchedulingReport);
+  my ($environmentSelect, $holidayBundleSelect, $pagedirsSelect, $resultsdirSelect, $matchingPlugins, $navigationBar, $matchingViewsCrontabs, $generatePluginCrontabSchedulingReport);
 
   my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset";
 
@@ -106,7 +107,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyOndemand   = ($Condemand eq "on") ? 1 : 0;
         my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
         my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", environment="' .$Cenvironment. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -151,7 +152,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyOndemand   = ($Condemand eq "on") ? 1 : 0;
       my $dummyProduction = ($Cproduction eq "on") ? 1 : 0;
       my $dummyActivated  = ($Cactivated eq "on") ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '"';
+      $sql = 'UPDATE ' .$SERVERTABLPLUGINS. ' SET uKey="' .$CuKey. '", test="' .$Ctest. '", environment="' .$Cenvironment. '", arguments="' .$Carguments. '", argumentsOndemand="' .$CargumentsOndemand. '", title="' .$Ctitle. '", trendline="' .$Ctrendline. '", percentage="' .$Cpercentage. '", tolerance="' .$Ctolerance. '", step="' .$Cstep. '", ondemand="' .$dummyOndemand. '", production="' .$dummyProduction. '", pagedir="' .$Cpagedir. '", resultsdir="' .$Cresultsdir. '", helpPluginFilename="' .$ChelpPluginFilename. '", holidayBundleID="' .$CholidayBundleID. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
@@ -161,19 +162,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select uKey, title, ondemand, production, pagedir, resultsdir, activated from $SERVERTABLPLUGINS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header  = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> On Demand <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $sql = "select uKey, title, environment, ondemand, production, pagedir, resultsdir, activated from $SERVERTABLPLUGINS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header  = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Environment <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> On Demand <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=production desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Production <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=production asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Views <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=resultsdir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Results <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=resultsdir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>\n";
       ($rv, $matchingPlugins, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Plugin', 'uKey', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select uKey, test, arguments, argumentsOndemand, title, trendline, percentage, tolerance, step, ondemand, production, pagedir, resultsdir, helpPluginFilename, holidayBundleID, activated from $SERVERTABLPLUGINS where uKey = '$CuKey'";
+      $sql = "select uKey, test, environment, arguments, argumentsOndemand, title, trendline, percentage, tolerance, step, ondemand, production, pagedir, resultsdir, helpPluginFilename, holidayBundleID, activated from $SERVERTABLPLUGINS where uKey = '$CuKey'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CuKey, $Ctest, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cpercentage, $Ctolerance, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+        ($CuKey, $Ctest, $Cenvironment, $Carguments, $CargumentsOndemand, $Ctitle, $Ctrendline, $Cpercentage, $Ctolerance, $Cstep, $Condemand, $Cproduction, $Cpagedir, $Cresultsdir, $ChelpPluginFilename, $CholidayBundleID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
 
         $Condemand   = ($Condemand == 1) ? "on" : "off";
         $Cproduction = ($Cproduction == 1) ? "on" : "off";
@@ -184,6 +185,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+      $environmentSelect = create_combobox_from_keys_and_values_pairs ('P=>Production|A=>Acceptation|S=>Simulation|T=>Test|D=>Development|L=>Local', 'V', 0, $Cenvironment, 'environment', '', '', $formDisabledAll, '', $debug);
+
       $sql = "select pagedir, groupName from $SERVERTABLPAGEDIRS order by groupName";
       ($rv, $pagedirsSelect) = create_combobox_multiple_from_DBI ($rv, $dbh, $sql, $action, $Cpagedir, 'pagedirs', '-Select-', 5, 100, $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
@@ -466,6 +469,8 @@ HTML
           <input type="text" name="title" value="$Ctitle" size="75" maxlength="75" $formDisabledAll>
         <tr><td><b>Plugin Filename: </b></td><td>
           <input type="text" name="test" value="$Ctest" size="100" maxlength="100" $formDisabledAll>
+        <tr><td><b>Environment: </b></td><td>
+    	  $environmentSelect
         <tr><td>Common Arguments: </td><td>
           <input type="text" name="arguments" value="$Carguments" size="100" maxlength="254" $formDisabledAll>
         <tr><td>On Demand Arguments: </td><td>

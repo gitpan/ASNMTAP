@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +65,11 @@ my $CcommentData    = (defined $cgi->param('commentData'))    ? $cgi->param('com
 
 $CcommentData =~ s/"/'/g;
 
-my $htmlTitle = $APPLICATION;
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
+
+my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Comments", "uKey=$CuKey");
@@ -158,7 +162,7 @@ unless ( defined $errorUserAccessControl ) {
     if ($dbh and $rv) {
       if ($action eq "insertView" or $action eq "historyView") {
         if ($CuKey eq "none") {
-          $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where pagedir REGEXP '/$pagedir/' and production = '1' and activated = 1 order by optionValueTitle";
+          $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 order by optionValueTitle";
         } else {
           $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) from $SERVERTABLPLUGINS where uKey = '$CuKey'";
         }
@@ -231,7 +235,7 @@ unless ( defined $errorUserAccessControl ) {
           $sql = "select remoteUser, email from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
         } else {
           my $andActivated = ($action eq "insertView") ? "and activated = 1" : "";
-          $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$pagedir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
+          $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$pageDir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
         }
 
         ($rv, $remoteUsersSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, '', $CremoteUser, 'remoteUser', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);

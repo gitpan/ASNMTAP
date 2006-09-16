@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,9 +46,11 @@ my $Cemail              = (defined $cgi->param('email'))         ? $cgi->param('
 my $Cpassword           = (defined $cgi->param('password'))      ? $cgi->param('password')      : "";
 my $CkeyLanguage        = (defined $cgi->param('keyLanguage'))   ? $cgi->param('keyLanguage')   : "EN";
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
 
-my $htmlTitle = $APPLICATION;
+my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # Init parameters
 my ($rv, $dbh, $sth, $sql, $nextAction, $submitButton, $keyLanguageSelect, $givenName, $familyName, $password);

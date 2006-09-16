@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, package ASNMTAP::Asnmtap::Applications
+# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -144,7 +144,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.010;
+  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.011;
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -243,7 +243,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = '3.000.010';
+our $RMVERSION = '3.000.011';
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -864,6 +864,11 @@ sub decode_html_entities {
 sub print_header {
   my ($HTML, $pagedir, $pageset, $htmlTitle, $subTitle, $refresh, $onload, $openPngImage, $headScript, $sessionID, $stylesheet) = @_;
 
+  my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+  $environment = 'P' unless (defined $environment);
+  my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form><select name="environment" size="1" onChange="window.location=this.options[this.selectedIndex].value;"><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/'. $pageset .'.html"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/A/'. $pageset .'.html"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/S/'. $pageset .'.html"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
+
   my $sessionIdOrCookie = ( defined $sessionID ) ? "&amp;CGISESSID=$sessionID" : "&amp;CGICOOKIE=1";
   my $showToggle   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/$pageset.html\">" : "<A HREF=\"/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
   $showToggle     .= "<IMG SRC=\"$IMAGESURL/toggle.gif\" title=\"Toggle\" alt=\"Toggle\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
@@ -882,7 +887,7 @@ sub print_header {
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-  <title>$APPLICATION @ $BUSINESS</title>
+  <title>${ENVIRONMENT{$environment}}: $APPLICATION @ $BUSINESS</title>
   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
   <META HTTP-EQUIV="Expires" CONTENT="Wed, 10 Dec 2003 00:00:01 GMT">
   <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
@@ -977,23 +982,25 @@ EndOfHtml
       $showInfo
       $showRefresh
     </TD>
-	<td class="HeaderTitel">$htmlTitle</td><td width="180" class="HeaderSubTitel">$subTitle</td>
+	<td class="HeaderTitel">$htmlTitle</td><td width="180" class="HeaderSubTitel">$subTitle</td><td width="1" valign="middle">$selectEnvironment</td>
   </TR></TABLE>
   <HR>
 EndOfHtml
 
   if ( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) {
-    my $reportFilename = $HTTPSPATH . "/nav/" . $pagedir . "/reports-" . $pageset . ".html";
+    my $directory = $HTTPSPATH ."/nav/". $pagedir;
+    next unless (-e "$directory");
+    my $reportFilename = $directory . "/reports-" . $pageset . ".html";
 
     unless ( -e "$reportFilename" ) { # create $reportFilename
       my $rvOpen = open(REPORTS, ">$reportFilename");
 
-	  if ($rvOpen) {
+      if ($rvOpen) {
         print REPORTS <<EndOfHtml;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">  
 <html>
 <head>
-  <title>$APPLICATION @ $BUSINESS</title>
+  <title>${ENVIRONMENT{$environment}}: $APPLICATION @ $BUSINESS</title>
   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
   <META HTTP-EQUIV="Expires" CONTENT="Wed, 10 Dec 2003 00:00:01 GMT">
   <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
@@ -1011,7 +1018,7 @@ EndOfHtml
       $showAwstats
       $showInfo
     </TD>
-	<td class="HeaderTitel">$htmlTitle</td><td width="180" class="HeaderSubTitel">Reports Menu</td>
+	<td class="HeaderTitel">$htmlTitle</td><td width="180" class="HeaderSubTitel">Reports Menu</td><td width="1" valign="middle">$selectEnvironment</td>
   </TR></TABLE>
   <HR>
 

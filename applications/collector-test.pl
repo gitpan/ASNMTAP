@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2006/09/16, v3.000.011, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.010;
+use ASNMTAP::Time v3.000.011;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.000.010;
+use ASNMTAP::Asnmtap::Applications::Collector v3.000.011;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,8 @@ my $dumphttp    = 'N';                                          # default
 my $debug       = 'F';                                          # default
 my $logging     = '<NIHIL>';                                    # default
 my $httpdump    = '<NIHIL>';                                    # default
+
+my $perfParseMethode = 'PULP';                           # 'AIP', default
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -683,7 +685,14 @@ sub call_system {
 
     if (defined $performanceData) {
       my $perfParseTimeslot = get_timeslot ($currentDate);
-      my $perfParseCommand  = "printf \"%b\" \"$perfParseTimeslot\t$title\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PREFIXPATH/perfparse/bin/perfparse-log2mysql -c $PREFIXPATH/perfparse/etc/perfparse.cfg";
+
+      my $perfParseCommand;
+
+      if ( $perfParseMethode eq 'PULP' ) {
+        $perfParseCommand = "$APPLICATIONPATH/sbin/perfparse_asnmtap_pulp_command.pl $PREFIXPATH/log/perfdata-asnmtap.log \"$perfParseTimeslot\t$title\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\"";
+      } else {
+        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$title\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PREFIXPATH/perfparse/bin/perfparse-log2mysql -c $PREFIXPATH/perfparse/etc/perfparse.cfg";
+      }
 
       if ($CAPTUREOUTPUT) {
         use IO::CaptureOutput qw(capture_exec);

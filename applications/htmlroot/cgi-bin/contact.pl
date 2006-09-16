@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/07/15, v3.000.010, contact.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/09/16, v3.000.011, contact.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.010;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "contact.pl";
 my $prgtext     = "$APPLICATION Contact Server Administrators";
-my $version     = '3.000.010';
+my $version     = '3.000.011';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,9 +40,11 @@ my $action   = (defined $cgi->param('action'))  ? $cgi->param('action')  : "send
 my $Csubject = (defined $cgi->param('subject')) ? $cgi->param('subject') : "";
 my $Cmessage = (defined $cgi->param('message')) ? $cgi->param('message') : "";
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+my ($pageDir, $environment) = split (/\//, $pagedir, 2);
+$environment = 'P' unless (defined $environment);
 
-my $htmlTitle = $APPLICATION;
+my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # Init parameters
 my ($nextAction, $submitButton, $sendMessage);
