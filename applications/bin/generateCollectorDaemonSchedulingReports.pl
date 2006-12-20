@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, generateCollectorDaemonSchedulingReports.pl
+# 2006/xx/xx, v3.000.012, generateCollectorDaemonSchedulingReports.pl
 # ---------------------------------------------------------------------------------------------------------
 #  http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-FQDN-Daily.pdf
 # ---------------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.011;
+use ASNMTAP::Asnmtap::Applications v3.000.012;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -37,7 +37,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReports.pl";
 my $prgtext     = "Generate Collector Daemon Scheduling Reports for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -131,8 +131,10 @@ my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters)
 my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $HTMLTOPDFOPTNS 'http://$REMOTE_HOST/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?$encodedUrlAccessParameters'";
 
 if ( -e "$pdfFilename" ) {
-  $emailMessage .= "  > $pdfFilename exists\n";
+  $emailMessage .= "  > $pdfFilename already generated\n";
 } else {
+  $emailMessage .= "  > $pdfFilename will be generated\n";
+
   if ($HTMLTOPDFPRG eq 'HTMLDOC') {
     $ENV{HTMLDOC_NOCGI} = 1;
     select(STDOUT);  $| = 1;
@@ -141,7 +143,8 @@ if ( -e "$pdfFilename" ) {
   my ($status, $stdout, $stderr) = call_system ("$command", $debug);
 
   unless ( $status == 0 and $stdout eq '' and $stderr eq '' ) {
-    $emailMessage .= "call_system: command: $command, status: $status, stdout: $stdout, stderr: $stderr\n";
+    $emailMessage .= $pdfFilename. " generation failed\n";
+    $emailMessage .= "call_system: command: $command, status: $status, stdout: $stdout, stderr: $stderr\n" if ( $debug );
   } else {
     $emailMessage .= $pdfFilename. " generated\n";
   }
@@ -182,7 +185,7 @@ sub print_usage () {
 
 sub print_help () {
   print_revision($PROGNAME, $version);
-  print "ASNMTAP Archiver for the '$APPLICATION'
+  print "ASNMTAP Generate Collector Daemon Scheduling Reports for the '$APPLICATION'
 
 -D, --debug=F|T|L
    F(alse)  : screendebugging off (default)

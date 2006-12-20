@@ -6,10 +6,16 @@
 
 # SET ENVIRONMENT VARIABLES - - - - - - - - - - - - - - - - - - - - - - -
 #<ENV>
-#    PATH			/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+#    PATH				/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
 #    BASH_ENV
 #    ENV
 #</ENV>
+
+#<SET>
+#    PERL5LIB			/opt/asnmtap/cpan-shared/lib/perl5
+#    MANPATH			/opt/asnmtap/cpan-shared/share/man
+#    LD_LIBRARY_PATH	/opt/asnmtap/ssl/lib
+#</SET>
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
 <COMMON>
@@ -18,6 +24,7 @@
     DEPARTMENT      Development
     COPYRIGHT       2003-2006
     SENDEMAILTO     alex.peeters@citap.be
+#   TYPEMONITORING  central                      # central or distributed
 </COMMON>
 
 #<COMMAND>

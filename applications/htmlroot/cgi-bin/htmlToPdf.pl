@@ -2,9 +2,9 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
-# Compatible with HTMLDOC v1.8.25 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
+# Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "htmlToPdf.pl";
 my $prgtext     = "HTML to PDF";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

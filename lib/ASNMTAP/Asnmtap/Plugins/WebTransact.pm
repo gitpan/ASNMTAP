@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = 3.000.011; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -174,6 +174,7 @@ sub check {
 
   if ( $self->{newAgent} or ! defined $ua ) {
     $self->{newAgent} = 0;
+    LWP::Debug::level('+') if ( $debug );
     $ua = LWP::UserAgent->new ( keep_alive => 1 );
     $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
     $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
@@ -193,7 +194,6 @@ sub check {
     }
 
     $ua->cookie_jar ( HTTP::Cookies->new ) if ( $parms{cookies} );
-    LWP::Debug::level('+') if ( $debug );
   }
 
   my $returnCode = $parms{fail_if_1} ? $ERRORS{OK} : $ERRORS{CRITICAL};
@@ -648,9 +648,9 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2003 Stanley.Hopcroft@IPAustralia.Gov.AU
+(c) Copyright 2003-2004 Stanley.Hopcroft@IPAustralia.Gov.AU
 
-ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact' v0.14.1 from Stanley Hopcroft [Stanley.Hopcroft@IPAustralia.Gov.AU]
+ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact' v0.14.1 & v0.16 from Stanley Hopcroft [Stanley.Hopcroft@IPAustralia.Gov.AU]
 
 =head1 SEE ALSO
 

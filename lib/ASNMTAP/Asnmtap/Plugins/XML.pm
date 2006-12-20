@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::XML Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::XML::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::XML::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Plugins::XML::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -

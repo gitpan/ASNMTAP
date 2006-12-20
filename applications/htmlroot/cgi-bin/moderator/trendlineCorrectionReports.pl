@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,10 +11,10 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.011;
+use ASNMTAP::Time v3.000.012;
 use ASNMTAP::Time qw(&get_epoch);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "trendlineCorrectionReports.pl";
 my $prgtext     = "Trendline Correction Reports (for the Collector)";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -86,9 +86,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $colspan = 9 + $actionPressend;
       my $header = "<tr><th> Title </th><th> uKey </th><th> Trendline </th><th> - </th><th> Average </th><th> % </th><th> + </th><th> % </th><th> Proposal </th>$actionHeader</tr>\n";
 
-      my ($uKey, $title, $test, $resultsdir, $trendline, $percentage, $tolerance, $hour, $calculated);
+      (undef, undef, my $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} );
 
-      $sql = "select $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, hour($SERVERTABLEVENTS.startTime) as hour, round(avg($SERVERTABLEVENTS.duration), 2) from $SERVERTABLPLUGINS, $SERVERTABLEVENTS force index (key_startDate) where $SERVERTABLPLUGINS.trendline <> 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and ($SERVERTABLEVENTS.startDate between '$startDate' and '$yesterday') and hour($SERVERTABLEVENTS.startTime) between 9 and 17 and $SERVERTABLEVENTS.status = 'OK' group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.uKey, hour";
+      my ($uKey, $title, $test, $resultsdir, $trendline, $percentage, $tolerance, $hour, $calculated);
+      $sql = "select $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, hour($SERVERTABLEVENTS.startTime) as hour, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT, $SERVERTABLEVENTS force index (key_startDate), $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.trendline <> 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and ($SERVERTABLEVENTS.startDate between '$startDate' and '$yesterday') and hour($SERVERTABLEVENTS.startTime) between 9 and 17 and $SERVERTABLEVENTS.status = 'OK' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.uKey, hour order by Title";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$uKey, \$title, \$test, \$resultsdir, \$trendline, \$percentage, \$tolerance, \$hour, \$calculated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -162,7 +163,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       unless ( $shortlist ) {
-        $sql = "select $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, round(avg($SERVERTABLEVENTS.duration), 2) from $SERVERTABLPLUGINS, $SERVERTABLEVENTS where $SERVERTABLPLUGINS.trendline = 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.uKey";
+        $sql = "select $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT, $SERVERTABLEVENTS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.trendline = 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.uKey order by Title";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
         $sth->bind_columns( \$uKey, \$title, \$test, \$resultsdir, \$trendline, \$percentage, \$tolerance, \$calculated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, resultsdirs.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, resultsdirs.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "resultsdirs.pl";
 my $prgtext     = "Resultsdirs";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -99,7 +99,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq "delete") {
-      $sql = "select uKey, title from $SERVERTABLPLUGINS where resultsdir = '$Cresultsdir' order by title, uKey";
+      $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where resultsdir = '$Cresultsdir' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by title, uKey";
       ($rv, $matchingResultsdir) = check_record_exist ($rv, $dbh, $sql, 'Plugins', 'Unique Key', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
 	  if ($matchingResultsdir eq "") {

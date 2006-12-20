@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,23 +32,25 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub get_soap_request {
-  my %defaults = ( asnmtapInherited  => undef,
-                   custom            => undef,
-                   customArguments   => undef,
-                   proxy             => undef,
-                   namespace         => undef,
-                   registerNamespace => undef,
-                   method            => undef,
-                   xmlContent        => undef,
-                   params            => undef,
-                   cookies           => undef,
-                   perfdataLabel     => undef
+  my %defaults = ( asnmtapInherited     => undef,
+                   custom               => undef,
+                   customArguments      => undef,
+                   proxy                => undef,
+                   namespace            => undef,
+                   registerNamespace    => undef,
+                   method               => undef,
+                   xmlContent           => undef,
+                   params               => undef,
+                   cookies              => undef,
+                   perfdataLabel        => undef,
+                   PATCH_HTTP_KEEPALIVE => 0,
+                   WSRF                 => 0
 				 );
 
   my %parms = (%defaults, @_);
@@ -93,6 +95,20 @@ sub get_soap_request {
 
   unless ( defined $parms{perfdataLabel} ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing SOAP parameter perfdataLabel' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  my $PATCH_HTTP_KEEPALIVE = $parms{PATCH_HTTP_KEEPALIVE};
+
+  unless ( $PATCH_HTTP_KEEPALIVE =~ /^[01]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter PATCH_HTTP_KEEPALIVE must be 0 or 1' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
+  my $WSRF = $parms{WSRF};
+
+  unless ( $WSRF =~ /^[01]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter WSRF must be 0 or 1' }, $TYPE{APPEND} );
     return ( $ERRORS{UNKNOWN} );
   }
 
@@ -158,26 +174,50 @@ sub get_soap_request {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  if ( $debug >= 4 ) {
-    eval "use SOAP::Lite +trace => 'all'";
-  } elsif ($debug == 1) {
-    eval "use SOAP::Lite +trace => qw( debug )";
+  my ($service, $alert, $error, $result);
+
+  if ( $WSRF ) {
+    if ( $debug >= 4 ) {
+      eval "use WSRF::Lite +trace => 'all'";
+    } elsif ($debug == 1) {
+      eval "use WSRF::Lite +trace => qw( debug )";
+    } else {
+      eval "use WSRF::Lite";
+    }
+
+    $service = new WSRF::Lite
+    -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
+    -> autotype   (1)
+    -> readable   (1)
+    -> envprefix  ('soapenv')
+    -> encprefix  ('soapenc')
+    -> xmlschema  ('http://www.w3.org/2001/XMLSchema')
+    -> uri        ( $parms{namespace} )
+    -> on_action  ( sub { sprintf '%s/%s', @_ } )
+    -> on_fault   ( sub { } )
+    ;
   } else {
-    eval "use SOAP::Lite";
+    if ( $debug >= 4 ) {
+      eval "use SOAP::Lite +trace => 'all'";
+    } elsif ($debug == 1) {
+      eval "use SOAP::Lite +trace => qw( debug )";
+    } else {
+      eval "use SOAP::Lite";
+    }
+
+    $service = new SOAP::Lite
+    -> autotype   (1)
+    -> readable   (1)
+    -> envprefix  ('soapenv')
+    -> encprefix  ('soapenc')
+    -> xmlschema  ('http://www.w3.org/2001/XMLSchema')
+    -> uri        ( $parms{namespace} )
+    -> on_action  ( sub { sprintf '%s/%s', @_ } )
+    -> on_fault   ( sub { } )
+    ;
   }
 
-  my ($alert, $error, $result);
-
-  my $service = new SOAP::Lite
-  -> autotype   (1)
-  -> readable   (1)
-  -> envprefix  ('soapenv')
-  -> encprefix  ('soapenc')
-  -> xmlschema  ('http://www.w3.org/2001/XMLSchema')
-  -> uri        ( $parms{namespace} )
-  -> on_action  ( sub { sprintf '%s/%s', @_ } )
-  -> on_fault   ( sub { } )
-  ;
+  $SOAP::Constants::PATCH_HTTP_KEEPALIVE = $PATCH_HTTP_KEEPALIVE;
 
   if ( defined $parms{registerNamespace} ) {
     while ( my ($key, $value) = each( %{ $parms{registerNamespace} } ) ) {
@@ -214,7 +254,7 @@ sub get_soap_request {
 
   unless ( $returnCode ) {
     unless ( defined $som and defined $som->fault ) {
-      $result = UNIVERSAL::isa($som => 'SOAP::SOM') ? (wantarray ? $som->paramsall : $som->result) : $som;
+      $result = UNIVERSAL::isa($som => ($WSRF ? 'WSRF::SOM' : 'SOAP::SOM')) ? (wantarray ? $som->paramsall : $som->result) : $som;
 
       if ( $debug ) {
         for ( ref $result ) {

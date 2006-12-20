@@ -12,7 +12,7 @@ start() {
   else
     echo "Start: '$AMNAME' ..."
     cd $AMPATH
-    ./$AMCMD $AMPARA &
+    PATH=$PATH MANPATH=$MANPATH PERL5LIB=$PERL5LIB LD_LIBRARY_PATH=$LD_LIBRARY_PATH ./$AMCMD $AMPARA &
   fi
 }
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -13,10 +13,11 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 use CGI;
 use DBI;
+use Date::Calc qw(Add_Delta_Days Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedResults.pl";
 my $prgtext     = "Get Archived Results";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -70,11 +71,11 @@ unless ( defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' order by optionValueTitle";
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {
-        $sql = "select LTRIM(SUBSTRING_INDEX(title, ']', -1)), resultsdir from $SERVERTABLPLUGINS where uKey = '$uKey'";
+        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
@@ -122,9 +123,16 @@ unless ( defined $errorUserAccessControl ) {
               } elsif ( $csvWeekly eq 'on' and $archivedResultFile =~ /-$uKey-csv-week.txt$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
 	  		    my $resultsWeek  = substr($archivedResultFile, 5, 2);
-				
+
+                my ($f_year, $f_month, $f_day) = Monday_of_Week($resultsWeek, $resultsYear);
+                my ($t_year, $t_month, $t_day) = Add_Delta_Days($f_year, $f_month, $f_day, 6);
+
                 $resultsType = "CSV Weekly";
-                $resultsDate = "$resultsYear, Week $resultsWeek";
+                $f_month = sprintf ("%02d", $f_month);
+                $f_day   = sprintf ("%02d", $f_day);
+                $t_month = sprintf ("%02d", $t_month);
+                $t_day   = sprintf ("%02d", $t_day);
+                $resultsDate = "$resultsYear, Week $resultsWeek from $f_year/$f_month/$f_day until $t_year/$t_month/$t_day";
               } elsif ( $sqlData eq 'on' and $archivedResultFile =~ /-$uKey.sql$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
   			    my $resultsMonth = substr($archivedResultFile, 4, 2);
@@ -148,7 +156,7 @@ unless ( defined $errorUserAccessControl ) {
             }
           }
 
-          $resultsSelect .= "\n    <tr><td>For this periode there are no generated result(s) for '" .encode_html_entities('T', $title). "'</td></tr>" if ($noGeneratedDebugs);
+          $resultsSelect .= "\n    <tr><td>For this period there are no generated result(s) for '" .encode_html_entities('T', $title). "'</td></tr>" if ($noGeneratedDebugs);
         }
 
         $resultsSelect .= "\n  </table>";

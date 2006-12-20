@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2006/xx/xx, v3.000.012, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -12,6 +12,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use DBI;
+use File::stat;
 use Time::Local;
 use Getopt::Long;
 use Date::Calc qw(Delta_DHMS);
@@ -21,10 +22,10 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.011;
+use ASNMTAP::Time v3.000.012;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.000.011;
+use ASNMTAP::Asnmtap::Applications::Collector v3.000.012;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +36,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -200,6 +201,9 @@ if ($mode eq 'C') {
           resultsdirCreate();
 		  $boolean_signal_hup = 0;
 		}
+
+        # Update access and modify epoch time from the PID time
+        utime (time(), time(), $pidfile) if (-e $pidfile);
 
         # Crontab implementation
         do_crontab ();
@@ -485,6 +489,12 @@ sub signalQUIT {
   unlink $pidfile;
   printDebugAll ("           Done");
   $boolean_daemonQuit = 1;
+
+  use Sys::Hostname;
+  my $subject = "$prgtext\@". hostname() .": Config $APPLICATIONPATH/etc/$collectorlist successfully stopped at ". get_datetimeSignal();
+  my $returnCode = sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $subject ."\n", 0 );
+  print "Problem sending email to the '$APPLICATION' server administrators\n" unless ( $returnCode );
+
   exit 1;
 }
 
@@ -579,7 +589,7 @@ sub call_system {
     $dumped_core = 0;
     $stdout = $stderr = '';
   }
-  
+
   if ($exit_value >= 0 && $exit_value <= 4 && $signal_num == 0 && $dumped_core == 0) {
     $action = "Success";
 
@@ -687,11 +697,13 @@ sub call_system {
       my $perfParseTimeslot = get_timeslot ($currentDate);
 
       my $perfParseCommand;
+      my $environment = (($system_action =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
+      my $eTitle = $title .' ('. $ENVIRONMENT{$environment} .')' if (defined $environment);
 
       if ( $perfParseMethode eq 'PULP' ) {
-        $perfParseCommand = "$APPLICATIONPATH/sbin/perfparse_asnmtap_pulp_command.pl $PREFIXPATH/log/perfdata-asnmtap.log \"$perfParseTimeslot\t$title\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\"";
+        $perfParseCommand = "$APPLICATIONPATH/sbin/perfparse_asnmtap_pulp_command.pl $PREFIXPATH/log/perfdata-asnmtap.log \"$perfParseTimeslot\t$eTitle\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\"";
       } else {
-        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$title\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PREFIXPATH/perfparse/bin/perfparse-log2mysql -c $PREFIXPATH/perfparse/etc/perfparse.cfg";
+        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$eTitle\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PREFIXPATH/perfparse/bin/perfparse-log2mysql -c $PREFIXPATH/perfparse/etc/perfparse.cfg";
       }
 
       if ($CAPTUREOUTPUT) {
@@ -822,7 +834,8 @@ sub insertEntryDBI {
 
   if ($dbh and $rv) {
     $dbh->disconnect or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Sorry, the database was unable to add your entry.");
-    $rv = graphEntryDBI ($uniqueKey, $title, $dbiFilename, $interval, 121, 6, 1, 0, get_trendline_from_test ($test), 0, $debug) if ($interval > 0);
+    my $environment = (($test =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
+    $rv = graphEntryDBI ($uniqueKey, $title, $environment, $dbiFilename, $interval, 121, 6, 1, 0, get_trendline_from_test ($test), 0, $debug) if ($interval > 0);
   }
 
   return $rv;
@@ -889,7 +902,9 @@ sub errorTrapDBIdowntime {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub graphEntryDBI {
-  my ($uniqueKey, $title, $dbiFilename, $interval, $limitTest, $xLabelStep, $withBorder, $markOrZone, $yMarkValue, $xRealtime, $debug) = @_;
+  my ($uniqueKey, $title, $environment, $dbiFilename, $interval, $limitTest, $xLabelStep, $withBorder, $markOrZone, $yMarkValue, $xRealtime, $debug) = @_;
+
+  $title .= ' ('. $ENVIRONMENT{$environment} .')' if (defined $environment);
 
   # $limitTest -> 241: (120*2.0)+1, x = 2.0 -> $xLabelStep = 6 * x -> 12
   #               181: (120*1.5)+1, x = 1.5 -> $xLabelStep = 6 * x ->  9

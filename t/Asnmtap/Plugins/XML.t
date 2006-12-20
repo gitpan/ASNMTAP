@@ -7,19 +7,19 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(&extract_XML) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.011;
+  use ASNMTAP::Asnmtap::Plugins v3.000.012;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'XML.t',
     _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::XML',
-    _programVersion     => '3.000.011',
+    _programVersion     => '3.000.012',
     _timeout            => 30,
     _debug              => 0);
 
   isa_ok( $objectPlugins, 'ASNMTAP::Asnmtap::Plugins' );
   can_ok( $objectPlugins, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
-  can_ok( $objectPlugins, qw(appendPerformanceData browseragent clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
+  can_ok( $objectPlugins, qw(appendPerformanceData browseragent SSLversion clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
 
   use constant HEADER => '<?xml version="1.0" encoding="UTF-8"?>';
   use constant FOOTER => '</MonitoringXML>';

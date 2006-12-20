@@ -4,18 +4,18 @@ ASNMTAP::Asnmtap::Plugins::IO is a Perl module that provides IO functions used b
 
 =head1 DESCRIPTION
 
- use ASNMTAP::Asnmtap::Plugins v3.000.011;
+ use ASNMTAP::Asnmtap::Plugins v3.000.012;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-IO.pl',
    _programDescription => "IO plugin template for the '$APPLICATION'",
-   _programVersion     => '3.000.011',
+   _programVersion     => '3.000.012',
    _programUsagePrefix => '--service <service> --protocol <protocol> --request <request>',
    _programHelpPrefix  => '--service=<service>
  --protocol=<protocol>
  --request=<request>',
-   _programGetOptions  => ['host|H=s', 'port|P=i', 'service:s', 'protocol:s', 'request:s', 'username|u|loginname:s', 'password|passwd|p:s', 'timeout|t:i', 'trendline|T:i'],
+   _programGetOptions  => ['host|H=s', 'port|P=i', 'service:s', 'protocol:s', 'request:s', 'username|u|loginname:s', 'password|p|passwd:s', 'timeout|t:i', 'trendline|T:i'],
    _timeout            => 30,
    _debug              => 0);
 
@@ -27,7 +27,7 @@ ASNMTAP::Asnmtap::Plugins::IO is a Perl module that provides IO functions used b
  my $username = $objectPlugins->getOptionsArgv ('username');
  my $password = $objectPlugins->getOptionsArgv ('password');
 
- use ASNMTAP::Asnmtap::Plugins::IO v3.000.011;
+ use ASNMTAP::Asnmtap::Plugins::IO v3.000.012;
  use ASNMTAP::Asnmtap::Plugins::IO qw(:SOCKET);
 
  my $returnCode = scan_socket_info (

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -32,7 +32,7 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS = (ALL      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH $LOGPATH $PIDPATH
+                                                              $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                               %ERRORS %STATE %TYPE
 
                                                               $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -48,7 +48,7 @@ BEGIN {
 
                                              PLUGINS  => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
-                                                              $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                              $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                               %ERRORS %STATE %TYPE) ],
 
                                              COMMANDS => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -103,7 +103,7 @@ sub _init {
    S(erver Admin): long screendebugging on for Server Admins
 " . $_[0]->{_programHelpSuffix};
 
-  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|dumphttp|httpdump|D:s', 'debug|d:s' );
+  push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|D|dumphttp|httpdump:s', 'debug|d:s' );
 
   my ($_programUsageSuffix, $_programHelpSuffix);
 
@@ -118,7 +118,7 @@ sub _init {
       /^port\|P([:=])i$/                && do { $_[0]->{_getOptionsType}->{port}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-P|--port <PORT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-P, --port=<PORT>\n"; last; };
       /^community\|C([:=])s$/           && do { $_[0]->{_getOptionsType}->{community}   = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-C|--community <SNMP COMMUNITY>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-C, --community=<SNMP COMMUNITY>\n"; last; };      
       /^username\|u\|loginname([:=])s$/ && do { $_[0]->{_getOptionsType}->{username}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-u|--username|--loginname <USERNAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-u, --username/--loginname=<USERNAME>\n"; last; };
-      /^password\|passwd\|p([:=])s$/    && do { $_[0]->{_getOptionsType}->{password}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-p|--password|--passwd <PASSWORD>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-p, --password/--passwd=<PASSWORD>\n"; last; };
+      /^password\|p\|passwd([:=])s$/    && do { $_[0]->{_getOptionsType}->{password}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-p|--password|--passwd <PASSWORD>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-p, --password/--passwd=<PASSWORD>\n"; last; };
       /^filename\|F([:=])s$/            && do { $_[0]->{_getOptionsType}->{filename}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-F|--filename <FILENAME>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-F, --filename=<FILENAME>\n   XML filename with the ASNMTAP/Nagios compatible test results\n"; last; };
       /^interval\|i([:=])i$/            && do { $_[0]->{_getOptionsType}->{interval}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-i|--interval <SECONDS>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-i, --interval=<SECONDS>\n   interval threshold (seconds) from which a CRITICAL (2x) or WARNING (1x) status will result when XML fingerprint out of time\n"; last; };
       /^loglevel\|l([:=])s$/            && do { $_[0]->{_getOptionsType}->{loglevel}    = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-l|--loglevel <LOGLEVEL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-l, --loglevel=<LOGLEVEL>\n   loglevel, one of (order of decrescent verbosity): debug, verbose, notice, info, warning, err, crit, alert, emerg\n"; last; };
@@ -139,7 +139,9 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/2006xxxx libwww-perl/5.805";
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/4.7 (compatible; ASNMTAP; U; ASNMTAP-3.000.012 postfix; nl-BE; rv:3.000.012) Gecko/2006xxxx libwww-perl/5.805';
+
+  $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
   $_[0]->[ $_[0]->[0]{_clientCertificate} = @{$_[0]} ] = $_[1]->{_clientCertificate} if (defined $_[1]->{_clientCertificate});
 }
@@ -381,14 +383,20 @@ sub _init_proxy_and_client_certificate {
       $proxyServer = $proxy;
     }
 
-    $_[0]->[ $_[0]->[0]{_proxy} = @{$_[0]} ] = {};
+    unless ( exists $_[0]->{_proxy} ) {
+      $_[0]->[ $_[0]->[0]{_proxy} = @{$_[0]} ] = {};
+      $_[0]->{_proxy}->{no} = undef;
+    } elsif ( defined $_[0]->{_proxy}->{no} ) {
+	  $ENV{NO_PROXY} = join (', ', @{ $_[0]->{_proxy}->{no} });
+    }
+
     $_[0]->{_proxy}->{server}   = "http://" . $proxyServer;
     $_[0]->{_proxy}->{username} = $proxyUsername;
     $_[0]->{_proxy}->{password} = $proxyPassword;
   }
 
   # HTTPS: DEFAULT SSL VERSION
-  $ENV{HTTPS_VERSION} = '3';
+  $ENV{HTTPS_VERSION} = $_[0]->{_SSLversion};
 
   # HTTPS: DEBUGGING SWITCH / LOW LEVEL SSL DIAGNOSTICS
   $ENV{HTTPS_DEBUG} = $_[0]->{_getOptionsValues}->{debug};
@@ -429,7 +437,19 @@ sub appendPerformanceData { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1; $_[0]->
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub browseragent {&_checkAccObjRef ( $_[0] ); &_checkSubArgs1; $_[0]->{_browseragent} = $_[1] if ( defined $_[1] ); $_[0]->{_browseragent}; }
+sub browseragent { &_checkAccObjRef ( $_[0] ); &_checkSubArgs1; $_[0]->{_browseragent} = $_[1] if ( defined $_[1] ); $_[0]->{_browseragent}; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub SSLversion { 
+  &_checkAccObjRef ( $_[0] ); &_checkSubArgs1;
+
+  if ( defined $_[1] ) {
+    $_[0]->{_SSLversion} = ($_[1] =~ /^(?:2|3|23)$/ ? $_[1] : 3);
+  }
+
+  $_[0]->{_SSLversion}; 
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

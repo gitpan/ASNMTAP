@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,7 +43,6 @@ my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : "F";
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
 
-my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
 my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 my $selectF = ($debug eq 'F') ? "selected" : "";
@@ -70,12 +69,12 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') order by optionValueTitle";
+    $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where ( $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') ) and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
     ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
     if ( $rv ) {
       if ($uKey ne '<NIHIL>') {
-        $sql = "select test, environment, arguments, argumentsOndemand, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle, trendline from $SERVERTABLPLUGINS where uKey = '$uKey'";
+        $sql = "select test, $SERVERTABLPLUGINS.environment, arguments, argumentsOndemand, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle, trendline from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
@@ -207,6 +206,11 @@ EndOfHtml
 
 sub maskPassword {
   my ($parameters) =  @_;
+
+  # --dnPass=
+  if ($parameters =~ /--dnPass=/) {
+    $parameters =~ s/(--dnPass=)\w+/$1********/g;
+  }
 
   # --proxy=user:pasword\@proxy
   if ($parameters =~ /--proxy=/) {

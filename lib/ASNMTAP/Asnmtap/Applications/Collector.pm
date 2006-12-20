@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications::Collector
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -30,8 +30,8 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Applications::Collector::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                                $CAPTUREOUTPUT
-                                                                                $PREFIXPATH $LOGPATH $PIDPATH
-                                                                                %ERRORS %STATE %TYPE
+                                                                                $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
+                                                                                %ENVIRONMENT %ERRORS %STATE %TYPE
 
                                                                                 &sending_mail
 
@@ -59,7 +59,7 @@ BEGIN {
 
                                                              APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                                   $CAPTUREOUTPUT
-                                                                                  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                                  $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                                   %ERRORS %STATE %TYPE
 
                                                                                   &print_revision &usage &sending_mail) ],
@@ -76,7 +76,7 @@ BEGIN {
                                                                                   $DEBUGDIR
                                                                                   $HTTPSPATH $RESULTSPATH $PIDPATH
                                                                                   $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
-                                                                                  %COLORSRRD
+                                                                                  %COLORSRRD %ENVIRONMENT
                                                                                   &read_table &get_trendline_from_test
                                                                                   &set_doIt_and_doOffline
                                                                                   &create_header &create_footer)],
@@ -86,7 +86,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

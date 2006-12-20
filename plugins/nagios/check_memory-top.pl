@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_memory-free.pl
+# 2006/xx/xx, v3.000.012, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Solaris and TRU64: memory
 # ----------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.011;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.011',
+  _programVersion     => '3.000.012',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberProcesses <number of processes> -s|--sortingOrder [cpu|size|res|time] -M|--memory [F|U]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn
@@ -57,9 +57,11 @@ $objectNagios->printUsage ('Missing command line argument metric') unless ( defi
 my $osType    = $objectNagios->getOptionsValue ('osType');
 my $metric    = $objectNagios->getOptionsValue ('metric');
 
+$osType = $tOstype if ( defined $tOstype);
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$objectNagios->printUsage ('Only ostype Solaris and True64 is supported!') unless ( defined $osType and $osType =~ /^(?:Solaris|True64)$/ );
+$objectNagios->printUsage ('Only ostype Solaris and True64 is supported!') unless ( defined $osType and $osType =~ /^(?:Solaris|Solaris10|True64)$/ );
 $objectNagios->printUsage ('You must define WARNING and CRITICAL levels!') unless ($warning != 0 and $critical != 0);
 $objectNagios->printUsage ('WARNING level must not be greater than CRITICAL when checking memory!') if ($memory eq 'U' and $warning >= $critical);
 $objectNagios->printUsage ('CRITICAL level must not be greater than WARNING when checking memory!') if ($memory eq 'F' and $critical >= $warning);
@@ -76,10 +78,10 @@ if ($osType eq 'TRU64') {
   $topDetail = '\\s*\\d+\\s+\\w+\\s+\\d+\\s+-?\\d+\\s+([0-9.]+)([kMG])\\s+([0-9.]+)([kMG])\\s+[\\w|\\d|/]+\\s+([0-9:.H]+)\\s+([0-9.]+)%\\s+(\\w+)';
 } else {
   $topHeader = '\\s+PID\\s+USERNAME\\s+\\w+\\s+PRI\\s+NICE\\s+SIZE\\s+RES\\s+STATE\\s+TIME\\s+CPU\\s+COMMAND';
-  $topDetail = '\\s*\\d+\\s+\\w+\\s+\\d+\\s+\\d+\\s+-?\\d+\\s+([0-9.]+)([kMG])\\s+([0-9.]+)([kMG])\\s+[\\w|\\d|/]+\\s+([0-9:.H]+)\\s+([0-9.]+)%\\s+(\\w+)';
+  $topDetail = '\\s*\\d+\\s+\\w+\\s+\\d+\\s+\\d+\\s+-?\\d+\\s+([0-9.]+)([kKMG])\\s+([0-9.]+)([kKMG])\\s+[\\w|\\d|/]+\\s+([0-9:.H]+)\\s+([0-9.]+)%\\s+(\\w+)';
 }
 
-$objectNagios->exit (5) if ( $objectNagios->call_system ( "top -b $numberProcesses -S -o $sortingOrder" ) );
+$objectNagios->exit (5) if ( $objectNagios->call_system ( "top -b $numberProcesses -S -o $sortingOrder | grep -v sleep" ) );
 $result = $objectNagios->pluginValue ('result');
 
 my ($totalSizeValue, $totalResValue, $topHeaderFound, $eol) = (0, 0, 0, '\n');
@@ -108,8 +110,10 @@ $totalResValue  = convert_from_KB_to_metric($metric, $totalResValue);
 if (defined $memory_line) {
   if ($osType eq 'TRU64') {
     $memory_line =~ s/^Memory:\s+Real:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+act\/tot\s+Virtual:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+use\/tot\s+Free:\s+([0-9.]+)([kMG])\s*/$7 $8 $9 $10/gi;
+  } elsif ($osType eq 'Solaris10') {
+    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+phys\s+mem,\s+([0-9.]+)([kKMG])\s+free\s+mem,\s+([0-9.]+)([kKMG])\s+swap,\s+([0-9.]+)([kKMG])\s+free\s+swap$/$1 $2 $3 $4/gi;
   } else {
-    $memory_line =~ s/^Memory:\s+([0-9.]+)([kMG])\s+real,\s+([0-9.]+)([kMG])\s+free,\s+([0-9.]+)([kMG])\s+swap\s+in\s+use,\s+([0-9.]+)([kMG])\s+swap\s+free$/$1 $2 $3 $4/gi;
+    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+real,\s+([0-9.]+)([kKMG])\s+free,\s+([0-9.]+)([kKMG])\s+swap\s+in\s+use,\s+([0-9.]+)([kKMG])\s+swap\s+free$/$1 $2 $3 $4/gi;
   }
 
   my @top = split(/ /, $memory_line);

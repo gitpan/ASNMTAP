@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,6 +54,7 @@ my $Condemand           = (defined $cgi->param('ondemand'))           ? $cgi->pa
 my $Cproduction         = (defined $cgi->param('production'))         ? $cgi->param('production')         : "off";
 my @Cpagedir            =          $cgi->param('pagedirs');
 my $Cresultsdir         = (defined $cgi->param('resultsdir'))         ? $cgi->param('resultsdir')         : "none";
+my $ChelpPluginTextname = (defined $cgi->param('helpPluginTextname')) ? $cgi->param('helpPluginTextname') : '<NIHIL>';
 my $ChelpPluginFilename = (defined $cgi->param('helpPluginFilename')) ? $cgi->param('helpPluginFilename') : '<NIHIL>';
 my $CholidayBundleID    = (defined $cgi->param('holidayBundleID'))    ? $cgi->param('holidayBundleID')    : 0;
 my $Cactivated          = (defined $cgi->param('activated'))          ? $cgi->param('activated')          : "off";
@@ -71,12 +72,51 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Plugins", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&environment=$Cenvironment&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKey=$CuKey&test=$Ctest&environment=$Cenvironment&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginTextname=$ChelpPluginTextname&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
+  if ( $ChelpPluginFilename ne '<NIHIL>' ) {
+    if ( $cgi->param('helpPluginFilename') eq '' ) {
+      $ChelpPluginFilename = $ChelpPluginTextname;
+      $ChelpPluginTextname = '';
+    } else {
+      $ChelpPluginFilename =~ s/^.*(?:\/|\\)//;
+      $ChelpPluginTextname = '<br><br>Help Plugin Filename: '. $ChelpPluginFilename;
+
+      my $type = $cgi->uploadInfo( $cgi->param('helpPluginFilename') )->{'Content-Type'};
+
+      if ( $type eq 'application/pdf') {
+        my $fhOpen = open( FHOPEN, ">$PDPHELPPATH/$ChelpPluginFilename" );
+
+        if ($fhOpen) {
+          binmode FHOPEN;
+
+          my $fh = $cgi->upload('helpPluginFilename');
+
+          if ( defined $fh ) {
+            while (<$fh>) { print FHOPEN; }
+            $ChelpPluginTextname .= ', Uploaded and wrote file OK!';
+          } else {
+            $ChelpPluginTextname .= ', Cannot upload PDF file!';
+          }
+
+          close FHOPEN;
+        } else {
+          $ChelpPluginFilename = '<NIHIL>';
+          $ChelpPluginTextname .= ', Cannot create PDF file!';
+        }
+      } else {
+        $ChelpPluginFilename = '<NIHIL>';
+        $ChelpPluginTextname .= ', PDF files only!';
+      }
+    }
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   my ($environmentSelect, $holidayBundleSelect, $pagedirsSelect, $resultsdirSelect, $matchingPlugins, $navigationBar, $matchingViewsCrontabs, $generatePluginCrontabSchedulingReport);
 
   my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset";
@@ -126,7 +166,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "select uKey, displayDaemon from $SERVERTABLVIEWS where uKey = '$CuKey' order by displayDaemon, uKey";
       ($rv, $matchingPlugins) = check_record_exist ($rv, $dbh, $sql, 'Views', 'Unique Key', 'Display Daemon', $matchingPlugins, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
-      $sql = "select uKey, reportTitle from $SERVERTABLREPORTS where uKey = '$CuKey' order by reportTitle, uKey";
+      $sql = "select $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as title from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLREPORTS.uKey = '$CuKey' and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by title, uKey";
       ($rv, $matchingPlugins) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'Unique Key', 'Title', $matchingPlugins, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
 	  if ($matchingPlugins eq "") {
@@ -156,7 +196,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
-      $htmlTitle     = "All plugins listed";
+      $htmlTitle    = "All plugins listed";
 
       $sql = "select count(*) from $SERVERTABLPLUGINS";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
@@ -360,8 +400,16 @@ HTML
     document.plugins.title.focus();
     alert('Please enter a title!');
     return false;
+  } else {
+    var objectRegularExpressionTitleFormat = /[{}]/;
+
+    if ( objectRegularExpressionTitleFormat.test(document.plugins.title.value) ) {
+      document.plugins.title.focus();
+      alert('Please re-enter a Title: Bad title value, not allowed characters are { and } !');
+      return false;
+    }
   }
-	
+
   if ( document.plugins.test.value == null || document.plugins.test.value == '' ) {
     document.plugins.test.focus();
     alert('Please enter a plugin name!');
@@ -408,7 +456,7 @@ HTML
 }
 </script>
 
-<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" onSubmit="return validateForm();">
+<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" enctype="multipart/form-data" onSubmit="return validateForm();">
 HTML
     } elsif ($action eq "deleteView") {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
@@ -491,8 +539,10 @@ HTML
     	  $pagedirsSelect
         <tr><td><b>Results Subdir: </b></td><td>
           $resultsdirSelect
-        <tr><td>Help Plugin Filename: </td><td>
-          <input type="text" name="helpPluginFilename" value="$ChelpPluginFilename" size="100" maxlength="100" $formDisabledAll>
+        <tr><td valign="top">Help Plugin Filename: </td><td>
+          <input type="hidden" name="helpPluginTextname" value="$ChelpPluginFilename">
+          <input type="text" name="helpPluginTextname" value="$ChelpPluginFilename" size="100" maxlength="100" disabled><br>
+          <input type="file" name="helpPluginFilename" size="100" maxlength="100" accept="application/pdf" $formDisabledAll>
         <tr><td>Holiday Bundle: </td><td>
     	  $holidayBundleSelect
         <tr><td><b>Activated: </b></td><td>
@@ -504,7 +554,7 @@ HTML
       print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne "displayView");
       print "      </table>\n";
     } elsif ($action eq "delete" or $action eq "edit" or $action eq "insert") {
-      print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle</h1></td></tr>";
+      print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle$ChelpPluginTextname</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingPlugins</td></tr>" if (defined $matchingPlugins and $matchingPlugins ne "");
     } else {
       print "    <tr><td align=\"center\"><br>$matchingPlugins</td></tr>";

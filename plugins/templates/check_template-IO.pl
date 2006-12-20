@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_template-IO.pl
+# 2006/xx/xx, v3.000.012, check_template-IO.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.011;
+use ASNMTAP::Asnmtap::Plugins v3.000.012;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,12 +19,12 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-IO.pl',
   _programDescription => "IO plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.011',
+  _programVersion     => '3.000.012',
   _programUsagePrefix => '--service <service> --protocol <protocol> --request <request>',
   _programHelpPrefix  => '--service=<service>
 --protocol=<protocol>
 --request=<request>',
-  _programGetOptions  => ['host|H=s', 'port|P=i', 'service:s', 'protocol:s', 'request:s', 'username|u|loginname:s', 'password|passwd|p:s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['host|H=s', 'port|P=i', 'service:s', 'protocol:s', 'request:s', 'username|u|loginname:s', 'password|p|passwd:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -38,7 +38,7 @@ my $password = $objectPlugins->getOptionsArgv ('password');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::IO v3.000.011;
+use ASNMTAP::Asnmtap::Plugins::IO v3.000.012;
 use ASNMTAP::Asnmtap::Plugins::IO qw(:SOCKET);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

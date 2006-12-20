@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "crontabs.pl";
 my $prgtext     = "Crontabs";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -160,7 +160,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=$nextAction&orderBy=$orderBy$urlWithAccessParametersQuery");
 
       my ($lineNumber, $uKey, $groupName, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $activated, $title);
-      $sql = "select $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.uKey, $SERVERTABLCLLCTRDMNS.groupName, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline, $SERVERTABLCRONTABS.activated, $SERVERTABLPLUGINS.title from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS, $SERVERTABLCLLCTRDMNS where $sqlWhereList $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.uKey, $SERVERTABLCLLCTRDMNS.groupName, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline, $SERVERTABLCRONTABS.activated, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT, $SERVERTABLCLLCTRDMNS where $sqlWhereList $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$lineNumber, \$uKey, \$groupName, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline, \$activated, \$title ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -210,9 +210,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($action eq "insertView" or $action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "crontabView") {
       if ($CuKey eq "none" or $action eq "duplicateView") {
-        $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS order by optionValueTitle";
+        $sql = "select uKey, concat( title, ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       } else {
-        $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) from $SERVERTABLPLUGINS where uKey = '$CuKey'";
+        $sql = "select uKey, concat( title, ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
       }
 
      ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $CuKey, 'uKey', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -30,9 +30,9 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
-  %ASNMTAP::Asnmtap::Applications::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+  %ASNMTAP::Asnmtap::Applications::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                                        $CAPTUREOUTPUT
-                                                                       $PREFIXPATH $LOGPATH $PIDPATH
+                                                                       $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
 
                                                                        $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -54,10 +54,10 @@ BEGIN {
                                                                        $RMVERSION $RMDEFAULTUSER
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE $STATUSHEADER01
-                                                 					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %SOUND %QUARTERS
+                                                 					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
                                                                        &read_table &get_session_param &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
@@ -66,9 +66,9 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
 
-                                                  APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+                                                  APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                                        $CAPTUREOUTPUT
-                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
 
                                                                        &sending_mail
@@ -96,7 +96,7 @@ BEGIN {
                                                                        $DEBUGDIR
                                                                        $HTTPSPATH $RESULTSPATH $PIDPATH
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
-                                                                       %COLORSRRD
+                                                                       %COLORSRRD %ENVIRONMENT
                                                                        &read_table &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer
@@ -112,7 +112,7 @@ BEGIN {
                                                                        $HTTPSURL $IMAGESURL $RESULTSURL
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                        $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                       %COLORS %ICONS %ICONSACK %ICONSRECORD %SOUND
+                                                                       %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
                                                                        &read_table &get_trendline_from_test
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
 
@@ -126,25 +126,25 @@ BEGIN {
                                                                        $ASNMTAPMANUAL
                                                                        $DATABASE
                                                                        $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
-                                                                       $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $SSHKEYPATH $WWWKEYPATH
+                                                                       $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
                                                                        $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                        $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                        $RMVERSION $RMDEFAULTUSER
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
-                                                                       %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %SOUND %QUARTERS
+                                                                       %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        &get_session_param
                                                                        &set_doIt_and_doOffline
                                                                        &encode_html_entities &print_header &print_legend
  
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -243,7 +243,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = '3.000.011';
+our $RMVERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -361,6 +361,7 @@ our $SERVERTABLCOUNTRIES  = 'countries';
 our $SERVERTABLCRONTABS   = 'crontabs';
 our $SERVERTABLDSPLYDMNS  = 'displayDaemons';
 our $SERVERTABLDSPLYGRPS  = 'displayGroups';
+our $SERVERTABLENVIRONMNT = 'environment';
 our $SERVERTABLEVENTS     = 'events';
 our $SERVERTABLHOLIDYS    = 'holidays';
 our $SERVERTABLHLDSBNDL   = 'holidaysBundle';
@@ -380,6 +381,7 @@ if ( exists $_config{TABLES} ) {
   $SERVERTABLCRONTABS     = $_config{TABLES}{CRONTABS}          if ( exists $_config{TABLES}{CRONTABS} );
   $SERVERTABLDSPLYDMNS    = $_config{TABLES}{DISPLAYDAEMONS}    if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
   $SERVERTABLDSPLYGRPS    = $_config{TABLES}{DISPLAYGROUPS}     if ( exists $_config{TABLES}{DISPLAYGROUPS} );
+  $SERVERTABLENVIRONMNT   = $_config{TABLES}{ENVIRONMENT}       if ( exists $_config{TABLES}{ENVIRONMENT} );
   $SERVERTABLEVENTS       = $_config{TABLES}{EVENTS}            if ( exists $_config{TABLES}{EVENTS} );
   $SERVERTABLHOLIDYS      = $_config{TABLES}{HOLIDAYS}          if ( exists $_config{TABLES}{HOLIDAYS} );
   $SERVERTABLHLDSBNDL     = $_config{TABLES}{HOLIDAYSBUNDLE}    if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
@@ -446,6 +448,8 @@ if ( exists $_config{COLORS} ) {
     $COLORSTABLE{STARTBLOCK}  = '#'. $_config{COLORS}{TABLE}{STARTBLOCK} if ( exists $_config{COLORS}{TABLE}{STARTBLOCK} );
   }
 }
+
+our %ENVIRONMENT = ('P'=>'Production', 'S'=>'Simulation', 'A'=>'Acceptation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
 
 our %ICONS       = ('OK'=>'green.gif','WARNING'=>'yellow.gif','CRITICAL'=>'red.gif','UNKNOWN'=>'clear.gif','DEPENDENT'=>'','OFFLINE'=>'blue.gif','NO DATA'=>'purple.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest.gif','TRENDLINE'=>'orange.gif');
 our %ICONSACK    = ('OK'=>'green-ack.gif','WARNING'=>'yellow-ack.gif','CRITICAL'=>'red-ack.gif','UNKNOWN'=>'clear-ack.gif','DEPENDENT'=>'','OFFLINE'=>'blue-ack.gif','NO DATA'=>'purple-ack.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-ack.gif','TRENDLINE'=>'orange-ack.gif');
@@ -551,8 +555,8 @@ sub read_table {
       $debug = 5 if ($tDebug eq 'S');
 
       use Sys::Hostname;
-      my $action = $email == 2 ? 'reloaded' : 'restarted';
-      my $subject = "$prgtext\@". hostname() .": Config $APPLICATIONPATH/etc/$filename succesfuly $action at ". get_datetimeSignal();
+      my $action = ($email == 2 ? 'reloaded' : 'started');
+      my $subject = "$prgtext\@". hostname() .": Config $APPLICATIONPATH/etc/$filename successfully $action at ". get_datetimeSignal();
       my $message = $subject ."\n";
       my $returnCode = sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $message, $debug );
       print "Problem sending email to the '$APPLICATION' server administrators\n" unless ( $returnCode );
@@ -866,8 +870,7 @@ sub print_header {
 
   my ($pageDir, $environment) = split (/\//, $pagedir, 2);
   $environment = 'P' unless (defined $environment);
-  my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
-  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form><select name="environment" size="1" onChange="window.location=this.options[this.selectedIndex].value;"><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/'. $pageset .'.html"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/A/'. $pageset .'.html"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/S/'. $pageset .'.html"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
+  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form action="" name="environment"><select name="environment" size="1" onChange="window.location=this.options[this.selectedIndex].value;"><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/'. $pageset .'.html"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/A/'. $pageset .'.html"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/S/'. $pageset .'.html"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
 
   my $sessionIdOrCookie = ( defined $sessionID ) ? "&amp;CGISESSID=$sessionID" : "&amp;CGICOOKIE=1";
   my $showToggle   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/$pageset.html\">" : "<A HREF=\"/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
@@ -880,8 +883,8 @@ sub print_header {
 
   $stylesheet = "asnmtap.css" unless ( defined $stylesheet );
 
-  my $showRefresh = "";
-  my $metaRefresh = ( $onload eq 'ONLOAD="startRefresh();"' ) ? "" : "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$refresh\">";
+  my $metaRefresh = ( $onload =~ /^\QONLOAD="startRefresh();\E/ ) ? "" : "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$refresh\">";
+  my ($showRefresh, $showSound) = ('', '');
 
   print $HTML <<EndOfHtml;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -896,16 +899,67 @@ sub print_header {
   <link rel="stylesheet" type="text/css" href="$HTTPSURL/$stylesheet">
   $headScript
   <script language="JavaScript1.2" type="text/javascript">
-    function LegendSound(sound) {
+    function setSoundCookie( name, value, days ) {
+      var expires = '';
+
+      if ( days ) {
+        (time = new Date()).setTime( new Date().getTime() + days * 24 * 60 * 60 * 1000);
+        expires = "; expires=" + time.toGMTString();
+      }
+
+	  document.cookie = name + "=" + escape(value) + expires + "; path=$HTTPSURL/nav/$pagedir";
+    }
+
+    function getSoundCookie( name ) {
+      var prefix = name + '=';
+      var ca = document.cookie.split( ';' );
+
+      for( var i=0; i < ca.length; i++ ) {
+        var c = ca[i];
+        while ( c.charAt( 0 ) == ' ' ) c = c.substring( 1, c.length );
+        if ( c.indexOf( prefix ) == 0 ) return unescape( c.substring( prefix.length, c.length ) );
+      }
+
+      return null;
+    }
+
+    function deleteSoundCookie( name ) { setSoundCookie( name, '', -1 ); }
+
+    function initSound( ) {
+      var soundState = getSoundCookie( 'soundState' );
+      if ( soundState == null || soundState == 'on' ) { startSound( ); } else { stopSound( ); }
+    }
+
+    function startSound( ) {
+      setSoundCookie ( 'soundState', 'on', 1 );
+      document.getElementById('soundID').innerHTML='<A HREF=\"javascript:stopSound();\" title=\"Stop Sound\" alt=\"Stop Sound\"><img src=\"$IMAGESURL/on.gif\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0><\\/A>'
+    }
+
+    function stopSound( ) {
+      setSoundCookie ( 'soundState', 'off', 1 );
+      document.getElementById('soundID').innerHTML='<A HREF=\"javascript:startSound();\" title=\"Start Sound\" alt=\"Start Sound\"><img src=\"$IMAGESURL/off.gif\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0<\\/A>'
+    }
+
+    function LegendSound( sound ) {
+      var soundState = getSoundCookie( 'soundState' );
 EndOfHtml
 
   if ($subTitle !~ /^Reports\&nbsp\;\&nbsp\;/) {
-    print $HTML "      document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" hidden=\"true\" autostart=\"true\">'\n";
+    $showSound = "<span id=\"soundID\" class=\"LegendLastUpdate\"></span>";
+
+    print $HTML <<EndOfHtml;
+
+      if ( soundState != null && soundState == 'on' ) {
+        document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" hidden=\"true\" autostart=\"true\">'
+      } else {
+        document.getElementById('LegendSound').innerHTML='&nbsp;'
+      }
+EndOfHtml
   }
 
   print $HTML "    }\n  </script>\n";
-  
-  if ( $onload eq 'ONLOAD="startRefresh();"' ) {
+
+  if ( $onload =~ /^\QONLOAD="startRefresh();\E/ ) {
     $showRefresh = "<span id=\"refreshID\" class=\"LegendLastUpdate\"></span>";
 
     my ($pagesetName, $pagesetExtention) = split (/-/, $pageset);
@@ -973,7 +1027,7 @@ EndOfHtml
 </head>
 <BODY $onload>
   <TABLE WIDTH="100%"><TR>
-    <TD ALIGN="LEFT" WIDTH="260">
+    <TD ALIGN="LEFT" WIDTH="292">
       $showToggle
       $showReport
       $showOnDemand
@@ -981,6 +1035,7 @@ EndOfHtml
       $showAwstats
       $showInfo
       $showRefresh
+      $showSound
     </TD>
 	<td class="HeaderTitel">$htmlTitle</td><td width="180" class="HeaderSubTitel">$subTitle</td><td width="1" valign="middle">$selectEnvironment</td>
   </TR></TABLE>

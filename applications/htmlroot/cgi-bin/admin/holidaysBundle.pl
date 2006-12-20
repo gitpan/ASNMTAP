@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, holidaysBundle.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, holidaysBundle.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "holidaysBundle.pl";
 my $prgtext     = "Holidays Bundle";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -195,7 +195,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     if (!$CcountryIDreload and ($action eq "deleteView" or $action eq "displayView" or $action eq "editView")) {
       $matchingPlugins .= "<table border=0 cellpadding=1 cellspacing=1 bgcolor=\"$COLORSTABLE{TABLE}\"><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><th colspan=\"4\">Plugins:</th></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Primary Key</td><td>Title</td><td>Status</td><td>Action</td></tr>";
       my ($uKey, $title, $activated, $urlWithAccessParametersAction, $actionItem, $notActivated);
-      $sql = "select uKey, title, activated from $SERVERTABLPLUGINS where holidayBundleID = '$CholidayBundleID' order by title";
+      $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle, activated from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where holidayBundleID = '$CholidayBundleID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$uKey, \$title, \$activated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;

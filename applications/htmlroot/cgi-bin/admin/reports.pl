@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports.pl";
 my $prgtext     = "Reports";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -38,11 +38,10 @@ my $pageset                = (defined $cgi->param('pageset'))               ? $c
 my $debug                  = (defined $cgi->param('debug'))                 ? $cgi->param('debug')                 : "F";
 my $pageNo                 = (defined $cgi->param('pageNo'))                ? $cgi->param('pageNo')                : 1;
 my $pageOffset             = (defined $cgi->param('pageOffset'))            ? $cgi->param('pageOffset')            : 0;
-my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : "reportTitle";
+my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : "title";
 my $action                 = (defined $cgi->param('action'))                ? $cgi->param('action')                : "listView";
 my $Cid                    = (defined $cgi->param('id'))                    ? $cgi->param('id')                    : "new";
 my $CuKey                  = (defined $cgi->param('uKey'))                  ? $cgi->param('uKey')                  : "none";
-my $CreportTitle           = (defined $cgi->param('reportTitle'))           ? $cgi->param('reportTitle')           : "";
 my $Cperiode               = (defined $cgi->param('periode'))               ? $cgi->param('periode')               : "none";
 my $Cstatus                = (defined $cgi->param('status'))                ? $cgi->param('status')                : "off";
 my $CerrorDetails          = (defined $cgi->param('errorDetails'))          ? $cgi->param('errorDetails')          : "off";
@@ -53,6 +52,7 @@ my $CshowDetails           = (defined $cgi->param('showDetails'))           ? $c
 my $CshowTop20SlowTests    = (defined $cgi->param('showTop20SlowTests'))    ? $cgi->param('showTop20SlowTests')    : "off";
 my $CprinterFriendlyOutput = (defined $cgi->param('printerFriendlyOutput')) ? $cgi->param('printerFriendlyOutput') : "off";
 my $CformatOutput          = (defined $cgi->param('formatOutput'))          ? $cgi->param('formatOutput')          : "none";
+my $CuserPassword          = (defined $cgi->param('userPassword'))          ? $cgi->param('userPassword')          : "";
 my $Cactivated             = (defined $cgi->param('activated'))             ? $cgi->param('activated')             : "off";
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,10 +66,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&id=$Cid&uKey=$CuKey&reportTitle=$CreportTitle&periode=$Cperiode&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&id=$Cid&uKey=$CuKey&periode=$Cperiode&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&userPassword=$CuserPassword&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>report title  : $CreportTitle<br>periode       : $Cperiode<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output :$CformatOutput<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>periode       : $Cperiode<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output : $CformatOutput<br>user password : $CuserPassword<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingReports, $navigationBar);
@@ -108,7 +108,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq "on") ? 1 : 0;
         my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq "on") ? 1 : 0;
         my $dummyActivated             = ($Cactivated eq "on") ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle="' .$CreportTitle. '", periode="' .$Cperiode. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", periode="' .$Cperiode. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -141,7 +141,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq "on") ? 1 : 0;
       my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq "on") ? 1 : 0;
       my $dummyActivated             = ($Cactivated eq "on") ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle="' .$CreportTitle. '", periode="' .$Cperiode. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
+      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", periode="' .$Cperiode. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword.'", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
@@ -151,18 +151,18 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select $SERVERTABLREPORTS.id, $SERVERTABLREPORTS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), $SERVERTABLREPORTS.reportTitle, $SERVERTABLREPORTS.periode, $SERVERTABLREPORTS.formatOutput, $SERVERTABLREPORTS.activated from $SERVERTABLREPORTS, $SERVERTABLPLUGINS where $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=reportTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> When <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Format Output <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingReports, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report', 'id', '0', '0|1', '4#N=>Never|D=>Daily|W=>Weekly|M=>Monthly|Q=>Quarterly|Y=>Yearly', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select $SERVERTABLREPORTS.id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLREPORTS.periode, $SERVERTABLREPORTS.formatOutput, $SERVERTABLREPORTS.activated from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> When <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Format Output <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingReports, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report', 'id', '0', '0|1', '3#N=>Never|D=>Daily|W=>Weekly|M=>Monthly|Q=>Quarterly|Y=>Yearly', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select id, uKey, reportTitle, periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput, activated from $SERVERTABLREPORTS where id = '$Cid'";
+      $sql = "select id, uKey, periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, activated from $SERVERTABLREPORTS where id = '$Cid'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($Cid, $CuKey, $CreportTitle, $Cperiode, $Cstatus, $CerrorDetails, $Cbar, $ChourlyAverage, $CdailyAverage, $CshowDetails, $CshowTop20SlowTests, $CprinterFriendlyOutput, $CformatOutput, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+        ($Cid, $CuKey, $Cperiode, $Cstatus, $CerrorDetails, $Cbar, $ChourlyAverage, $CdailyAverage, $CshowDetails, $CshowTop20SlowTests, $CprinterFriendlyOutput, $CformatOutput, $CuserPassword, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
         $Cid                    = 'new' if ($action eq "duplicateView");
         $Cstatus                = ($Cstatus == 1) ? "on" : "off";
         $CerrorDetails          = ($CerrorDetails == 1) ? "on" : "off";
@@ -179,9 +179,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($action eq "insertView" or $action eq "deleteView" or $action eq "duplicateView" or $action eq "displayView" or $action eq "editView") {
       if ($CuKey eq "none" or $action eq "insertView" or $action eq "duplicateView" or $action eq "editView") {
-        $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS order by optionValueTitle";
+        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       } else {
-        $sql = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) from $SERVERTABLPLUGINS where uKey = '$CuKey'";
+        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
       }
 
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CuKey, 'uKey', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
@@ -222,12 +222,6 @@ function validateForm() {
   if( document.reports.uKey.options[document.reports.uKey.selectedIndex].value == 'none' ) {
     document.reports.uKey.focus();
     alert('Please select one of the applications!');
-    return false;
-  }
-
-  if ( document.reports.reportTitle.value == null || document.reports.reportTitle.value == '' ) {
-    document.reports.reportTitle.focus();
-    alert('Please enter a report title!');
     return false;
   }
 
@@ -318,9 +312,6 @@ HTML
 		<tr><td><b>Application: </b></td><td>
           $uKeySelect
         </td></tr>
-		<tr><td><b>Report Title: </b></td><td>
-          <input type="text" name="reportTitle" value="$CreportTitle" size="100" maxlength="100" $formDisabledAll>
-        </td></tr>
 		<tr><td><b>When: </b></td><td>
           $formatPeriodeSelect
         </td></tr>
@@ -351,6 +342,10 @@ HTML
 		<tr><td><b>Format Output: </b></td><td>
           $formatOutputSelect
         </td></tr>
+		<tr><td><b>User Password: </b></td><td>
+          <input type="password" name="userPassword" value="$CuserPassword" size="15" maxlength="15" $formDisabledAll>
+        </td></tr>
+        <tr><td>&nbsp;</td><td>This field contains the document user password, a string that is used by Adobe Acrobat to restrict viewing permissions on the file.<br>If this field is left blank, any user may view the document without entering a password.</td></tr>
 		<tr><td><b>Activated: </b></td><td>
           <input type="checkbox" name="activated" $activatedChecked $formDisabledAll>
         </td></tr>

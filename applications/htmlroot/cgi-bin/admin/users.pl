@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,30 +28,32 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir             = (defined $cgi->param('pagedir'))       ? $cgi->param('pagedir')       : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : "admin";   $pageset =~ s/\+/ /g;
-my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : "F";
-my $pageNo              = (defined $cgi->param('pageNo'))        ? $cgi->param('pageNo')        : 1;
-my $pageOffset          = (defined $cgi->param('pageOffset'))    ? $cgi->param('pageOffset')    : 0;
-my $orderBy             = (defined $cgi->param('orderBy'))       ? $cgi->param('orderBy')       : "remoteUser";
-my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : "listView";
-my $CremoteUser         = (defined $cgi->param('remoteUser'))    ? $cgi->param('remoteUser')    : "";
-my $CremoteAddr         = (defined $cgi->param('remoteAddr'))    ? $cgi->param('remoteAddr')    : "";
-my $CremoteNetmask      = (defined $cgi->param('remoteNetmask')) ? $cgi->param('remoteNetmask') : "";
-my $CgivenName          = (defined $cgi->param('givenName'))     ? $cgi->param('givenName')     : "";
-my $CfamilyName         = (defined $cgi->param('familyName'))    ? $cgi->param('familyName')    : "";
-my $Cemail              = (defined $cgi->param('email'))         ? $cgi->param('email')         : "";
-my $Cpassword           = (defined $cgi->param('password'))      ? $cgi->param('password')      : "";
-my $CuserType           = (defined $cgi->param('userType'))      ? $cgi->param('userType')      : 0;
+my $pagedir             = (defined $cgi->param('pagedir'))            ? $cgi->param('pagedir')            : '<NIHIL>'; $pagedir =~ s/\+/ /g;
+my $pageset             = (defined $cgi->param('pageset'))            ? $cgi->param('pageset')            : "admin";   $pageset =~ s/\+/ /g;
+my $debug               = (defined $cgi->param('debug'))              ? $cgi->param('debug')              : "F";
+my $pageNo              = (defined $cgi->param('pageNo'))             ? $cgi->param('pageNo')             : 1;
+my $pageOffset          = (defined $cgi->param('pageOffset'))         ? $cgi->param('pageOffset')         : 0;
+my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : "remoteUser";
+my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : "listView";
+my $CremoteUser         = (defined $cgi->param('remoteUser'))         ? $cgi->param('remoteUser')         : "";
+my $CremoteAddr         = (defined $cgi->param('remoteAddr'))         ? $cgi->param('remoteAddr')         : "";
+my $CremoteNetmask      = (defined $cgi->param('remoteNetmask'))      ? $cgi->param('remoteNetmask')      : "";
+my $CgivenName          = (defined $cgi->param('givenName'))          ? $cgi->param('givenName')          : "";
+my $CfamilyName         = (defined $cgi->param('familyName'))         ? $cgi->param('familyName')         : "";
+my $Cemail              = (defined $cgi->param('email'))              ? $cgi->param('email')              : "";
+my $CdowntimeScheduling = (defined $cgi->param('downtimeScheduling')) ? $cgi->param('downtimeScheduling') : "off";
+my $CgeneratedReports   = (defined $cgi->param('generatedReports'))   ? $cgi->param('generatedReports')   : "off";
+my $Cpassword           = (defined $cgi->param('password'))           ? $cgi->param('password')           : "";
+my $CuserType           = (defined $cgi->param('userType'))           ? $cgi->param('userType')           : 0;
 my @Cpagedir            =          $cgi->param('pagedirs');
-my $Cactivated          = (defined $cgi->param('activated'))     ? $cgi->param('activated')     : "off";
-my $CkeyLanguage        = (defined $cgi->param('keyLanguage'))   ? $cgi->param('keyLanguage')   : "none";
+my $CkeyLanguage        = (defined $cgi->param('keyLanguage'))        ? $cgi->param('keyLanguage')        : "none";
+my $Cactivated          = (defined $cgi->param('activated'))          ? $cgi->param('activated')          : "off";
 
 my $Cpagedir = (@Cpagedir) ? '/'. join ('/', @Cpagedir) .'/' : '';
 
@@ -66,10 +68,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&password=$Cpassword&userType=$CuserType&pagedirs=$Cpagedir&activated=$Cactivated&keyLanguage=$CkeyLanguage";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&downtimeScheduling=$CdowntimeScheduling&generatedReports=$CgeneratedReports&password=$Cpassword&userType=$CuserType&pagedirs=$Cpagedir&activated=$Cactivated&keyLanguage=$CkeyLanguage";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>remote user   : $CremoteUser<br>remote address: $CremoteAddr<br>remote netmask: $CremoteNetmask<br>given name    : $CgivenName<br>surname       : $CfamilyName<br>email         : $Cemail<br>password      : $Cpassword<br>user type     : $CuserType<br>pagedirs      : $Cpagedir<br>activated     : $Cactivated<br>key language  : $CkeyLanguage<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir            : $pagedir<br>pageset            : $pageset<br>debug              : $debug<br>CGISESSID          : $sessionID<br>page no            : $pageNo<br>page offset        : $pageOffset<br>order by           : $orderBy<br>action             : $action<br>remote user        : $CremoteUser<br>remote address     : $CremoteAddr<br>remote netmask     : $CremoteNetmask<br>given name         : $CgivenName<br>surname            : $CfamilyName<br>email              : $Cemail<br>downtime scheduling: $CdowntimeScheduling<br>generated reports  : $CgeneratedReports<br>password           : $Cpassword<br>user type          : $CuserType<br>pagedirs           : $Cpagedir<br>activated          : $Cactivated<br>key language       : $CkeyLanguage<br>URL ...            : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($keyLanguageSelect, $pagedirsSelect, $matchingUsers, $navigationBar);
@@ -99,9 +101,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $nextAction   = "insertView";
       } else {
         $htmlTitle    = "User $CremoteUser inserted";
+        my $dummyDowntimeScheduling = ($CdowntimeScheduling eq "on") ? 1 : 0;
+        my $dummyGeneratedReports = ($CgeneratedReports eq "on") ? 1 : 0;
         my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
         $Cpassword = '' if ($Cpassword eq "***************");
-        $sql = 'INSERT INTO ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", password="' .$Cpassword. '", userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '", password="' .$Cpassword. '", userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -133,9 +137,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq "edit") {
       $htmlTitle    = "User $CremoteUser updated";
+      my $dummyDowntimeScheduling = ($CdowntimeScheduling eq "on") ? 1 : 0;
+      my $dummyGeneratedReports = ($CgeneratedReports eq "on") ? 1 : 0;
       my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
-      my $dummyPassword  = ($Cpassword eq "***************") ? '' : ', password="' .$Cpassword. '"';
-      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '"' .$dummyPassword. ', userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '" WHERE remoteUser="' .$CremoteUser. '"';
+      my $dummyPassword = ($Cpassword eq "***************") ? '' : ', password="' .$Cpassword. '"';
+      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '"' .$dummyPassword. ', userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '" WHERE remoteUser="' .$CremoteUser. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
@@ -151,12 +157,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+      $sql = "select remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, downtimeScheduling, generatedReports, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $CdowntimeScheduling, $CgeneratedReports, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+        $CdowntimeScheduling = ($CdowntimeScheduling == 1) ? "on" : "off";
+        $CgeneratedReports = ($CgeneratedReports == 1) ? "on" : "off";
         $Cactivated = ($Cactivated == 1) ? "on" : "off";
         $Cpassword = "***************" if ($Cpassword ne "");
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
@@ -381,7 +389,9 @@ HTML
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
       my $userTypeSelect = create_combobox_from_keys_and_values_pairs ('0=>Guest|1=>Member|2=>Moderator|4=>Administrator|8=>Server Administrator', 'K', 0, $CuserType, 'userType', '', '', $formDisabledAll, '', $debug);
 
-      my $activatedChecked = ($Cactivated eq "on") ? " checked" : "";
+      my $downtimeSchedulingChecked = ($CdowntimeScheduling eq "on") ? " checked" : "";
+      my $generatedReportsChecked   = ($CgeneratedReports eq "on") ? " checked" : "";
+      my $activatedChecked          = ($Cactivated eq "on") ? " checked" : "";
 
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
@@ -412,6 +422,10 @@ HTML
         </td></tr>
 		<tr><td><b>Email: </b></td><td>
           <input type="text" name="email" value="$Cemail" size="64" maxlength="64" $formDisabledAll>
+        </td></tr>
+        </td></tr><tr><td><b>Sending email for:</b></td><td>
+          <input type="checkbox" name="downtimeScheduling" $downtimeSchedulingChecked $formDisabledAll>Downtime Scheduling&nbsp;
+          <input type="checkbox" name="generatedReports" $generatedReportsChecked $formDisabledAll>Generated Reports&nbsp;
         </td></tr>
 		<tr><td><b>Enter password: </b></td><td>
           <input type="password" name="password1" value="$Cpassword" size="15" maxlength="15" $formDisabledAll>&nbsp;&nbsp;The password must contain at least 1 number, at least 1 lower case letter, and at least 1 upper case letter.

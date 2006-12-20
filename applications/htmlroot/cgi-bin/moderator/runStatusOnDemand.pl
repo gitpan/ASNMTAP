@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,7 +44,7 @@ my $Cpid       = (defined $cgi->param('pid'))       ? $cgi->param('pid')       :
 my $Cppid      = (defined $cgi->param('ppid'))      ? $cgi->param('ppid')      : -1;
 my $Ccommand   = (defined $cgi->param('command'))   ? $cgi->param('command')   : '<NIHIL>';
 
-my $command    = "";
+my $command    = '';
 
 my $FORMATPSA  = "<tr><td class=\"%s\">%s %s %s %s %s %s %s %s</td><td class=\"%s\">%s</td></tr>\n";
 my $FORMATPS   = "<tr><td colspan=\"2\" class=\"%s\">%s %s %s %s %s %s %s %s</td>\n";
@@ -301,10 +301,10 @@ EndOfHtml
       print "<tr><td>&nbsp;</td></tr>\n" if ($capture_array == 0);
       print '</table><br>';
     } else {
-      print "<br>Command: $command not found.<br>";
+      print '<br>No '. ucfirst($status) .' daemons defined.<br>';
     }
   } else {
-    print "<br>Select application for immediate launch.<br>";
+    print '<br>Select application for immediate launch.<br>';
   }
 
   print '<BR>', "\n";

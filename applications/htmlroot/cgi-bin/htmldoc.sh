@@ -2,9 +2,9 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, htmldoc.sh for ASNMTAP
+# 2006/xx/xx, v3.000.012, htmldoc.sh for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
-# Compatible with HTMLDOC v1.8.25 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
+# Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 #
 # http://${SERVER_NAME}/cgi-bin/htmldoc.sh/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$QUERY_STRING
 #                      <--------------------------------------- ${PATH_INFO} -------------------------------------->

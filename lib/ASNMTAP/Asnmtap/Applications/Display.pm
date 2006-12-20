@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications::Display
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Display;
@@ -30,7 +30,7 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Applications::Display::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                                 $CAPTUREOUTPUT
-                                                                                $PREFIXPATH $LOGPATH $PIDPATH
+                                                                                $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                                 %ERRORS %STATE %TYPE
 
                                                                                 &sending_mail
@@ -49,7 +49,7 @@ BEGIN {
                                                                                 $HTTPSURL $IMAGESURL $RESULTSURL
                                                                                 $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                                 $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %SOUND
+                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
                                                                                 $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                                 $SERVERTABLCOMMENTS $SERVERTABLEVENTS
                                                                                 &read_table &get_trendline_from_test
@@ -59,7 +59,7 @@ BEGIN {
 
                                                            APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                                 $CAPTUREOUTPUT
-                                                                                $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                                $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                                 %ERRORS %STATE %TYPE
 
                                                                                 &print_revision &usage &call_system &sending_mail) ],
@@ -77,7 +77,7 @@ BEGIN {
                                                                                 $HTTPSURL $IMAGESURL $RESULTSURL
                                                                                 $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                                 $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %SOUND
+                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
                                                                                 &read_table &get_trendline_from_test
                                                                                 &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend)],
 
@@ -86,7 +86,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::Display::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

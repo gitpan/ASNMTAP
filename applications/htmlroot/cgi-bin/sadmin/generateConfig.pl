@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -13,13 +13,14 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 use DBI;
 use CGI;
+use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.011;
+use ASNMTAP::Time v3.000.012;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -679,6 +680,141 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         $centralSlaveDatabaseFQDN = $centralMasterDatabaseFQDN unless ( $centralTypeServers );
       }
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"2\">&nbsp;</td></tr>";
+
+      # plugins uploaded <-> plugins configurated - - - - - - - - - - - -
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+      if ( $rv ) {
+        if ( $sth->rows ) {
+          my @plugins = glob("$PLUGINPATH/*.pl");
+
+          while( $sth->fetch() ) {
+            my $teller = 0;
+
+            foreach my $plugin (@plugins) {
+              if ( $plugin eq "$PLUGINPATH/$test" ) {
+                $plugins[$teller] = undef;
+                last;
+              }
+
+              $teller++
+            }
+          }
+
+          foreach my $pluginPath (@plugins) {
+            if (defined $pluginPath) {
+		      (undef, my $plugin) = split (/^$PLUGINPATH\//, $pluginPath);
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$plugin</td><td>plugin uploaded without plugin configuration</td></tr>";
+              $countWarnings++;
+			}
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      }
+
+      # plugins configurated <-> plugins uploaded - - - - - - - - - - - -
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
+
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+      if ( $rv ) {
+        if ( $sth->rows ) {
+          while( $sth->fetch() ) {
+            if (! -e "$PLUGINPATH/$test") {
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration without plugin uploaded</td></tr>";
+              $countWarnings++;
+            } else {
+               my $sb = stat("$PLUGINPATH/$test");
+
+               unless ( $sb->mode == 33261 or $sb->mode == 33256 ) { # 0755 = 33261 & 0750 = 33256 
+                $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration with plugin uploaded but without wanted excecution rights</td></tr>";
+                $countErrors++;
+              }
+            }
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      }
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"2\">&nbsp;</td></tr>";
+
+      # help plugin filenames <-> plugin  - - - - - - - - - - - - - - - -
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Help Plugin Filenames <-> Plugin</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Help Plugin Filename</td><td>Message</td></tr>";
+      $sql = "SELECT DISTINCT helpPluginFilename FROM $SERVERTABLPLUGINS WHERE helpPluginFilename != '<NIHIL>'";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+      if ( $rv ) {
+        if ( $sth->rows ) {
+          my @helpPluginFilenames = glob("$PDPHELPPATH/*");
+
+          while( $sth->fetch() ) {
+            my $teller = 0;
+
+            foreach my $helpPluginPathFilename (@helpPluginFilenames) {
+              if ( $helpPluginPathFilename eq "$PDPHELPPATH/$helpPluginFilename" ) {
+                $helpPluginFilenames[$teller] = undef;
+                last;
+              }
+
+              $teller++
+            }
+          }
+
+          foreach my $helpPluginPathFilename (@helpPluginFilenames) {
+            if (defined $helpPluginPathFilename) {
+		      (undef, $helpPluginFilename) = split (/^$PDPHELPPATH\//, $helpPluginPathFilename);
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$helpPluginFilename</td><td>help plugin filename without plugin reference</td></tr>";
+              $countWarnings++;
+			}
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      }
+
+      # plugins <-> help plugin filename  - - - - - - - - - - - - - - - -
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Help Plugin Filename</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
+      $sql = "SELECT uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as shortTitle, helpPluginFilename FROM $SERVERTABLPLUGINS WHERE activated = 1 order by shortTitle";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$title, \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+      if ( $rv ) {
+        if ( $sth->rows ) {
+          while( $sth->fetch() ) {
+            if ($helpPluginFilename eq '<NIHIL>') {
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin without help plugin filename defined</td></tr>";
+              $countWarnings++;
+            } else {
+              if (! -e "$PDPHELPPATH/$helpPluginFilename") {
+                $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin with missing help plugin filename '<b>$helpPluginFilename</b>'</td></tr>";
+                $countWarnings++;
+              }
+            }
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      }
+
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       $matchingErrors .= "</table>\n";
@@ -794,8 +930,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         }
 
+        # SET - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        my $SET = '# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -';
+
+        $SET .= "\n
+if [ -d $PERL5LIB ]; then
+  PERL5LIB=\${PERL5LIB:+\$PERL5LIB:}$PERL5LIB
+  MANPATH=\${MANPATH:+\$MANPATH:}$MANPATH
+  export MANPATH PERL5LIB
+fi" if (defined $PERL5LIB and defined $MANPATH);
+
+        $SET .= "\n\nexport LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\${LD_LIBRARY_PATH}" if (defined $LD_LIBRARY_PATH);
+
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
         $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -825,12 +974,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
-                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                $matchingDisplayCT .= createDisplayCTscript ($SET, $typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
                 if ( $typeServers ) {
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($SET, $typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
                 }
 
                 $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon");
@@ -950,12 +1099,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave", $debug) if ($typeMonitoring);
-                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                $matchingCollectorCT .= createCollectorCTscript ($SET, $typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
 
                 if ( $typeServers ) {                          # Failover
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                  $matchingCollectorCT .= createCollectorCTscript ($SET, $typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
                 }
 
                 $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon");
@@ -1048,31 +1197,34 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # rsync-mirror  - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             my ($matchingRsyncMirrorConfigFailover, $matchingRsyncMirrorConfigDistributed);
             $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributed = "";
 
+            my ($sameServerID, $firstCollectorDaemon) = (0, 0);
             $prevTypeMonitoring = $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevResultsdir = "";
+            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevCollectorDaemon = $prevResultsdir = "";
             $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
-              if ($prevServerID ne $serverID) {
-                if ($prevServerID ne "") {
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $matchingRsyncMirrorConfigFailover, $debug);
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $matchingRsyncMirrorConfigDistributed, $debug);
+              $sameServerID = ($prevServerID eq $serverID ? 1 : 0);
+              $firstCollectorDaemon = ($sameServerID and $prevCollectorDaemon ne $collectorDaemon ? 1 : 0);
 
-                  $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
+              if ((! $sameServerID) or $firstCollectorDaemon) {
+                if ($prevServerID ne '' and $prevCollectorDaemon ne '') {
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $prevCollectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $prevCollectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
+                  $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>" unless ($sameServerID);
                   $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributed = "";
                 }
 
-                $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>";
+                $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>" unless ($sameServerID);
               }
 
               $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$RESULTSPATH/$resultsdir/ $RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt\n" if ($typeServers);
@@ -1082,16 +1234,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt\n";
               }
 
-              $prevServerID       = $serverID;
-              $prevTypeMonitoring = $typeMonitoring;
-              $prevTypeServers    = $typeServers;
-              $prevMasterFQDN     = $masterFQDN;
-              $prevSlaveFQDN      = $slaveFQDN;
-              $prevResultsdir     = $resultsdir;
+              $prevServerID        = $serverID;
+              $prevTypeMonitoring  = $typeMonitoring;
+              $prevTypeServers     = $typeServers;
+              $prevMasterFQDN      = $masterFQDN;
+              $prevSlaveFQDN       = $slaveFQDN;
+              $prevCollectorDaemon = $collectorDaemon;
+              $prevResultsdir      = $resultsdir;
             }
 
-            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $matchingRsyncMirrorConfigFailover, $debug);
-            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $matchingRsyncMirrorConfigDistributed, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
 
             $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
@@ -1257,7 +1410,7 @@ print '</BODY>', "\n", '</HTML>', "\n";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createCollectorCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
+  my ($SET, $typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
   
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/CollectorCT-template.sh >> $filename";
@@ -1278,6 +1431,8 @@ AMCMD=collector.pl
 AMPARA=\"--hostname=$databaseFQDN --mode=$mode --collectorlist=CollectorCT-$collectorDaemon --dumphttp=$dumphttp --status=$status --debug=$debugDaemon --screenDebug=$debugAllScreen --allDebug=$debugAllFile --nokDebug=$debugNokFile\"
 PIDPATH=$PIDPATH
 PIDNAME=CollectorCT-$collectorDaemon.pid
+
+$SET
 
 STARTUPFILE
 
@@ -1388,7 +1543,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createDisplayCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
+  my ($SET, $typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
 
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/DisplayCT-template.sh >> $filename";
@@ -1410,6 +1565,8 @@ AMPARA=\"--hostname=$databaseFQDN --checklist=DisplayCT-$displayDaemon --pagedir
 PIDPATH=$PIDPATH
 PIDNAME=DisplayCT-$displayDaemon.pid
 SOUNDCACHENAME=DisplayCT-$displayDaemon-sound-status.cache
+
+$SET
 
 STARTUPFILE
 
@@ -1520,21 +1677,23 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsFailover {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $matchingRsyncMirrorConfigFailover, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
   my ($filename, $command, $rvOpen);
   my $statusMessage = "";
 
   if ( $typeServers ) {                                        # Failover
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover between $masterFQDN and $slaveFQDN</td></tr>";
     $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh";
-    $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-template.sh >> $filename";
 
-    $rvOpen = open(RsyncMirror, ">$filename");
+    unless ( -e $filename ) {
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover between $masterFQDN and $slaveFQDN</td></tr>";
+      $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-template.sh >> $filename";
 
-    if ($rvOpen) {
-      print RsyncMirror <<RSYNCMIRRORFILE;
+      $rvOpen = open(RsyncMirror, ">$filename");
+
+      if ($rvOpen) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
 #!/usr/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
@@ -1567,13 +1726,16 @@ my \$captureOutput = $CAPTUREOUTPUT;
 
 RSYNCMIRRORFILE
 
-      close (RsyncMirror);
+        close (RsyncMirror);
+      }
+
+      $statusMessage .= do_system_call ($command, $debug);
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh\" target=\"_blank\">rsync-wrapper-failover-$masterFQDN.sh (master)</a></td></tr>";
     }
 
-    $statusMessage .= do_system_call ($command, $debug);
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh\" target=\"_blank\">rsync-wrapper-failover-$masterFQDN.sh (master)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover Monitoring from $slaveFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
 
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN.sh";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh";
     $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-template.sh >> $filename";
 
     $rvOpen = open(RsyncMirror, ">$filename");
@@ -1594,12 +1756,12 @@ RSYNCMIRRORFILE
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
-echo "rsync-mirror-failover-$slaveFQDN.sh version \$RMVersion"
+echo "rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh version \$RMVersion"
 
 PidPath=$PIDPATH
 Rsync=$RSYNCCOMMAND
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
-ConfFile=rsync-mirror-failover-$slaveFQDN.conf
+ConfFile=rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf
 ConfPath=$APPLICATIONPATH/slave
 Delete=' --delete --delete-after '
 # AdditionalParams=''                            # --numeric-ids, -H, -v and -R
@@ -1612,9 +1774,9 @@ RSYNCMIRRORFILE
     }
 
     $statusMessage .= do_system_call ($command, $debug);
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN.sh\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN.sh (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
 
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN.conf";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf";
 
     $rvOpen = open(RsyncMirror, ">$filename");
 
@@ -1630,6 +1792,10 @@ RSYNCMIRRORFILE
 # ------------------------------------------------------------------------------
 
 $matchingRsyncMirrorConfigFailover
+RSYNCMIRRORFILE
+
+      if ( $collectorDaemon eq 'test' ) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
 # ------------------------------------------------------------------------------
 
 $SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/ $APPLICATIONPATH/ -v -c -z --exclude=*.conf --exclude=*/
@@ -1648,11 +1814,12 @@ $SSHLOGONNAME\@$masterFQDN:$PLUGINPATH/ $PLUGINPATH/ -v -c -z
 
 # ------------------------------------------------------------------------------
 RSYNCMIRRORFILE
+      }
 
       close (RsyncMirror);
     }
 
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN.conf\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN.conf (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
   }
   
   return ($statusMessage);
@@ -1661,21 +1828,23 @@ RSYNCMIRRORFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsDistributed {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $matchingRsyncMirrorConfigDistributed, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
   my ($filename, $command, $rvOpen);
   my $statusMessage = "";
 
   if ( $typeMonitoring ) {                                 # Distributed
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralMasterFQDN</td></tr>";
     $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh";
-    $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
 
-    $rvOpen = open(RsyncMirror, ">$filename");
+    unless ( -e $filename ) {
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralMasterFQDN</td></tr>";
+      $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
 
-    if ($rvOpen) {
-      print RsyncMirror <<RSYNCMIRRORFILE;
+      $rvOpen = open(RsyncMirror, ">$filename");
+
+      if ($rvOpen) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
 #!/usr/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
@@ -1708,21 +1877,24 @@ my \$captureOutput = $CAPTUREOUTPUT;
 
 RSYNCMIRRORFILE
 
-      close (RsyncMirror);
+        close (RsyncMirror);
+      }
+
+      $statusMessage .= do_system_call ($command, $debug);
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CM-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralMasterFQDN.sh (master)</a></td></tr>";
     }
 
-    $statusMessage .= do_system_call ($command, $debug);
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CM-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralMasterFQDN.sh (master)</a></td></tr>";
-
-	if ( $centralTypeServers ) {
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralSlaveFQDN</td></tr>";
+    if ( $centralTypeServers ) {
       $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh";
-      $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
 
-      $rvOpen = open(RsyncMirror, ">$filename");
+      unless ( -e $filename ) {
+        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralSlaveFQDN</td></tr>";
+        $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
 
-      if ($rvOpen) {
-        print RsyncMirror <<RSYNCMIRRORFILE;
+        $rvOpen = open(RsyncMirror, ">$filename");
+
+        if ($rvOpen) {
+          print RsyncMirror <<RSYNCMIRRORFILE;
 #!/usr/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
@@ -1755,82 +1927,15 @@ my \$captureOutput = $CAPTUREOUTPUT;
 
 RSYNCMIRRORFILE
 
-        close (RsyncMirror);
+          close (RsyncMirror);
+        }
+
+        $statusMessage .= do_system_call ($command, $debug);
+        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralSlaveFQDN.sh (master)</a></td></tr>";
       }
 
-      $statusMessage .= do_system_call ($command, $debug);
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralSlaveFQDN.sh (master)</a></td></tr>";
-    }
-
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $masterFQDN</td></tr>";
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN.sh";
-    $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-template.sh >> $filename";
-
-    $rvOpen = open(RsyncMirror, ">$filename");
-
-    if ($rvOpen) {
-      print RsyncMirror <<RSYNCMIRRORFILE;
-#!/bin/bash
-# ------------------------------------------------------------------------------
-# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
-# ------------------------------------------------------------------------------
-# rsync-mirror-failover.sh for asnmtap, v$version, mirror script for rsync
-#   execution via ssh key for use with rsync-wrapper-failover.sh
-# ------------------------------------------------------------------------------
-# Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
-# ------------------------------------------------------------------------------
-
-RMVersion='$RMVERSION'
-echo "rsync-mirror-distributed-$masterFQDN.sh version \$RMVersion"
-
-PidPath=$PIDPATH
-Rsync=$RSYNCCOMMAND
-KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
-ConfFile=rsync-mirror-distributed-$masterFQDN.conf
-ConfPath=$APPLICATIONPATH/slave
-Delete=''
-# AdditionalParams=''                            # --numeric-ids, -H, -v and -R
-Reverse=no                                       # 'yes' -> from slave to master
-                                                 # 'no'  -> from master to slave
-
-RSYNCMIRRORFILE
-
-      close (RsyncMirror);
-    }
-
-    $statusMessage .= do_system_call ($command, $debug);
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN.sh\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN.sh (slave)</a></td></tr>";
-
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN.conf";
-
-    $rvOpen = open(RsyncMirror, ">$filename");
-
-    if ($rvOpen) {
-      print RsyncMirror <<RSYNCMIRRORFILE;
-# ------------------------------------------------------------------------------
-# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
-# ------------------------------------------------------------------------------
-# Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
-# ------------------------------------------------------------------------------
-
-$matchingRsyncMirrorConfigDistributed
-# ------------------------------------------------------------------------------
-RSYNCMIRRORFILE
-
-      close (RsyncMirror);
-    }
-
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN.conf\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN.conf (slave)</a></td></tr>";
-
-    if ( $typeServers ) {
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $slaveFQDN</td></tr>";
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN.sh";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $masterFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh";
       $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-template.sh >> $filename";
 
       $rvOpen = open(RsyncMirror, ">$filename");
@@ -1851,12 +1956,12 @@ RSYNCMIRRORFILE
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
-echo "rsync-mirror-distributed-$slaveFQDN.sh version \$RMVersion"
+echo "rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh version \$RMVersion"
 
 PidPath=$PIDPATH
 Rsync=$RSYNCCOMMAND
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
-ConfFile=rsync-mirror-distributed-$slaveFQDN.conf
+ConfFile=rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf
 ConfPath=$APPLICATIONPATH/slave
 Delete=''
 # AdditionalParams=''                            # --numeric-ids, -H, -v and -R
@@ -1869,9 +1974,78 @@ RSYNCMIRRORFILE
       }
 
       $statusMessage .= do_system_call ($command, $debug);
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN.sh\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN.sh (slave)</a></td></tr>";
+    }
 
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN.conf";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
+
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf";
+
+    $rvOpen = open(RsyncMirror, ">$filename");
+
+    if ($rvOpen) {
+      print RsyncMirror <<RSYNCMIRRORFILE;
+# ------------------------------------------------------------------------------
+# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# ------------------------------------------------------------------------------
+# Step-by-step instructions for installation:
+#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+# ------------------------------------------------------------------------------
+
+$matchingRsyncMirrorConfigDistributed
+# ------------------------------------------------------------------------------
+RSYNCMIRRORFILE
+
+      close (RsyncMirror);
+    }
+
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
+
+    if ( $typeServers ) {
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $slaveFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh";
+      $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-template.sh >> $filename";
+
+      $rvOpen = open(RsyncMirror, ">$filename");
+
+      if ($rvOpen) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
+#!/bin/bash
+# ------------------------------------------------------------------------------
+# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# ------------------------------------------------------------------------------
+# rsync-mirror-failover.sh for asnmtap, v$version, mirror script for rsync
+#   execution via ssh key for use with rsync-wrapper-failover.sh
+# ------------------------------------------------------------------------------
+# Step-by-step instructions for installation:
+#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+# ------------------------------------------------------------------------------
+
+RMVersion='$RMVERSION'
+echo "rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh version \$RMVersion"
+
+PidPath=$PIDPATH
+Rsync=$RSYNCCOMMAND
+KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
+ConfFile=rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf
+ConfPath=$APPLICATIONPATH/slave
+Delete=''
+# AdditionalParams=''                            # --numeric-ids, -H, -v and -R
+Reverse=no                                       # 'yes' -> from slave to master
+                                                 # 'no'  -> from master to slave
+
+RSYNCMIRRORFILE
+
+        close (RsyncMirror);
+      }
+
+      $statusMessage .= do_system_call ($command, $debug);
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
+
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf";
 
       $rvOpen = open(RsyncMirror, ">$filename");
 
@@ -1893,7 +2067,7 @@ RSYNCMIRRORFILE
         close (RsyncMirror);
       }
 
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN.conf\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN.conf (slave)</a></td></tr>";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
     }
   }
 
@@ -1993,9 +2167,12 @@ sub do_compare_view {
 		  if (($generated =~ /^DisplayCT-[\w-]+.sh$/) or ($generated =~ /^CollectorCT-[\w-]+.sh$/)) {
             $compareText .= '<br>';
             $compareText .= "$server:$APPLICATIONPATH/$subpath$generated start";
-          } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)
-                or ($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
+          } elsif (($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
             $todo = 1;
+          } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)) {
+            $todo = 1;
+            $compareText .= '<br>';
+            $compareText .= "Add '?-59/5 * * * * $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated  > /dev/null 2>&1' to crontab";
           }
         }
       } elsif ( $compareView =~ /^Only in generated:/ ) {
@@ -2102,7 +2279,7 @@ sub do_compare_view {
         $compareText = "Under construction < $compareView >";
       }
 
-      unless ( $details) { if ($todo or $type eq 'CM' or $type eq 'DM') { $compareText = "<b>$compareText</b>"; } }
+      unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or $type eq 'CM' or $type eq 'DM'); $compareText .= '<HR>'; }
 
       $statusMessage .= "\n		   <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$compareView</td></tr>" if ($details or $debug eq 'T');
       $statusMessage .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$compareDiff</td></tr>" if (defined $compareDiff);

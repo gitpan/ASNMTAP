@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, generateReports.pl for ASNMTAP::Applications
+# 2006/xx/xx, v3.000.012, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.011;
+use ASNMTAP::Asnmtap::Applications v3.000.012;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -30,7 +30,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
                                       &error_Trap_DBI
 
                                       $DATABASE $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                      $SERVERTABLPLUGINS $SERVERTABLREPORTS);
+                                      $SERVERTABLENVIRONMNT $SERVERTABLPLUGINS $SERVERTABLREPORTS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,7 +40,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,7 +62,7 @@ GetOptions (
   "y:s" => \$opt_y, "year:s"        => \$opt_y,
   "m:s" => \$opt_m, "month:s"       => \$opt_m,
   "d:s" => \$opt_d, "day:s"         => \$opt_d,
-  "a:s" => \$opt_a, "daysafter:s"   => \$opt_a,
+  "a:s" => \$opt_a, "daysAfter:s"   => \$opt_a,
   "u:s" => \$opt_u, "ukey:s"        => \$opt_u,
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   "D:s" => \$opt_D, "debug:s"       => \$opt_D,
@@ -88,12 +88,14 @@ if ($opt_D) {
 if ($opt_a) {
   if ($opt_a =~ /^[0-9]+$/) {
     $daysAfter = $opt_a;
+  } elsif ($opt_a =~ /^F$/) {
+    $daysAfter = 0;
   } else {
     usage("Invalid days after: $opt_a\n");
   }
 }
 
-my $uKeySqlWhere = (defined $opt_u) ? 'uKey = "' .$opt_u .'" AND' : '';
+my $uKeySqlWhere = (defined $opt_u) ? $SERVERTABLREPORTS.'.uKey = "' .$opt_u .'" AND' : '';
 
 if ($opt_y) {
   if ($opt_y =~ /^20\d\d$/) {
@@ -134,7 +136,7 @@ create_dir ($RESULTSPATH);
 my @arrayDays   = ('<NIHIL>', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
 my @arrayMonths = ('<NIHIL>', 'January', 'Februari', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
 
-for (my $dayAfter = 1; $dayAfter <= $daysAfter; $dayAfter++) {
+for (my $dayAfter = ($daysAfter ? 1 : 0); $dayAfter <= $daysAfter; $dayAfter++) {
   my ($urlAccessParametersDay, $urlAccessParametersWeek, $urlAccessParametersMonth, $urlAccessParametersQuarter, $urlAccessParametersYear);
   my $emailMessage = "\n";
 
@@ -193,20 +195,20 @@ for (my $dayAfter = 1; $dayAfter <= $daysAfter; $dayAfter++) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
 
   if ($dbh and $rv) {
-    my ($id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $test, $resultsdir);
-    $sql = "select id, uKey, reportTitle, periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput from $SERVERTABLREPORTS where $uKeySqlWhere activated = '1' order by uKey";
+    my ($id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $test, $resultsdir);
+    $sql = "select id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $uKeySqlWhere $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
     $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
     $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-    $sth->bind_columns( \$id, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+    $sth->bind_columns( \$id, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
 
     my @commands = (); my @pdfFilenames = ();
 
     if ( $rv ) {
       if ( $sth->rows ) {
         while( $sth->fetch() ) {
-          $emailMessage = ($debug >= 2) ? "--> $id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput\n" : "";
+          $emailMessage = ($debug >= 2) ? "--> $id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword\n" : "";
           my ($urlAccessParameters, $periodeMessage);
-          
+
           if ($periode eq 'D') {
             $periodeMessage = "Day_$arrayDays[$dayReportDayOfWeek]";
             $emailMessage .= " -> Daily\n" if ($debug >= 2);
@@ -251,7 +253,7 @@ for (my $dayAfter = 1; $dayAfter <= $daysAfter; $dayAfter++) {
 
             if ( $rv ) {
               ($test, $resultsdir) = $sth->fetchrow_array() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-               $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
+              $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
             }
 
             my $logging = $RESULTSPATH .'/'. $resultsdir;
@@ -272,10 +274,11 @@ for (my $dayAfter = 1; $dayAfter <= $daysAfter; $dayAfter++) {
 		    my $dayReportDayPdf = ($dayReportDay < 10) ? "0$dayReportDay" : $dayReportDay;
             my $pdfFilename = "$RESULTSPATH/$resultsdir/$REPORTDIR/$dayReportYear$dayReportMonthPdf$dayReportDayPdf-$test-$uKey-$periodeMessage-id_$id.pdf";
             my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters);
-            my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $HTMLTOPDFOPTNS 'http://$REMOTE_HOST/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$encodedUrlAccessParameters'";
+            my $user_password = (defined $userPassword and $userPassword ne '' ? '--user-password '. $userPassword : '');
+            my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $user_password $HTMLTOPDFOPTNS 'http://$REMOTE_HOST/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$encodedUrlAccessParameters'";
 
             if ( -e "$pdfFilename" ) {
-              $emailMessage .= "  > $pdfFilename exists\n";
+              $emailMessage .= "  > $pdfFilename already generated\n";
             } else {
               $emailMessage .= "  > $pdfFilename will be generated\n";
               push (@commands, $command);
@@ -303,7 +306,8 @@ for (my $dayAfter = 1; $dayAfter <= $daysAfter; $dayAfter++) {
       my ($status, $stdout, $stderr) = call_system ("$command", $debug);
 
       unless ( $status == 0 and $stdout eq '' and $stderr eq '' ) {
-        $emailMessage .= "call_system: command: $command, status: $status, stdout: $stdout, stderr: $stderr\n";
+        $emailMessage .= $pdfFilenames[$teller]. " generation failed\n";
+        $emailMessage .= "call_system: command: $command, status: $status, stdout: $stdout, stderr: $stderr\n" if ( $debug );
       } else {
         $emailMessage .= $pdfFilenames[$teller]. " generated\n";
       }
@@ -346,12 +350,12 @@ sub print_usage () {
 
 sub print_help () {
   print_revision($PROGNAME, $version);
-  print "ASNMTAP Archiver for the '$APPLICATION'
+  print "ASNMTAP Generate Reports for the '$APPLICATION'
 
 -y, --year=<year> (default: current year)
 -m, --month=<month> (default: current month)
 -d, --day=<day> (default: current day)
--a, --daysafter=<days after> (default: 3)
+-a, --daysAfter=<days after|F(alse)> (default: 3)
 -u, --uKey=<uKey plugin> (default: all plugins)
 -D, --debug=F|T|L
    F(alse)  : screendebugging off (default)

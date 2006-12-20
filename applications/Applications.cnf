@@ -207,6 +207,7 @@
 #    CRONTABS         crontabs
 #    DISPLAYDAEMONS   displayDaemons
 #    DISPLAYGROUPS    displayGroups
+#    ENVIRONMENT      environment
 #    EVENTS           events
 #    HOLIDAYS         holidays
 #    HOLIDAYSBUNDLE   holidaysBundle

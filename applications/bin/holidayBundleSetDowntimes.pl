@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2006/xx/xx, v3.000.012, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
  
 use strict;
@@ -18,7 +18,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.011;
+use ASNMTAP::Asnmtap::Applications v3.000.012;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -37,7 +37,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -138,7 +138,7 @@ if ($dbh and $rv) {
                 print "Delta Days: $deltaDays, " if ($debug >= 2);
 
                 if ($deltaDays >= 0 and $deltaDays <= $daysBefore) {
-                  my ($holiday, $uKey, $title, $pagedirs, $commentData, $activationTimeslot, $suspentionTimeslot);
+                  my ($holiday, $uKey, $title, $environment, $pagedirs, $commentData, $activationTimeslot, $suspentionTimeslot);
 
                   my $sql = "select holiday from $SERVERTABLHOLIDYS where holidayID = '$holidayID'";
                   my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
@@ -149,10 +149,10 @@ if ($dbh and $rv) {
                     $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
                   }
 
-                  $sql = "select uKey, title, pagedir from $SERVERTABLPLUGINS where holidayBundleID = '$holidayBundleID' and activated = '1' order by uKey";
+                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
                   $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
                   $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-                  $sth->bind_columns( \$uKey, \$title, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+                  $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
 
                   if ( $rv ) {
                     if ( $sth->rows ) {
@@ -179,7 +179,7 @@ if ($dbh and $rv) {
                           $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->do: $sql", $debug);
 
                           my ($sendEmailTo, $TremoteUser, $Temail, $Tpagedir);
-                          $sql = "select remoteUser, email, pagedir from $SERVERTABLUSERS where activated = 1 and userType > 0";
+                          $sql = "select remoteUser, email, pagedir from $SERVERTABLUSERS where activated = 1 and downtimeScheduling = 1 and userType > 0";
                           $alert .= "\n  E $sql" if ($debug >= 2);
                           $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
                           $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug) if $rv;
@@ -253,7 +253,7 @@ sub print_usage () {
 
 sub print_help () {
   print_revision($PROGNAME, $version);
-  print "ASNMTAP Archiver for the '$APPLICATION'
+  print "ASNMTAP Set Holiday Bundle Downtimes for the '$APPLICATION'
 
 -D, --debug=F|T|L
    F(alse)  : screendebugging off (default)

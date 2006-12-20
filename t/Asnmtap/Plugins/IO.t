@@ -12,13 +12,13 @@ TODO: {
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'IO.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::IO',
-    _programVersion     => '3.000.011',
+    _programVersion     => '3.000.012',
     _timeout            => 30,
     _debug              => 0);
 
   isa_ok( $objectPlugins, 'ASNMTAP::Asnmtap::Plugins' );
   can_ok( $objectPlugins, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp call_system) );
-  can_ok( $objectPlugins, qw(appendPerformanceData browseragent clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
+  can_ok( $objectPlugins, qw(appendPerformanceData browseragent SSLversion clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
 
   my ($returnCode, $errorStatus);
 

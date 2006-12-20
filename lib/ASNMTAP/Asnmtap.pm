@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -26,9 +26,9 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::ISA         = qw(Exporter);
 
-  %ASNMTAP::Asnmtap::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+  %ASNMTAP::Asnmtap::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH $LOGPATH $PIDPATH
+                                                         $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                          %ERRORS %STATE %TYPE
 
                                                          $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -42,9 +42,9 @@ BEGIN {
 
                                                          $PLUGINPATH) ],
 
-                                    ASNMTAP      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+                                    ASNMTAP      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                          $CAPTUREOUTPUT
-                                                         $PREFIXPATH $LOGPATH $PIDPATH
+                                                         $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                          %ERRORS %STATE %TYPE) ],
 
                                     COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,10 +92,14 @@ $ENV{ENV}            = ( exists $_config{ENV}{ENV} )      ? $_config{ENV}{ENV}  
 
 # SET ASNMTAP::Asnmtap VARIABLES  - - - - - - - - - - - - - - - - - - -
 
-our $APPLICATIONPATH = $PREFIXPATH .'/'. 'applications';
-our $PLUGINPATH      = $PREFIXPATH .'/'. 'plugins';
-our $LOGPATH         = $PREFIXPATH .'/'. 'log';
-our $PIDPATH         = $PREFIXPATH .'/'. 'pid';
+our $PERL5LIB        = $_config{SET}{PERL5LIB}        if ( exists $_config{SET}{PERL5LIB} );
+our $MANPATH         = $_config{SET}{MANPATH}         if ( exists $_config{SET}{MANPATH} );
+our $LD_LIBRARY_PATH = $_config{SET}{LD_LIBRARY_PATH} if ( exists $_config{SET}{LD_LIBRARY_PATH} );
+
+our $APPLICATIONPATH = $PREFIXPATH .'/applications';
+our $PLUGINPATH      = $PREFIXPATH .'/plugins';
+our $LOGPATH         = $PREFIXPATH .'/log';
+our $PIDPATH         = $PREFIXPATH .'/pid';
 
 if ( exists $_config{SUBDIR} ) {
   $APPLICATIONPATH   = $PREFIXPATH .'/'. $_config{SUBDIR}{APPLICATIONS} if ( exists $_config{SUBDIR}{APPLICATIONS} );
@@ -104,11 +108,12 @@ if ( exists $_config{SUBDIR} ) {
   $PIDPATH           = $PREFIXPATH .'/'. $_config{SUBDIR}{PID}          if ( exists $_config{SUBDIR}{PID} );
 }
 
-our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} ) ? $_config{COMMON}{APPLICATION} : 'Application Monitoring';
-our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )    ? $_config{COMMON}{BUSINESS}    : 'CITAP';
-our $DEPARTMENT      = ( exists $_config{COMMON}{DEPARTMENT} )  ? $_config{COMMON}{DEPARTMENT}  : 'Development';
-our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )   ? $_config{COMMON}{COPYRIGHT}   : '2000-2006';
-our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} ) ? $_config{COMMON}{SENDEMAILTO} : 'alex.peeters@citap.be';
+our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} )    ? $_config{COMMON}{APPLICATION}    : 'Application Monitoring';
+our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )       ? $_config{COMMON}{BUSINESS}       : 'CITAP';
+our $DEPARTMENT      = ( exists $_config{COMMON}{DEPARTMENT} )     ? $_config{COMMON}{DEPARTMENT}     : 'Development';
+our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2006';
+our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} )    ? $_config{COMMON}{SENDEMAILTO}    : 'alex.peeters@citap.be';
+our $TYPEMONITORING  = ( exists $_config{COMMON}{TYPEMONITORING} ) ? $_config{COMMON}{TYPEMONITORING} : 'central';
 
 our $CAPTUREOUTPUT   = ( exists $_config{IO}{CAPTUREOUTPUT} )   ? $_config{IO}{CAPTUREOUTPUT}   : 1;
 

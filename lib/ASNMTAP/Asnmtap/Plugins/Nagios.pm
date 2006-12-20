@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ BEGIN {
 
   %ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS = (ALL       => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                        $CAPTUREOUTPUT
-                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
 
                                                                        $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -42,7 +42,7 @@ BEGIN {
 
                                                       NAGIOS   => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                        $CAPTUREOUTPUT
-                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                       $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
 
                                                                        &convert_to_KB &convert_from_KB_to_metric ) ],
@@ -51,7 +51,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

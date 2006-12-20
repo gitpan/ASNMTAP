@@ -1,4 +1,4 @@
-use Test::More tests => 99;
+use Test::More tests => 103;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins' ) };
 
@@ -14,10 +14,11 @@ TODO: {
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins',
-    _programVersion     => '3.000.011',
+    _programVersion     => '3.000.012',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => '--commandLineOption ...',
-    _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
+    _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|p|passwd:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
+    _SSLversion         => 23,
     _clientCertificate  => { certFile       => 'ssl/crt/alex-peeters.crt', 
                              keyFile        => 'ssl/key/alex-peeters-nopass.key', 
                              caFile         => 'CA CERT PEER VERIFICATION FILE',
@@ -29,15 +30,28 @@ TODO: {
 
   isa_ok( $objectPlugins, 'ASNMTAP::Asnmtap::Plugins' );
   can_ok( $objectPlugins, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
-  can_ok( $objectPlugins, qw(appendPerformanceData browseragent clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
+  can_ok( $objectPlugins, qw(appendPerformanceData browseragent SSLversion clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/2006xxxx libwww-perl/5.805' ? 1 : 0;
+  $returnCode = $objectPlugins->browseragent () eq 'Mozilla/4.7 (compatible; ASNMTAP; U; ASNMTAP-3.000.012 postfix; nl-BE; rv:3.000.012) Gecko/2006xxxx libwww-perl/5.805' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::browseragent(): get');
 
-  $returnCode = $objectPlugins->browseragent ( 'Mozilla/4.0' ) eq 'Mozilla/4.0' ? 1 : 0;
+  $returnCode = $objectPlugins->browseragent ( 'Mozilla/4.7' ) eq 'Mozilla/4.7' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::browseragent(): set');
+
+
+  $returnCode = $objectPlugins->SSLversion ( 2 ) == 2 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::SSLversion(): set 2');
+
+  $returnCode = $objectPlugins->SSLversion ( 3 ) == 3 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::SSLversion(): set 3');
+
+  $returnCode = $objectPlugins->SSLversion ( 23 ) == 23 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::SSLversion(): set 23');
+
+  $returnCode = $objectPlugins->SSLversion ( 32 ) == 3 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::SSLversion(): set 32');
 
 
   $returnCode = $objectPlugins->clientCertificate ('certFile') eq 'ssl/crt/alex-peeters.crt' ? 1 : 0;
@@ -94,7 +108,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programDescription(): set');
 
 
-  $returnCode = $objectPlugins->programVersion () eq '3.000.011' ? 1 : 0;
+  $returnCode = $objectPlugins->programVersion () eq '3.000.012' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::programVersion(): get');
 
   $returnCode = $objectPlugins->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

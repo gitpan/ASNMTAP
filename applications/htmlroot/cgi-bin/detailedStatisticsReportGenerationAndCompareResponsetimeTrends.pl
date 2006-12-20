@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,7 +18,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,28 +40,29 @@ my $endDate;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : "index"; $pagedir =~ s/\+/ /g;
-my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug       = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : "F";
-my $selDetailed = (defined $cgi->param('detailed'))  ? $cgi->param('detailed')  : "on";
-my $uKey1       = (defined $cgi->param('uKey1'))     ? $cgi->param('uKey1')     : "none";
-my $uKey2       = (defined $cgi->param('uKey2'))     ? $cgi->param('uKey2')     : "none";
-my $uKey3       = (defined $cgi->param('uKey3'))     ? $cgi->param('uKey3')     : "none";
-my $startDate   = (defined $cgi->param('startDate')) ? $cgi->param('startDate') : "$currentYear-$currentMonth-$currentDay";
-my $inputType   = (defined $cgi->param('inputType')) ? $cgi->param('inputType') : "fromto";
-my $selYear     = (defined $cgi->param('year'))      ? $cgi->param('year')      : 0;
-my $selWeek     = (defined $cgi->param('week'))      ? $cgi->param('week')      : 0;
-my $selMonth    = (defined $cgi->param('month'))     ? $cgi->param('month')     : 0;
-my $selQuarter  = (defined $cgi->param('quarter'))   ? $cgi->param('quarter')   : 0;
-my $statuspie   = (defined $cgi->param('statuspie')) ? $cgi->param('statuspie') : "off";
-my $errorpie    = (defined $cgi->param('errorpie'))  ? $cgi->param('errorpie')  : "off";
-my $bar         = (defined $cgi->param('bar'))       ? $cgi->param('bar')       : "off";
-my $hourlyAvg   = (defined $cgi->param('hourlyAvg')) ? $cgi->param('hourlyAvg') : "off";
-my $dailyAvg    = (defined $cgi->param('dailyAvg'))  ? $cgi->param('dailyAvg')  : "off";
-my $details     = (defined $cgi->param('details'))   ? $cgi->param('details')   : "off";
-my $topx        = (defined $cgi->param('topx'))      ? $cgi->param('topx')      : "off";
-my $pf          = (defined $cgi->param('pf'))        ? $cgi->param('pf')        : "off";
-my $htmlToPdf   = (defined $cgi->param('htmlToPdf')) ? $cgi->param('htmlToPdf') : 0;
+my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : "index"; $pagedir =~ s/\+/ /g;
+my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : "index-cv"; $pageset =~ s/\+/ /g;
+my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : "F";
+my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : "on";
+my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : "none";
+my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : "none";
+my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : "none";
+my $startDate    = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : "$currentYear-$currentMonth-$currentDay";
+my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : "fromto";
+my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')         : 0;
+my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
+my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
+my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
+my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : "off";
+my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : "off";
+my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : "off";
+my $hourlyAvg    = (defined $cgi->param('hourlyAvg'))    ? $cgi->param('hourlyAvg')    : "off";
+my $dailyAvg     = (defined $cgi->param('dailyAvg'))     ? $cgi->param('dailyAvg')     : "off";
+my $details      = (defined $cgi->param('details'))      ? $cgi->param('details')      : "off";
+my $topx         = (defined $cgi->param('topx'))         ? $cgi->param('topx')         : "off";
+my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : "off";
+my $formatOutput = (defined $cgi->param('formatOutput')) ? $cgi->param('formatOutput') : 'html';
+my $htmlToPdf    = (defined $cgi->param('htmlToPdf'))    ? $cgi->param('htmlToPdf')    : 0;
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -76,11 +77,31 @@ my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $ico
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&topx=$topx&pf=$pf";
 
 # Debug information
-print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>detailed  : $selDetailed<br>uKey1     : $uKey1<br>uKey2     : $uKey2<br>uKey3     : $uKey3<br>startDate : $startDate<br>endDate   : $endDate<br>inputType : $inputType<br>selYear   : $selYear<br>selWeek   : $selWeek<br>selMonth  : $selMonth<br>selQuarter: $selQuarter<br>statuspie : $statuspie<br>errorpie  : $errorpie<br>bar       : $bar<br>hourlyAvg : $hourlyAvg<br>dailyAvg  : $dailyAvg<br>details   : $details<br>topx      : $topx<br>pf        : $pf<br>htmlToPdf : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
+  if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
+    my $url = "/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=". $ENV{SCRIPT_NAME} ."&amp;". encode_html_entities('U', $urlAccessParameters);
+
+    print <<EndOfHtml;
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">  
+<html>
+<head>
+  <title>$htmlTitle</title>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+  <META HTTP-EQUIV="refresh" content="1;url=$url">
+  <link rel="stylesheet" type="text/css" href="$HTTPSURL/asnmtap.css">
+</head>
+<BODY>
+</BODY>
+</HTML>
+EndOfHtml
+
+    exit;
+  }
+
   my ($rv, $dbh, $sth, $uKey, $sqlQuery, $sqlSelect, $sqlAverage, $sqlInfo, $sqlErrors, $sqlWhere, $sqlPeriode);
-  my ($printerFriendlyOutputBox, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
+  my ($printerFriendlyOutputBox, $formatOutputSelect, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
   my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $rest, $dummy, $count);
   my ($averageQ, $numbersOfTestsQ, $startDateQ, $stepQ, $endDateQ, $errorMessage, $chartOrTableChecked);
   my ($checkbox, $tables, $infoTable, $topxTable, $errorDetailList, $errorList, $responseTable, $goodDate);
@@ -92,7 +113,7 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    $sqlQuery = "select uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as optionValueTitle from $SERVERTABLPLUGINS where environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 order by optionValueTitle";
+    $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
     $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
     $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -256,6 +277,10 @@ EndOfHtml
       $dummy = ($pf eq "on") ? " checked" : "";
       $printerFriendlyOutputBox = "<input type=\"checkbox\" name=\"pf\"$dummy> Printer friendly output\n";
 
+      my $comboboxSelectKeysAndValuesPairs = 'html=>HTML';
+      $comboboxSelectKeysAndValuesPairs .= '|pdf=>PDF' if ( $HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>' );
+      $formatOutputSelect = create_combobox_from_keys_and_values_pairs ($comboboxSelectKeysAndValuesPairs, 'V', 0, $formatOutput, 'formatOutput', '', '', 0, '', $debug);
+
       my ($numberOfDays, $sqlStartDate, $sqlEndDate, $yearFrom, $monthFrom, $dayFrom, $yearTo, $monthTo, $dayTo);
       ($goodDate, $sqlStartDate, $sqlEndDate, $numberOfDays) = get_sql_startDate_sqlEndDate_numberOfDays_test ($STRICTDATE, $FIRSTSTARTDATE, $inputType, $selYear, $selQuarter, $selMonth, $selWeek, $startDate, $endDate, $currentYear, $currentMonth, $currentDay, $debug);
       $errorMessage .= "<br><font color=\"Red\">Wrong Startdate and/or Enddate</font><br>" unless ( $goodDate );
@@ -282,7 +307,7 @@ EndOfHtml
         # Sql init & Query's  - - - - - - - - - - - - - - - - - - - - - -
         if ((($details eq "on") or ($topx eq "on")) and ! defined $errorMessage) {
           $sqlSelect  = "select startDate as startDateQ, startTime, endDate as endDateQ, endTime, duration, status, statusMessage";
-          $sqlAverage = "select avg(duration) as average";
+          $sqlAverage = "select avg(time_to_sec(duration)) as average";
           $sqlErrors  = "select statusmessage, count(*) as aantal";
           $sqlWhere   = "WHERE uKey = '$uKey1'";
           $sqlPeriode = "AND startDate BETWEEN '$sqlStartDate' AND '$sqlEndDate' " if (defined $sqlStartDate and defined $sqlEndDate);
@@ -347,17 +372,47 @@ EndOfHtml
 
           # Problem Detail  - - - - - - - - - - - - - - - - - - - - - - - -
           my ($oneblock, $block, $firstrun, $nstartDateQ, $nstartTime, $nendDateQ, $nendTime, $nseconden);
-          my ($tel, $wtel, $nstatus, $nrest, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $rrest);
+          my ($test, $resultsdir, $tel, $wtel, $nstatus, $nrest, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $rrest);
 
           $errorList     = "<H1>Problem details</H1>\n";
           $responseTable = "<H1>Response time warnings</H1>\n";
 
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", '', "", "order by startDateQ, startTime", "ALL");
+          $sqlQuery = "select test, resultsdir from $SERVERTABLPLUGINS $sqlWhere";
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
-          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
-  
+
           if ( $rv ) {
+            ($test, $resultsdir) = $sth->fetchrow_array() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+
+            if ( $rv ) {
+              ($test, undef) = split(/\.pl/, $test);
+	  
+              $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", '', "", "order by startDateQ, startTime", "ALL");
+              $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+              $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+              $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+            }
+          }
+
+          if ( $rv ) {
+            sub createLinkToDebugFile {
+              my ($startDate, $startTime, $status, $statusMessage) = @_;
+
+              my ($year, $month, $day) = split (/-/, $startDate);
+              my ($hour, $min, $sec) = split (/:/, $startTime);
+
+              if ( $formatOutput ne 'html' or $htmlToPdf ) {
+                return ($statusMessage);
+              } else {
+                if (-e "$PREFIXPATH/$RESULTSDIR/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$uKey1-$status.htm") {
+                  return ("<A HREF=\"$RESULTSURL/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$uKey1-$status.htm\" target=\"_blank\">$statusMessage</A>");
+                } else {
+                  return ($statusMessage);
+                }
+              }
+            }
+
             $firstrun = 1; $oneblock = $tel = $wtel = 0;
 
             while( $sth->fetch() ) {
@@ -377,7 +432,7 @@ EndOfHtml
                 } else {
                   $tel++;
                   $errorList .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th width=\"40\"> # </th><th>Start</th><th>Stop</th><th>Duration</th><th>Status</th><th>Status Message</th></tr>\n" if ($tel == 1);
-                  $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS{$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td> ".encode_html_entities('M', $rrest)." </td></tr>\n";
+                  $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS{$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
                 }
               }
 
@@ -392,7 +447,7 @@ EndOfHtml
                 $responseTable .= "<tr $block><td>$dummy$wtel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td> ".encode_html_entities('M', $rrest)." </td></tr>\n";
               } else {
                 $tel++;
-                $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td> ".encode_html_entities('M', $rrest)." </td></tr>\n";
+                $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
               }
             }
 
@@ -410,7 +465,7 @@ EndOfHtml
           $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK' AND statusMessage regexp ': Response time [[:alnum:]]+.[[:alnum:]]+ > trendline [[:alnum:]]+'", '', "", "order by startDateQ, startTime", "ALL");
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
-          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime,\$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             $oneblock = $wtel = 0; 
@@ -434,7 +489,6 @@ EndOfHtml
             if ($wtel) {
               ($oneblock, $block, $rrest, $dummy) = setBlockBGcolor ($oneblock, $status, 0, $startDateQ, $startTime, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $nstatus, $nrest);
               $responseTable .= "<tr $block><td>$dummy$wtel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> " .encode_html_entities('S', $nstatus). " </font></td><td> " .encode_html_entities('M', $rrest). " </td></tr>\n";
-
               $responseTable .= "</table>\n<br>\n<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td>Legende:</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{NOBLOCK}\">&nbsp;&nbsp;&nbsp;Single item&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\">&nbsp;&nbsp;&nbsp;Start of block&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">&nbsp;&nbsp;&nbsp;Next element of the same block&nbsp;&nbsp;&nbsp;</td></tr></table>\n";
             } else {
               $responseTable .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No response time warnings for this period!</td></tr></table>\n";
@@ -556,7 +610,19 @@ EndOfHtml
       print "    <H2>Periode: $range</H2>\n" if (defined $range);
     } else {
       print <<HTML;
-  <form action="$ENV{SCRIPT_NAME}" method="post" name="reports">
+  <script language="JavaScript1.2" type="text/javascript">
+    function validateForm() {
+      if ( document.reports.formatOutput.value != null ) {
+        if ( document.reports.formatOutput.value == 'html' ) { document.reports.target = '_self';  }
+        if ( document.reports.formatOutput.value == 'pdf' )  { document.reports.target = '_blank'; }
+        return true;
+      } else {
+        return false;
+      }
+    }
+  </script>
+
+  <form action="$ENV{SCRIPT_NAME}" method="post" name="reports" target="_self" onSubmit="return validateForm();">
     <input type="hidden" name="pagedir"   value="$pagedir">
     <input type="hidden" name="pageset"   value="$pageset">
     <input type="hidden" name="debug"     value="$debug">
@@ -601,9 +667,9 @@ HTML
           </SCRIPT>
           <DIV ID="CalendarDIV" STYLE="position:absolute;visibility:hidden;background-color:black;layer-background-color:black;"></DIV>
 	      <input type="text" name="startDate" value="$startDate" size="10" maxlength="10">&nbsp;
-		  <a href="#" onclick="cal1Calendar.select(document.forms[0].startDate, 'startDateCalendar','yyyy-MM-dd'); return false;" name="startDateCalendar" id="startDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"> </a>&nbsp;&nbsp;
+		  <a href="#" onclick="cal1Calendar.select(document.forms[1].startDate, 'startDateCalendar','yyyy-MM-dd'); return false;" name="startDateCalendar" id="startDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"> </a>&nbsp;&nbsp;
 		  To: <input type="text" name="endDate" value="$endDate" size="10" maxlength="10">&nbsp;
-		  <a href="#" onclick="cal1Calendar.select(document.forms[0].endDate, 'endDateCalendar','yyyy-MM-dd'); return false;" name="endDateCalendar" id="endDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"> </a>
+		  <a href="#" onclick="cal1Calendar.select(document.forms[1].endDate, 'endDateCalendar','yyyy-MM-dd'); return false;" name="endDateCalendar" id="endDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"> </a>
       </td></tr><tr align="left"><td valign="top">$years
       </td></tr><tr align="left"><td valign="top">$quarters
       </td></tr><tr align="left"><td valign="top">$months
@@ -615,6 +681,7 @@ HTML
 
       print <<HTML;
       </td></tr><tr align="left"><td>Options:</td><td>$printerFriendlyOutputBox
+      </td></tr><tr align="left"><td>Format Output:</td><td>$formatOutputSelect
       </td></tr><tr align="left"><td align="right"><br>
         <input type="submit" value="Launch"></td><td><br><input type="reset" value="Reset">
       </td></tr>

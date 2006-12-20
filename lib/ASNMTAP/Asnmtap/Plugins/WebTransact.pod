@@ -41,6 +41,8 @@ B<debug> writes the string form of the request (including query_string) and the 
 
 I<_browseragent> is inherited and specifies the name that your application should use when it presents itself on the network.
 
+I<_SSLversion> is inherited and specifies the SSL version to use.
+
 =item * a list of URLs where each URL is a page in the transaction
 
 =item * corresponding Query Strings containing the CGI names and value pairs to post the page
@@ -792,12 +794,14 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   Compress::Zlib
   Digest::MD5
   Crypt::SSLeay
+  IO::Socket::SSL
   MIME::Base64
   Net::FTP
+  Net::SSLeay
   URI
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2003 Stanley.Hopcroft@IPAustralia.Gov.AU
+(c) Copyright 2003-2004 Stanley.Hopcroft@IPAustralia.Gov.AU
 
-ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact' v0.14.1 from Stanley Hopcroft [Stanley.Hopcroft@IPAustralia.Gov.AU]
+ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact' v0.14.1 & v0.16 from Stanley Hopcroft [Stanley.Hopcroft@IPAustralia.Gov.AU]

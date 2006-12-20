@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 09 Sep 2006
-Version      : 3.000.011
+Latest update: xx xxx 2006
+Version      : 3.000.012
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,190 +16,158 @@ Version      : 3.000.011
 # TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# VERIFY  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
++ SSL version!
+  _SSLversion         => 3,
+  $objectPlugins->SSLversion(23); $objectPlugins->_init_proxy_and_client_certificate ();
+
++ SSL sessions include a session-ID
+
+  LWP auto-detects Crypt::SSLeay versus IO::Socket::SSL and does the appropriate thing.
+
+  'SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0' Apache 'httpd.conf' directive.
+
+  [Sun Nov 26 18:27:54 2006] [debug] ssl_engine_kernel.c(1586): Inter-Process Session Cache: request=SET status=OK id=A2909058B6C808A6E2B7F1B4BF4D5E355F3098F096197F49513AC2D7AEAED77B timeout=289s (session caching)
+  [Sun Nov 26 18:27:54 2006] [debug] ssl_engine_kernel.c(1586): Inter-Process Session Cache: request=GET status=FOUND id=A2909058B6C808A6E2B7F1B4BF4D5E355F3098F096197F49513AC2D7AEAED77B (session reuse)
+  ...
+  [Sun Nov 26 18:27:57 2006] [debug] ssl_engine_kernel.c(1586): Inter-Process Session Cache: request=GET status=FOUND id=A2909058B6C808A6E2B7F1B4BF4D5E355F3098F096197F49513AC2D7AEAED77B (session reuse)
+
+  IO::Socket::SSL
+    SSL_reuse_ctx
+      If you have already set the above options (SSL_version through SSL_check_crl; this does not include SSL_cipher_list yet) for a previous instance of IO::Socket::SSL, then you can reuse the SSL context of that instance by passing it as the value for the SSL_reuse_ctx parameter. You may also create a new instance of the IO::Socket::SSL::SSL_Context class, using any context options that you desire without specifying connection options, and pass that here instead.
+      If you use this option, all other context-related options that you pass in the same call to new() will be ignored unless the context supplied was invalid. Note that, contrary to versions of IO::Socket::SSL below v0.90, a global SSL context will not be implicitly used unless you use the set_default_context() function.
+    SSL_session_cache_size
+      If you make repeated connections to the same host/port and the SSL renegotiation time is an issue, you can turn on client-side session caching with this option by specifying a positive cache size. For successive connections, pass the SSL_reuse_ctx option to the new() calls (or use set_default_context()) to make use of the cached sessions. The session cache size refers to the number of unique host/port pairs that can be stored at one time; the oldest sessions in the cache will be removed if new ones are added.
+
++ 500 SSL negotiation failed
+  openssl s_client -connect www.citap.be:443 -state -debug
+  http://www.securityfocus.com/infocus/1818
+  http://tud.at/programm/apache-ssl-win32-howto.php3
+  my $tries = 0; SSL: { if ( $response->status_line =~ /SSL negotiation failed/ ) { sleep 1; redo SSL unless $tries++ == 3; } }
+
++ PDFs gaan over de marge heen!
+  upgrade to HTMLDOC 1.8.27 and verify parameters
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-                               ASNMTAP::Asnmtap::Plugins::WSFR
-                               ...
++ chmod 644 for new Collector or Display script
+  -rw-r--r--    1 nagios   nagios       2543 Dec 14 08:38 DisplayCT-bipt.sh 
 
-                               - http://search.cpan.org/~tonvoon/Nagios-Plugin-0.10
-                               - /lib/Nagios/Plugin/Performance.pm
-                               - ...
++ generateConfig.pl: onderdrukken van de desactivated elementen ?
 
-                               ASNMTAP::Asnmtap::Plugins::SOAP
-                               - $SOAP::Constants::PATCH_HTTP_KEEPALIVE = 1;
++ select ukey, title, arguments from plugins
+  where environment = 'P' and activated = 1
+    and test not in (select test from plugins where environment = 'A' and activated = 1)
+  order by title, uKey
 
-WSRF:
-To use the Container you need to install the SOAP::Lite, LWP, XML::DOM, DateTime, DateTime::Format::Epoch and DateTime::Format::W3CDTF modules. 
-To use WS-Security for signing or verifying messages you will also need: Crypt::OpenSSL::RSA, MIME::Base64, Digest::SHA1, and Crypt::OpenSSL::X509 and XML::Canonocalize.
++ ASNMTAP::Asnmtap::Plugins::WebTransact
+  remove password from URL before putting into database!
+  ook voor run command on demand, ...
+  (http|https)//...:...@
 
-Dependencies WSRF::Lite:
-XML::DOM 							1.44
-DateTime 							0.34
-DateTime::Format::Epoch             0.10
-DateTime::Format::W3CDTF
-Digest::SHA1 						2.11
-Crypt::OpenSSL::RSA                 0.23
-Crypt::OpenSSL::X509                0.3.1
-HTTP::Daemon::SSL         		    1.02
-XML::CanonicalizeXML                0.03
++ OnDemand versus Display
+  OnDemand
+    CRITICAL - WebService Odysseus (Production): 500 read timeout - 200 OK - getVersion (umbriel:9108): 4.20063.13 - 200 OK - ping (cordelia:9110): OK - 200 OK - monitorControls (cordelia:9110): OK - 200 OK - getVersion (cordelia:9110): 4.20063.13 - Odysseus: WARNING|'ping (dmfacsprod:8080)'=172ms;;;; 'monitorControls (dmfacsprod:8080)'=29682ms;;;; 'getVersion (dmfacsprod:8080)'=25ms;;;; 'ping (umbriel:9108)'=25ms;;;; 'monitorControls (umbriel:9108)'=30022ms;;;; 'getVersion (umbriel:9108)'=24ms;;;; 'ping (cordelia:9110)'=24ms;;;; 'monitorControls (cordelia:9110)'=18898ms;;;; 'getVersion (cordelia:9110)'=23ms;;;; Status=2;1;2;0;3 Compilation=1523ms;;;0; Trendline=79.039s;;;; Execution=80579ms;;;0; 
+  Display: afkapping op 254 characters
+    CRITICAL - WebService Odysseus (Production): 500 read timeout - 200 OK - getVersion (umbriel:9108): 4.20063.13 - 200 OK - ping (cordelia:9110): OK - 200 OK - monitorControls (cordelia:9110): OK - 200 OK - getVersion (cordelia:9110): 4.20063.13 - Odysseus
 
--  if ( $debug >= 4 ) {
--    eval "use SOAP::Lite +trace => 'all'";
--  } elsif ($debug == 1) {
--    eval "use SOAP::Lite +trace => qw( debug )";
--  } else {
--    eval "use SOAP::Lite";
--  }
++ yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED unless ($deleted eq '0' and $skipped eq '0' and $warnings eq '0')
+  LOAD DATA LOW_PRIORITY LOCAL INFILE '$path/$filename' INTO TABLE events FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'
+  -> 'statusMessage' > 254 characters: 'statusMessage' varchar [254] & 'perfdata' blob, to solve this problem ofwel alleen wat voor '|' staat in database stockeren ?
+  -> alle 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' opzoeken en weergeven, zodat oplossing kan worden gezocht voor het geval er nog andere problemen mochten zijn
+  -> hoe perfdata aan Perfparse toevoegen van 'yyyymmdd-test-ukey.sql' en/of 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' data?
 
-+ if ( $debug >= 4 ) {
-+   eval "use WSRF::Lite +trace => 'all'";
-+ } elsif ($debug == 1) {
-+   eval "use WSRF::Lite +trace => qw( debug )";
-+ } else {
-+   eval "use WSRF::Lite";
-+ }
+      if ($updateEntryDBI) {
+        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status.' ", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
+        $dbh->do ( $updateString )  or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $updateString");
+      } elsif ($insertEntryDBI) {
+        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status.' ", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
+        $dbh->do ( $insertString ) or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $insertString");
+      }
 
-+ $ENV{WSS_SIGN} = 'true';
++ validation error regarding URLs '&'
+  URLs: replace '&' with '&amp;' because & is reserved character
 
-  my ($alert, $error, $result);
++ ASNMTAP::Asnmtap::Applications
+  awstats icon onderdrukken dmv element in de config voorzien?
 
-- my $service = new SOAP::Lite
++ debug dump soms in twee bestanden!
+  heb meer informatie nodig (openAppend, write_debugfile en _write_debugfile zijn op het eerste zicht ni de oorzaak)
 
-+ my $service = WSRF::Lite
-+ -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
++ SOAP debug toevoegen en extra testing on failure:
+  telnet hostname 80 and/or wget wsdl?
+  Zouden wij meer debug kunnen krijgen, ik zou het leuk vinden om de url te zien waar we de test op connecteerd, welke xml, paramters :)
+  Zodat in een long debug alle info zit die werkelijk uitgevoerd wordt, dat is handig als je het daarna es wil doen in soapui :) 
 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
++ views.pl - remove [] from title?
 
-'statusMessage': varchar -> memo ASAP !!!
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-http://search.cpan.org/~cbarratt/File-RsyncP-0.52/lib/File/RsyncP.pm
-or
-http://www.cis.upenn.edu/~bcpierce/unison/
+? Makefile.pl -> Maken van backup van oude versie (de files die je wil overschrijven van de vorige installatie)
+  heb momenteel nog geen idee hoe dit moet, kan hierover niets terugvinden
 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+? INSTALL file op het einde van de installatie weergeven
+  heb momenteel nog geen idee hoe dit moet, kan hierover niets terugvinden
 
-#!/bin/sh
-# ---------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
-# ---------------------------------------------------------------
-# This shell script takes care of starting and stopping
+? No problems but I was a little bit wary of the perl Makefile.PL wanting to create directories and copy files across at that stage.
+? I suppose normally I wouldn’t expect any changes apart from local directory changes until I do a make install.
 
-AMNAME="Collector ASNMTAP probe00-environment-probe" AMPATH=/asnmtap-3.000.xxx/applications
-AMCMD=collector.pl
-AMPARA="--hostname=probedev --mode=C --collectorlist=CollectorCT-probe00-environment-probe --dumphttp=U --status=N --debug=F --screenDebug=F --allDebug=F --nokDebug=F" PIDPATH=/asnmtap-3.000.xxx/pid
-PIDNAME=CollectorCT-probe00-environment-probe.pid
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Menu voor Moderator, Admin en Sadmin aanpassen ingeval van Distributed Servers. Hier moeten sommige menuonderdelen onderdrukt worden.
 
-[ -f $AMPATH/$AMCMD ] || exit 0
+Display & Collector startup script: hostname = Central FQDN Database Server by default. For a probe must this be the central database server
 
-if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
-  PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
-fi
+alias toevoegen bij servers.pl ?
 
-MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
-export MANPATH PERL5LIB
+generateCollectorCrontabSchedulingReport.pl, generateCollectorDaemonSchedulingReport.pl & generatePluginCrontabSchedulingReport.pl
+- 'Problem regarding finding master or slave' in grafieken. Misschien beter in menu onderdukken.
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+collectorCrontabSchedulingReports.pl & collectorDaemonSchedulingReports.pl
+- ipv alle collectors, deze laten kiezen waarvoor nodig!
+- lijst laten zien van welke collectors we willen zien per probe!
 
-start() {
-  # Start daemons
-  if [ -f $PIDPATH/$PIDNAME ]
-  then
-    echo "'$AMNAME' already running, otherwise remove '$PIDNAME'"
-  else
-    echo "Start: '$AMNAME' ..."
-    cd $AMPATH
+Windows Internet Explorer 7.0 & Firefox
+- ipv een nieuw window te openen, zou dit een nieuwe tabblad moeten zijn
 
-   PATH=$PATH MANPATH=$MANPATH PERL5LIB=$PERL5LIB LANG=$HTTPD_LANG LD_LIBRARY_PATH=/usr/local/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$AMCMD $AMPARA &
-  fi
-}
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-#!/bin/sh
-
-PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/supervision/cpan-shared/lib/perl5
-MANPATH=${MANPATH:+$MANPATH:}/opt/supervision/cpan-sharedshare/man
-export PERL5LIB MANPATH
-
-AMPATH=/opt/asnmtap-3.000.xxx/applications
-
-cd $AMPATH; /usr/local/bin/perl archive.pl -A ArchiveCT -c T -r T -d F
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-replace
-
-  rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-
-with
-
-  ssh=<sshpath>
-  ...
-  $Rsync -e "$ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  
-when:
-
-  perl Makefile.PL PREFIX=/opt/supervision/cpan-shared SITELIBEXP=/opt/supervision/cpan-shared/lib/perl5 LIB=/opt/supervision/cpan-shared/lib/perl5 INSTALLMAN1DIR=/opt/supervision/cpan-shared/share/man/man1 INSTALLMAN3DIR=/opt/supervision/cpan-shared/share/man/man3 INSTALLSITEMAN1DIR=/opt/supervision/cpan-shared/share/man/man1 INSTALLSITEMAN3DIR=/opt/supervision/cpan-shared/share/man/man3
-
-replace
-
-  my $prompt = ( $opt_n || grep /^LIB=/, @ARGV ) ? 0 : 1;
-
-with
-
-  my $prompt = ( $opt_n || grep /^LIB=/, @ARGV ) ? 1 : 1;
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-<!--<SCRIPT language="Javascript">
-   document.SAMLRedirectionForm.submit();
-</SCRIPT>-->
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-NCPL CPAN modules not used by ASNMTAP:
-   CGI::Simple
-   Net::Nslookup
-   Tie::IxHash
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-send email on stop daemon
-
-Detailed Statistics and Report Generation: Adding a checkbox, to choose output destination: HTML/PDF 
-
-yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED !!!
-
-chromeless function update for MSIE 7.0 en Firefox !!!
-
+perl /opt/asnmtap/applications/sbin/purge_table.pl -H dtbs.citap.be -D odbc -T 'qpasa-archive' -u asnmtap -p asnmtap --ago='-14 days'
+- table 'snmptt_archive' and 'snmptt_unknown_archive': archivetime toevoegen
+  Cannot dbh->do: DELETE FROM `snmptt_unknown_archive` WHERE archivetime < "1161727200"
 
 Trendline Correction Reports (for the Collector):
-- De beste manier is volgens mij lineair te gaan interpoleren en te gaan 
-  kijken naar de richtingscoëfficiënt van de rechte. Het algoritme kan ik 
-  echter niet zo direct neerschrijven ...
 - Steekproefgemiddelde berekenen
   - http://www.let.leidenuniv.nl/history/res/stat/html/les8.html
   - trendline email -> no automatically updates -> table plugins: field trendlineAutoUpdate []
+- De beste manier is volgens mij lineair te gaan interpoleren en te gaan kijken naar de richtingscoëfficiënt van de rechte.
 
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-500 SSL negotiation failed
-- http://www.issociate.de/board/post/214066/LWP_and_SSL.html
-  SSL: { if (index($response->status_line, 'SSL negotiation failed') !=-1) { sleep 1; redo SSL unless $tries++ == 3; } }
-  - or
-  SSL: { if ( 'SSL negotiation failed' =~ /$response->status_line/ ) { sleep 1; redo SSL unless $tries++ == 3; } }
+Makefile.pl -> SIGN 
+  When true, perform the generation and addition to the MANIFEST of the SIGNATURE file in the distdir during 'make distdir', via 'cpansign -s'.
+  Note that you need to install the Module::Signature module to perform this operation.
+  Defaults to false.
 
+updated ASNMTAP::Asnmtap::Plugins::NPTest v1.13
+  all *.t scripts need to be modified, is now also object oriented!
 
-Apache:
-- Browser Agent: BrowserMatch: Mozilla/3.0, nokeepalive, force-response-1.0
-  - verify if the env-variable keepalive and/or force-response-1.1 exists
-- BrowserMatch regex [!]env-variable[=value] [[!]env-variable[=value]] ...
-  vi /etc/httpd/conf/httpd.conf or vi /usr/local/apache2/conf/httpd.conf
-  BrowserMatch "Mozilla/4.0 (compatible; MSIE 7.0; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/200607xx libwww-perl/5.805", keepalive, force-response-1.1
-                                                                       n nnn nnn                    n nnn nnn        nnnnnnnn             n nnn
+Update version from CPAN
+                               Makefile.PL
+                               ? NEW            Bundle::CPANPLUS::Dependencies    : 2 Dec 2006
+                               ? version update CGI::Session 4.13 -> 4.14         : 2 Dec 2006
+                               ? version update Net::IMAP::Simple 1.14 -> 1.16	  : 2 Dec 2006
+
+Perl modules en SSL (ex. Crypt::OpenSSL::Random), Makefile.PL:
+- replace
+  'LIBS' => ['-lssl -lcrypto'],
+- with
+   my $INCLUDE = "/opt/asnmtap/ssl/include";
+  'LIBS' => ['-L/opt/asnmtap/ssl/lib -lssl','-L/opt/asnmtap/ssl/lib -lcrypto'],
+- or verify the the next can do the same ?
+  perl Makefile.PL INSTALL_BASE=/opt/supervision/cpan-shared/ INC=-I/opt/supervision/ssl/include LIBS=-L/opt/supervision/ssl/lib LDFLAGS='-lssl -lcrypto'
+  
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 smoothline (spline layers) for trendline and bar statistics
 
@@ -208,51 +176,84 @@ update into all tables the numeric int where needed: http://dev.mysql.com/doc/re
 database-purge-perfdata, archiver.pl, generateCollectorDaemonSchedulingReports.pl, generateReports.pl 
 & holidayBundleSetDowntimes.pl laten uitvoeren door de enkelvoudig crontab script.
 
-Bekijken van de rechten die apache nodig heeft: htmlroot, log, master, slave, pid, results, ...
-fixRights script om rechten (chmod en chown) te zetten automatisch aanmaken and launch fixRights before restart daemon.
-
-'Problem regarding finding master or slave' in grafieken. Misschien beter in menu onderdukken.
-
-Menu voor Moderator, Admin en Sadmin aanpassen ingeval van Distributed servers. Hier moeten sommige menuonderdelen onderdrukt worden.
-
-generateReports.sh:	error undefined value wanneer er geen records zijn :)
-
-Email message restarted means start/stop/restart. Message should also been start, stop or restart instead of restarted !!!
-
 Rsync: KeyRsync kan verschillend zijn per server
 
-Display & Collector startup script: hostname = Central FQDN Database Server by default. For a probe must this be the central database server
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+set foreign_key_checks=0;
+delete from perfdata_host where host_name not in (select concat( LTRIM(SUBSTRING_INDEX(plugins.title, ']', -1)), ' (', environment.label, ')' ) as title from plugins, environment where plugins.environment=environment.environment and activated=1);
+delete from perfdata_service where host_name not in (select concat( LTRIM(SUBSTRING_INDEX(plugins.title, ']', -1)), ' (', environment.label, ')' ) as title from plugins, environment where plugins.environment=environment.environment and activated=1);
+delete from perfdata_service_bin where host_name not in (select concat( LTRIM(SUBSTRING_INDEX(plugins.title, ']', -1)), ' (', environment.label, ')' ) as title from plugins, environment where plugins.environment=environment.environment and activated=1);
+delete from perfdata_service_metric where host_name not in (select concat( LTRIM(SUBSTRING_INDEX(plugins.title, ']', -1)), ' (', environment.label, ')' ) as title from plugins, environment where plugins.environment=environment.environment and activated=1);
+delete from perfdata_service_raw where host_name not in (select concat( LTRIM(SUBSTRING_INDEX(plugins.title, ']', -1)), ' (', environment.label, ')' ) as title from plugins, environment where plugins.environment=environment.environment and activated=1);
+set foreign_key_checks=1;
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+http://search.cpan.org/~dbrobins/Net-SSH2-0.09/
+or
+http://search.cpan.org/~cbarratt/File-RsyncP-0.52/lib/File/RsyncP.pm
+or
+http://www.cis.upenn.edu/~bcpierce/unison/
+
+
+# BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+It's not a bug, it's a feature!
+
+1) malformed header from script. Bad header=: generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
+
+2) generateReports.sh: error undefined value wanneer er geen records zijn :)
+
+
+# NEW VERSION 3.001.xxx - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ASNMTAP MySQL Injection bug prevention?
+- SQL Injection is very critical.
+  solution: dbh->quote($user)
+  $sql = 'select * from users where username='. dbh->quote($user);
+
+ASNMTAP Cross-site scripting (XSS) prevention?
+- We need to verify that all strings are encoded( html_textencode() )
 
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-depricate --httpdump & --dumphttp: tijdelijk voor backwards compatibiliteit !!!
+fixRights.sh
+- automatisch aanmaken
+- launch script before restart daemon
 
-Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
+ondemand voor testen op probes zoals RAS, DMZ, ...
 
-http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
+http://asnmtap.citap.be/asnmtap/nav/index/reports-index.html 
+- hier een url naar de plugin times plaatsen, is makkelijker om te onthouden 
 
-Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
+Generate XML for monitoring by Nagios, ...
 
 
 # Plugins - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Extra controle voor plugins.pl en/of generateConfig.pl
-- controle of de opgegeven helpPluginFilename files bestaan op disk 
-- upload van PDF's (WORD to PDF ?)
-
-Indien een mailtest offline is -> intresseert het resultaat ons niet, display offline, plugin toch draaien maar die mails deleten. 
-MAW Bij plugin moet dit kunnen worden opgegeven als plugintype of iets dergelijks!!!
-
-Warning and Critical: checking threshold range format
-
-Performance Data: checking the expected format
-- 'label'=value[UOM];[warn];[crit];[min];[max]
+Indien een mailtest offline is -> intresseert het resultaat ons niet, display offline, plugin toch draaien maar die mails deleten.
+MAW bij plugin moet dit kunnen worden opgegeven als plugintype of iets dergelijks!!!
 
 voor plugins, ook optie delete voorzien voor plugins dewelke door acrhiver na x maanden mogen opgekuist worden
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+http://search.cpan.org/~tonvoon/Nagios-Plugin-0.10
+
+  Warning and Critical: checking threshold range format
+
+  Performance Data: checking the expected format
+  - 'label'=value[UOM];[warn];[crit];[min];[max]
+  - /lib/Nagios/Plugin/Performance.pm
+
 
 # Display - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Correcte werking van toggle button & environment switch.
 
 Restart Collector and Display: Ledig geworden collector moet overal worden verwijderd !!!
 
@@ -266,7 +267,7 @@ proxy caching statische pagina's
 
 .cache files                                                     <- sound
 
-applications/custom/display.pm                         <- custom function
+applications/custom/display.pm-orig                    <- custom function
 
 On demand run icoontje naar de hamertjes & vraagtekens.
 
@@ -279,11 +280,7 @@ reports, deselecteren wat niet geselecteerd mag worden voor de datum keuze
 
 mogelijkheid om bepaalde applicaties niet in de view te steken gedurende bepaalde uren. 
 
-Bij Reports -> Problem details -> link maken naar 'Debug Report'
-
 Statistics: Monthly Average <- ASAP
-
-Een optie "send pdf by email" bij de repports. 
 
 Ingeven downtimes, inetctrl, ..., die niet aangekondigd werden, ingeven op 
 een later tijdstip.  Dit zou moeten mogelijk zijn om bv de statistieken te 
@@ -295,41 +292,71 @@ Oproepen van voorgedefineerde stats:
 
 # Applications  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+chromeless function update for MSIE 7.0 en Firefox !!!
+
+Algemeen: Navigatie A..Z en laten zoeken naar item mogelijk maken.
+
 Email mailtemplates om mailboodschappen taalonafhangkelijk te maken
 -> "Geachte, Cher,\n\n$header\n\n$CcommentData\n\n-- $APPLICATION\n$DEPARTMENT\n$BUSINESS\n"
-
-In collector daemon sheduling reports alleen de collectors laten zien voor overeenkomstige probe of server.
 
 Comments kunnen zetten op een groep testen via multiselect
 # update comments set activationTime='hh:mm:ss', activationTimeslot='1149836400', suspentionDate='yyyy-mm-dd',  suspentionTimeslot='hh:mm:ss', suspentionTimeslot='1149854400', downtime=1 where entryDate='yyyy-mm-dd' and remoteUser='...'
 
-
-useraccounts flag voor wel of geen email
-
 rename uKey of andere key plus overal waar gebruikt en delete plugin, ... met alle dependencies,
 
-delete user gaat niet omwille van de contrains met comments en events. delete waarbij contrain tijdelijk afzetten
+delete user gaat niet omwille van de contrains met comments en events -> delete waarbij contrain tijdelijk afzetten!
 
 In view.pl -> selecteer + groeptitle toevoegen
 
 In view.pl -> omvormen naar multiselect 'Display Daemon'
 
-http://asnmtap.citap.be/asnmtap/nav/index/reports-index.html 
-hier url naar de plugin times in plaatsen, is makkelijker om te onthouden 
+sending email to moderator/admin/sadmin
+- collector                       : $SENDEMAILTO
+- display                         : $SENDEMAILTO
+- contact                         : $SENDEMAILTO
+- error_trap_DBI                  : $SENDEMAILTO
+- check_nagios-comments-cleanup.pl: $SENDEMAILTO
 
 
-# BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# NEW VERSION 4.xxx.xxx - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-It's not a bug, it's a feature!
+Atom 1.0 feeds versus RSS 2.0 feeds
+- http://www.intertwingly.net/wiki/pie/Rss20AndAtom10Compared
+- http://www.nimblecode.com/articles/2005/07/17/rss-as-an-error-reporting-mechanism
 
-1) malformed header from script. Bad header=    : generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
+RSS feeds as an Error Reporting Mechanism, 0.91, 1.0 and 2.0
+- cpan XML::RSS @ http://search.cpan.org/~abh/XML-RSS-1.20/
+- rss4nagios-1.1.tar.gz @ http://altinity.blogs.com/dotorg/2006/07/lessons_in_rss.html
 
 
-# NEW NEXT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Embedded Perl ondersteuning aangaande de plugins!!!
+depricate --httpdump & --dumphttp: tijdelijk voor backwards compatibiliteit !!!
+
+icon environment, missing plugin parameters; omdat er niet meer informatie aanwezig is in de Display config file?
+
+Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mfrankl/HTML-HTMLDoc-0.10/'
+
+http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
+
+Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
+
+omwille van de netwerktrafiek, resultatien in groep doorgegeven aan de database!
+
+user.pl
+- Sending email for: Downtime Scheduling Generated Reports, nagaan of de gebruiker dit zelf moet kunnen aanpassen en/of zien?
+
+Sound (nog problemen met window voor <OBJECT DATA= ...):
+- display.pl
+  Replace: "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\"  hidden=\"true\" autostart=\"true\">\n"
+  With   : "<OBJECT DATA=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" TYPE=\"audio/x-wav\" ALT=\"\" TITLE=\"\"><PARAM NAME=autostart VALUE=true></OBJECT>\n"
+- Applications.pm
+  Replace: "      document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" hidden=\"true\" autostart=\"true\">'\n"
+  With   : "      document.getElementById('LegendSound').innerHTML='<OBJECT DATA=\"$HTTPSURL/sound/' + sound + '\" TYPE=\"audio/x-wav\" ALT=\"\" TITLE=\"\"><PARAM NAME=autostart VALUE=true></OBJECT\">'\n"
+
+Embedded Perl ASNMTAP ondersteuning aangaande de plugins, gebasseerd op EPN!
+- ExtUtils::Embed, which is a collection of utilities for embedding perl
 
 SNMP compatibility regarding the return status off the plugins
 
@@ -392,38 +419,23 @@ Webinterface to add, edit and delete titles
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Weetjes - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-SNMPTT testing:
----------------
+Here is patch to the Net_SSLeay.pm-1.30 that will allow the IO-Socket-SSL-1.01 to work with OpenSSL-0.9.8ab. 
+It may not be needed with 0.9.8c.
 
-Try the following:
-
--Copy examples\snmptt.conf.generic to /etc/snmp/
--Change:
-
- snmptt_conf_files = <<END
- /etc/snmp/snmptt.conf
- /etc/snmp/snmptt-udc-snmp.conf
- /etc/snmp/snmptt-bea-weblogic.conf
- END
-
- to:
-
- snmptt_conf_files = <<END
- /etc/snmp/snmptt.conf.generic
- END
-
--shut down snmptt
--shut down snmptrapd
--extract the snmptt-unknown-300-test-traps.tgz file to /var/spool/snmptt/ (attached to this bug report)
--purge your snmptt_unknown table
--set statistics_interval = 10 in snmptt.ini to enable statistics monitoring (every 10 seconds)
--start snmptt in daemon mode
--wait until /var/spool/snmptt is empty
--wait 30 seconds
--check syslog to see how many traps were processed.  You *should* see:
- Total traps received=300,Total traps translated=0,Total traps ignored=0,Total unknown traps=300
--check the snmptt_unknown table to see how many records there are.  You should see 300.
+--- SSLeay.xs_ORIG      2006-11-08 14:36:19.546828000 -0600
++++ SSLeay.xs   2006-11-08 14:36:58.538142000 -0600
+@@ -815,7 +815,7 @@
+ #endif
+        if (strEQ(name, "OP_ALL"))
+ #ifdef SSL_OP_ALL
+-           return SSL_OP_ALL;
++           return (SSL_OP_ALL & ~SSL_OP_TLS_BLOCK_PADDING_BUG);
+ #else
+            goto not_there;
+ #endif
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

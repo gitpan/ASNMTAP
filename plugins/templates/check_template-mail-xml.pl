@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_template-mail-xml.pl
+# 2006/xx/xx, v3.000.012, check_template-mail-xml.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.011;
+use ASNMTAP::Asnmtap::Plugins v3.000.012;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,8 +19,8 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml.pl',
   _programDescription => "Mail XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.011',
-  _programGetOptions  => ['username|u|loginname=s', 'password|passwd|p=s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
+  _programVersion     => '3.000.012',
+  _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -34,7 +34,9 @@ my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.011;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.012;
+
+my %environment = ( P => 'PROD', A => 'ACC' , S => 'SIM', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
 my $body = "
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -45,7 +47,7 @@ my $body = "
     <Name>Name Service to Report</Name>
     <Date>yyyy/mm/dd</Date>
     <Time>hh:mm:ss</Time>
-    <Environment>PROD</Environment>
+    <Environment>". $environment{$environment} ."</Environment>
 	<ErrorStack><![CDATA[ErrorStack .1.]]></ErrorStack>
     <ErrorDetail><![CDATA[ErrorDetail .1.]]></ErrorDetail>
   </Ressource>

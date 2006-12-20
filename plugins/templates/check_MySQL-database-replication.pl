@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_MySQL-database-replication.pl
+# 2006/xx/xx, v3.000.012, check_MySQL-database-replication.pl
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -27,7 +27,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.011;
+use ASNMTAP::Asnmtap::Plugins v3.000.012;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.011',
+  _programVersion     => '3.000.012',
   _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [--database=<database>] [--binlog=<binlog>] [--table=<table>] [--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
@@ -47,7 +47,7 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 --cluster  = S|M
    S(lave) : check slave replication on
    M(aster): check master replication on',
-  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'port|P:i', 'username|u|loginname:s', 'password|passwd|p:s', 'database:s', 'binlog:s', 'table:s', 'cluster:s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'port|P:i', 'username|u|loginname:s', 'password|p|passwd:s', 'database:s', 'binlog:s', 'table:s', 'cluster:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
   
@@ -91,8 +91,8 @@ $objectPlugins->pluginValue ( alert => "DBI:mysql:$database:$hostname:$port" );
 
 my ( $returnCode, $alert, $dbh, $sth, $ref, @tables, $dtable, $exist, $prepareString );
 
-$dbh = DBI->connect ("DBI:mysql:$database:$hostname:$port", "$username", "$password") or errorTrapDBI ( 'Could not connect to MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" );
-@tables = $dbh->tables() or errorTrapDBI ( 'No tables found for database '. $database .' on server '. $hostname, '');
+$dbh = DBI->connect ("DBI:mysql:$database:$hostname:$port", "$username", "$password") or _errorTrapDBI ( 'Could not connect to MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" );
+@tables = $dbh->tables() or _errorTrapDBI ( 'No tables found for database '. $database .' on server '. $hostname, '');
 foreach $dtable (@tables) { if ( $dtable eq "`$table`" ) { $exist = 1; last; } else { $exist = 0;} }
 
 if ( $exist ) {
@@ -101,8 +101,8 @@ if ( $exist ) {
   if ( $dbh ) {
     if ( $cluster =~ /^[SM]$/ ) {
       $prepareString = 'SHOW MASTER STATUS';
-      $sth = $dbh->prepare($prepareString) or errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-      $sth->execute or errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
       $ref = $sth->fetchrow_arrayref;
 
@@ -119,12 +119,12 @@ if ( $exist ) {
 	  	}
 	  }
 
-      $sth->finish() or errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
       if ( $returnCode eq $ERRORS{OK} ) {
         $prepareString = 'SHOW SLAVE STATUS';
-        $sth = $dbh->prepare($prepareString) or errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-        $sth->execute or errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
         $ref = $sth->fetchrow_arrayref;
 
@@ -163,14 +163,14 @@ if ( $exist ) {
           }
 		}
 
-        $sth->finish() or errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
       }
     }
 
     if ( $returnCode eq $ERRORS{OK} ) {
       $prepareString = "SHOW TABLE STATUS FROM $database";
-      $sth = $dbh->prepare($prepareString) or errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-      $sth->execute or errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
       while ( $ref = $sth->fetchrow_arrayref ) {
         if ( $$ref[1] eq $table ) {
@@ -219,7 +219,7 @@ if ( $exist ) {
         }
 	  }
 
-      $sth->finish() or errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
     }
   }
 } else {
@@ -227,7 +227,7 @@ if ( $exist ) {
   $returnCode = $ERRORS{CRITICAL};
 }
 
-if ( $dbh ) { $dbh->disconnect or errorTrapDBI ( 'Could not disconnect from MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" ); }
+if ( $dbh ) { $dbh->disconnect or _errorTrapDBI ( 'Could not disconnect from MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" ); }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -238,7 +238,7 @@ $objectPlugins->exit (7);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub errorTrapDBI {
+sub _errorTrapDBI {
   my ($error, $errorDBI) = @_;
 
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => "$error - $errorDBI" }, $TYPE{APPEND} );

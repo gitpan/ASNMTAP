@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
- use ASNMTAP::Asnmtap::Plugins v3.000.011;
+ use ASNMTAP::Asnmtap::Plugins v3.000.012;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-SOAP.pl',
    _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-   _programVersion     => '3.000.011',
+   _programVersion     => '3.000.012',
    _programGetOptions  => ['proxy:s', 'trendline|T:i'],
    _timeout            => 30,
    _debug              => 0);
@@ -177,6 +177,20 @@ This means that there performance data will be created and the name for the labe
 
 Is an scalar (value is a string), ex. 'Label x'
 
+=item PATCH_HTTP_KEEPALIVE
+
+optional, PATCH_HTTP_KEEPALIVE can be 0 or 1
+
+ 0, without PATCH_HTTP_KEEPALIVE (default)
+ 1, with PATCH_HTTP_KEEPALIVE
+
+=item WSRF
+
+optional, WSRF can be 0 or 1
+
+ 0, without WSRF::Lite (default)
+ 1, with WSRF::Lite
+
 =back
 
 =back
@@ -211,10 +225,23 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   SOAP::Lite
 
   Dependencies SOAP::Lite:
-  XML::Parser
+  libwww-perl
   MIME::Base64
   URI
-  libwww-perl
+  WSRF::Lite
+  XML::Parser
+
+  Dependencies WSRF::Lite:
+  DateTime
+  DateTime::Format::Epoch
+  DateTime::Format::W3CDTF
+  Digest::SHA1
+  Crypt::OpenSSL::RSA
+  Crypt::OpenSSL::X509
+  HTTP::Daemon::SSL
+  Sys::Hostname::Long
+  XML::CanonicalizeXML
+  XML::DOM
 
   Following modules will be loaded on demand only, and are considered optional:
   Crypt::SSLeay     HTTPS/SSL support

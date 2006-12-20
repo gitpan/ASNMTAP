@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_iowait.pl
+# 2006/xx/xx, v3.000.012, check_iowait.pl
 # ----------------------------------------------------------------------------------------------------------
 # Solaris: iowait
 # ----------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.011;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_iowait.pl',
   _programDescription => 'IOWAIT',
-  _programVersion     => '3.000.011',
+  _programVersion     => '3.000.012',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberStates <number of states> -i|--interval [cpu|size|res|time]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

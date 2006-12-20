@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, asnmtap-3.000.011.sql
+# 2006/xx/xx, v3.000.012, asnmtap-3.000.012.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -439,6 +439,29 @@ insert into `displayGroups` values (1,'Testing Collector & Display for the \'App
 insert into `displayGroups` values (2,'Condenced View Test',1);
 
 #
+# Table structure for table environment
+#
+
+DROP TABLE IF EXISTS `environment`;
+
+CREATE TABLE `environment` (
+  `environment` char(1) NOT NULL default 'L',
+  `label` varchar(12) default 'Local',
+  PRIMARY KEY  (`environment`)
+) ENGINE=InnoDB;
+
+#
+# Data for the table environment
+#
+
+insert into `environment` values ('P','Production');
+insert into `environment` values ('S','Simulation');
+insert into `environment` values ('A','Acceptation');
+insert into `environment` values ('T','Test');
+insert into `environment` values ('D','Development');
+insert into `environment` values ('L','Local');
+
+#
 # Table structure for table events
 #
 
@@ -760,11 +783,11 @@ CREATE TABLE `plugins` (
 # Data for the table plugins
 #
 
-insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1',0,25,5,2,'1','1','/test/','test-01',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2',1,25,5,2,'1','1','/test/','test-02',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3',2,25,5,2,'1','1','/test/','test-03',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4',3,25,5,2,'1','1','/test/','test-04',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test',5,25,5,2,'1','1','/test/','test-05',NULL,'<NIHIL>',1);
+insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1',0,25,5,2,'1','1','T','/test/','test-01',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2',1,25,5,2,'1','1','T','/test/','test-02',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3',2,25,5,2,'1','1','T','/test/','test-03',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4',3,25,5,2,'1','1','T','/test/','test-04',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test',5,25,5,2,'1','1','T','/test/','test-05',NULL,'<NIHIL>',1);
 
 #
 # Table structure for table reports
@@ -775,7 +798,6 @@ DROP TABLE IF EXISTS `reports`;
 CREATE TABLE `reports` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
-  `reportTitle` varchar(100) NOT NULL default '',
   `periode` char(1) NOT NULL default 'F',
   `status` tinyint(1) NOT NULL default '0',
   `errorDetails` tinyint(1) NOT NULL default '0',
@@ -786,6 +808,7 @@ CREATE TABLE `reports` (
   `showTop20SlowTests` tinyint(1) NOT NULL default '0',
   `printerFriendlyOutput` tinyint(1) NOT NULL default '0',
   `formatOutput` varchar(4) NOT NULL default 'pdf',
+  `userPassword` varchar(15) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `uKey` (`uKey`),
@@ -797,7 +820,7 @@ CREATE TABLE `reports` (
 # Data for the table reports
 #
 
-insert into `reports` values (11,'DUMMY-T2','DUMMY-T2 (Monthly)','M',1,1,1,0,0,1,1,1,'pdf',1);
+insert into `reports` values (11,'DUMMY-T2','M',1,1,1,0,0,1,1,1,'pdf','',1);
 
 #
 # Table structure for table resultsdir
@@ -888,6 +911,8 @@ CREATE TABLE `users` (
   `givenName` varchar(50) NOT NULL default '',
   `familyName` varchar(50) NOT NULL default '',
   `email` varchar(64) NOT NULL default '',
+  `downtimeScheduling` tinyint(1) NOT NULL default '1',
+  `generatedReports` tinyint(1) NOT NULL default '0',
   `password` varchar(32) NOT NULL default '',
   `userType` char(1) NOT NULL default '',
   `pagedir` varchar(254) NOT NULL default '',
@@ -902,10 +927,10 @@ CREATE TABLE `users` (
 # Data for the table users
 #
 
-insert into `users` values ('admin','','','admin','administrator','zxr750@citap.com','2157d29d0465deacbe112062f5947e1c','4','/test/',1,'EN');
-insert into `users` values ('guest','','','test','user','info@citap.com','2157d29d0465deacbe112062f5947e1c','0','/index/test/',1,'FR');
-insert into `users` values ('member','','','test','user','info@citap.com','2157d29d0465deacbe112062f5947e1c','1','/index/test/',1,'EN');
-insert into `users` values ('sadmin','','','sadmin','server administrator','alex.peeters@citap.com','6648c7eb21870bbb6f48ea5c624d1c0c','8','/test/',1,'EN');
+insert into `users` values ('admin','','','admin','administrator','zxr750@citap.com',1,0,'2157d29d0465deacbe112062f5947e1c','4','/test/',1,'EN');
+insert into `users` values ('guest','','','test','user','info@citap.com',1,0,'2157d29d0465deacbe112062f5947e1c','0','/index/test/',1,'FR');
+insert into `users` values ('member','','','test','user','info@citap.com',1,0,'2157d29d0465deacbe112062f5947e1c','1','/index/test/',1,'EN');
+insert into `users` values ('sadmin','','','sadmin','server administrator','alex.peeters@citap.com',1,0,'2157d29d0465deacbe112062f5947e1c','8','/test/',1,'EN');
 
 #
 # Table structure for table views

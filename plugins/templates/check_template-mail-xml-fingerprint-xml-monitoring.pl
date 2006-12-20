@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, check_template-mail-xml-fingerprint-xml-monitoring.pl
+# 2006/xx/xx, v3.000.012, check_template-mail-xml-fingerprint-xml-monitoring.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.011;
+use ASNMTAP::Asnmtap::Plugins v3.000.012;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,14 +31,14 @@ my $schema = '1.0';
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml-monitoring.pl',
   _programDescription => "XML fingerprint Mail XML monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.011',
+  _programVersion     => '3.000.012',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions  => ['hostname|H=s', 'service|s=s', 'validation:s', 'username|u|loginname=s', 'password|passwd|p=s', 'interval|i=i', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['hostname|H=s', 'service|s=s', 'validation:s', 'username|u|loginname=s', 'password|p|passwd=s', 'interval|i=i', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 10,
   _debug              => 0);
 
@@ -63,7 +63,7 @@ my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.011;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.012;
 
 my $body = '
 <?xml version="1.0" encoding="UTF-8"?>

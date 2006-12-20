@@ -1,11 +1,29 @@
 Changes												History of this package
 Makefile.PL											Makefile generator
 MANIFEST											This file
+MANIFEST.SKIP										MANIFEST.SKIP file
 README												Get you started with this package
 Asnmtap.cnf                                         General config file for ASNMTAP
 META.yml                                            Module meta-data (added by MakeMaker)
 fixRights.sh                                        Fix Rights
+INSTALL                                             Installation DOC
 TODO
+
+applications/etc/.exists
+applications/htmlroot/nav/.exists
+applications/slave/.exists
+applications/master/.exists
+applications/tmp/.exists
+applications/tmp/config/.exists
+applications/tmp/cgisess/.exists
+
+log/.exists
+
+pid/.exists
+
+plugins/tmp/.exists
+
+results/.exists
 
 lib/ASNMTAP/Time.pm
 lib/ASNMTAP/Time.pod
@@ -26,13 +44,13 @@ lib/ASNMTAP/Asnmtap/Plugins.pm
 lib/ASNMTAP/Asnmtap/Plugins.pod
 lib/ASNMTAP/Asnmtap/Plugins/IO.pm
 lib/ASNMTAP/Asnmtap/Plugins/IO.pod
-lib/ASNMTAP/Asnmtap/Plugins/NPTest.pm
 lib/ASNMTAP/Asnmtap/Plugins/Mail.pm
 lib/ASNMTAP/Asnmtap/Plugins/Mail.pod
 lib/ASNMTAP/Asnmtap/Plugins/Modem.pm
 lib/ASNMTAP/Asnmtap/Plugins/Modem.pod
 lib/ASNMTAP/Asnmtap/Plugins/Nagios.pm
 lib/ASNMTAP/Asnmtap/Plugins/Nagios.pod
+lib/ASNMTAP/Asnmtap/Plugins/NPTest.pm
 lib/ASNMTAP/Asnmtap/Plugins/SOAP.pm
 lib/ASNMTAP/Asnmtap/Plugins/SOAP.pod
 lib/ASNMTAP/Asnmtap/Plugins/WebTransact.pm
@@ -108,7 +126,7 @@ applications/bin/generateReports.sh
 applications/bin/holidayBundleSetDowntimes.pl
 applications/bin/holidayBundleSetDowntimes.sh
 
-applications/custom/display.pm
+applications/custom/display.pm-orig
 
 applications/htmlroot/AnchorPosition.js
 applications/htmlroot/asnmtap-results.css
@@ -116,6 +134,17 @@ applications/htmlroot/asnmtap.css
 applications/htmlroot/CalendarPopup.js
 applications/htmlroot/date.js
 applications/htmlroot/md5.js
+applications/htmlroot/overlib.js
+applications/htmlroot/overlib_anchor.js
+applications/htmlroot/overlib_centerpopup.js
+applications/htmlroot/overlib_crossframe.js
+applications/htmlroot/overlib_cssstyle.js
+applications/htmlroot/overlib_debug.js
+applications/htmlroot/overlib_exclusive.js
+applications/htmlroot/overlib_followscroll.js
+applications/htmlroot/overlib_hideform.js
+applications/htmlroot/overlib_setonoff.js
+applications/htmlroot/overlib_shadow.js
 applications/htmlroot/PopupWindow.js
 applications/htmlroot/TimeParserValidator.js
 
@@ -166,6 +195,13 @@ applications/htmlroot/cgi-bin/sadmin/resultsdirs.pl
 applications/htmlroot/cgi-bin/sadmin/servers.pl
 applications/htmlroot/cgi-bin/sadmin/views.pl
 
+applications/htmlroot/img/P.gif
+applications/htmlroot/img/S.gif
+applications/htmlroot/img/A.gif
+applications/htmlroot/img/T.gif
+applications/htmlroot/img/D.gif
+applications/htmlroot/img/L.gif
+
 applications/htmlroot/img/1arrowDown.gif
 applications/htmlroot/img/1arrowLeft.gif
 applications/htmlroot/img/1arrowRight.gif
@@ -195,6 +231,8 @@ applications/htmlroot/img/logos/bodyimage.gif
 applications/htmlroot/img/maintenance.gif
 applications/htmlroot/img/notest-ack.gif
 applications/htmlroot/img/notest.gif
+applications/htmlroot/img/off.gif
+applications/htmlroot/img/on.gif
 applications/htmlroot/img/ondemand.gif
 applications/htmlroot/img/orange-ack.gif
 applications/htmlroot/img/orange.gif
@@ -235,8 +273,9 @@ applications/htmlroot/sound/warning.wav
 applications/sbin/sshWrapperASNMTAP.pl
 applications/sbin/perfparse_asnmtap_pulp_command.pl
 applications/sbin/perfparse_crontab.sh
-	
-applications/tools/mysql/asnmtap-3.000.011.sql
+applications/sbin/purge_table.pl
+
+applications/tools/mysql/asnmtap-3.000.012.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -265,6 +304,7 @@ plugins/check_sendAndReceiveMail.pl
 plugins/nagios/check_iowait.pl
 plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
+plugins/nagios/check_nagios-comments-cleanup.pl
 plugins/nagios/check_snmptt_traps.pl
 plugins/nagios/check_swap.pl
 plugins/nagios/check_swap-allocated.pl
@@ -333,5 +373,6 @@ usr/bin/plog                                        plog
 usr/bin/poff                                        poff
 usr/bin/pon                                         pon
 
+plugins/tools/removeModulePerl.pl
 plugins/tools/GrinderCaptureConverter.pl
 

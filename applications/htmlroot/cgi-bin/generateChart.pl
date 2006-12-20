@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -562,9 +562,9 @@ sub getAverage {
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $startDate, $hour, $average, @avg, @labels);
 
   if ( $selChart eq "HourlyAverage" ) {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, hour(startTime) as hour, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, hour(startTime) as hour, round(avg(time_to_sec(duration)), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
   } else {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, round(avg(duration), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, round(avg(time_to_sec(duration)), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
   }
 
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);

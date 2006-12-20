@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, package ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -30,9 +30,9 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::ISA         = qw(Exporter ASNMTAP::Asnmtap::Applications);
 
-  %ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS = (ALL         => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+  %ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS = (ALL         => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                                            $CAPTUREOUTPUT
-                                                                           $PREFIXPATH $LOGPATH $PIDPATH
+                                                                           $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                            %ERRORS %STATE %TYPE
 
                                                                            &call_system &sending_mail
@@ -49,21 +49,21 @@ BEGIN {
                                                                            $ASNMTAPMANUAL
                                                                            $DATABASE
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
-                                                                           $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $SSHKEYPATH $WWWKEYPATH
+                                                                           $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $SSHKEYPATH $WWWKEYPATH
                                                                            $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
                                                                            $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                            $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                            $RMVERSION $RMDEFAULTUSER
                                                                            $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
-                                                                           %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %SOUND %QUARTERS
+                                                                           %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                            &get_session_param
                                                                            &set_doIt_and_doOffline
                                                                            &encode_html_entities &print_header &print_legend
 
                                                                            $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                            $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
 					  
                                                                            &user_session_and_access_control
                                                                            &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month
@@ -71,9 +71,9 @@ BEGIN {
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI 
                                                                            &record_navigation_table &record_navigation_bar) ],
 
-                                                      APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
+                                                      APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
                                                                            $CAPTUREOUTPUT
-                                                                           $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH
+                                                                           $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                            %ERRORS %STATE %TYPE
 
                                                                            &sending_mail) ],
@@ -89,11 +89,12 @@ BEGIN {
 
                                                                            $DATABASE
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
-                                                                           $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $SSHKEYPATH $WWWKEYPATH
+                                                                           $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
                                                                            $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
                                                                            $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                            $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
+                                                                           %ENVIRONMENT
                                                                            &encode_html_entities &print_header &print_legend
 
                                                                            &user_session_and_access_control
@@ -120,7 +121,7 @@ BEGIN {
 
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
-                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
+                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
 
                                                       REPORTS      => [ qw(%COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %QUARTERS
 
@@ -129,7 +130,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = 3.000.011;
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -620,11 +621,11 @@ sub create_sql_query_events_from_range_year_month {
 sub get_title {
   my ($dbh, $rv, $uKey, $debug, $refresh, $sessionID) = @_;
 
-  my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $title, $trendline, $step, $applicationTitle, $trendValue, $stepValue);
-  $sql = "select title, trendline, step from $SERVERTABLPLUGINS WHERE uKey = '$uKey'";
+  my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $title, $environment, $trendline, $step, $applicationTitle, $trendValue, $stepValue);
+  $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLPLUGINS.environment, trendline, step from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT WHERE uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", $refresh, '', $sessionID);
   $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
-  $sth->bind_columns( \$title, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
+  $sth->bind_columns( \$title, \$environment, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
 
   if ( $rv ) {
     while( $sth->fetch() ) {
@@ -1029,7 +1030,7 @@ sub record_navigation_table {
         $matchingRecords .= "$actionItem</tr>\n";
       }
     } else {
-      $matchingRecords .= "        <tr><td colspan=\"$colspan\">No records found for any country</td></tr>\n";
+      $matchingRecords .= "        <tr><td colspan=\"$colspan\">No records found.</td></tr>\n";
     }
 
     $matchingRecords .= "        <tr><td colspan=\"$colspan\">$navigationBar</td></tr>\n" if ($navigationBar);

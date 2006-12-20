@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -13,11 +13,11 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 
 use CGI;
 use DBI;
-use Date::Calc qw(Monday_of_Week Week_of_Year);
+use Date::Calc qw(Add_Delta_Days Monday_of_Week Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedReport.pl";
 my $prgtext     = "Get Archived Report";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -71,11 +71,11 @@ unless ( defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' order by optionValueTitle";
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {
-        $sql = "select LTRIM(SUBSTRING_INDEX(title, ']', -1)), resultsdir from $SERVERTABLPLUGINS where uKey = '$uKey'";
+        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
@@ -92,7 +92,7 @@ unless ( defined $errorUserAccessControl ) {
     if ($rv) {
       if (defined $resultsdir) {
         my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;uKey=$uKey&amp;day=$day&amp;week=$week&amp;month=$month&amp;quarter=$quarter&amp;year=$year";
-        $reportsSelect = "  <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n    <tr><th colspan=\"2\"><a href=\"$urlWithAccessParameters&amp;ascending=0\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report <a href=\"$urlWithAccessParameters&amp;ascending=1\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th></tr>";
+        $reportsSelect = "  <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n    <tr><th colspan=\"3\"><a href=\"$urlWithAccessParameters&amp;ascending=0\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report <a href=\"$urlWithAccessParameters&amp;ascending=1\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th></tr>";
 
         my $rvOpendir = opendir(REPORTS, "$RESULTSPATH/$resultsdir/$REPORTDIR/");
 
@@ -116,32 +116,37 @@ unless ( defined $errorUserAccessControl ) {
 
               my ($reportPeriode, $reportDate);
 
-              if ( $day eq 'on' and $archivedReportFile =~ /-Day_(\w+)-id_/ ) {
+              if ( $day eq 'on' and $archivedReportFile =~ /-Day_(\w+)-id_(\d+)/ ) {
                 $reportPeriode = "$1";
 		  	    $reportDate    = "$reportYear/$reportMonth/$reportDay";
-			  } elsif ( $week eq 'on' and $archivedReportFile =~ /-Week_(\d+)-id_/ ) {
+			  } elsif ( $week eq 'on' and $archivedReportFile =~ /-Week_(\d+)-id_(\d+)/ ) {
+                ($reportYear, my $f_month, my $f_day) = Monday_of_Week($1, $reportYear);
+                my ($t_year, $t_month, $t_day) = Add_Delta_Days($reportYear, $f_month, $f_day, 6);
                 $reportPeriode = "Week: $1";
-                ($reportYear, undef, undef) = Monday_of_Week(Week_of_Year($reportYear, $reportMonth, $reportDay));
-			    $reportDate    = $reportYear;
-              } elsif ( $month eq 'on' and $archivedReportFile =~ /-Month_(\w+)-id_/ ) {
+                $f_month = sprintf ("%02d", $f_month);
+                $f_day   = sprintf ("%02d", $f_day);
+                $t_month = sprintf ("%02d", $t_month);
+                $t_day   = sprintf ("%02d", $t_day);
+			    $reportDate    = "from $reportYear/$f_month/$f_day until $t_year/$t_month/$t_day";
+              } elsif ( $month eq 'on' and $archivedReportFile =~ /-Month_(\w+)-id_(\d+)/ ) {
                 $reportPeriode = "Month: $1";
                 $reportDate    = $reportYear;
-		  	  } elsif ( $quarter eq 'on' and $archivedReportFile =~ /-Quarter_(\d+)-id_/ ) {
+		  	  } elsif ( $quarter eq 'on' and $archivedReportFile =~ /-Quarter_(\d+)-id_(\d+)/ ) {
                 $reportPeriode = "Quarter: $1";
                 $reportDate    = $reportYear;
-              } elsif ( $year eq 'on' and $archivedReportFile =~ /-Year_(\d+)-id_/ ) {
+              } elsif ( $year eq 'on' and $archivedReportFile =~ /-Year_(\d+)-id_(\d+)/ ) {
                 $reportPeriode = "Year: $1";
                 $reportDate    = "&nbsp;";
               }
 
               if (defined $reportPeriode) {
-                $reportsSelect .= "\n    <tr><td><a href=\"$RESULTSURL/$resultsdir/$REPORTDIR/$archivedReportFile\" target=\"_blank\">$reportPeriode</a></td><td>$reportDate</td></tr>";
+                $reportsSelect .= "\n    <tr><td><a href=\"$RESULTSURL/$resultsdir/$REPORTDIR/$archivedReportFile\" target=\"_blank\">$reportPeriode</a></td><td>- id $2 -</td><td>$reportDate</td></tr>";
                 $noGeneratedReports = 0;
               }
             }
           }
 
-          $reportsSelect .= "\n    <tr><td>For this periode there are no generated report(s) for '" .encode_html_entities('T', $title). "'</td></tr>" if ($noGeneratedReports);
+          $reportsSelect .= "\n    <tr><td>For this period there are no generated report(s) for '" .encode_html_entities('T', $title). "'</td></tr>" if ($noGeneratedReports);
         }
 
         $reportsSelect .= "\n  </table>";

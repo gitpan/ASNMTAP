@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2006/xx/xx, v3.000.012, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -12,16 +12,17 @@ use warnings;           # Must be used in test mode only. This reduce a little p
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use DBI;
+use File::stat;
 use Time::Local;
 use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.011;
+use ASNMTAP::Time v3.000.012;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.011;
-use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY);
+use ASNMTAP::Asnmtap::Applications::Display v3.000.012;
+use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -31,7 +32,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_T $opt_l $PROG
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -115,8 +116,8 @@ my ($dchecklist, $dtest, $dfetch, $tinterval, $tgroep, $resultsdir, $ttest, $fir
 my (@fetch, $dstart, $tstart, $start, $step, $names, $data, $rows, $columns, $line, $val, @vals);
 my ($command, $tstatus, $tduration, $timeValue, $prevGroep);
 my ($rv, $dbh, $sth, $lockString, $findString, $unlockString, $doChecklist, $timeCorrectie, $timeslot);
-my ($groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $itemCondensedView, @itemCondensedView);
-my ($checkOk, $checkSkip, $printCondensedView, @printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
+my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $itemFullCondensedView, @itemFullCondensedView);
+my ($checkOk, $checkSkip, $configNumber, $printCondensedView, @printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
 my ($playSoundInProgress, $playSoundPreviousStatus, $playSoundStatus, %tableSoundStatusCache);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -163,6 +164,9 @@ unless (fork) {                                  # unless ($pid = fork) {
         resultsdirCreate();
         $boolean_signal_hup = 0;
       }
+
+      # Update access and modify epoch time from the PID time
+      utime (time(), time(), $pidfile) if (-e $pidfile);
 
       # Crontab implementation
       read_tableSoundStatusCache ($checklist, $debug);
@@ -278,12 +282,11 @@ sub do_crontab {
     print "Cannot open $htmlOutput-cv.tmp to create the html information\n";
     exit 0;
   }
-	
+
   $prevGroep = "";
   my ($dstatusMessage, @itemStatusMessage, @printStatusMessage);
   @itemStatusMessage = @printStatusMessage = ();
 
-  my %ENVIRONMENT = ('P'=>'Production', 'A'=>'Acceptation', 'S'=>'Simulation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
   printHtmlHeader($APPLICATION .' - '. $ENVIRONMENT{$Cenvironment});
 
   my $currentDate = time();
@@ -298,13 +301,13 @@ sub do_crontab {
     }
   }
 
-  $playSoundStatus = 0;
+  $configNumber = $playSoundStatus = 0;
   $doChecklist = ($dbh and $rv) ? 1 : 0;
   $emptyFullView = $emptyCondencedView = $emptyStatusMessage = 1;
 
   if ($doChecklist) {
-    $groupCondensedView = 0;
-	@itemCondensedView = @printCondensedView = [];
+    $groupFullView = $groupCondensedView = 0;
+	@itemFullCondensedView = @printCondensedView = [];
 
     foreach $dchecklist (@checklisttable) {
       ($tinterval, $tgroep, $resultsdir, $ttest) = split(/\#/, $dchecklist, 4);
@@ -323,23 +326,26 @@ sub do_crontab {
 
         my $environment = (($test =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
         next if (defined $environment and $environment ne $Cenvironment);
+        $configNumber++;
 
         my $trendline = get_trendline_from_test($test);
-
+        my $commandPopup = maskPassword ($test);
+        $commandPopup =~ s/(?:\s+(--environment=[PASTDL]|--trendline=\d+))//g;
+        my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
         print "<", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
-        printItemHeader($resultsdir, $uniqueKey, $command, $title, $help);
         my $number = 1;
         my $statusIcon;
 
         if ($dbh and $rv) {
-          my ($acked, $sql, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse);
-          $sql = "select activationTimeslot, suspentionTimeslot, persistent, downtime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc";
+          my ($acked, $sql, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
+          $sql = "select activationTimeslot, suspentionTimeslot, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
           $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
+          my $statusOverlib = '<NIHIL>'; # $STATE{$ERRORS{'NO DATA'}};
           $downtime = 0;
 
           if ( $rv ) {
-            my ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $firstRecordPersistentTrue, $firstRecordPersistentFalse);
+            my ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime, $firstRecordPersistentTrue, $firstRecordPersistentFalse);
             $acked = $sth->rows;
             $persistent = -1;
             $activationTimeslot = 9999999999;
@@ -347,7 +353,7 @@ sub do_crontab {
             $suspentionTimeslot = $suspentionTimeslotPersistentTrue = $suspentionTimeslotPersistentFalse = 0;
 
             if ( $acked ) {
-              while( ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime) = $sth->fetchrow_array() ) {
+              while( ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime) = $sth->fetchrow_array() ) {
                 $downtime = ($Tdowntime) ? 1 : $downtime;
 
                 if ( $Tpersistent ) {
@@ -369,6 +375,11 @@ sub do_crontab {
 
                 $activationTimeslot = ($activationTimeslot < int($TactivationTimeslot)) ? $activationTimeslot : int($TactivationTimeslot);
                 $suspentionTimeslot = ($suspentionTimeslot > int($TsuspentionTimeslot)) ? $suspentionTimeslot : int($TsuspentionTimeslot);
+
+                $TcommentData =~ s/'/`/g;
+                $TcommentData =~ s/[\n\r]/<br>/g; 
+                $TcommentData =~ s/<br><br>/<br>/g;
+                $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
               }
             }
 
@@ -405,7 +416,7 @@ sub do_crontab {
               print "<", $timeslot, "><", $ref->{title}, "><", $ref->{startTime}, "><", $ref->{timeslot}, ">\n" if ($debug);
 
               if ($timeslot >= 0) {
-               my $dstatus = ($ref->{status} eq '<NIHIL>') ? 'UNKNOWN' : $ref->{status};
+                my $dstatus = ($ref->{status} eq '<NIHIL>') ? 'UNKNOWN' : $ref->{status};
 	  	        $tstatus = $dstatus;
 
                 if ($dstatus eq 'OK' and $trendline) {
@@ -417,23 +428,40 @@ sub do_crontab {
                 $itemStarttime[$timeslot] = $ref->{startTime};
                 $itemTimeslot[$timeslot]  = $ref->{timeslot};
                 ($ref->{statusMessage}, undef) = split(/\|/, $ref->{statusMessage}, 2); # remove performance data
-                $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
+
+                if ( -e $ref->{filename} ) {
+                  $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
+                } else {
+                  $ref->{filename} = '<NIHIL>';
+                }
 
                 my $tstatusMessage = ($ref->{filename} eq '<NIHIL>') ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>';
                 $statusIcon = ($acked and ($activationTimeslot - $step < $ref->{timeslot}) and ($suspentionTimeslot > $ref->{timeslot})) ? $ICONSACK {$tstatus} : $ICONS{$tstatus};
-                $tempStatusMessage[$timeslot] = encode_html_entities('T', $ref->{title}).'</TD><TD VALIGN="TOP"><IMG SRC="'.$IMAGESURL.'/'.$statusIcon.'" WIDTH="16" HEIGHT="16" BORDER=0 title="'.$tstatus.'" alt="'.$tstatus.'"></TD><TD class="StatusMessage">'.$ref->{startTime}.'</TD><TD class="StatusMessage">'.$tstatusMessage if ($dstatus ne 'OK' and $dstatus ne 'OFFLINE' and $dstatus ne 'NO DATA' and $dstatus ne 'NO TEST');
-                $emptyFullView = 0;
+
+                if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
+                  $statusOverlib = ( $timeslot ? $itemStatus[1] : $itemStatus[0] );
+                }
+
+                if ($dstatus ne 'OK' and $dstatus ne 'OFFLINE' and $dstatus ne 'NO DATA' and $dstatus ne 'NO TEST') {
+                  $tempStatusMessage[$timeslot] = encode_html_entities('T', $ref->{title}).'</TD><TD VALIGN="TOP"><IMG SRC="'.$IMAGESURL.'/'.$statusIcon.'" WIDTH="16" HEIGHT="16" BORDER=0 title="'.$tstatus.'" alt="'.$tstatus.'"></TD><TD class="StatusMessage">'.$ref->{startTime}.'</TD><TD class="StatusMessage">'.$tstatusMessage;
+
+                  if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
+                    $ref->{statusMessage} =~ s/'/`/g;
+                    $popup .= '<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT VALIGN=TOP>Status</TD><TD BGCOLOR=#0000FF><IMG SRC='.$IMAGESURL.'/'.$statusIcon.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0> '.$ref->{startTime}.' '.$ref->{statusMessage}.'</TD></TR>';
+                  }
+                }
               }
             }
 
             $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $findString");
           }
 
+          printItemHeader($environment, $resultsdir, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment);
           $playSoundPreviousStatus = $playSoundInProgress = 0;
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
             my $endTime = $itemStarttime[$number];
-            $endTime .= "-" . $itemTimeslot[$number] if ($displayTimeslot);
+            $endTime .= '-'. $itemTimeslot[$number] if ($displayTimeslot);
             printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey);
           }
 
@@ -464,7 +492,7 @@ sub do_crontab {
   }
 
   printGroepFooter('', 0);
-  printStatusHeader('', $emptyFullView, $emptyCondencedView, $playSoundStatus);
+  printStatusHeader('', $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus);
 
   if (@itemStatusMessage) { 
     my $teller = 0;
@@ -502,6 +530,12 @@ sub signalQUIT {
   print "kill -QUIT <$PROGNAME v$version -C $checklist> pid: <$pidfile><", get_datetimeSignal(), ">\n";
   unlink $pidfile;
   $boolean_daemonQuit = 1;
+
+  use Sys::Hostname;
+  my $subject = "$prgtext\@". hostname() .": Config $APPLICATIONPATH/etc/$checklist successfully stopped at ". get_datetimeSignal();
+  my $returnCode = sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $subject ."\n", 0 );
+  print "Problem sending email to the '$APPLICATION' server administrators\n" unless ( $returnCode );
+
   exit 1;
 }
 
@@ -569,10 +603,10 @@ sub errorTrapDBI {
 sub printHtmlHeader {
   my $htmlTitle = shift(@_);
 
-  print_header (*HTML, $pagedir, "$pageset-cv", $htmlTitle, "Full View", 60, "ONLOAD=\"startRefresh();\"", 'T', '', undef);
+  print_header (*HTML, $pagedir, "$pageset-cv", $htmlTitle, "Full View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
   print HTML '<TABLE WIDTH="100%">', "\n";
 
-  print_header (*HTMLCV, $pagedir, "$pageset", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh();\"", 'T', '', undef);
+  print_header (*HTMLCV, $pagedir, "$pageset", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
   print HTMLCV '<TABLE WIDTH="100%">', "\n";
 }
 
@@ -582,26 +616,35 @@ sub printGroepHeader {
   my ($title, $show) = @_;
 
   if ($show) {
-    $groupCondensedView = 0;
-    delete @itemCondensedView[0..@itemCondensedView];
+    $groupFullView = $groupCondensedView = 0;
+    delete @itemFullCondensedView[0..@itemFullCondensedView];
  	delete @printCondensedView[0..@printCondensedView];
-    print HTML '<TR><TD class="GroupHeader" COLSPAN="', $colspanDisplayTime, '">', encode_html_entities('T', $title), '</TD></TR>', "\n";
   }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printStatusHeader {
-  my ($title, $emptyFullView, $emptyCondencedView, $playSoundStatus) = @_;
+  my ($title, $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus) = @_;
 
   my ($emptyFullViewMessage, $emptyCondencedViewMessage);
 
-  if ($emptyFullView) {
-  # $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!!!';
-  } elsif ($emptyCondencedView) {
-    $emptyCondencedViewMessage = 'All Monitored Applications are OK';
+  if ( $configNumber ) {                         # Monitored Applications
+    if ( $emptyCondencedView ) {
+      if ( $emptyFullView ) {
+        $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably collector/config problems!';
+      } elsif ( $emptyCondencedView ) {
+        $emptyCondencedViewMessage = 'All Monitored Applications are OK';
+      }
+    }
+  } elsif ( $emptyFullView and $emptyCondencedView ) {
+    if ( $doChecklist ) {
+      $emptyFullViewMessage = $emptyCondencedViewMessage = 'No Monitored Applications';
+    } else {
+      $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!';
+    }
   }
- 
+
   if (defined $emptyFullViewMessage) {
     print HTML   '<TR><TD class="StatusHeader" COLSPAN="', $colspanDisplayTime, '"><BR><H1>', $emptyFullViewMessage, '</H1></TD></TR>', "\n", '</TABLE>', "\n";
   } else {
@@ -624,7 +667,7 @@ sub printStatusHeader {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemHeader {
-  my ($resultsdir, $uniqueKey, $command, $title, $help) = @_;
+  my ($environment, $resultsdir, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment) = @_;
 
   my $htmlFilename = "$RESULTSPATH/$resultsdir/$command-$uniqueKey";
   $htmlFilename .= "-sql.html";
@@ -654,29 +697,42 @@ EOM
     }
   }
 
-  my ($posTokenFrom, $posTokenTo, $groep, $test);
+  my ($posTokenFrom, $posTokenTo, $groep, $test, $serverID);
   $posTokenFrom = index $title, '[';
 
   if ($posTokenFrom eq -1) {
-    $groep = "";
-    $test  = "$title"
+    $groep = '';
+    $test  = $title;
   } else {
-    $posTokenTo = index $title, "]", $posTokenFrom+1;
+    $posTokenTo = index $title, ']', $posTokenFrom+1;
     $groep = substr($title, $posTokenFrom, $posTokenTo+2);
     $test  = substr($title, $posTokenTo+2);
   }
 
-  my $comments = '<TD WIDTH="36"><A HREF="/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="Comments" alt="Comments" BORDER=0></A> ';
-  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
-  print HTML '  <TR>', "\n",'    ', $comments, $helpfile, "\n", '    <TD class="ItemHeader">', $groep, '<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\'';
+  $posTokenFrom = index $test, ' {';
 
-  $itemCondensedView = "";
+  if ($posTokenFrom eq -1) {
+    $serverID = '';
+  } else {
+    $posTokenTo = index $test, '}', $posTokenFrom+2;
+    $serverID = substr($test, $posTokenFrom+2); chop ($serverID);
+    $test = substr($test, 0, $posTokenFrom);
+  }
+
+  # http://www.bosrup.com/web/overlib/?Command_Reference
+  my $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR></TABLE>";
+  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+
+  my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
+  my $comments = '<a href="/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
+
+  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
+
   $checkOk = $checkSkip = $printCondensedView = $problemSolved = $verifyNumber = 0;
   $inProgressNumber = -1;
 
-  $itemCondensedView .= '  <TR>'."\n".'    '.$comments.$helpfile."\n".'    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\'';
-  print HTML $RESULTSURL, '/', $resultsdir, '/', $command, "-" , $uniqueKey, "-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">", encode_html_entities('T', $test), '</A></TD>', "\n";
-  $itemCondensedView .= $RESULTSURL .'/'. $resultsdir .'/'. $command . "-" . $uniqueKey . "-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">" . encode_html_entities('T', $test) . '</A></TD>' . "\n";
+  $itemFullCondensedView = '  <TR>'."\n".'    '.$exclaim.$comments.$helpfile."\n".'    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\'';
+  $itemFullCondensedView .= $RESULTSURL .'/'. $resultsdir .'/'. $command ."-". $uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test). '</A></TD>'. "\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -685,12 +741,25 @@ sub printGroepCV {
   my ($title, $showGroup, $showFooter) = @_;
 
   if ($showGroup and $title ne '') {
+    if ($groupFullView) {
+      print HTML '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
+      my $teller = 0;
+
+      foreach $itemFullCondensedView (@itemFullCondensedView) {
+        print HTML $itemFullCondensedView[$teller];
+        $teller++;
+      }
+
+	  $emptyFullView = ($teller == 0) ? $emptyFullView : 0;
+      print HTML '<tr style="{height: 4;}"><TD></TD></TR>', "\n", if $showFooter;
+    }
+
     if ($groupCondensedView) {
       print HTMLCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
       my $teller = 0;
 
-      foreach $itemCondensedView (@itemCondensedView) {
-        print HTMLCV $itemCondensedView[$teller] if ($printCondensedView[$teller]);
+      foreach $itemFullCondensedView (@itemFullCondensedView) {
+        print HTMLCV $itemFullCondensedView[$teller] if ($printCondensedView[$teller]);
         $teller++;
       }
 
@@ -754,7 +823,7 @@ sub printItemStatus {
       if ( $downtime or $persistent ) {
         $notDowntimeOrPersistent = ( $solvedTimeslot >= $activationTimeslot ) ? 0 : 1;
       }
-	  
+
       if ( $number <= $inProgressNumber ) {
         $debugInfo .= "b-" if ($debug);
         $checkOk++ if ( $status eq 'OK' );
@@ -774,6 +843,7 @@ sub printItemStatus {
         $problemSolved = 1;
       }
 
+      $printCondensedView = 0 if ($downtime and ! $persistent);
       $debugInfo .= "$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
 
       my $update   = 0;
@@ -843,20 +913,13 @@ sub printItemStatus {
         delete $tableSoundStatusCache { $uniqueKey } if ( defined $tableSoundStatusCache { $uniqueKey } );
       }
     }
-
-    if ($displayTime) {
-      print HTML '    <TD><IMG SRC="', $IMAGESURL, '/', $statusIcon, '" WIDTH="16" HEIGHT="16" BORDER=0 title="', $status, '" alt="', $status, '"></TD>', "\n";
-      print HTML '    <TD class="ItemStatus"><FONT COLOR="', $COLORS{$status}, '">', $debugInfo, $boldStart, $endTime, $boldEnd, '</FONT></TD>', "\n";
-    } else {
-      print HTML '    <TD><IMG SRC="', $IMAGESURL, '/', $statusIcon, '" WIDTH="16" HEIGHT="16" BORDER=0 title="', $endTime, '" alt="', $endTime, '"></TD>', "\n";
-    }
   }
 
   if ($displayTime) {
-    $itemCondensedView .= '    <TD><IMG SRC="'. $IMAGESURL .'/'. $statusIcon .'" WIDTH="16" HEIGHT="16" BORDER=0 title="'. $status .'" alt="'. $status .'"></TD>'. "\n";
-    $itemCondensedView .= '    <TD class="ItemStatus"><FONT COLOR="'. $COLORS{$status} .'">'. $debugInfo . $boldStart . $endTime . $boldEnd .'</FONT></TD>'. "\n";
+    $itemFullCondensedView .= '    <TD><IMG SRC="'. $IMAGESURL .'/'. $statusIcon .'" WIDTH="16" HEIGHT="16" BORDER=0 title="'. $status .'" alt="'. $status .'"></TD>'. "\n";
+    $itemFullCondensedView .= '    <TD class="ItemStatus"><FONT COLOR="'. $COLORS{$status} .'">'. $debugInfo . $boldStart . $endTime . $boldEnd .'</FONT></TD>'. "\n";
   } else {
-    $itemCondensedView .= '    <TD><IMG SRC="'. $IMAGESURL .'/'. $statusIcon .'" WIDTH="16" HEIGHT="16" BORDER=0 title="'. $endTime .'" alt="'. $endTime .'"></TD>'. "\n";
+    $itemFullCondensedView .= '    <TD><IMG SRC="'. $IMAGESURL .'/'. $statusIcon .'" WIDTH="16" HEIGHT="16" BORDER=0 title="'. $endTime .'" alt="'. $endTime .'"></TD>'. "\n";
   }
 }
 
@@ -950,8 +1013,8 @@ sub printStatusMessage {
   # ***************************************************************************
   } elsif ($statusMessage =~ /Cactus XML::Parser:/ ) {
     $statusMessage =~ s/\+{2}/\+\+<br>/g;
-  } elsif (-s "$PREFIXPATH/applications/custom/display.pm") {
-    require "$PREFIXPATH/applications/custom/display.pm";
+  } elsif (-s "$APPLICATIONPATH/custom/display.pm") {
+    require "$APPLICATIONPATH/custom/display.pm";
 	$errorMessage = printStatusMessageCustom( decode_html_entities('E', $statusMessage) );
   }
 
@@ -977,8 +1040,6 @@ sub printHtmlFooter {
 
 sub printGroepFooter {
   my ($title, $show) = @_;
-
-  print HTML '<TR style="{height: 4;}"><TD></TD></TR>', "\n" if ($show);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -986,10 +1047,12 @@ sub printGroepFooter {
 sub printItemFooter {
   my ($title) = @_;
 
-  print HTML '</TR>', "\n";
-  $itemCondensedView .= '</TR>' . "\n";
+  $itemFullCondensedView .= '</TR>' . "\n";
+  push (@itemFullCondensedView, $itemFullCondensedView);
+
+  $groupFullView += 1;
+
   $groupCondensedView += $printCondensedView;
-  push (@itemCondensedView, $itemCondensedView);
   push (@printCondensedView, $printCondensedView);
 }
 
@@ -1000,11 +1063,49 @@ sub printStatusFooter {
 
   print HTML   '</TABLE>', "\n";
   print HTML   '<HR>', "\n" unless ( $emptyFullView or $emptyStatusMessage );
-  print HTML   "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\"  hidden=\"true\" autostart=\"true\">\n" if ($playSoundStatus);
+  print HTML   "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\" hidden=\"true\" autostart=\"true\">\n" if ($playSoundStatus);
 
   print HTMLCV '</TABLE>', "\n";
   print HTMLCV '<HR>', "\n" unless ( $emptyFullView or $emptyCondencedView or $emptyStatusMessage );
   print HTMLCV "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\" hidden=\"true\" autostart=\"true\">\n" if ($playSoundStatus);
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub maskPassword {
+  my ($parameters) =  @_;
+
+  # --dnPass=
+  if ($parameters =~ /--dnPass=/) {
+    $parameters =~ s/(--dnPass=)\w+/$1********/g;
+  }
+
+  # --proxy=user:pasword\@proxy
+  if ($parameters =~ /--proxy=/) {
+    $parameters =~ s/(--proxy=\w*:)\w*(\@\w+)/$1********$2/g;
+  }
+
+  # -p user:pasword\@proxy
+  if ($parameters =~ /-p / and ($parameters !~ /-u / and $parameters !~ /--username=/)) {
+    $parameters =~ s/(-p \w*:)\w*(\@\w+)/$1********$2/g;
+  }
+
+  # --password=
+  if ($parameters =~ /--password=/) {
+    $parameters =~ s/(--password=)\w+/$1********/g;
+  }
+
+  # --username= or -u and --password= or -p (database plugins)
+  if ($parameters =~ /-p / and ($parameters =~ /-u / or $parameters =~ /--username=/)) {
+    $parameters =~ s/(-p )\w+/$1********/g;
+  }
+
+  # --username= or -U and --password= or -P (ftp plugins)
+  if ($parameters =~ /-P / and ($parameters =~ /-U / or $parameters =~ /--username=/)) {
+    $parameters =~ s/(-P )\w+/$1********/g;
+  }
+
+  return ($parameters);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

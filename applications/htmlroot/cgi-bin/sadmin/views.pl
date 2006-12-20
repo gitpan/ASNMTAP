@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/09/16, v3.000.011, views.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2006/xx/xx, v3.000.012, views.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -16,7 +16,7 @@ use CGI;
 
 # ----------------------------------------------------------------------------------------------------------
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.011;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # ----------------------------------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "views.pl";
 my $prgtext     = "Views";
-my $version     = '3.000.011';
+my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -154,7 +154,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$nextAction&orderBy=$orderBy$urlWithAccessParametersQuery");
 
-      $sql = "select $SERVERTABLVIEWS.displayDaemon, $SERVERTABLVIEWS.uKey, $SERVERTABLDSPLYDMNS.groupName, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLVIEWS.activated from $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYDMNS, $SERVERTABLDSPLYGRPS where $sqlWhereList $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select $SERVERTABLVIEWS.displayDaemon, $SERVERTABLVIEWS.uKey, $SERVERTABLDSPLYDMNS.groupName, $SERVERTABLDSPLYGRPS.groupTitle, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLVIEWS.activated from $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT, $SERVERTABLDSPLYDMNS, $SERVERTABLDSPLYGRPS where $sqlWhereList $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc, groupTitle asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc, groupTitle asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle desc, groupName asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle asc, groupName asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc, groupTitle, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc, groupTitle, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingViews, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'View', 'displayDaemon|uKey', '0|1', '0|1', '', $urlWithAccessParametersQuery, $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
     }
@@ -172,10 +172,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq "insertView" or $action eq "deleteView" or $action eq "duplicateView" or $action eq "displayView" or $action eq "editView" or $action eq "viewView") {
-      if ($CuKey eq "none") {
-        $sql = "select uKey, title from $SERVERTABLPLUGINS order by title";
+      if ($CuKey eq "none" or $action eq "duplicateView") {
+        $sql = "select uKey, concat( title, ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
       } else {
-        $sql = "select uKey, title from $SERVERTABLPLUGINS where uKey = '$CuKey'";
+        $sql = "select uKey, concat( title, ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
       }
 
       ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, $nextAction, $CuKey, 'uKey', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);

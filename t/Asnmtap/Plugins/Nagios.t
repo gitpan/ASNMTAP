@@ -1,4 +1,4 @@
-use Test::More tests => 98;
+use Test::More tests => 102;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::Nagios' ) };
 
@@ -13,10 +13,11 @@ TODO: {
   my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::Nagios',
-    _programVersion     => '3.000.011',
+    _programVersion     => '3.000.012',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => '--commandLineOption ...',
-    _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|passwd|p:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
+    _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|p|passwd:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
+    _SSLversion         => 23,
     _clientCertificate  => { certFile       => 'ssl/crt/alex-peeters.crt', 
                              keyFile        => 'ssl/key/alex-peeters-nopass.key', 
                              caFile         => 'CA CERT PEER VERIFICATION FILE',
@@ -28,15 +29,28 @@ TODO: {
 
   isa_ok( $objectNagios, 'ASNMTAP::Asnmtap::Plugins::Nagios' );
   can_ok( $objectNagios, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
-  can_ok( $objectNagios, qw(appendPerformanceData browseragent clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
+  can_ok( $objectNagios, qw(appendPerformanceData browseragent SSLversion clientCertificate pluginValue pluginValues proxy timeout setEndTime_and_getResponsTime write_debugfile call_system exit) );
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectNagios->browseragent () eq 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U; ASNMTAP-3.000.011 postfix; nl-BE; rv:3.000.011) Gecko/2006xxxx libwww-perl/5.805' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent () eq 'Mozilla/4.7 (compatible; ASNMTAP; U; ASNMTAP-3.000.012 postfix; nl-BE; rv:3.000.012) Gecko/2006xxxx libwww-perl/5.805' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): get');
 
-  $returnCode = $objectNagios->browseragent ( 'Mozilla/4.0' ) eq 'Mozilla/4.0' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent ( 'Mozilla/4.7' ) eq 'Mozilla/4.7' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): set');
+
+
+  $returnCode = $objectNagios->SSLversion ( 2 ) == 2 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::SSLversion(): set 2');
+
+  $returnCode = $objectNagios->SSLversion ( 3 ) == 3 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::SSLversion(): set 3');
+
+  $returnCode = $objectNagios->SSLversion ( 23 ) == 23 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::SSLversion(): set 23');
+
+  $returnCode = $objectNagios->SSLversion ( 32 ) == 3 ? 1 : 0;
+  ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::SSLversion(): set 32');
 
 
   $returnCode = $objectNagios->clientCertificate ('certFile') eq 'ssl/crt/alex-peeters.crt' ? 1 : 0;
@@ -93,7 +107,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programDescription(): set');
 
 
-  $returnCode = $objectNagios->programVersion () eq '3.000.011' ? 1 : 0;
+  $returnCode = $objectNagios->programVersion () eq '3.000.012' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programVersion(): get');
 
   $returnCode = $objectNagios->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;
