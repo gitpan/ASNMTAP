@@ -13,7 +13,7 @@ TODO: {
   my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
     _programName        => 'Plugins.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::Nagios',
-    _programVersion     => '3.000.012',
+    _programVersion     => '3.000.013',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => '--commandLineOption ...',
     _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|p|passwd:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
@@ -33,7 +33,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectNagios->browseragent () eq 'Mozilla/4.7 (compatible; ASNMTAP; U; ASNMTAP-3.000.012 postfix; nl-BE; rv:3.000.012) Gecko/2006xxxx libwww-perl/5.805' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.013 postfix; nl-BE; rv:3.000.013) Gecko/20070225 libwww-perl/5.805' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): get');
 
   $returnCode = $objectNagios->browseragent ( 'Mozilla/4.7' ) eq 'Mozilla/4.7' ? 1 : 0;
@@ -107,7 +107,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programDescription(): set');
 
 
-  $returnCode = $objectNagios->programVersion () eq '3.000.012' ? 1 : 0;
+  $returnCode = $objectNagios->programVersion () eq '3.000.013' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programVersion(): get');
 
   $returnCode = $objectNagios->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;

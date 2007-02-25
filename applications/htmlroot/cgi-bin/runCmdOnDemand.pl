@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -18,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -176,6 +180,9 @@ EndOfHtml
             # RFC 1738 -> [ $\/:;=?@.\-!*'()\w&+,]+
           # $capture =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[ $\/:;=?@.\-!*'()\w&+,]+\"(?:\s+\/?)?>)/<!--$1-->/img;
             $capture =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[^"]+\"(?:\s+\/?)?>)/<!--$1-->/img;
+
+            # remove password from Basic Authentication URL before putting into database!
+            $capture =~ s/(http[s]?)\:\/\/(\w+)\:(\w+)\@/$1\:\/\/$2\:********\@/img;
 
             # comment <SCRIPT></SCRIPT>
             $capture =~ s/<SCRIPT/<!--<SCRIPT/gi;

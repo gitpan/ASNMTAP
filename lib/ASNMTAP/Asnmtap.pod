@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.000.012',
+   _programVersion     => '3.000.013',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -38,6 +38,24 @@ Once Upon a Time in Belgium there was an ape called ...
 =item ASNMTAP::Asnmtap 
 
 Is an object-oriented Base Class to build modules that provides a nice object oriented interface for ASNMTAP.
+
+=over 4
+
+=item ENVIRONMENT
+
+=over 4
+
+=item PERL5LIB
+
+A colon-separated list of directories in which to look for Perl library files before looking in the standard library and the current directory.
+
+=item ASNMTAP_PERL5LIB
+
+A colon-separated list of directories in which to look for Perl library files before looking in the standard library and the current directory.
+
+=back
+
+=back
 
 =item ASNMTAP::Asnmtap::Applications
 
@@ -116,7 +134,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
  $APPLICATION       Application Monitoring
  $BUSINESS          CITAP
  $DEPARTMENT        Development
- $COPYRIGHT         2003-2006
+ $COPYRIGHT         2003-2007
  $SENDEMAILTO       alex.peeters@citap.be
  $TYPEMONITORING    central # central or distributed
  
@@ -194,7 +212,7 @@ With the environment variable ASNMTAP_PATH you can change the default location f
      APPLICATION        Application Monitoring
      BUSINESS           CITAP
      DEPARTMENT         Development
-     COPYRIGHT          2003-2006
+     COPYRIGHT          2003-2007
      SENDEMAILTO        alex.peeters@citap.be
      TYPEMONITORING     1
  </COMMON>
@@ -624,7 +642,7 @@ ASNMTAP::Asnmtap::Plugins::IO, ASNMTAP::Asnmtap::Plugins::Mail, ASNMTAP::Asnmtap
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

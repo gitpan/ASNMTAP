@@ -1,12 +1,17 @@
-#!/bin/sh
+#!/bin/bash
+# ----------------------------------------------------------------------------------------------------------
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# ----------------------------------------------------------------------------------------------------------
+# 2007/02/25, v3.000.013, generateCollectorDaemonSchedulingReports.sh
+# ----------------------------------------------------------------------------------------------------------
 
-# if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
-#   PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
-#   MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
-#   export PERL5LIB MANPATH
-# fi
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
 
-# export LD_LIBRARY_PATH=/opt/asnmtap/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib:${LD_LIBRARY_PATH}
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
 
 AMPATH=/opt/asnmtap-3.000.xxx/applications/bin
 

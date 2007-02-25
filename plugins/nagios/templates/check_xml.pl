@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_xml.pl
+# 2007/02/25, v3.000.013, check_xml.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -16,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +32,7 @@ my $schema = "1.0";
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_xml.pl',
   _programDescription => 'Check Nagios by XML',
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [-P|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
@@ -135,7 +139,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -9,8 +9,8 @@ package ASNMTAP::Asnmtap::Applications::CGI;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -63,10 +63,10 @@ BEGIN {
 
                                                                            $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                            $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
 					  
                                                                            &user_session_and_access_control
-                                                                           &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month
+                                                                           &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month &create_sql_query_from_range_SLA_window
                                                                            &get_title &get_sql_startDate_sqlEndDate_numberOfDays_test &get_sql_crontab_scheduling_report_data
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI 
                                                                            &record_navigation_table &record_navigation_bar) ],
@@ -121,16 +121,17 @@ BEGIN {
 
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
-                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
+                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
 
                                                       REPORTS      => [ qw(%COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %QUARTERS
 
                                                                            &create_sql_query_events_from_range_year_month
+                                                                           &create_sql_query_from_range_SLA_window
                                                                            &get_sql_startDate_sqlEndDate_numberOfDays_test) ] );
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -145,6 +146,7 @@ sub do_action_DBI;
 sub error_trap_DBI;
 sub check_record_exist;
 sub create_sql_query_events_from_range_year_month;
+sub create_sql_query_from_range_SLA_window;
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -614,6 +616,39 @@ sub create_sql_query_events_from_range_year_month {
   }
  
   return $sql;
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub create_sql_query_from_range_SLA_window {
+  my (@days) = @_; # @_ => ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday)
+
+  my ($day, $windowSLA) = (0);
+
+  foreach my $periode (@days) {
+    $day++;
+
+    if ( defined $periode and $periode and $periode !~ /00:00-24:00/ ) {
+      my @range = split (/,/, $periode);
+      my $windowToday;
+
+      foreach my $range (@range) {
+        my ($from, $to) = split (/-/, $range);
+
+        if ( defined $from and defined $to ) {
+          $windowToday .= ' or ' if ( defined $windowToday );
+          $windowToday .= "startTime BETWEEN '$from:00' and '$to:00'";
+        }
+      }
+
+      if ( defined $windowToday ) {
+        $windowSLA .= ' or ' if ( defined $windowSLA );
+        $windowSLA .= '( DAYOFWEEK(startDate) = '. $day .' and ( '. $windowToday .' ) )'
+      }
+    }
+  }
+
+  return ( defined $windowSLA ? ' and ( '. $windowSLA .' )' : '' );
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1121,7 +1156,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

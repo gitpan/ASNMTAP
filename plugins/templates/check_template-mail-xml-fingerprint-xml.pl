@@ -1,17 +1,21 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_template-mail-xml-fingerprint-xml.pl
+# 2007/02/25, v3.000.013, check_template-mail-xml-fingerprint-xml.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.012;
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Plugins v3.000.013;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml.pl',
   _programDescription => "XML fingerprint Mail XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'interval|i=i', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -35,7 +39,7 @@ my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.012;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.013;
 
 my %environment = ( P => 'PROD', A => 'ACC' , S => 'SIM', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
@@ -102,7 +106,7 @@ if ( defined $numberOfMatches and $numberOfMatches ) {
   $objectPlugins->pluginValues ( { alert => $fixedAlert }, $TYPE{COMMA_APPEND} ) if ($fixedAlert ne "+");
 }
 
-$debugfileMessage .= "\n</TABLE><P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on:". scalar(localtime()) ."</P>\n</BODY>\n</HTML>";
+$debugfileMessage .= "\n</TABLE><P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on: ". scalar(localtime()) ."</P>\n</BODY>\n</HTML>";
 $objectPlugins->write_debugfile ( \$debugfileMessage, 0 );
 
 # Sending Fingerprint Mail  - - - - - - - - - - - - - - - - - - - - - - -
@@ -212,7 +216,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

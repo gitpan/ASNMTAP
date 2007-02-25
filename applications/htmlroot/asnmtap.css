@@ -4,13 +4,13 @@ BODY         {
      font-weight: normal;
      background-color: #000000;
      color: #D8D8BF;
-     scrollbar-3dlight-color: blue;
-     scrollbar-arrow-color: blue;
      scrollbar-base-color: darkblue;
-     scrollbar-darkshadow-color: blue;
+     scrollbar-arrow-color: blue;
      scrollbar-face-color: darkblue;
-     scrollbar-highlight-color: ;
-     scrollbar-shadow-color: ;
+     scrollbar-highlight-color: darkblue;
+     scrollbar-3dlight-color: blue;
+     scrollbar-shadow-color: darkblue;
+     scrollbar-darkshadow-color: blue;
 }
 
 A:active     {
@@ -77,7 +77,7 @@ TD            {
 }
 
 .HeaderTitel  {
-     font-family: Comic Sans MS;
+     font-family: "Comic Sans MS", sans-serif;
      font-size: 16pt;
      font-weight: bold;
      text-align: center;
@@ -94,8 +94,8 @@ TD            {
 }
 
 .LegendCopyright  {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      color: #ffffff;
@@ -103,16 +103,16 @@ TD            {
 }
 
 .LegendIcons  {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: center;
      border: none;
 }
 
 .LegendLastUpdate  {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: right;
      color: #ffffff;
@@ -120,7 +120,7 @@ TD            {
 }
 
 .DataDirectory  {
-	font-family: "Courier New";
+	font-family: "Courier New", monospace;
 	font-size: 10pt;
 	font-weight: normal;
 	text-decoration: none;
@@ -146,7 +146,7 @@ TD            {
 }
 
 .GroupHeader {
-     font-family: Tahoma, Arial, Helvetica;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
      font-size: 12pt;
      font-weight: normal;
      text-align: left;
@@ -155,7 +155,7 @@ TD            {
 }
 
 .GroupMessage {
-     font-family: Tahoma, Arial, Helvetica;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
      font-size: 12pt;
      font-weight: normal;
      text-align: left;
@@ -164,7 +164,7 @@ TD            {
 }
 
 .GroupFooter {
-     font-family: Tahoma, Arial, Helvetica;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
      font-size: 12pt;
      font-weight: normal;
      text-align: left;
@@ -173,8 +173,8 @@ TD            {
 }
 
 .ItemHeader {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      color: #D8D8BF;
@@ -182,8 +182,8 @@ TD            {
 }
 
 .ItemHeaderTest {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      color: #FFFFCC;
@@ -191,16 +191,16 @@ TD            {
 }
 
 .ItemStatus {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      border: none;
 }
 
 .ItemFooter {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      color: #D8D8BF;
@@ -216,8 +216,8 @@ TD            {
 }
 
 .StatusItem {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      border: none;
@@ -226,8 +226,8 @@ TD            {
 }
 
 .StatusMessage {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      border: none;
@@ -236,8 +236,8 @@ TD            {
 }
 
 .StatusMessageError {
-     font-family: Tahoma, Arial, Helvetica;
-     font-size: -1;
+     font-family: Tahoma, Arial, Helvetica, sans-serif;
+     font-size: -1pt;
      font-weight: normal;
      text-align: left;
      border: none;

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-mirror-failover.sh for asnmtap, v2.001.xxx, mirror script for rsync
 #   execution via ssh key for use with rsync-wrapper-distributed.sh
@@ -32,14 +32,14 @@
 #    --nodel: no delete (rsync-wrapper-distributed.sh don't allow this for the moment)
 #
 #  crontab -e
-#    */5    * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh 2>/dev/null  <-- crontab op slave server
+#    */5    * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
 #  or
-#    0-59/5 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh 2>/dev/null  <-- crontab op slave server
+#    0-59/5 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
 #  or
-#    1-59/15 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-15.sh 2>/dev/null
-#    2-59/10 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-10.sh 2>/dev/null
-#    3-59/5  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-05.sh 2>/dev/null
-#    4-59/2  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-02.sh 2>/dev/null
+#    1-59/15 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-15.sh > /dev/null
+#    2-59/10 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-10.sh > /dev/null
+#    3-59/5  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-05.sh > /dev/null
+#    4-59/2  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-02.sh > /dev/null
 #
 #  vi /opt/asnmtap-3.000.xxx/applications/tools/templates/slave/rsync-mirror-failover-tmp.sh
 #    #!/bin/bash
@@ -61,6 +61,7 @@
 #
 # vi hosts.deny
 # rsync: ALL
+# ------------------------------------------------------------------------------
 # Setup example:
 #
 # <slave server>:
@@ -81,12 +82,12 @@
 # <master server>:
 # vi authorized_keys
 # from="asnmtap.citap.be", command ="/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-asnmtap.citap.com.sh" ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA5o5rh/yScb8506oLJSPRaKR2PCKfI4U/YOSylN7h8w5z5jIO/6W7qKTwWyJ9lPF3c/D6WM2N4cVkVbcprJq+59vxEPCV9jmDQjFKJDHBTQbDoOfb1mgbFZT1SZ0/xhDy05wqxVQ3GByWvbNjzWBYr+ohoVXZajqAS9uaFzD+3KM
-#                                                                                          ^- rsync.pub
+#                                                                                                                               ^- rsync.pub
 # Testing:
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.012'
+RMVersion='3.000.013'
 echo "rsync-mirror-distributed version $RMVersion"
 
 PidPath=/opt/asnmtap-3.000.xxx/pid/asnmtap
@@ -103,6 +104,14 @@ Reverse=no                                        # 'yes' -> from slave to maste
 # ------------------------------------------------------------------------------
 # DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
 # ------------------------------------------------------------------------------
+
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
 
 if [ -w "$PidPath" ]; then
   Lockfile="$PidPath/$ConfFile.pid"

@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2007/02/25, v3.000.013, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -15,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -F, --FQDN=<F(alse)|T(rue)>

@@ -1,19 +1,23 @@
 #!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_memory-free.pl
+# 2007/02/25, v3.000.013, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Solaris and TRU64: memory
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberProcesses <number of processes> -s|--sortingOrder [cpu|size|res|time] -M|--memory [F|U]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

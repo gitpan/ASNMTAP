@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -16,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "displayDaemons.pl";
 my $prgtext     = "Display Daemons";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -95,7 +99,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       } else {
         $htmlTitle  = "Display Daemon $CdisplayDaemon inserted";
         my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", loop="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -130,7 +134,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq "edit") {
       $htmlTitle    = "Display Daemon $CdisplayDaemon updated";
       my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", loop="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE displayDaemon="' .$CdisplayDaemon. '"';
+      $sql = 'UPDATE ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE displayDaemon="' .$CdisplayDaemon. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq "listView") {
@@ -146,7 +150,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select displayDaemon, groupName, pagedir, serverID, loop, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDSPLYDMNS where displayDaemon='$CdisplayDaemon'";
+      $sql = "select displayDaemon, groupName, pagedir, serverID, `loop`, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDSPLYDMNS where displayDaemon='$CdisplayDaemon'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 

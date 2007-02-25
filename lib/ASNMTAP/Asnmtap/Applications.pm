@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Applications
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -9,12 +9,13 @@ package ASNMTAP::Asnmtap::Applications;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use Carp qw(cluck);
+use Date::Calc qw(Today);
 use Time::Local;
 
 # include the class files - - - - - - - - - - - - - - - - - - - - - - - -
@@ -57,7 +58,7 @@ BEGIN {
                                                  					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
                                                                        &read_table &get_session_param &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
@@ -140,11 +141,11 @@ BEGIN {
  
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -243,7 +244,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -342,57 +343,59 @@ our $DATABASE       = ( exists $_config{DATABASE}{ASNMTAP}         ? $_config{DA
 # archiver, collector.pl and display.pl - - - - - - - - - - - - - - - - -
 # comments.pl, holidayBundleSetDowntimes.pl - - - - - - - - - - - - - - -
 # scripts into directory /cgi-bin/admin & /cgi-bin/sadmin - - - - - - - -
-our $SERVERNAMEREADWRITE  = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     : 'localhost' );
-our $SERVERPORTREADWRITE  = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     : '3306' );
-our $SERVERUSERREADWRITE  = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} ? $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} : 'asnmtap' );
-our $SERVERPASSREADWRITE  = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} ? $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} : 'asnmtap' );
+our $SERVERNAMEREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     : 'localhost' );
+our $SERVERPORTREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     : '3306' );
+our $SERVERUSERREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} ? $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} : 'asnmtap' );
+our $SERVERPASSREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} ? $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} : 'asnmtap' );
 
 # comments.pl, generateChart.pl, getHelpPlugin.pl, runCommandOnDemand.pl
 # and detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl -
-our $SERVERNAMEREADONLY   = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      ? $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      : 'localhost' );
-our $SERVERPORTREADONLY   = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      ? $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      : '3306' );
-our $SERVERUSERREADONLY   = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  ? $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  : 'asnmtapro' );
-our $SERVERPASSREADONLY   = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  ? $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  : 'asnmtapro' );
+our $SERVERNAMEREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      ? $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      : 'localhost' );
+our $SERVERPORTREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      ? $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      : '3306' );
+our $SERVERUSERREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  ? $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  : 'asnmtapro' );
+our $SERVERPASSREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  ? $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  : 'asnmtapro' );
 
 # tables
-our $SERVERTABLCLLCTRDMNS = 'collectorDaemons';
-our $SERVERTABLCOMMENTS   = 'comments';
-our $SERVERTABLCOUNTRIES  = 'countries';
-our $SERVERTABLCRONTABS   = 'crontabs';
-our $SERVERTABLDSPLYDMNS  = 'displayDaemons';
-our $SERVERTABLDSPLYGRPS  = 'displayGroups';
-our $SERVERTABLENVIRONMNT = 'environment';
-our $SERVERTABLEVENTS     = 'events';
-our $SERVERTABLHOLIDYS    = 'holidays';
-our $SERVERTABLHLDSBNDL   = 'holidaysBundle';
-our $SERVERTABLLANGUAGE   = 'language';
-our $SERVERTABLPAGEDIRS   = 'pagedirs';
-our $SERVERTABLPLUGINS    = 'plugins';
-our $SERVERTABLREPORTS    = 'reports';
-our $SERVERTABLRSLTSDR    = 'resultsdir';
-our $SERVERTABLSERVERS    = 'servers';
-our $SERVERTABLUSERS      = 'users';
-our $SERVERTABLVIEWS      = 'views';
+our $SERVERTABLCLLCTRDMNS  = 'collectorDaemons';
+our $SERVERTABLCOMMENTS    = 'comments';
+our $SERVERTABLCOUNTRIES   = 'countries';
+our $SERVERTABLCRONTABS    = 'crontabs';
+our $SERVERTABLDSPLYDMNS   = 'displayDaemons';
+our $SERVERTABLDSPLYGRPS   = 'displayGroups';
+our $SERVERTABLENVIRONMNT  = 'environment';
+our $SERVERTABLEVENTS      = 'events';
+our $SERVERTABLHOLIDYS     = 'holidays';
+our $SERVERTABLHLDSBNDL    = 'holidaysBundle';
+our $SERVERTABLLANGUAGE    = 'language';
+our $SERVERTABLPAGEDIRS    = 'pagedirs';
+our $SERVERTABLPLUGINS     = 'plugins';
+our $SERVERTABLREPORTS     = 'reports';
+our $SERVERTABLRSLTSDR     = 'resultsdir';
+our $SERVERTABLSERVERS     = 'servers';
+our $SERVERTABLTIMEPERIODS = 'timeperiods';
+our $SERVERTABLUSERS       = 'users';
+our $SERVERTABLVIEWS       = 'views';
 
 if ( exists $_config{TABLES} ) {
-  $SERVERTABLCLLCTRDMNS   = $_config{TABLES}{COLLECTORDAEMONS}  if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
-  $SERVERTABLCOMMENTS     = $_config{TABLES}{COMMENTS}          if ( exists $_config{TABLES}{COMMENTS} );
-  $SERVERTABLCOUNTRIES    = $_config{TABLES}{COUNTRIES}         if ( exists $_config{TABLES}{COUNTRIES} );
-  $SERVERTABLCRONTABS     = $_config{TABLES}{CRONTABS}          if ( exists $_config{TABLES}{CRONTABS} );
-  $SERVERTABLDSPLYDMNS    = $_config{TABLES}{DISPLAYDAEMONS}    if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
-  $SERVERTABLDSPLYGRPS    = $_config{TABLES}{DISPLAYGROUPS}     if ( exists $_config{TABLES}{DISPLAYGROUPS} );
-  $SERVERTABLENVIRONMNT   = $_config{TABLES}{ENVIRONMENT}       if ( exists $_config{TABLES}{ENVIRONMENT} );
-  $SERVERTABLEVENTS       = $_config{TABLES}{EVENTS}            if ( exists $_config{TABLES}{EVENTS} );
-  $SERVERTABLHOLIDYS      = $_config{TABLES}{HOLIDAYS}          if ( exists $_config{TABLES}{HOLIDAYS} );
-  $SERVERTABLHLDSBNDL     = $_config{TABLES}{HOLIDAYSBUNDLE}    if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
-  $SERVERTABLLANGUAGE     = $_config{TABLES}{LANGUAGE}          if ( exists $_config{TABLES}{LANGUAGE} );
-  $SERVERTABLPAGEDIRS     = $_config{TABLES}{PAGEDIRS}          if ( exists $_config{TABLES}{PAGEDIRS} );
-  $SERVERTABLPLUGINS      = $_config{TABLES}{PLUGINS}           if ( exists $_config{TABLES}{PLUGINS} );
-  $SERVERTABLREPORTS      = $_config{TABLES}{REPORTS}           if ( exists $_config{TABLES}{REPORTS} );
-  $SERVERTABLRSLTSDR      = $_config{TABLES}{RESULTSDIR}        if ( exists $_config{TABLES}{RESULTSDIR} );
-  $SERVERTABLSERVERS      = $_config{TABLES}{SERVERS}           if ( exists $_config{TABLES}{SERVERS} );
-  $SERVERTABLUSERS        = $_config{TABLES}{USERS}             if ( exists $_config{TABLES}{USERS} );
-  $SERVERTABLVIEWS        = $_config{TABLES}{VIEWS}             if ( exists $_config{TABLES}{VIEWS} );
+  $SERVERTABLCLLCTRDMNS    = $_config{TABLES}{COLLECTORDAEMONS} if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
+  $SERVERTABLCOMMENTS      = $_config{TABLES}{COMMENTS}         if ( exists $_config{TABLES}{COMMENTS} );
+  $SERVERTABLCOUNTRIES     = $_config{TABLES}{COUNTRIES}        if ( exists $_config{TABLES}{COUNTRIES} );
+  $SERVERTABLCRONTABS      = $_config{TABLES}{CRONTABS}         if ( exists $_config{TABLES}{CRONTABS} );
+  $SERVERTABLDSPLYDMNS     = $_config{TABLES}{DISPLAYDAEMONS}   if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
+  $SERVERTABLDSPLYGRPS     = $_config{TABLES}{DISPLAYGROUPS}    if ( exists $_config{TABLES}{DISPLAYGROUPS} );
+  $SERVERTABLENVIRONMNT    = $_config{TABLES}{ENVIRONMENT}      if ( exists $_config{TABLES}{ENVIRONMENT} );
+  $SERVERTABLEVENTS        = $_config{TABLES}{EVENTS}           if ( exists $_config{TABLES}{EVENTS} );
+  $SERVERTABLHOLIDYS       = $_config{TABLES}{HOLIDAYS}         if ( exists $_config{TABLES}{HOLIDAYS} );
+  $SERVERTABLHLDSBNDL      = $_config{TABLES}{HOLIDAYSBUNDLE}   if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
+  $SERVERTABLLANGUAGE      = $_config{TABLES}{LANGUAGE}         if ( exists $_config{TABLES}{LANGUAGE} );
+  $SERVERTABLPAGEDIRS      = $_config{TABLES}{PAGEDIRS}         if ( exists $_config{TABLES}{PAGEDIRS} );
+  $SERVERTABLPLUGINS       = $_config{TABLES}{PLUGINS}          if ( exists $_config{TABLES}{PLUGINS} );
+  $SERVERTABLREPORTS       = $_config{TABLES}{REPORTS}          if ( exists $_config{TABLES}{REPORTS} );
+  $SERVERTABLRSLTSDR       = $_config{TABLES}{RESULTSDIR}       if ( exists $_config{TABLES}{RESULTSDIR} );
+  $SERVERTABLSERVERS       = $_config{TABLES}{SERVERS}          if ( exists $_config{TABLES}{SERVERS} );
+  $SERVERTABLTIMEPERIODS   = $_config{TABLES}{TIMEPERIODS}      if ( exists $_config{TABLES}{TIMEPERIODS} );
+  $SERVERTABLUSERS         = $_config{TABLES}{USERS}            if ( exists $_config{TABLES}{USERS} );
+  $SERVERTABLVIEWS         = $_config{TABLES}{VIEWS}            if ( exists $_config{TABLES}{VIEWS} );
 }
 
 our %COLORS      = ('OK'=>'#99CC99','WARNING'=>'#FFFF00','CRITICAL'=>'#FF4444','UNKNOWN'=>'#FFFFFF','DEPENDENT'=>'#D8D8BF','OFFLINE'=>'#0000FF','NO DATA'=>'#CC00CC','IN PROGRESS'=>'#99CC99','NO TEST'=>'#99CC99', '<NIHIL>'=>'#CC00CC','TRENDLINE'=>'#ffa000');
@@ -610,6 +613,11 @@ sub get_session_param {
     }
   } else {
     print "\ncgisess '$cgipath$filename' don't exists!\n" if ($Tdebug);
+    return (0, ());
+  }
+
+  unless ( defined $cgisession ) {
+    print "\nEmpty cgisess file '$cgipath$filename'!\n" if ($Tdebug);
     return (0, ());
   }
 
@@ -884,7 +892,44 @@ sub print_header {
   $stylesheet = "asnmtap.css" unless ( defined $stylesheet );
 
   my $metaRefresh = ( $onload =~ /^\QONLOAD="startRefresh();\E/ ) ? "" : "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$refresh\">";
-  my ($showRefresh, $showSound) = ('', '');
+  my ($showRefresh, $showSound, $showJSFX) = ('', '', '');
+  my (undef, $cMonth, $cDay) = Today();
+
+  if ( ( $pagedir =~ /^(?:index|test)$/ ) and ( ( $cMonth == 01 and $cDay == 01 ) || ( $cMonth == 02 and $cDay == 14 ) || ( $cMonth == 12 and $cDay > 21 and $cDay < 29 ) || ( $cMonth == 12 and $cDay == 31 ) ) ) {
+    $showJSFX .= "<script language=\"JavaScript\" SRC=\"$HTTPSURL/JSFX_Layer.js\"></script>\n<script language=\"JavaScript\" SRC=\"$HTTPSURL/JSFX_Browser.js\"></script>\n<script language=\"JavaScript\" SRC=\"$HTTPSURL/";
+
+    if ( $cMonth == 01 and $cDay == 01 ) {
+      $showJSFX .= 'JSFX_Fireworks2.js';
+    } elsif ( ( $cMonth == 02 and $cDay == 14 ) || ( $cMonth == 10 and $cDay == 31 ) ) {
+      $showJSFX .= 'JSFX_Halloween.js';
+    } elsif ( $cMonth == 12 and $cDay == 31 ) {
+      $showJSFX .= 'JSFX_Fireworks.js';
+    } else {
+      $showJSFX .= 'JSFX_Falling.js';
+    }
+
+    $showJSFX .= "\"></script>\n<script language=\"JavaScript\">\n  function JSFX_StartEffects() {\n";
+
+    if ( $cMonth == 01 and $cDay == 01 ) {
+      $showJSFX .= "    JSFX.FireworkDisplay2(1);\n";
+    } elsif ( $cMonth == 02 and $cDay == 14 ) {
+      $showJSFX .= "    JSFX.AddGhost(\"$IMAGESURL/cupido.gif\");\n";
+    } elsif ( $cMonth == 04 and  $cDay == 18 ) {
+      $showJSFX .= "    JSFX.Falling(1, \"E=mc²\", 60);\n";
+    } elsif ( $cMonth == 10 and $cDay == 31 ) {
+      $showJSFX .= "    JSFX.AddGhost(\"$IMAGESURL/ghost.gif\");\n";
+    } elsif ( $cMonth == 12 ) {
+      if ( $cDay > 21 and $cDay < 29 ) {
+        $showJSFX .= "    JSFX.Falling(1, \"<IMG SRC='$IMAGESURL/snowflake-1.gif'>\", 20);\n    JSFX.Falling(1, \"<IMG SRC='$IMAGESURL/snowflake-2.gif'>\", 40);\n    JSFX.Falling(1, \"<IMG SRC='$IMAGESURL/snowflake-3.gif'>\", 60);\n    JSFX.Falling(1, \"<IMG SRC='$IMAGESURL/snowflake-4.gif'>\", 80);\n";
+      } elsif ( $cDay == 31 ) {
+        $showJSFX .= "    JSFX.FireworkDisplay(1);\n";
+      }
+    } else {
+      $showJSFX .= "    JSFX.Falling(1, \"Happy Birthday\", 60);\n";
+    }
+
+    $showJSFX .= "  }\n\n  JSFX_StartEffects()\n</script>\n";
+  }
 
   print $HTML <<EndOfHtml;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -907,7 +952,7 @@ sub print_header {
         expires = "; expires=" + time.toGMTString();
       }
 
-	  document.cookie = name + "=" + escape(value) + expires + "; path=$HTTPSURL/nav/$pagedir";
+	  document.cookie = name + "=" + escape(value) + expires + "; path=$HTTPSURL/nav/";
     }
 
     function getSoundCookie( name ) {
@@ -950,7 +995,7 @@ EndOfHtml
     print $HTML <<EndOfHtml;
 
       if ( soundState != null && soundState == 'on' ) {
-        document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" hidden=\"true\" autostart=\"true\">'
+        document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" alt=\"\" hidden=\"true\" autostart=\"true\"><\\/embed>'
       } else {
         document.getElementById('LegendSound').innerHTML='&nbsp;'
       }
@@ -1026,6 +1071,7 @@ EndOfHtml
   print $HTML <<EndOfHtml;
 </head>
 <BODY $onload>
+  $showJSFX
   <TABLE WIDTH="100%"><TR>
     <TD ALIGN="LEFT" WIDTH="292">
       $showToggle
@@ -1117,7 +1163,7 @@ sub print_legend {
     <td class="LegendIcons"><FONT COLOR="$COLORS{'NO TEST'}"><IMG SRC="$IMAGESURL/$ICONS{'NO TEST'}" ALT="NO TEST" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> no test</FONT></TD>
     <td class="LegendIcons"><FONT COLOR="$COLORS{'NO DATA'}"><IMG SRC="$IMAGESURL/$ICONS{'NO DATA'}" ALT="NO DATA" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{'NO DATA'}}');"> no data</FONT></TD>
     <td class="LegendIcons"><FONT COLOR="$COLORS{OFFLINE}"><IMG SRC="$IMAGESURL/$ICONS{OFFLINE}" ALT="OFFLINE" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> offline</FONT></TD>
-    <td align="right"><span id="LegendSound" class="LegendLastUpdate">&nbsp;</span>v$RMVERSION</td>
+    <td align="right"><span id="SoundStatus" class="LegendLastUpdate">&nbsp;</span><span id="LegendSound" class="LegendLastUpdate">&nbsp;</span>v$RMVERSION</td>
   </tr><tr>
 	<td>&nbsp;</td>
 	<td class="LegendIcons">Comments:</td>
@@ -1243,7 +1289,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

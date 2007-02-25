@@ -33,7 +33,7 @@ A required reference to an ASNMTAP::Asnmtap::Plugins or ASNMTAP::Asnmtap::Plugin
 
 Through this way of working we inherited the command line setting from the proxy.
 
-When we specify at the command prompt I<--proxy=username;password@proxyserver:port>, the needed and required proxy settings are automatically set.
+When we specify at the command prompt I<--proxy=username;password@proxyserver:port|domain[,domain]>, the needed and required proxy settings are automatically set.
 
 The command line options I<--timeout>, I<--debug> and I<--debugfile> are also inherited.
 
@@ -48,6 +48,55 @@ I<_SSLversion> is inherited and specifies the SSL version to use.
 =item * corresponding Query Strings containing the CGI names and value pairs to post the page
 
 =item * a means of determining from the content, whether a response is either OK or a failure (WARNING, CRITICAL or UNKNOWN).
+
+=over 4
+
+=item 'KeepAlive' and 'SSL session reuse'
+
+ Only SSLv3 and TLSv1 are supporting 'KeepAlive' and 'SSL session reuse'.
+
+ To make SSL session reuse possible, 'KeepAlive' need to be on 'On'.
+
+ Verify that your browseragent string on the destination servers don't have someting like a 'nokeepalive', 'downgrade-1.0' or 'force-response-1.0'.
+
+ Verify that the 'SSL Session Cache' on the destination servers are enabled.
+
+=over 4
+
+=item Apache
+
+=over 4
+
+=item httpd.conf
+
+ # KeepAlive: Whether or not to allow persistent connections (more than one request per connection).
+ KeepAlive On
+
+ # The following directives modify normal HTTP response behavior to handle known problems with browser implementations.
+ BrowserMatch "Mozilla/2" nokeepalive
+ BrowserMatch "MSIE 4\.0b2;" nokeepalive downgrade-1.0 force-response-1.0
+
+=item ssl.conf
+
+ # Here I am allowing SSLv3 and TLSv1, I am NOT allowing the old SSLv2.
+ # SSLProtocol all -SSLv2
+ SSLProtocol -all +TLSv1 +SSLv3 
+
+ # Notice: Most problems of broken clients are also related to the HTTP keep-alive facility.
+ SetEnvIf User-Agent ".*MSIE.*" \
+          nokeepalive ssl-unclean-shutdown \
+          downgrade-1.0 force-response-1.0
+
+ # Inter-Process Session Cache:
+ # Configure the SSL Session Cache: First the mechanism to use and second the expiring timeout (in seconds).
+ SSLSessionCache         dbm:/var/cache/mod_ssl/scache(512000)
+ SSLSessionCacheTimeout  300
+
+=back
+
+=back
+
+=back
 
 =back
 

@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, sshWrapperASNMTAP.pl for ASNMTAP::Applications
+# 2007/02/25, v3.000.013, sshWrapperASNMTAP.pl for ASNMTAP::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -15,7 +19,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.012;
+use ASNMTAP::Asnmtap::Applications v3.000.013;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS $APPLICATIONPATH $PIDPATH);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +30,7 @@ use vars qw($opt_C $PROGNAME);
 
 $PROGNAME       = 'sshWrapperASNMTAP.pl';
 my $prgtext     = "ASNMTAP SSH Wrapper for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,12 +47,14 @@ my $denyString  = 'Access Denied! Sorry';
 my $sshCmdRm    = 'remove';
 my $sshCmdKill  = 'killall';
 my $sshCmdSRSR  = 'script ';
+my $sshCmdSRDA  = 'archive ';
 
-my $regex       = '^((?:'. $sshCmdKill .' \d+)|(?:'. $sshCmdRm .' '. $PIDPATH .'\/(?:Collector|Display)CT-(?:[\w-]+)\.pid)|(?:'. $sshCmdSRSR . $APPLICATIONPATH .'\/(?:master|slave)\/(?:Collector|Display)CT-(?:[\w-]+)\.sh (?:start|stop|restart|reload|status)))*';
+my $regex       = '^((?:'. $sshCmdKill .' \d+)|(?:'. $sshCmdRm .' '. $PIDPATH .'\/(?:Collector|Display)CT-(?:[\w-]+)\.pid)|(?:'. $sshCmdSRSR . $APPLICATIONPATH .'\/(?:master|slave)\/(?:Collector|Display)CT-(?:[\w-]+)\.sh (?:start|stop|restart|reload|status))|(?:'. $sshCmdSRDA .'cd '. $APPLICATIONPATH .'; \.\/display.pl --loop=F --creationTime=\"20\d\d-\d\d-\d\d \d\d:\d\d:\d\d\" --displayTime=T --lockMySQL=F --debug=F --hostname=(?:[\w.-]+) --checklist=DisplayCT-(?:[\w-]+) --pagedir=_loop_(?:[\w]+)_(?:[\w]+)))*';
 
 my $commandRm   = '/bin/rm';
 my $commandKill = '/bin/kill -9';
 my $commandSRSR = '';
+my $commandSRDA = '';
 
 my ($command, $rvOpen);
 
@@ -62,6 +68,7 @@ $command = $1 if ( defined $opt_C and $opt_C =~ /$regex/ );
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $rvOpen = open (SSHOUT, "+>>$filename");
+
 unless ($rvOpen) { print STDERR "Couldn't open log '$filename'!\n"; exit 0; }
 
 my $now = localtime;
@@ -95,6 +102,9 @@ unless ( defined $command ) {
 $command =~ s/^$sshCmdRm/$commandRm/;
 $command =~ s/^$sshCmdKill/$commandKill/;
 $command =~ s/^$sshCmdSRSR/$commandSRSR/;
+$command =~ s/^$sshCmdSRDA/$commandSRDA/;
+
+$command = "ASNMTAP_PERL5LIB=$ENV{ASNMTAP_PERL5LIB}; $command" if ( $ENV{ASNMTAP_PERL5LIB} );
 
 $now = localtime;
 

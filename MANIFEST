@@ -133,6 +133,12 @@ applications/htmlroot/asnmtap-results.css
 applications/htmlroot/asnmtap.css
 applications/htmlroot/CalendarPopup.js
 applications/htmlroot/date.js
+applications/htmlroot/JSFX_Browser.js
+applications/htmlroot/JSFX_Falling.js
+applications/htmlroot/JSFX_Fireworks.js
+applications/htmlroot/JSFX_Fireworks2.js
+applications/htmlroot/JSFX_Halloween.js
+applications/htmlroot/JSFX_Layer.js
 applications/htmlroot/md5.js
 applications/htmlroot/overlib.js
 applications/htmlroot/overlib_anchor.js
@@ -154,6 +160,7 @@ applications/htmlroot/cgi-bin/detailedStatisticsReportGenerationAndCompareRespon
 applications/htmlroot/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl.book
 applications/htmlroot/cgi-bin/generateChart.pl
 applications/htmlroot/cgi-bin/getArchivedDebug.pl
+applications/htmlroot/cgi-bin/getArchivedDisplays.pl
 applications/htmlroot/cgi-bin/getArchivedReport.pl
 applications/htmlroot/cgi-bin/getArchivedResults.pl
 applications/htmlroot/cgi-bin/getHelpPlugin.pl
@@ -170,6 +177,7 @@ applications/htmlroot/cgi-bin/admin/holidaysBundle.pl
 applications/htmlroot/cgi-bin/admin/index.pl
 applications/htmlroot/cgi-bin/admin/languages.pl
 applications/htmlroot/cgi-bin/admin/reports.pl
+applications/htmlroot/cgi-bin/admin/timeperiods.pl
 applications/htmlroot/cgi-bin/admin/users.pl
 
 applications/htmlroot/cgi-bin/moderator/collectorCrontabSchedulingReports.pl
@@ -215,6 +223,7 @@ applications/htmlroot/img/blue.gif
 applications/htmlroot/img/cal.gif
 applications/htmlroot/img/clear-ack.gif
 applications/htmlroot/img/clear.gif
+applications/htmlroot/img/cupido.gif
 applications/htmlroot/img/daemonReload.gif
 applications/htmlroot/img/daemonRestart.gif
 applications/htmlroot/img/daemonStart.gif
@@ -222,7 +231,29 @@ applications/htmlroot/img/daemonStop.gif
 applications/htmlroot/img/data.gif
 applications/htmlroot/img/down.gif
 applications/htmlroot/img/exclaim.gif
+applications/htmlroot/img/fw0/0.gif
+applications/htmlroot/img/fw0/1.gif
+applications/htmlroot/img/fw0/2.gif
+applications/htmlroot/img/fw0/3.gif
+applications/htmlroot/img/fw0/4.gif
+applications/htmlroot/img/fw0/5.gif
+applications/htmlroot/img/fw0/6.gif
+applications/htmlroot/img/fw0/7.gif
+applications/htmlroot/img/fw0/8.gif
+applications/htmlroot/img/fw0/9.gif
+applications/htmlroot/img/fw0/10.gif
+applications/htmlroot/img/fw0/11.gif
+applications/htmlroot/img/fw0/12.gif
+applications/htmlroot/img/fw0/13.gif
+applications/htmlroot/img/fw0/14.gif
+applications/htmlroot/img/fw0/15.gif
+applications/htmlroot/img/fw0/16.gif
+applications/htmlroot/img/fw0/17.gif
+applications/htmlroot/img/fw0/18.gif
+applications/htmlroot/img/fw0/19.gif
+applications/htmlroot/img/fw0/20.gif
 applications/htmlroot/img/gears.gif
+applications/htmlroot/img/ghost.gif
 applications/htmlroot/img/green-ack.gif
 applications/htmlroot/img/green.gif
 applications/htmlroot/img/info.gif
@@ -252,6 +283,10 @@ applications/htmlroot/img/red.gif
 applications/htmlroot/img/report.gif
 applications/htmlroot/img/running.gif
 applications/htmlroot/img/spacer.gif
+applications/htmlroot/img/snowflake-1.gif
+applications/htmlroot/img/snowflake-2.gif
+applications/htmlroot/img/snowflake-3.gif
+applications/htmlroot/img/snowflake-4.gif
 applications/htmlroot/img/start.gif
 applications/htmlroot/img/startRefresh.gif
 applications/htmlroot/img/stop.gif
@@ -270,12 +305,14 @@ applications/htmlroot/sound/nodata.wav
 applications/htmlroot/sound/unknown.wav
 applications/htmlroot/sound/warning.wav
 
+applications/sbin/bash_stop_root.sh
 applications/sbin/sshWrapperASNMTAP.pl
 applications/sbin/perfparse_asnmtap_pulp_command.pl
 applications/sbin/perfparse_crontab.sh
 applications/sbin/purge_table.pl
 
-applications/tools/mysql/asnmtap-3.000.012.sql
+applications/tools/mysql/asnmtap-3.000.013.sql
+applications/tools/mysql/asnmtap-3.000.013-distributed.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -298,9 +335,7 @@ applications/tools/templates/slave/rsync-mirror-failover-example.conf
 applications/tools/templates/slave/rsync-mirror-failover-example.sh
 applications/tools/templates/slave/rsync-mirror-failover-template.sh
 
-plugins/check_file-counter.pl
-plugins/check_sendAndReceiveMail.pl
-
+plugins/nagios/check_fs-stat.pl
 plugins/nagios/check_iowait.pl
 plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
@@ -326,7 +361,9 @@ plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
 
 plugins/templates/check_dummy.pl
+plugins/templates/check_file-counter.pl
 plugins/templates/check_MySQL-database-replication.pl
+plugins/templates/check_sendAndReceiveMail.pl
 plugins/templates/check_template.pl
 plugins/templates/check_template-IO.pl
 plugins/templates/check_template-mail.pl

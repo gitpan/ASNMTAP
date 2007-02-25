@@ -4,13 +4,13 @@ BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.012;
+use ASNMTAP::Asnmtap::Plugins v3.000.013;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact.t',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);

@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -18,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -53,6 +57,7 @@ my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')  
 my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
 my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
 my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
+my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
 my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : "off";
 my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : "off";
 my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : "off";
@@ -74,10 +79,10 @@ my $htmlTitle   = ( $selDetailed eq "on" ) ? "Detailed Statistics and Report Gen
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&topx=$topx&pf=$pf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&topx=$topx&pf=$pf";
 
 # Debug information
-print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
@@ -105,7 +110,7 @@ EndOfHtml
   my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $rest, $dummy, $count);
   my ($averageQ, $numbersOfTestsQ, $startDateQ, $stepQ, $endDateQ, $errorMessage, $chartOrTableChecked);
   my ($checkbox, $tables, $infoTable, $topxTable, $errorDetailList, $errorList, $responseTable, $goodDate);
-  my ($fromto, $years, $weeks, $months, $quarters, $selectedYear, $selectedWeek, $selectedMonth, $selectedQuarter, $i);
+  my ($fromto, $years, $weeks, $months, $quarters, $slaWindows, $selectedYear, $selectedWeek, $selectedMonth, $selectedQuarter, $slaWindow, $i);
   my @arrMonths = qw(January Februari March April May June July August September October November December);
 
   # open connection to database and query data
@@ -217,6 +222,21 @@ EndOfHtml
 
       $quarters .= "        </select>\n";
 
+      # Section: SLA windows
+      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+
+      if ( $timeperiodID > 1 ) {
+        $sqlQuery = "select timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
+        $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+        if ( $rv ) {
+          ($slaWindow, my ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday)) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+          $sqlPeriode = create_sql_query_from_range_SLA_window ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday);
+        }
+      }
+
       # Components for the selection of the charts  - - - - - - - - - - - -
       $checkbox = $tables = "";
       $chartOrTableChecked = 0;
@@ -279,7 +299,7 @@ EndOfHtml
 
       my $comboboxSelectKeysAndValuesPairs = 'html=>HTML';
       $comboboxSelectKeysAndValuesPairs .= '|pdf=>PDF' if ( $HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>' );
-      $formatOutputSelect = create_combobox_from_keys_and_values_pairs ($comboboxSelectKeysAndValuesPairs, 'V', 0, $formatOutput, 'formatOutput', '', '', 0, '', $debug);
+      $formatOutputSelect = create_combobox_from_keys_and_values_pairs ($comboboxSelectKeysAndValuesPairs, 'V', 0, $formatOutput, 'formatOutput', '', '', '', '', $debug);
 
       my ($numberOfDays, $sqlStartDate, $sqlEndDate, $yearFrom, $monthFrom, $dayFrom, $yearTo, $monthTo, $dayTo);
       ($goodDate, $sqlStartDate, $sqlEndDate, $numberOfDays) = get_sql_startDate_sqlEndDate_numberOfDays_test ($STRICTDATE, $FIRSTSTARTDATE, $inputType, $selYear, $selQuarter, $selMonth, $selWeek, $startDate, $endDate, $currentYear, $currentMonth, $currentDay, $debug);
@@ -310,7 +330,7 @@ EndOfHtml
           $sqlAverage = "select avg(time_to_sec(duration)) as average";
           $sqlErrors  = "select statusmessage, count(*) as aantal";
           $sqlWhere   = "WHERE uKey = '$uKey1'";
-          $sqlPeriode = "AND startDate BETWEEN '$sqlStartDate' AND '$sqlEndDate' " if (defined $sqlStartDate and defined $sqlEndDate);
+          $sqlPeriode = "AND startDate BETWEEN '$sqlStartDate' AND '$sqlEndDate' $sqlPeriode " if (defined $sqlStartDate and defined $sqlEndDate);
         }
 
         my ($numbersOfTests, $step, $average);
@@ -357,8 +377,8 @@ EndOfHtml
           $infoTable = "<H1>General Information</H1>\n";
           $infoTable .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th width=\"200\">Entry</th><th>Value</th></tr>\n";
           $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Application</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .substr($htmlTitle, 11). " </td></tr>\n";
-          $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Report Type</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .$inputType. " </td></tr>\n";
-          $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Generated on</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\">" .$now. "</td></tr>\n";
+          $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Report Type</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .$inputType. ( defined $slaWindow ? ", " .$slaWindow : '') ." </td></tr>\n";
+          $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Generated on</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .$now. "</td></tr>\n";
           $infoTable .= "  <tr><td colspan=\"2\"><br></td></tr>\n";
           $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Average (ok only)</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .substr($average,0,5). " seconds </td></tr>\n" if (defined $average);
 
@@ -608,6 +628,7 @@ EndOfHtml
 
       print "    <H1>$DEPARTMENT \@ $BUSINESS: '$APPLICATION'$type report</H1>\n";
       print "    <H2>Periode: $range</H2>\n" if (defined $range);
+      print "    <H2>SLA window: $slaWindow</H2>\n" if (defined $slaWindow);
     } else {
       print <<HTML;
   <script language="JavaScript1.2" type="text/javascript">
@@ -658,7 +679,7 @@ HTML
 
       print <<HTML;
       </td></tr><tr align="left"><td>$fromto</td>
-      <td><SCRIPT LANGUAGE="JavaScript" ID="jsCal1Calendar">
+      <td><SCRIPT LANGUAGE="JavaScript" type="text/javascript" ID="jsCal1Calendar">
             var cal1Calendar = new CalendarPopup("CalendarDIV");
             cal1Calendar.offsetX = 1;
             cal1Calendar.showNavigationDropdowns();
@@ -674,6 +695,7 @@ HTML
       </td></tr><tr align="left"><td valign="top">$quarters
       </td></tr><tr align="left"><td valign="top">$months
       </td></tr><tr align="left"><td valign="top">$weeks
+      </td></tr><tr align="left"><td valign="top">SLA Window:</td><td>$slaWindows
       </td></tr><tr align="left"><td valign="top">Charts:</td><td>$checkbox
 HTML
 

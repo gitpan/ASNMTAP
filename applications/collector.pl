@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2007/02/25, v3.000.013, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -22,10 +26,10 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.012;
+use ASNMTAP::Time v3.000.013;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.000.012;
+use ASNMTAP::Asnmtap::Applications::Collector v3.000.013;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +40,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -441,6 +445,9 @@ sub do_crontab {
             insertEntryDBI ($currentDate, $uniqueKey, $title, $logging.$msgCommand.'-'.$uniqueKey.'-sql', $command, int($tinterval), $status, $tlogging, $debug, $startDate, $startTime, $endDate, $endTime, 0, "$status - Deze applicatie is niet toegankelijk", '<NIHIL>', $insertData, $queryMySQL, $persistent, $downtime);
           }
         }
+
+        # Update access and modify epoch time from the PID time
+        utime (time(), time(), $pidfile) if (-e $pidfile);
       }
 
       printDebugAll ("Einde CollectorCT - : <$PROGNAME v$version -C $collectorlist> pid: <$pidfile>") if ($debug eq 'T');
@@ -818,10 +825,10 @@ sub insertEntryDBI {
       $statusMessage =~ s/"/'/g;
 
       if ($updateEntryDBI) {
-        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status.' ", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
+        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
         $dbh->do ( $updateString )  or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $updateString");
       } elsif ($insertEntryDBI) {
-        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status.' ", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
+        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
         $dbh->do ( $insertString ) or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $insertString");
       }
     }

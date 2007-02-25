@@ -1,6 +1,6 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-wrapper-failover.sh for asnmtap, v2.002.xxx - wrapper script for rsync
 #   execution via ssh key for use with rsync-mirror-failover.sh
@@ -10,6 +10,8 @@
 #
 #   Accepted rsync calls are as follows:
 #     rsync --server --sender --delete --delete-after @options . $chrootDir/../../otherdir would succeed
+#   from rsync version 2.6.7
+#     rsync --server --sender @options . $chrootDir/../../otherdir would succeed
 #
 #   '../' are forbidden into a directory of filename for security reasons !!!
 # ------------------------------------------------------------------------------
@@ -33,6 +35,9 @@ my $denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
 my $rsyncPath = '/usr/bin/rsync';
+
+# 1 = rsync version 2.6.7 or higher or 0 = otherwise
+my $rsync_version_2_6_7_or_higher = 1;
 
 # 1 = 'capture_exec("$system_action")' or 0 = 'system ("$system_action")'
 my $captureOutput = 0;
@@ -87,11 +92,16 @@ print SSHOUT ("ARG1 = $rsync_argv[1]\n") if ($debug);
 print SSHOUT ("ARG2 = $rsync_argv[2]\n") if ($debug);
 print SSHOUT ("ARG3 = $rsync_argv[3]\n") if ($debug);
 print SSHOUT ("ARG4 = $rsync_argv[4]\n") if ($debug);
-print SSHOUT ("ARG5 = $rsync_argv[5]\n") if ($debug);
-print SSHOUT ("ARG6 = $rsync_argv[6]\n") if ($debug);
-print SSHOUT ("ARG7 = $rsync_argv[7]\n") if ($debug && $rsync_argv[2] eq '--sender');
 
-# ARG[0] Complain if the command is not "rsync".
+if ( $rsync_version_2_6_7_or_higher ) {
+  print SSHOUT ("ARG5 = $rsync_argv[5]\n") if ($debug && $rsync_argv[2] eq '--sender');
+} else {
+  print SSHOUT ("ARG5 = $rsync_argv[5]\n") if ($debug);
+  print SSHOUT ("ARG6 = $rsync_argv[6]\n") if ($debug);
+  print SSHOUT ("ARG7 = $rsync_argv[7]\n") if ($debug && $rsync_argv[2] eq '--sender');
+}
+
+# ARG[0] Complain if the command is not 'rsync'.
 unless ($rsync_argv[0] eq 'rsync') {
   print SSHOUT ("ssh authorized_key account restricted: only rsync allowed\n");
   $ok = $FALSE;
@@ -99,7 +109,7 @@ unless ($rsync_argv[0] eq 'rsync') {
 
 # ARG[1] Complain if this arg is not --server
 unless ($rsync_argv[1] eq '--server') {
-  print SSHOUT ("ARG[1] <$rsync_argv[1]> Failure\n");
+  print SSHOUT ("ARG[1] <$rsync_argv[1]> Failure: this arg is not --server\n");
   $ok = $FALSE;
 }
 
@@ -117,28 +127,30 @@ my $teller = 0;
 foreach $option (@options) { if ($rsync_argv[$argPos] eq $option) { $teller++; } }
 
 unless ( $teller != 0 )  {
-  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure\n");
+  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure: this arg is not in \@options\n");
   $ok = $FALSE;
 }
 
-# ARG[$argPos] Complain if this arg is not --delete
-$argPos++;
-unless ($rsync_argv[$argPos] eq '--delete') {
-  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure\n");
-  $ok = $FALSE;
-}
+unless ( $rsync_version_2_6_7_or_higher ) {
+  # ARG[$argPos] Complain if this arg is not --delete
+  $argPos++;
+  unless ($rsync_argv[$argPos] eq '--delete') {
+    print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure: this arg is not --delete\n");
+    $ok = $FALSE;
+  }
 
-# ARG[$argPos] Complain if this arg is not --delete-after
-$argPos++;
-unless ($rsync_argv[$argPos] eq '--delete-after') {
-  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure\n");
-  $ok = $FALSE;
+  # ARG[$argPos] Complain if this arg is not --delete-after
+  $argPos++;
+  unless ($rsync_argv[$argPos] eq '--delete-after') {
+    print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure: this arg is not --delete-after\n");
+    $ok = $FALSE;
+  }
 }
 
 # ARG[$argPos] Complain if this arg is not .
 $argPos++;
 unless ($rsync_argv[$argPos] eq '.') {
-  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure\n");
+  print SSHOUT ("ARG[$argPos] <$rsync_argv[$argPos]> Failure: this arg is not .\n");
   $ok = $FALSE;
 }
 
@@ -148,7 +160,7 @@ $argPos++;
 my $log_substr = substr ("$rsync_argv[$argPos]", 0, length($chrootDir));
 
 unless ($log_substr eq $chrootDir && ((index $rsync_argv[$argPos], '../') eq -1)) {
-  print SSHOUT ("ARG[7] <$rsync_argv[$argPos]> Failure\n");
+  print SSHOUT ("ARG[7] <$rsync_argv[$argPos]> Failure: this arg does not begin with $chrootDir\n");
   $ok = $FALSE;
 }
 

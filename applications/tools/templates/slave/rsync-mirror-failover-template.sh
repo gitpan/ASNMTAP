@@ -2,6 +2,14 @@
 # DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
 # ------------------------------------------------------------------------------
 
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
 if [ -w "$PidPath" ]; then
   Lockfile="$PidPath/$ConfFile.pid"
 else

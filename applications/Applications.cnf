@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
 # Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.xxx
 # ----------------------------------------------------------------------------------------------------------
@@ -217,6 +217,7 @@
 #    REPORTS          reports
 #    RESULTSDIR       resultsdir
 #    SERVERS          servers
+#    TIMEPERIODS      timeperiods
 #    USERS            users
 #    VIEWS            views
 #</TABLES>

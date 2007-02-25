@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -10,8 +10,8 @@ package ASNMTAP::Asnmtap::Plugins::SOAP;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,8 +49,11 @@ sub get_soap_request {
                    params               => undef,
                    cookies              => undef,
                    perfdataLabel        => undef,
+
                    PATCH_HTTP_KEEPALIVE => 0,
-                   WSRF                 => 0
+                   WSRF                 => 0,
+
+                   TYPE_ERROR_RETURN    => 'REPLACE'
 				 );
 
   my %parms = (%defaults, @_);
@@ -112,6 +115,13 @@ sub get_soap_request {
     return ( $ERRORS{UNKNOWN} );
   }
 
+  my $TYPE_ERROR_RETURN = $parms{TYPE_ERROR_RETURN};
+
+  unless ( $TYPE_ERROR_RETURN =~ /^(?:REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT)$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter TYPE_ERROR_RETURN must be [REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT]' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
+
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   my $browseragent  = $$asnmtapInherited->browseragent ();
@@ -124,7 +134,7 @@ sub get_soap_request {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   sub _soapCheckTransportStatus {
-    my ($asnmtapInherited, $service, $debug) = @_;
+    my ($asnmtapInherited, $service, $TYPE_ERROR_RETURN, $debug) = @_;
 
     my $transportStatus = $service->transport->status;
     print "ASNMTAP::Asnmtap::Plugins::SOAP::_soapCheckTransportStatus: $transportStatus\n" if ($debug);
@@ -136,18 +146,18 @@ sub get_soap_request {
 
     for ( $transportStatus ) {
       /500 Can_t connect to/ &&
-        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{REPLACE} ); return $ERRORS{UNKNOWN}; last; };
+        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); return $ERRORS{UNKNOWN}; last; };
       /500 configure certs failed/ &&
-        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{REPLACE} ); return $ERRORS{UNKNOWN}; last; };
+        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); return $ERRORS{UNKNOWN}; last; };
       /500 Connect failed/ &&
-        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{REPLACE} ); return $ERRORS{UNKNOWN}; last; };
+        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); return $ERRORS{UNKNOWN}; last; };
       /500 proxy connect failed/ &&
-        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{REPLACE} ); return $ERRORS{UNKNOWN}; last; };
-#     /500 Internal Server Error/ &&
-#       do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{REPLACE} ); return $ERRORS{UNKNOWN}; last; };
+        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); return $ERRORS{UNKNOWN}; last; };
+      /500 Internal Server Error/ &&
+        do { $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); return $ERRORS{UNKNOWN}; last; };
     }
 
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $transportStatus }, $TYPE{REPLACE} ); 
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $transportStatus }, $TYPE{$TYPE_ERROR_RETURN} ); 
     return $ERRORS{CRITICAL};
   }
 
@@ -168,7 +178,7 @@ sub get_soap_request {
       print "ASNMTAP::Asnmtap::Plugins::SOAP::_soapCheckFault->faultactor  : ", $faultactor,  "\n" if (defined $faultactor);
     }
 
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $faultcode }, $TYPE{APPEND} ); 
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $faultcode. ( defined $faultstring ? ' - ' .$faultstring : '' ) }, $TYPE{APPEND} ); 
     return $ERRORS{UNKNOWN};
   }
 
@@ -250,7 +260,7 @@ sub get_soap_request {
   $$asnmtapInherited->appendPerformanceData ( "'". $parms{perfdataLabel} ."'=". $responseTime ."ms;;;;" );
   print "ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request: () <->\n" if ( $debug );
 
-  my $returnCode = _soapCheckTransportStatus ($asnmtapInherited, $service, $debug);
+  my $returnCode = _soapCheckTransportStatus ($asnmtapInherited, $service, $TYPE_ERROR_RETURN, $debug);
 
   unless ( $returnCode ) {
     unless ( defined $som and defined $som->fault ) {
@@ -285,7 +295,7 @@ sub get_soap_request {
     } else {
       $returnCode = _soapCheckFault ($asnmtapInherited, $som, $debug);
     }
-  } elsif ( $returnCode == $ERRORS{CRITICAL} ) {
+  } else {
     $returnCode = _soapCheckFault ($asnmtapInherited, $som, $debug) if ( defined $som and defined $som->fault );
   }
 
@@ -334,7 +344,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

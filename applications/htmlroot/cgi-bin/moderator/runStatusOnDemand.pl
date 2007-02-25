@@ -1,17 +1,21 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -350,7 +354,7 @@ sub doRequestedActions {
 
   print "<P class=\"RunStatusOnDemandHtmlTitle\">$htmlTitle: <font class=\"RunStatusOnDemandCommand\">$title</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\" bgcolor=\"#333344\" border=0>";
 
-  my ($rStatus, $rStdout, $rStderr) = call_system ("$SSHCOMMAND -i '$WWWKEYPATH/.ssh/ssh' $SSHLOGONNAME\@localhost '$command'", ($debug eq 'T') ? 1 : 0);
+  my ($rStatus, $rStdout, $rStderr) = call_system ("$SSHCOMMAND -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=$WWWKEYPATH/.ssh/known_hosts' -i '$WWWKEYPATH/.ssh/ssh' $SSHLOGONNAME\@localhost '$command'", ($debug eq 'T') ? 1 : 0);
   $rStderr =~ s/^stdin: is not a tty//;
   chomp ($rStderr);
 # my $message = ($rStderr) ? $rStderr : (($rStatus) ? $statusOK : $statusNOK);

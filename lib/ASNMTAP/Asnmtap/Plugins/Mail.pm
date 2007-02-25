@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -14,8 +14,8 @@ use Carp qw(carp cluck);
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 no warnings 'deprecated';
 
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -709,7 +709,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

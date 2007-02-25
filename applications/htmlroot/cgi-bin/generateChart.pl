@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -21,7 +25,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,13 +36,13 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my ($rv, $dbh, $sth, $sql, $sqlPeriode, $debugMessage, $errorMessage, $dbiErrorCode, $dbiErrorString);
 my ($background, $forGround, $axisColor, $numberOfDays, $numberOfLabels, $dummy, $trendvalue, $chartTitle);
-my ($endDateIN, $i, $j, $yearFrom, $monthFrom, $dayFrom, $yearTo, $monthTo, $dayTo, $goodDate, );
+my ($endDateIN, $i, $j, $yearFrom, $monthFrom, $dayFrom, $yearTo, $monthTo, $dayTo, $goodDate, $slaWindow);
 
 my (@avg1, @avg2, @avg3, @data, @dataOK, @dataWarning, @dataCritical, @dataUnknown, @dataNoTest, @dataOffline);
 my (@icons, @labels, @labels1, @labels2, @labels3, $applicationTitle1, $applicationTitle2, $applicationTitle3);
@@ -58,21 +62,22 @@ my $trendZone   = 0xFFFF99;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : "index";    $pagedir =~ s/\+/ /g;
-my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug       = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : "F";
-my $sessionID   = (defined $cgi->param('CGISESSID')) ? $cgi->param('CGISESSID') : "";
-my $selChart    = (defined $cgi->param('chart'))     ? $cgi->param('chart')     : "ErrorDetails";
-my $uKey1       = (defined $cgi->param('uKey1'))     ? $cgi->param('uKey1')     : "none";
-my $uKey2       = (defined $cgi->param('uKey2'))     ? $cgi->param('uKey2')     : "none";
-my $uKey3       = (defined $cgi->param('uKey3'))     ? $cgi->param('uKey3')     : "none";
-my $startDateIN = (defined $cgi->param('startDate')) ? $cgi->param('startDate') : "none";
-my $inputType   = (defined $cgi->param('inputType')) ? $cgi->param('inputType') : "none";
-my $selQuarter  = (defined $cgi->param('quarter'))   ? $cgi->param('quarter')   : 0;
-my $selMonth    = (defined $cgi->param('month'))     ? $cgi->param('month')     : 0;
-my $selWeek     = (defined $cgi->param('week'))      ? $cgi->param('week')      : 0;
-my $selYear     = (defined $cgi->param('year'))      ? $cgi->param('year')      : 0;
-my $pf          = (defined $cgi->param('pf'))        ? $cgi->param('pf')        : "off";
+my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : "index";    $pagedir =~ s/\+/ /g;
+my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : "index-cv"; $pageset =~ s/\+/ /g;
+my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : "F";
+my $sessionID    = (defined $cgi->param('CGISESSID'))    ? $cgi->param('CGISESSID')    : "";
+my $selChart     = (defined $cgi->param('chart'))        ? $cgi->param('chart')        : "ErrorDetails";
+my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : "none";
+my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : "none";
+my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : "none";
+my $startDateIN  = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : "none";
+my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : "none";
+my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
+my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
+my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
+my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')         : 0;
+my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
+my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : "off";
 
 # set: endDate
 $endDateIN = $cgi->param('endDate') if ( $cgi->param('endDate') ne "" );
@@ -193,6 +198,20 @@ if ( $rv ) {
 
           if ( $goodDate ) {
             $sqlPeriode = "AND startDate between '$sqlStartDate' AND '$sqlEndDate' ";
+
+            if ( $timeperiodID > 1 ) {
+              $sql = "select timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
+              $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
+              $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
+
+              if ( $rv ) {
+                ($slaWindow, my ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday)) = $sth->fetchrow_array() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->fetchrow_array: $sql", $debug, '', "", '', "", 0, '', $sessionID) if ($sth->rows);
+                $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
+                my $slaPeriode = create_sql_query_from_range_SLA_window ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday);
+                $chartTitle .= ", $slaWindow" if ( defined $slaWindow );
+                $sqlPeriode .= "$slaPeriode " if ( defined $slaPeriode );
+              }
+            }
           } else {
             $rv = 0; $errorMessage = "Wrong Startdate and/or Enddate";
           }
@@ -657,3 +676,4 @@ sub rebuildDataArrayDailyAverage {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

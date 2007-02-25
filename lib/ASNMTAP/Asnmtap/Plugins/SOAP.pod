@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
- use ASNMTAP::Asnmtap::Plugins v3.000.012;
+ use ASNMTAP::Asnmtap::Plugins v3.000.013;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-SOAP.pl',
    _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-   _programVersion     => '3.000.012',
+   _programVersion     => '3.000.013',
    _programGetOptions  => ['proxy:s', 'trendline|T:i'],
    _timeout            => 30,
    _debug              => 0);
@@ -191,6 +191,16 @@ optional, WSRF can be 0 or 1
  0, without WSRF::Lite (default)
  1, with WSRF::Lite
 
+=item TYPE_ERROR_RETURN
+
+optional, TYPE_ERROR_RETURN can be REPLACE, APPEND, INSERT, COMMA_APPEND or COMMA_INSERT
+
+ REPLACE      : replace error (default)
+ APPEND       : append to error
+ INSERT       : insert to error
+ COMMA_APPEND : add comma and append to error
+ COMMA_INSERT : add comma and insert to error
+
 =back
 
 =back
@@ -260,7 +270,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -16,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -78,7 +82,10 @@ my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISES
 print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  if ( $ChelpPluginFilename ne '<NIHIL>' ) {
+  if ( $ChelpPluginFilename eq '' or $ChelpPluginFilename eq '<NIHIL>' ) {
+    $ChelpPluginFilename = ( $ChelpPluginTextname eq '' ? '<NIHIL>' : $ChelpPluginTextname );
+    $ChelpPluginTextname = '';
+  } else {
     if ( $cgi->param('helpPluginFilename') eq '' ) {
       $ChelpPluginFilename = $ChelpPluginTextname;
       $ChelpPluginTextname = '';
@@ -434,7 +441,7 @@ HTML
     return false;
   }
 
-  if ( document.plugins.step.value == null || document.plugins.step.value == '' ) {
+  if ( document.plugins.step.value == null || document.plugins.step.value == '' || document.plugins.step.value == '0' ) {
     document.plugins.step.focus();
     alert('Please enter a step!');
     return false;
@@ -540,8 +547,7 @@ HTML
         <tr><td><b>Results Subdir: </b></td><td>
           $resultsdirSelect
         <tr><td valign="top">Help Plugin Filename: </td><td>
-          <input type="hidden" name="helpPluginTextname" value="$ChelpPluginFilename">
-          <input type="text" name="helpPluginTextname" value="$ChelpPluginFilename" size="100" maxlength="100" disabled><br>
+          <input type="text" name="helpPluginTextname" value="$ChelpPluginFilename" size="100" maxlength="100" $formDisabledAll><br>
           <input type="file" name="helpPluginFilename" size="100" maxlength="100" accept="application/pdf" $formDisabledAll>
         <tr><td>Holiday Bundle: </td><td>
     	  $holidayBundleSelect

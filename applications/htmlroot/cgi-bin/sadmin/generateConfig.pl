@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -17,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.012;
+use ASNMTAP::Time v3.000.013;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,6 +45,14 @@ my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : '<NIHI
 my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : "sadmin";  $pageset =~ s/\+/ /g;
 my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : "F";
 my $action  = (defined $cgi->param('action'))  ? $cgi->param('action')  : "menuView";
+
+my ($Cplugin, $ChelpPluginFilename, $Ctodo);
+
+if ($action eq "updateView" or $action eq "update") {
+  $Cplugin             = (defined $cgi->param('plugin'))             ? $cgi->param('plugin')             : '';
+  $ChelpPluginFilename = (defined $cgi->param('helpPluginFilename')) ? $cgi->param('helpPluginFilename') : '';
+  $Ctodo               = (defined $cgi->param('todo'))               ? $cgi->param('todo')               : '';
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,6 +88,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $htmlTitle = "Install Configuration";
   } elsif ($action eq "install") {
     $htmlTitle = "Configuration Installed";
+  } elsif ($action eq "updateView") {
+    $htmlTitle = "Update Configuration";
+  } elsif ($action eq "update") {
+    $htmlTitle = "Configuration Updated";
   } else {
     $action    = "menuView";
     $htmlTitle = "Configuration Menu";
@@ -94,14 +110,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      my ($warning, $error, $count, $sqlTmp, $sthTmp);
+      my ($warning, $error, $count, $sqlTmp, $sthTmp, $actionItem);
 
-      $matchingWarnings .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th colspan=\"2\">Warnings:</th></tr>";
-      $matchingErrors .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th colspan=\"2\">Errors:</th></tr>";
+      $matchingWarnings .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th colspan=\"3\">Warnings:</th></tr>";
+      $matchingErrors .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th colspan=\"3\">Errors:</th></tr>";
 
       # displayDaemons <-> views  - - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLDSPLYDMNS.displayDaemon, count($SERVERTABLVIEWS.displayDaemon) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDSPLYDMNS.displayDaemon=$SERVERTABLVIEWS.displayDaemon group by $SERVERTABLDSPLYDMNS.displayDaemon";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLDSPLYDMNS.displayDaemon, count($SERVERTABLVIEWS.displayDaemon) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon where $SERVERTABLDSPLYDMNS.activated = 1 group by $SERVERTABLDSPLYDMNS.displayDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -111,7 +127,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLDSPLYDMNS but is not used into $SERVERTABLVIEWS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLDSPLYDMNS but is not used into $SERVERTABLVIEWS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -119,8 +135,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.displayDaemon, count($SERVERTABLDSPLYDMNS.displayDaemon) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLVIEWS.displayDaemon=$SERVERTABLDSPLYDMNS.displayDaemon group by $SERVERTABLVIEWS.displayDaemon";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLVIEWS.displayDaemon, count($SERVERTABLDSPLYDMNS.displayDaemon) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDSPLYDMNS.displayDaemon where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -130,7 +146,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLDSPLYDMNS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLDSPLYDMNS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -139,8 +155,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # displayGroups <-> views - - - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLDSPLYGRPS.groupTitle, count($SERVERTABLVIEWS.displayGroupID) FROM $SERVERTABLDSPLYGRPS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDSPLYGRPS.displayGroupID=$SERVERTABLVIEWS.displayGroupID group by $SERVERTABLDSPLYGRPS.displayGroupID";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLDSPLYGRPS.groupTitle, count($SERVERTABLVIEWS.displayGroupID) FROM $SERVERTABLDSPLYGRPS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDSPLYGRPS.displayGroupID = $SERVERTABLVIEWS.displayGroupID where $SERVERTABLDSPLYGRPS.activated = 1 group by $SERVERTABLDSPLYGRPS.displayGroupID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -150,7 +166,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLDSPLYGRPS but is not used into $SERVERTABLVIEWS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLDSPLYGRPS but is not used into $SERVERTABLVIEWS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -158,8 +174,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.displayGroupID, count($SERVERTABLDSPLYGRPS.displayGroupID) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDSPLYGRPS ON $SERVERTABLVIEWS.displayGroupID=$SERVERTABLDSPLYGRPS.displayGroupID group by $SERVERTABLVIEWS.displayGroupID";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLVIEWS.displayGroupID, count($SERVERTABLDSPLYGRPS.displayGroupID) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDSPLYGRPS ON $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayGroupID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -169,7 +185,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLDSPLYGRPS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLDSPLYGRPS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -178,8 +194,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # collectorDaemons <-> crontabs - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLCLLCTRDMNS.collectorDaemon, count($SERVERTABLCRONTABS.collectorDaemon) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLCLLCTRDMNS.collectorDaemon=$SERVERTABLCRONTABS.collectorDaemon group by $SERVERTABLCLLCTRDMNS.collectorDaemon";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLCLLCTRDMNS.collectorDaemon, count($SERVERTABLCRONTABS.collectorDaemon) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon where $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.collectorDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -189,7 +205,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLCLLCTRDMNS but is not used into $SERVERTABLCRONTABS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLCLLCTRDMNS but is not used into $SERVERTABLCRONTABS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -197,8 +213,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLCRONTABS.collectorDaemon, count($SERVERTABLCLLCTRDMNS.collectorDaemon) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLCRONTABS.collectorDaemon=$SERVERTABLCLLCTRDMNS.collectorDaemon group by $SERVERTABLCRONTABS.collectorDaemon";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLCRONTABS.collectorDaemon, count($SERVERTABLCLLCTRDMNS.collectorDaemon) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon where $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.collectorDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -208,7 +224,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCRONTABS but don't exist anymore into $SERVERTABLCLLCTRDMNS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCRONTABS but don't exist anymore into $SERVERTABLCLLCTRDMNS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -217,8 +233,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # pagedirs <-> displayDaemons - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count($SERVERTABLDSPLYDMNS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLPAGEDIRS.pagedir=$SERVERTABLDSPLYDMNS.pagedir group by $SERVERTABLPAGEDIRS.pagedir";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count($SERVERTABLDSPLYDMNS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLPAGEDIRS.pagedir = $SERVERTABLDSPLYDMNS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -228,7 +244,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLDSPLYDMNS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLDSPLYDMNS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -236,8 +252,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLDSPLYDMNS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLPAGEDIRS ON $SERVERTABLDSPLYDMNS.pagedir=$SERVERTABLPAGEDIRS.pagedir group by $SERVERTABLDSPLYDMNS.pagedir";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLDSPLYDMNS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLPAGEDIRS ON $SERVERTABLDSPLYDMNS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLDSPLYDMNS.activated = 1 group by $SERVERTABLDSPLYDMNS.pagedir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -247,7 +263,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLDSPLYDMNS but don't exist anymore into $SERVERTABLPAGEDIRS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLDSPLYDMNS but don't exist anymore into $SERVERTABLPAGEDIRS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -294,8 +310,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           }
 
-          $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLPLUGINS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLPLUGINS ON $SERVERTABLPAGEDIRS.pagedir=tmp$SERVERTABLPLUGINS.pagedir group by $SERVERTABLPAGEDIRS.pagedir";
+          $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLPLUGINS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLPLUGINS ON $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLPLUGINS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -305,7 +321,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               while( $sth->fetch() ) {
                 if ($count == 0) {
                   $countWarnings++;
-                  $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLPLUGINS</td></tr>";
+                  $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLPLUGINS</td><td>&nbsp;</td></tr>";
                 }
               }
             }
@@ -313,8 +329,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           }
 
-          $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-          $sql = "SELECT tmp$SERVERTABLPLUGINS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLPLUGINS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLPLUGINS.pagedir=$SERVERTABLPAGEDIRS.pagedir group by tmp$SERVERTABLPLUGINS.pagedir";
+          $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+          $sql = "SELECT tmp$SERVERTABLPLUGINS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLPLUGINS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLPLUGINS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLPLUGINS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -324,7 +340,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               while( $sth->fetch() ) {
                 if ($count == 0) {
                   $countErrors++;
-                  $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLPLUGINS but don't exist anymore into $SERVERTABLPAGEDIRS</td></tr>";
+                  $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLPLUGINS but don't exist anymore into $SERVERTABLPAGEDIRS</td><td>&nbsp;</td></tr>";
                 }
               }
             }
@@ -378,8 +394,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           }
 
-          $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLUSERS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLUSERS ON $SERVERTABLPAGEDIRS.pagedir=tmp$SERVERTABLUSERS.pagedir group by $SERVERTABLPAGEDIRS.pagedir";
+          $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLUSERS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLUSERS ON $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLUSERS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -389,7 +405,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               while( $sth->fetch() ) {
                 if ($count == 0) {
                   $countWarnings++;
-                  $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLUSERS</td></tr>";
+                  $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPAGEDIRS but is not used into $SERVERTABLUSERS</td><td>&nbsp;</td></tr>";
                 }
               }
             }
@@ -397,8 +413,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           }
 
-          $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td></tr>";
-          $sql = "SELECT tmp$SERVERTABLUSERS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLUSERS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLUSERS.pagedir=$SERVERTABLPAGEDIRS.pagedir group by tmp$SERVERTABLUSERS.pagedir";
+          $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+          $sql = "SELECT tmp$SERVERTABLUSERS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLUSERS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLUSERS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLUSERS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -408,7 +424,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               while( $sth->fetch() ) {
                 if ($count == 0) {
                   $countErrors++;
-                  $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLUSERS but don't exist anymore into $SERVERTABLPAGEDIRS</td></tr>";
+                  $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLUSERS but don't exist anymore into $SERVERTABLPAGEDIRS</td><td>&nbsp;</td></tr>";
                 }
               }
             }
@@ -424,8 +440,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # plugins <-> comments  - - - - - - - - - - - - - - - - - - - - - -
-      # $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.uKey=$SERVERTABLCOMMENTS.uKey group by $SERVERTABLPLUGINS.uKey";
+      # $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLCOMMENTS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
       # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       # $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -435,7 +451,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       #     while( $sth->fetch() ) {
       #     if ($count == 0) {
       #       $countWarnings++;
-      #       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLCOMMENTS</td></tr>";
+      #       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLCOMMENTS</td><td>&nbsp;</td></tr>";
       #       }
       #     }
       #   }
@@ -443,8 +459,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       #   $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       # }
 
-      # $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      # $sql = "SELECT $SERVERTABLCOMMENTS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCOMMENTS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCOMMENTS.uKey=$SERVERTABLPLUGINS.uKey group by $SERVERTABLCOMMENTS.uKey";
+      # $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      # $sql = "SELECT $SERVERTABLCOMMENTS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCOMMENTS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCOMMENTS.activated = 1 group by $SERVERTABLCOMMENTS.uKey";
       # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       # $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -454,7 +470,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       #     while( $sth->fetch() ) {
       #       if ($count == 0) {
       #         $countErrors++;
-      #         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCOMMENTS but don't exist anymore into $SERVERTABLPLUGINS</td></tr>";
+      #         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCOMMENTS but don't exist anymore into $SERVERTABLPLUGINS</td><td>&nbsp;</td></tr>";
       #       }
       #     }
       #   }
@@ -463,8 +479,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # }
 
       # plugins <-> crontabs  - - - - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCRONTABS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLPLUGINS.uKey=$SERVERTABLCRONTABS.uKey group by $SERVERTABLPLUGINS.uKey";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCRONTABS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -474,7 +490,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLCRONTABS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLCRONTABS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -482,8 +498,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLCRONTABS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCRONTABS.uKey=$SERVERTABLPLUGINS.uKey group by $SERVERTABLCRONTABS.uKey";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLCRONTABS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -493,7 +509,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCRONTABS but don't exist anymore into $SERVERTABLPLUGINS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCRONTABS but don't exist anymore into $SERVERTABLPLUGINS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -502,8 +518,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # plugins <-> views - - - - - - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.uKey=$SERVERTABLVIEWS.uKey group by $SERVERTABLPLUGINS.uKey";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -513,7 +529,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLVIEWS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLPLUGINS but is not used into $SERVERTABLVIEWS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -521,8 +537,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLVIEWS.uKey=$SERVERTABLPLUGINS.uKey group by $SERVERTABLVIEWS.uKey";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLVIEWS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -532,7 +548,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLPLUGINS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLVIEWS but don't exist anymore into $SERVERTABLPLUGINS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -541,8 +557,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # resultsdir <-> plugins  - - - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLRSLTSDR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRSLTSDR LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLRSLTSDR.resultsdir=$SERVERTABLPLUGINS.resultsdir group by $SERVERTABLRSLTSDR.resultsdir";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLRSLTSDR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRSLTSDR LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLRSLTSDR.resultsdir = $SERVERTABLPLUGINS.resultsdir where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLRSLTSDR.resultsdir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -552,7 +568,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLRSLTSDR but is not used into $SERVERTABLPLUGINS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLRSLTSDR but is not used into $SERVERTABLPLUGINS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -560,8 +576,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRSLTSDR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRSLTSDR ON $SERVERTABLPLUGINS.resultsdir=$SERVERTABLRSLTSDR.resultsdir group by $SERVERTABLPLUGINS.resultsdir";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRSLTSDR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRSLTSDR ON $SERVERTABLPLUGINS.resultsdir = $SERVERTABLRSLTSDR.resultsdir where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.resultsdir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -571,7 +587,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLPLUGINS but don't exist anymore into $SERVERTABLRSLTSDR</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLPLUGINS but don't exist anymore into $SERVERTABLRSLTSDR</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -580,8 +596,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # servers <-> collectorDaemons  - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -591,7 +607,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLSERVERS but is not used into $SERVERTABLCLLCTRDMNS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLSERVERS but is not used into $SERVERTABLCLLCTRDMNS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -599,8 +615,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.serverID=$SERVERTABLSERVERS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -610,7 +626,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCLLCTRDMNS but don't exist anymore into $SERVERTABLSERVERS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLCLLCTRDMNS but don't exist anymore into $SERVERTABLSERVERS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -619,8 +635,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # servers <-> displayDaemons  - - - - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDSPLYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLSERVERS.serverID=$SERVERTABLDSPLYDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDSPLYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDSPLYDMNS ON $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -630,7 +646,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countWarnings++;
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLSERVERS but is not used into $SERVERTABLDSPLYDMNS</td></tr>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>exists into $SERVERTABLSERVERS but is not used into $SERVERTABLDSPLYDMNS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -638,8 +654,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       }
 
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td></tr>";
-      $sql = "SELECT $SERVERTABLDSPLYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDSPLYDMNS.serverID=$SERVERTABLSERVERS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLDSPLYDMNS.serverID";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $sql = "SELECT $SERVERTABLDSPLYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDSPLYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDSPLYDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLDSPLYDMNS.activated = 1 group by $SERVERTABLDSPLYDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -649,7 +665,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             if ($count == 0) {
               $countErrors++;
-              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLDSPLYDMNS but don't exist anymore into $SERVERTABLSERVERS</td></tr>";
+              $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$error</td><td>still used into $SERVERTABLDSPLYDMNS but don't exist anymore into $SERVERTABLSERVERS</td><td>&nbsp;</td></tr>";
             }
           }
         }
@@ -658,16 +674,16 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # servers <-> servers - - - - - - - - - - - - - - - - - - - - - - -
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Servers <-> Servers</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Central Monitoring Servers</td><td>Message</td></tr>";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Servers</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Central Monitoring Servers</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT count(typeMonitoring) FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1 group by typeMonitoring";
       ($rv, $numberCentralServers) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       unless ( defined $numberCentralServers) {
         $countErrors++;
-        $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>0</td><td>there is no activated central monitoring server</td></tr>";
+        $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>0</td><td>there is no activated central monitoring server</td><td>&nbsp;</td></tr>";
       } elsif ( $numberCentralServers != 1) {
         $countErrors++;
-        $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td></tr>";
+        $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td><td>&nbsp;</td></tr>";
       } else {
         $sql = "SELECT serverID, typeMonitoring, typeServers, masterFQDN, masterDatabaseFQDN, slaveFQDN, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
@@ -683,10 +699,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"2\">&nbsp;</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"3\">&nbsp;</td></tr>";
 
       # plugins uploaded <-> plugins configurated - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -712,7 +728,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           foreach my $pluginPath (@plugins) {
             if (defined $pluginPath) {
 		      (undef, my $plugin) = split (/^$PLUGINPATH\//, $pluginPath);
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$plugin</td><td>plugin uploaded without plugin configuration</td></tr>";
+              $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;plugin=$plugin&amp;todo=delete\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{delete}\" title=\"Delete Plugin\" alt=\"Delete Plugin\" border=\"0\"></a>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$plugin</td><td>plugin uploaded without plugin configuration</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;
 			}
           }
@@ -722,8 +739,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # plugins configurated <-> plugins uploaded - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
-      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
 
       $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
@@ -734,13 +751,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         if ( $sth->rows ) {
           while( $sth->fetch() ) {
             if (! -e "$PLUGINPATH/$test") {
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration without plugin uploaded</td></tr>";
+              $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;plugin=$test&amp;todo=edit\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Plugin\" alt=\"Edit Plugin\" border=\"0\"></a>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration without plugin uploaded</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;
             } else {
                my $sb = stat("$PLUGINPATH/$test");
 
                unless ( $sb->mode == 33261 or $sb->mode == 33256 ) { # 0755 = 33261 & 0750 = 33256 
-                $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration with plugin uploaded but without wanted excecution rights</td></tr>";
+                $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;plugin=$test&amp;todo=maintenance\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{maintenance}\" title=\"Rights Plugin\" alt=\"Rights Plugin\" border=\"0\"></a>";
+                $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$test</td><td>plugin configuration with plugin uploaded but without wanted excecution rights</td><td align=\"center\">$actionItem</td></tr>";
                 $countErrors++;
               }
             }
@@ -752,10 +771,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"2\">&nbsp;</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{TABLE}\"><td align=\"center\" colspan=\"3\">&nbsp;</td></tr>";
 
       # help plugin filenames <-> plugin  - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Help Plugin Filenames <-> Plugin</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Help Plugin Filename</td><td>Message</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Help Plugin Filenames <-> Plugin</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Help Plugin Filename</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT DISTINCT helpPluginFilename FROM $SERVERTABLPLUGINS WHERE helpPluginFilename != '<NIHIL>'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -781,7 +800,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           foreach my $helpPluginPathFilename (@helpPluginFilenames) {
             if (defined $helpPluginPathFilename) {
 		      (undef, $helpPluginFilename) = split (/^$PDPHELPPATH\//, $helpPluginPathFilename);
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$helpPluginFilename</td><td>help plugin filename without plugin reference</td></tr>";
+              $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;helpPluginFilename=$helpPluginFilename&amp;todo=delete\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{delete}\" title=\"Delete Help Plugin Filename\" alt=\"Delete Help Plugin Filename\" border=\"0\"></a>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$helpPluginFilename</td><td>help plugin filename without plugin reference</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;
 			}
           }
@@ -791,7 +811,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       # plugins <-> help plugin filename  - - - - - - - - - - - - - - - -
-      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"2\">Plugins <-> Help Plugin Filename</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td></tr>";
+      $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Help Plugin Filename</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as shortTitle, helpPluginFilename FROM $SERVERTABLPLUGINS WHERE activated = 1 order by shortTitle";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -800,14 +820,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ( $rv ) {
         if ( $sth->rows ) {
           while( $sth->fetch() ) {
-            if ($helpPluginFilename eq '<NIHIL>') {
-              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin without help plugin filename defined</td></tr>";
+            if (! defined $helpPluginFilename or $helpPluginFilename eq '<NIHIL>') {
+              $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;helpPluginFilename=<NIHIL>&amp;todo=duplicate\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{duplicate}\" title=\"Add Help Plugin Filename\" alt=\"Add Help Plugin Filename\" border=\"0\"></a>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin without help plugin filename defined</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;
-            } else {
-              if (! -e "$PDPHELPPATH/$helpPluginFilename") {
-                $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin with missing help plugin filename '<b>$helpPluginFilename</b>'</td></tr>";
-                $countWarnings++;
-              }
+            } elsif (! -e "$PDPHELPPATH/$helpPluginFilename") {
+              $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;helpPluginFilename=$helpPluginFilename&amp;todo=edit\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Help Plugin Filename\" alt=\"Edit Help Plugin Filename\" border=\"0\"></a>";
+              $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin with missing help plugin filename '<b>$helpPluginFilename</b>'</td><td align=\"center\">$actionItem</td></tr>";
+              $countWarnings++;
             }
           }
         }
@@ -944,7 +964,7 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
         $SET .= "\n\nexport LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\${LD_LIBRARY_PATH}" if (defined $LD_LIBRARY_PATH);
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYDMNS.pagedir, $SERVERTABLDSPLYDMNS.loop, $SERVERTABLDSPLYDMNS.displayTime, $SERVERTABLDSPLYDMNS.lockMySQL, $SERVERTABLDSPLYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDSPLYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDSPLYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDSPLYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDSPLYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDSPLYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDSPLYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDSPLYGRPS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDSPLYDMNS.displayDaemon, $SERVERTABLDSPLYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
         $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -1332,7 +1352,17 @@ HTML
       print "        <br>\n";
     }
 
-    print <<HTML;
+    if ($action eq "updateView" or $action eq "update") {
+      print "  <table width=\"100%\"><tr align=\"center\"><td>\n";
+      print "    <table bgcolor=\"$COLORSTABLE{TABLE}\" border=\"0\" cellspacing=\"1\" cellpadding=\"1\"\n";
+      print "      <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\" colspan=\"2\" align=\"center\"> <b>$action: Under Construction</b> </td></tr>\n";
+      print "      <tr><td bgcolor=\"$COLORSTABLE{NOBLOCK}\"> plugin </td><td> $Cplugin </td></tr>\n";
+      print "      <tr><td bgcolor=\"$COLORSTABLE{NOBLOCK}\"> help plugin filename </td><td> $ChelpPluginFilename </td></tr>\n";
+      print "      <tr><td bgcolor=\"$COLORSTABLE{NOBLOCK}\"> todo </td><td> $Ctodo </td></tr>\n";
+      print "    </table>\n";
+      print "  </td></tr></table>\n";
+    } else {
+      print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr align="center"><td>
 	  <table border="0" cellspacing="0" cellpadding="0"><tr>
@@ -1346,6 +1376,7 @@ HTML
   	  </tr></table>
 	</td></tr>
 HTML
+    }
 
     if ($action ne "menuView") {
       print "  <tr align=\"center\"><td>\n  <table>\n";
@@ -1419,7 +1450,7 @@ sub createCollectorCTscript {
 
   if ($rvOpen) {
     print CollectorCT <<STARTUPFILE;
-#!/bin/sh
+#!/bin/bash
 # ---------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ---------------------------------------------------------------
@@ -1431,6 +1462,10 @@ AMCMD=collector.pl
 AMPARA=\"--hostname=$databaseFQDN --mode=$mode --collectorlist=CollectorCT-$collectorDaemon --dumphttp=$dumphttp --status=$status --debug=$debugDaemon --screenDebug=$debugAllScreen --allDebug=$debugAllFile --nokDebug=$debugNokFile\"
 PIDPATH=$PIDPATH
 PIDNAME=CollectorCT-$collectorDaemon.pid
+
+if [ -f "\$AMPATH/sbin/bash_stop_root.sh" ]; then
+  source "\$AMPATH/sbin/bash_stop_root.sh"
+fi
 
 $SET
 
@@ -1552,7 +1587,7 @@ sub createDisplayCTscript {
 
   if ($rvOpen) {
     print DisplayCT <<STARTUPFILE;
-#!/bin/sh
+#!/bin/bash
 # ---------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ---------------------------------------------------------------
@@ -1565,6 +1600,10 @@ AMPARA=\"--hostname=$databaseFQDN --checklist=DisplayCT-$displayDaemon --pagedir
 PIDPATH=$PIDPATH
 PIDNAME=DisplayCT-$displayDaemon.pid
 SOUNDCACHENAME=DisplayCT-$displayDaemon-sound-status.cache
+
+if [ -f "\$AMPATH/sbin/bash_stop_root.sh" ]; then
+  source "\$AMPATH/sbin/bash_stop_root.sh"
+fi
 
 $SET
 
@@ -1694,7 +1733,7 @@ sub createRsyncMirrorScriptsFailover {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1720,6 +1759,9 @@ my \$denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
 my \$rsyncPath = '$RSYNCCOMMAND';
+
+# 1 = rsync version 2.6.7 or higher or 0 = otherwise
+my \$rsync_version_2_6_7_or_higher = 1;
 
 # 1 = 'capture_exec("\$system_action")' or 0 = 'system ("\$system_action")'
 my \$captureOutput = $CAPTUREOUTPUT;
@@ -1798,18 +1840,6 @@ RSYNCMIRRORFILE
         print RsyncMirror <<RSYNCMIRRORFILE;
 # ------------------------------------------------------------------------------
 
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/ $APPLICATIONPATH/ -v -c -z --exclude=*.conf --exclude=*/
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/archive/ $APPLICATIONPATH/archive/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/bin/ $APPLICATIONPATH/bin/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/custom/ $APPLICATIONPATH/custom/ -v -c -z --exclude=*.conf
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/etc/ $APPLICATIONPATH/etc/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/htmlroot/ $APPLICATIONPATH/htmlroot/ -v -c -z --exclude=nav/ --exclude=cgi-bin/perfchart.png --exclude=cgi-bin/perfgant.png --exclude=cgi-bin/perfparse.cgi --exclude=img/dec0.png --exclude=img/dec1.png --exclude=img/inc0.png --exclude=img/inc1.png --exclude=img/perfgraph-sm.png --exclude=img/perfparse*
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/master/ $APPLICATIONPATH/master/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/sbin/ $APPLICATIONPATH/sbin/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/slave/ $APPLICATIONPATH/slave/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/tmp/ $APPLICATIONPATH/tmp/ -v -c -z
-$SSHLOGONNAME\@$masterFQDN:$APPLICATIONPATH/tools/ $APPLICATIONPATH/tools/ -v -c -z
-
 $SSHLOGONNAME\@$masterFQDN:$PLUGINPATH/ $PLUGINPATH/ -v -c -z
 
 # ------------------------------------------------------------------------------
@@ -1845,7 +1875,7 @@ sub createRsyncMirrorScriptsDistributed {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1872,6 +1902,9 @@ my \$denyString = 'Access Denied! Sorry';
 # The real path of rsync.
 my \$rsyncPath = '$RSYNCCOMMAND';
 
+# 1 = rsync version 2.6.7 or higher or 0 = otherwise
+my \$rsync_version_2_6_7_or_higher = 1;
+
 # 1 = 'capture_exec("\$system_action")' or 0 = 'system ("\$system_action")'
 my \$captureOutput = $CAPTUREOUTPUT;
 
@@ -1895,7 +1928,7 @@ RSYNCMIRRORFILE
 
         if ($rvOpen) {
           print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1921,6 +1954,9 @@ my \$denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
 my \$rsyncPath = '$RSYNCCOMMAND';
+
+# 1 = rsync version 2.6.7 or higher or 0 = otherwise
+my \$rsync_version_2_6_7_or_higher = 1;
 
 # 1 = 'capture_exec("\$system_action")' or 0 = 'system ("\$system_action")'
 my \$captureOutput = $CAPTUREOUTPUT;
@@ -2157,14 +2193,16 @@ sub do_compare_view {
           ($type, $server) = split (/-/, $path, 2);
           ($server, $subpath) = split (/\//, $server, 2);
           $subpath .= ($subpath eq '') ? '' : '/';
-          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/config/generated/DM-distributed.citap.com/etc/DisplayCT-distributed' to 'distributed.citap.com:/opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-distributed'
+          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DM-distributed.citap.com/etc/DisplayCT-distributed' to 'distributed.citap.com:/opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-distributed'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<--- $generated ---->      <----- $server ----->:$APPLICATIONPATH/<---- $generated --->
           # or
-          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/config/generated/CM-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-index.sh'
+          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/CM-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-index.sh'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<----------------- $generated ---------------->      <------ $server ----->:$APPLICATIONPATH/$subpath/<------------ $generated ----------->
           $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:$APPLICATIONPATH/$subpath$generated'";
 
 		  if (($generated =~ /^DisplayCT-[\w-]+.sh$/) or ($generated =~ /^CollectorCT-[\w-]+.sh$/)) {
+            $compareText .= '<br>';
+            $compareText .= "chmod 755 $server:$APPLICATIONPATH/$subpath$generated";
             $compareText .= '<br>';
             $compareText .= "$server:$APPLICATIONPATH/$subpath$generated start";
           } elsif (($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
@@ -2172,7 +2210,7 @@ sub do_compare_view {
           } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)) {
             $todo = 1;
             $compareText .= '<br>';
-            $compareText .= "Add '?-59/5 * * * * $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated  > /dev/null 2>&1' to crontab";
+            $compareText .= "Add 'n-59/5 * * * * $APPLICATIONPATH/$path/$generated > /dev/null' to crontab";
           }
         }
       } elsif ( $compareView =~ /^Only in generated:/ ) {
@@ -2252,7 +2290,7 @@ sub do_compare_view {
           my (undef, $servername, $filename) = split (/\//, $generated, 3);
           ($type, $server) = split (/-/, $servername, 2);
 	  
-          # Replace 'distributed.citap.be:/opt/asnmtap-3.000.xxx/applications/slave/asnmtap-display.sh' with '/opt/asnmtap-3.000.xxx/applications/tmp/config/generated/DS-distributed.citap.be/slave/asnmtap-display.sh'
+          # Replace 'distributed.citap.be:/opt/asnmtap-3.000.xxx/applications/slave/asnmtap-display.sh' with '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DS-distributed.citap.be/slave/asnmtap-display.sh'
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
           $compareText = "Replace '$server:$APPLICATIONPATH/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
 
@@ -2266,7 +2304,7 @@ sub do_compare_view {
 #              or ($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
 		  } elsif (($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
             $compareText .= '<br>';
-            $compareText .= "$server:$APPLICATIONPATH/$filename.sh restart";
+            $compareText .= "$server:$APPLICATIONPATH/$filename restart";
           } elsif ( $filename =~ /^master\/rsync-mirror-failover-[\w\-.]+.conf$/ or $filename =~ /^slave\/rsync-mirror-failover-[\w\-.]+.conf$/) {
             $todo = 1;
           }

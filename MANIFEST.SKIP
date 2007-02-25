@@ -1,11 +1,12 @@
 ^Makefile$
 ^MANIFEST.bak$
 ^MANIFEST-3.000.
+\bautoconf/\b
 \bapplications/etc/\b
 \bapplications/htmlroot/nav/\b
 \bapplications/master/\b
 \bapplications/slave/\b
 \bresults/\b
-^ASNMTAP-3.000.012.tar.gz$
+^ASNMTAP-3.000.013.tar.gz$
 ^t/APPLICATIONS_
 ^t/PLUGINS_

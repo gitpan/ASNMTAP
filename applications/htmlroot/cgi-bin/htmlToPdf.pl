@@ -1,15 +1,19 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -17,7 +21,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "htmlToPdf.pl";
 my $prgtext     = "HTML to PDF";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,6 +58,7 @@ my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')  
 my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
 my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
 my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
+my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
 my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : "off";
 my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : "off";
 my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : "off";
@@ -76,7 +81,7 @@ if ((!defined $scriptname) or (!defined $sessionID)) {
   print "<h1 align=\"center\">Scriptname and/or CGISESSID missing</h1>\n";
 } else {
   # Serialize the URL Access Parameters into a string
-  my $urlAccessParameters = "pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;detailed=$selDetailed&amp;uKey1=$uKey1&amp;uKey2=$uKey2&amp;uKey3=$uKey3&amp;startDate=$startDate&amp;endDate=$endDate&amp;inputType=$inputType&amp;year=$selYear&amp;week=$selWeek&amp;month=$selMonth&amp;quarter=$selQuarter&amp;statuspie=$statuspie&amp;errorpie=$errorpie&amp;bar=$bar&amp;hourlyAvg=$hourlyAvg&amp;dailyAvg=$dailyAvg&amp;details=$details&amp;topx=$topx&amp;pf=$pf&amp;htmlToPdf=1";
+  my $urlAccessParameters = "pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;detailed=$selDetailed&amp;uKey1=$uKey1&amp;uKey2=$uKey2&amp;uKey3=$uKey3&amp;startDate=$startDate&amp;endDate=$endDate&amp;inputType=$inputType&amp;year=$selYear&amp;week=$selWeek&amp;month=$selMonth&amp;quarter=$selQuarter&amp;timeperiodID=$timeperiodID&amp;statuspie=$statuspie&amp;errorpie=$errorpie&amp;bar=$bar&amp;hourlyAvg=$hourlyAvg&amp;dailyAvg=$dailyAvg&amp;details=$details&amp;topx=$topx&amp;pf=$pf&amp;htmlToPdf=1";
 
   my $refresh = "";
 

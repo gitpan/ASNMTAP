@@ -1,7 +1,7 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # ---------------------------------------------------------------------------------------------------------
 #
-# Copyright (c)2004-2006 Yves Van den Hove (yves\@vandenhove.tk) & Alex Peeters (alex.peeters\@citap.com)
+# Copyright (c)2004-2007 Yves Van den Hove (yves\@vandenhove.tk) & Alex Peeters (alex.peeters\@citap.com)
 #
 # ---------------------------------------------------------------------------------------------------------
 # 2006-12-05 - Version 1.14: No more .bmp
@@ -228,7 +228,7 @@ sub print_usage() {
 
 sub print_revision() {
   print "\nThis is $PROGNAME, v$version\n";
-  print "Copyright (c) 2004-2006 Yves Van den Hove\n\n";
+  print "Copyright (c) 2004-2007 Yves Van den Hove\n\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/02/25, v3.000.013, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -18,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.012;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -447,18 +451,29 @@ unless ( defined $errorUserAccessControl ) {
               my ($firstYear, $firstMonth, $firstDay) = Add_Delta_Days ($currentYear, $currentMonth, $currentDay, -1);
 
               print <<HTML;
-<script language="JavaScript" id="jsCal1Calendar">
+<script language="JavaScript" type="text/javascript" id="jsCal1Calendar">
   var cal1Calendar = new CalendarPopup("CalendarDIV");
   cal1Calendar.offsetX = 1;
   cal1Calendar.showNavigationDropdowns();
   cal1Calendar.addDisabledDates(null, "$firstYear-$firstMonth-$firstDay");
 </script>
+HTML
+            } else {
+              my ($firstYear, $firstMonth, $firstDay) = Add_Delta_Days ($currentYear, $currentMonth, $currentDay, +1);
 
-<DIV ID="CalendarDIV" STYLE="position:absolute;visibility:hidden;background-color:black;layer-background-color:black;"></DIV>
+              print <<HTML;
+<script language="JavaScript" type="text/javascript" id="jsCal1Calendar">
+  var cal1Calendar = new CalendarPopup("CalendarDIV");
+  cal1Calendar.offsetX = 1;
+  cal1Calendar.showNavigationDropdowns();
+  cal1Calendar.addDisabledDates("$firstYear-$firstMonth-$firstDay", null);
+</script>
 HTML
             }
 
             print <<HTML;
+<DIV ID="CalendarDIV" STYLE="position:absolute;visibility:hidden;background-color:black;layer-background-color:black;"></DIV>
+
 <script language="JavaScript1.2" type="text/javascript">
 function validateForm() {
   var now = new Date();
@@ -664,7 +679,7 @@ HTML
   if ( document.comments.entryTime.value != null && document.comments.entryTime.value != '' ) {
     entryDate      = document.comments.entryDate.value;
     entryFullYear  = entryDate.substring(0, 4);
-    entryMonth     = entryDate.substring(5, 7);
+    entryMonth     = entryDate.substring(5, 7) - 1;
     entryDay       = entryDate.substring(8, 10);
     entryTime      = document.comments.entryTime.value;
     entryHours     = entryTime.substring(0, 2);
@@ -720,7 +735,7 @@ HTML
   if ( document.comments.solvedTime.value != null && document.comments.solvedTime.value != '' ) {
     solvedDate      = document.comments.solvedDate.value;
     solvedFullYear  = solvedDate.substring(0, 4);
-    solvedMonth     = solvedDate.substring(5, 7);
+    solvedMonth     = solvedDate.substring(5, 7) - 1;
     solvedDay       = solvedDate.substring(8, 10);
     solvedTime      = document.comments.solvedTime.value;
     solvedHours     = solvedTime.substring(0, 2);
@@ -824,14 +839,14 @@ HTML
         <td>Activation: </td>
         <td>
           <b><input type="text" name="activationDate" value="$CactivationDate" size="10" maxlength="10"></b>&nbsp;
-		  <a href="#" onclick="cal1Calendar.select(document.forms[1].activationDate, 'activationDateCalendar','yyyy-MM-dd'); return false;" name="activationDateCalendar" id="activationDateCalendar";><img src="$IMAGESURL/cal.gif" alt="Calender" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		  <a href="#" onclick="cal1Calendar.select(document.forms[1].activationDate, 'activationDateCalendar','yyyy-MM-dd'); return false;" name="activationDateCalendar" id="activationDateCalendar";><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <b><input type="text" name="activationTime" value="$CactivationTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].activationTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		</td>
       </tr><tr>
         <td>Suspention: </td>
         <td>
           <b><input type="text" name="suspentionDate" value="$CsuspentionDate" size="10" maxlength="10"></b>&nbsp;
-		  <a href="#" onclick="cal1Calendar.select(document.forms[1].suspentionDate, 'suspentionDateCalendar','yyyy-MM-dd'); return false;" name="suspentionDateCalendar" id="suspentionDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calender" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		  <a href="#" onclick="cal1Calendar.select(document.forms[1].suspentionDate, 'suspentionDateCalendar','yyyy-MM-dd'); return false;" name="suspentionDateCalendar" id="suspentionDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <b><input type="text" name="suspentionTime" value="$CsuspentionTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].suspentionTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		</td>
       </tr><tr><td>&nbsp;</td><td>
@@ -840,13 +855,14 @@ HTML
         <ul type="circle">
           <li>not persistent:
             <ul type="disc">
-              <li>problem is solved when 'last n results are OK' and 'current Timeslot' > 'Activation Date/time'</li>
-        	  <li>problem is solved when 'current Timeslot' > 'Suspention Date/time'</li>
+              <li>problem is automatically solved when 'last n results are OK' and 'current Timeslot' > 'Activation Date/time'</li>
+        	  <li>problem is automatically solved when 'current Timeslot' > 'Suspention Date/time'</li>
             </ul>
           </li>
           <li>persistent:
             <ul type="disc">
-              <li>problem is solved when 'current Timeslot' > 'Suspention Date/time'</li>
+              <li>problem is automatically solved when 'current Timeslot' > 'Suspention Date/time'</li>
+              <li>problem is <b>never</b> automatically solved when 'Suspention Date/time' is missing</li>
             </ul>
           </li>
         </ul>
@@ -861,13 +877,13 @@ HTML
       </tr><tr>
         <td>Entry: </td>
         <td>
-          <b><input type="text" name="entryDate" value="$CentryDate" size="10" maxlength="10"></b>&nbsp;<a href="#" onclick="javascript:show_calendar('document.comments.entryDate', document.comments.entryDate.value);"><img src="$IMAGESURL/cal.gif" alt="Calender" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <b><input type="text" name="entryDate" value="$CentryDate" size="10" maxlength="10"></b>&nbsp;<a href="#" onclick="cal1Calendar.select(document.forms[1].entryDate, 'entryDateCalendar','yyyy-MM-dd'); return false;" name="entryDateCalendar" id="entryDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <b><input type="text" name="entryTime" value="$CentryTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].entryTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		</td>
       </tr><tr>
         <td>Solved: </td>
         <td>
-          <b><input type="text" name="solvedDate" value="$CsolvedDate" size="10" maxlength="10"></b>&nbsp;<a href="#" onclick="javascript:show_calendar('document.comments.solvedDate', document.comments.solvedDate.value);"><img src="$IMAGESURL/cal.gif" alt="Calender" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <b><input type="text" name="solvedDate" value="$CsolvedDate" size="10" maxlength="10"></b>&nbsp;<a href="#" onclick="cal1Calendar.select(document.forms[1].solvedDate, 'solvedDateCalendar','yyyy-MM-dd'); return false;" name="solvedDateCalendar" id="solvedDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <b><input type="text" name="solvedTime" value="$CsolvedTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].solvedTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		</td>
       </tr><tr><td>&nbsp;</td><td>&nbsp;</td>

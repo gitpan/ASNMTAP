@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, purge_table.pl for ASNMTAP
+# 2007/02/25, v3.000.013, purge_table.pl for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -16,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.012;
+use ASNMTAP::Time v3.000.013;
 use ASNMTAP::Time qw(&get_epoch &get_year &get_month &get_day);
 
-use ASNMTAP::Asnmtap::Applications v3.000.012;
+use ASNMTAP::Asnmtap::Applications v3.000.013;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_email_report);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +31,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_ema
 my $objectASNMTAP = ASNMTAP::Asnmtap::Applications->new (
   _programName        => 'purge_table.pl',
   _programDescription => 'Purge table',
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programUsagePrefix => '-H|--host <HOST> [-P|--port <PORT>] -D|--database=<database> -T|--table=<table> [-A|--ago=<ago by STRING>] -u|--username|--loginname
  <USERNAME> -p|--password|--passwd <PASSWORD>',
   _programHelpPrefix  => "-H, --host=<HOST>

@@ -1,12 +1,12 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2006
-Version      : 3.000.012
+Latest update: xx xxx 2007
+Version      : 3.000.013
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -52,7 +52,7 @@ Information about the ASNMTAP/Nagios Plugins can be found at:
     APPLICATION     Application Monitoring
     BUSINESS        CITAP
     DEPARTMENT      Development
-    COPYRIGHT       2003-2006
+    COPYRIGHT       2003-2007
     SENDEMAILTO     alex.peeters@citap.be
   # TYPEMONITORING  central                      # central or distributed
   </COMMON>
@@ -161,7 +161,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
     # when ASNMTAP is not installed into '/opt/asnmtap-3.000.xxx/' you need to add SetEnv ASNMTAP_PATH
     # SetEnv ASNMTAP_PATH /opt/asnmtap-3.000.xxx-other/
 
-    Alias /asnmtap/ "/opt/asnmtap/applications/htmlroot/"
+    Alias /asnmtap "/opt/asnmtap/applications/htmlroot"
 
     <Directory "/opt/asnmtap/applications/htmlroot">
       AllowOverride AuthConfig
@@ -170,7 +170,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
       Allow from all
     </Directory>
 
-    Alias /results/ "/opt/asnmtap/results/"
+    Alias /results "/opt/asnmtap/results"
 
     <Directory "/opt/asnmtap/results">
       HeaderName HEADER.html
@@ -182,7 +182,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
       Allow from all
     </Directory>
 
-    Alias /config/ "/opt/asnmtap/applications/tmp/config/"
+    Alias /config "/opt/asnmtap/applications/tmp/config"
 
     <Directory "/opt/asnmtap/applications/tmp/config">
       HeaderName HEADER.html
@@ -211,7 +211,9 @@ Information about the configuration for ASNMTAP Applications can be found at:
   Install Mysql client need to be installed
   -----------------------------------------
 
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.012.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013.sql
+   or
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013-distributed.sql
 
   
   ASNMTAP Web Access is now possible

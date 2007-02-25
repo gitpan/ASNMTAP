@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -9,8 +9,8 @@ package ASNMTAP::Asnmtap::Plugins;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 no warnings 'deprecated';
 
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -112,7 +112,7 @@ sub _init {
       /^trendline\|T([:=])i$/           && do { $_[0]->{_getOptionsType}->{trendline}   = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-T|--trendline <TRENDLINE>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-T, --trendline <TRENDLINE>\n   trendline threshold (seconds) from which a TRENDLINE status will result for the plugin response time\n"; last; };
       /^timeout\|t([:=])i$/             && do { $_[0]->{_getOptionsType}->{timeout}     = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-t|--timeout <TIMEOUT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-t, --timeout=<TIMEOUT>\n   timeout threshold (seconds) from which a UNKNOWN status will result for the plugin execution time\n"; last; };
       /^environment\|e([:=])s$/         && do { $_[0]->{_getOptionsType}->{environment} = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-e|--environment <ENVIRONMENT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-e, --environment=<ENVIRONMENT>\n   P(roduction)\n   S(imulation)\n   A(cceptation)\n   T(est)\n   D(evelopment)\n   L(ocal)\n"; last; };
-      /^proxy([:=])s$/                  && do { $_[0]->{_getOptionsType}->{proxy}       = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'--proxy <username:password@proxy>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "--proxy=<username:password\@proxy>\n"; last; };
+      /^proxy([:=])s$/                  && do { $_[0]->{_getOptionsType}->{proxy}       = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'--proxy <username:password@proxy:port&domain[,domain]>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "--proxy=<username:password\@proxy:port&domain[,domain]>\n"; last; };
       /^host\|H([:=])s$/                && do { $_[0]->{_getOptionsType}->{host}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-H|--host <HOST>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-H, --host=<HOST>\n   hostname or ip address\n"; last; };
       /^url\|U([:=])s$/                 && do { $_[0]->{_getOptionsType}->{url}         = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-U|--url <URL>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-U, --url=<URL>\n"; last; };
       /^port\|P([:=])i$/                && do { $_[0]->{_getOptionsType}->{port}        = $1; $_programUsageSuffix .= ($1 eq ':' ? ' [' : ' ') .'-P|--port <PORT>'. ($1 eq ':' ? ']' : ''); $_programHelpSuffix .= "-P, --port=<PORT>\n"; last; };
@@ -139,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/4.7 (compatible; ASNMTAP; U; ASNMTAP-3.000.012 postfix; nl-BE; rv:3.000.012) Gecko/2006xxxx libwww-perl/5.805';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.013 postfix; nl-BE; rv:3.000.013) Gecko/20070225 libwww-perl/5.805';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -373,26 +373,25 @@ sub _init_proxy_and_client_certificate {
   my $proxy = ( exists $ENV{ASNMTAP_PROXY} ? $ENV{ASNMTAP_PROXY} : ( exists $_[0]->{_getOptionsArgv}->{proxy} and defined $_[0]->{_getOptionsArgv}->{proxy} ? $_[0]->{_getOptionsArgv}->{proxy} : undef ) );
 
   if ( defined $proxy and $proxy ne '' ) {
-    my ($proxyServer, $proxyUsername, $proxyPassword, $proxyUsernamePassword);
-    ($proxyUsernamePassword, $proxyServer) = split(/\@/, $proxy );
+    my ($proxyServer, $proxyNo, $proxyServerNo, $proxyUsername, $proxyPassword, $proxyUsernamePassword);
+    ($proxyUsernamePassword, $proxyServerNo) = split(/\@/, $proxy );
 
-	if (defined $proxyServer) {
+    if ( defined $proxyServerNo ) {
       ($proxyUsername, $proxyPassword) = split(/\:/, $proxyUsernamePassword, 2);
       $_[0]->printUsage ('Username and/or Password missing: : '. $proxy) unless (defined $proxyUsername and defined $proxyPassword);
+      ($proxyServer, $proxyNo) = split(/\&/, $proxyServerNo );
     } else {
-      $proxyServer = $proxy;
+      ($proxyServer, $proxyNo) = split(/\&/, $proxy );
     }
 
-    unless ( exists $_[0]->{_proxy} ) {
-      $_[0]->[ $_[0]->[0]{_proxy} = @{$_[0]} ] = {};
-      $_[0]->{_proxy}->{no} = undef;
-    } elsif ( defined $_[0]->{_proxy}->{no} ) {
-	  $ENV{NO_PROXY} = join (', ', @{ $_[0]->{_proxy}->{no} });
-    }
+    $_[0]->[ $_[0]->[0]{_proxy} = @{$_[0]} ] = {} unless ( exists $_[0]->{_proxy} );
 
     $_[0]->{_proxy}->{server}   = "http://" . $proxyServer;
     $_[0]->{_proxy}->{username} = $proxyUsername;
     $_[0]->{_proxy}->{password} = $proxyPassword;
+
+    $_[0]->{_proxy}->{no} = ( defined $proxyNo ? [ split (/,/, $proxyNo) ] : undef );
+    $ENV{NO_PROXY} = ( defined $_[0]->{_proxy}->{no} ? join (', ', @{ $_[0]->{_proxy}->{no} }) : '' );
   }
 
   # HTTPS: DEFAULT SSL VERSION
@@ -573,10 +572,10 @@ sub write_debugfile {
   &_checkAccObjRef ( $_[0] ); &_checkReadOnly2;
 
   my $debugfile = $_[0]->{_getOptionsArgv}->{debugfile};
-  my $openAppend = ( defined $_[2] and $_[2] =~ /^1$/ ) ? 1 : 0;
 
   if ( defined $debugfile ) {
-    my $rvOpen = open (DEBUGFILE, ($openAppend ? '>>' : '>') . $debugfile);
+    my $openAppend = ( defined $_[2] and $_[2] =~ /^1$/ ) ? 1 : 0;
+    my $rvOpen = open (DEBUGFILE, ($openAppend ? '>>' : '>') .$debugfile);
 
     if ($rvOpen) {
       print DEBUGFILE ${$_[1]}, "\n";
@@ -787,7 +786,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

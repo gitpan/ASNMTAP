@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, asnmtap-3.000.012.sql
+# 2007/02/25, v3.000.013, asnmtap-3.000.013.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -37,7 +37,7 @@ CREATE TABLE `collectorDaemons` (
 # Data for the table collectorDaemons
 #
 
-insert into `collectorDaemons` values ('index','Production Daemon','CTP-CENTRAL','C','U','N','F','F','F','F',1);
+insert into `collectorDaemons` values ('index','Production Daemon','CTP-CENTRAL','C','U','N','F','F','F','F',0);
 insert into `collectorDaemons` values ('test','Test Daemon','CTP-CENTRAL','C','U','N','F','F','F','F',1);
 
 #
@@ -406,7 +406,7 @@ CREATE TABLE `displayDaemons` (
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`displayDaemon`),
   KEY `serverID` (`serverID`),
-  KEY `pagedir` (`pagedir`),
+  UNIQUE KEY `pagedir` (`pagedir`),
   CONSTRAINT `displayDaemons_ibfk_1` FOREIGN KEY (`pagedir`) REFERENCES `pagedirs` (`pagedir`),
   CONSTRAINT `displayDaemons_ibfk_2` FOREIGN KEY (`serverID`) REFERENCES `servers` (`serverID`)
 ) ENGINE=InnoDB;
@@ -415,7 +415,7 @@ CREATE TABLE `displayDaemons` (
 # Data for the table displayDaemons
 #
 
-insert into `displayDaemons` values ('index','Production Daemon','index','CTP-CENTRAL','T','T','F','F',1);
+insert into `displayDaemons` values ('index','Production Daemon','index','CTP-CENTRAL','T','T','F','F',0);
 insert into `displayDaemons` values ('test','Test Daemon','test','CTP-CENTRAL','T','T','F','F',1);
 
 #
@@ -799,6 +799,7 @@ CREATE TABLE `reports` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
   `periode` char(1) NOT NULL default 'F',
+  `timeperiodID` int(11) NOT NULL default '1',
   `status` tinyint(1) NOT NULL default '0',
   `errorDetails` tinyint(1) NOT NULL default '0',
   `bar` tinyint(1) NOT NULL default '0',
@@ -813,14 +814,16 @@ CREATE TABLE `reports` (
   PRIMARY KEY  (`id`),
   KEY `uKey` (`uKey`),
   KEY `periode` (`periode`),
-  CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`uKey`) REFERENCES `plugins` (`uKey`)
+  KEY `timeperiodID` (`timeperiodID`),
+  CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`uKey`) REFERENCES `plugins` (`uKey`),
+  CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`timeperiodID`) REFERENCES `timeperiods` (`timeperiodID`)
 ) ENGINE=InnoDB;
 
 #
 # Data for the table reports
 #
 
-insert into `reports` values (11,'DUMMY-T2','M',1,1,1,0,0,1,1,1,'pdf','',1);
+insert into `reports` values (1,'DUMMY-T2','M',0,1,1,1,0,0,1,1,1,'pdf','',1);
 
 #
 # Table structure for table resultsdir
@@ -876,6 +879,35 @@ CREATE TABLE `servers` (
 #
 
 insert into `servers` values ('CTP-CENTRAL','CITAP\'s Application Monitoring Server','asnmtap.citap.com','','','asnmtap.citap.be','3306','asnmtap.citap.be','','','asnmtap.citap.com','3306',1,0,1);
+
+#
+# Table structure for table timeperiods
+#
+
+DROP TABLE IF EXISTS `timeperiods`;
+
+CREATE TABLE `timeperiods` (
+  `timeperiodID` int(11) NOT NULL auto_increment,
+  `timeperiodAlias` varchar(24) NOT NULL default '',
+  `timeperiodName` varchar(64) NOT NULL default '',
+  `sunday` varchar(36) default NULL,
+  `monday` varchar(36) default NULL,
+  `tuesday` varchar(36) default NULL,
+  `wednesday` varchar(36) default NULL,
+  `thursday` varchar(36) default NULL,
+  `friday` varchar(36) default NULL,
+  `saturday` varchar(36) default NULL,
+  `activated` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`timeperiodID`)
+) TYPE=InnoDB;
+
+#
+# Data for the table timeperiods
+#
+
+insert into `timeperiods` values (1,'24x7','24 Hours A Day, 7 Days A Week','','','','','','','',1); 
+insert into `timeperiods` values (2,'WorkingHours','Working Hours','','09:00-17:00','09:00-17:00','09:00-17:00','09:00-17:00','09:00-17:00','',1);
+insert into `timeperiods` values (3,'Non-WorkingHours','Non-Working Hours','00:00-24:00','00:00-09:00,17:00-24:00','00:00-09:00,17:00-24:00','00:00-09:00,17:00-24:00','00:00-09:00,17:00-24:00','00:00-09:00,17:00-24:00','00:00-24:00',1);
 
 #
 # Table structure for table titles

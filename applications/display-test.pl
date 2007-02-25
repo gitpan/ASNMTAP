@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2007/02/25, v3.000.013, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -18,21 +22,21 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.012;
+use ASNMTAP::Time v3.000.013;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.012;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.013;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_T $opt_l $PROGNAME);
+use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_l $PROGNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,6 +46,7 @@ my $pagedir     = 'index';                                      # default
 my $pageset     = 'index';                                      # default
 my $debug       = 0;                                            # default
 my $loop        = 0;                                            # default
+my $creationTime;                                               # default
 my $displayTime = 1;                                            # default
 my $lockMySQL   = 0;                                            # default
 
@@ -64,6 +69,7 @@ GetOptions (
   "P:s" => \$opt_P, "pagedir:s"      => \$opt_P,
   "D:s" => \$opt_D, "debug:s"        => \$opt_D,
   "L:s" => \$opt_L, "loop:s"         => \$opt_L,
+  "c:s" => \$opt_c, "creationTime:s" => \$opt_c,
   "T:s" => \$opt_T, "displayTime:s"  => \$opt_T,
   "l:s" => \$opt_l, "lockMySQL:s"    => \$opt_l
 );
@@ -89,6 +95,14 @@ if ($opt_D) {
 if ($opt_L) {
   if ($opt_L eq 'F' || $opt_L eq 'T') {
     $loop = ($opt_L eq 'F') ? 0 : 1;
+
+    if ($opt_c) {
+      if ($opt_c =~ /^20\d\d-(?:0\d|1[0-2])-(?:[0-2]\d|3[0-1]) (?:[0-1]\d|2[0-3]):[0-5]\d:[0-5]\d$/) {
+        $creationTime = $opt_c;
+      } else {
+        usage("Invalid creation time <YYYY-MM-DD HH:MM:SS>: $opt_c\n");
+      }
+    }
   } else {
     usage("Invalid loop: $opt_L\n");
   }
@@ -114,10 +128,10 @@ if ($opt_l) {
 
 my ($dchecklist, $dtest, $dfetch, $tinterval, $tgroep, $resultsdir, $ttest, $firstTimeslot, $lastTimeslot, $rvOpen);
 my (@fetch, $dstart, $tstart, $start, $step, $names, $data, $rows, $columns, $line, $val, @vals);
-my ($command, $tstatus, $tduration, $timeValue, $prevGroep);
+my ($command, $tstatus, $tduration, $timeValue, $prevGroep, @multiarrayFullCondensedView);
 my ($rv, $dbh, $sth, $lockString, $findString, $unlockString, $doChecklist, $timeCorrectie, $timeslot);
-my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $itemFullCondensedView, @itemFullCondensedView);
-my ($checkOk, $checkSkip, $configNumber, $printCondensedView, @printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
+my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $itemFullCondensedView);
+my ($checkOk, $checkSkip, $configNumber, $printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
 my ($playSoundInProgress, $playSoundPreviousStatus, $playSoundStatus, %tableSoundStatusCache);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -131,7 +145,7 @@ $colspanDisplayTime += $NUMBEROFFTESTS if $displayTime;
 
 my $pidfile = $PIDPATH .'/'. $checklist .'.pid';
 
-my @checklisttable = read_table($prgtext, $checklist, 1, $debug);
+my @checklisttable = read_table($prgtext, $checklist, $loop, $debug);
 resultsdirCreate();
 
 my $directory = $HTTPSPATH .'/nav/'. $pagedir;
@@ -160,17 +174,17 @@ unless (fork) {                                  # unless ($pid = fork) {
     do {
       # Catch signals implementation
       if ($boolean_signal_hup) {
-        @checklisttable = read_table($prgtext, $checklist, 2, $debug);
+        @checklisttable = read_table($prgtext, $checklist, ( $loop ? 2 : 0 ), $debug);
         resultsdirCreate();
         $boolean_signal_hup = 0;
       }
 
-      # Update access and modify epoch time from the PID time
-      utime (time(), time(), $pidfile) if (-e $pidfile);
-
       # Crontab implementation
       read_tableSoundStatusCache ($checklist, $debug);
       foreach ('P', 'A', 'S', 'T', 'D', 'L') { do_crontab ($_); }
+
+      # Update access and modify epoch time from the PID time
+      utime (time(), time(), $pidfile) if (-e $pidfile);
 
       if ( $loop ) {
         my ($prevSecs, $currSecs);
@@ -284,12 +298,21 @@ sub do_crontab {
   }
 
   $prevGroep = "";
-  my ($dstatusMessage, @itemStatusMessage, @printStatusMessage);
-  @itemStatusMessage = @printStatusMessage = ();
+  my $dstatusMessage;
+  my @multiarrayStatusMessage = ();
 
-  printHtmlHeader($APPLICATION .' - '. $ENVIRONMENT{$Cenvironment});
+  my $creationDate;
 
-  my $currentDate = time();
+  if ( defined $creationTime ) {
+    my ($date, $time) = split (/ /, $creationTime);
+    my ($year, $month, $day) = split (/-/, $date);
+    my ($hour, $minute, $seconds) = split (/:/, $time);
+    $creationDate = timelocal ( $seconds, $minute, $hour, $day, $month-1, $year-1900 );
+    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} .' ('. scalar(localtime($creationDate)) .')' );
+  } else {
+    $creationDate = time();
+    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} );
+  }
 
   $rv  = 1;
   $dbh = DBI->connect("DBI:mysql:$DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
@@ -306,8 +329,8 @@ sub do_crontab {
   $emptyFullView = $emptyCondencedView = $emptyStatusMessage = 1;
 
   if ($doChecklist) {
+	@multiarrayFullCondensedView = [];
     $groupFullView = $groupCondensedView = 0;
-	@itemFullCondensedView = @printCondensedView = [];
 
     foreach $dchecklist (@checklisttable) {
       ($tinterval, $tgroep, $resultsdir, $ttest) = split(/\#/, $dchecklist, 4);
@@ -334,7 +357,8 @@ sub do_crontab {
         my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
         print "<", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         my $number = 1;
-        my $statusIcon;
+        my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon);
+        $itemTimeslot = $itemStatusIcon = 0;
 
         if ($dbh and $rv) {
           my ($acked, $sql, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
@@ -354,31 +378,32 @@ sub do_crontab {
 
             if ( $acked ) {
               while( ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime) = $sth->fetchrow_array() ) {
-                $downtime = ($Tdowntime) ? 1 : $downtime;
+                if ( int($TactivationTimeslot) <= get_timeslot ($creationDate) and get_timeslot ($creationDate) <= int($TsuspentionTimeslot) ) {
+                  if ( $Tpersistent ) {
+                    if ( $firstRecordPersistentTrue ) {
+                      $persistent = 1;
+                      $firstRecordPersistentTrue = 0;
+                      $suspentionTimeslotPersistentTrue = int($TsuspentionTimeslot);
+                    }
 
-                if ( $Tpersistent ) {
-                  if ( $firstRecordPersistentTrue ) {
-                    $persistent = 1;
-                    $firstRecordPersistentTrue = 0;
-                    $suspentionTimeslotPersistentTrue = int($TsuspentionTimeslot);
+                    $suspentionTimeslotPersistentTrue = ($suspentionTimeslotPersistentTrue > int($TsuspentionTimeslot)) ? $suspentionTimeslotPersistentTrue : int($TsuspentionTimeslot);
+                  } else {
+                    if ( $firstRecordPersistentFalse ) {
+                      $persistent = $firstRecordPersistentFalse = 0;
+                      $suspentionTimeslotPersistentFalse = int($TsuspentionTimeslot);
+                    }
+
+                    $suspentionTimeslotPersistentFalse = ($suspentionTimeslotPersistentFalse > int($TsuspentionTimeslot)) ? $suspentionTimeslotPersistentFalse : int($TsuspentionTimeslot);
                   }
 
-                  $suspentionTimeslotPersistentTrue = ($suspentionTimeslotPersistentTrue  > int($TsuspentionTimeslot)) ? $suspentionTimeslotPersistentTrue  : int($TsuspentionTimeslot);
-                } else {
-                  if ( $firstRecordPersistentFalse ) {
-                    $persistent = $firstRecordPersistentFalse = 0;
-                    $suspentionTimeslotPersistentFalse = int($TsuspentionTimeslot);
-                  }
-
-                  $suspentionTimeslotPersistentFalse = ($suspentionTimeslotPersistentFalse > int($TsuspentionTimeslot)) ? $suspentionTimeslotPersistentFalse : int($TsuspentionTimeslot);
+                  $downtime = ( $Tdowntime ? 1 : $downtime );
+                  $activationTimeslot = ($activationTimeslot < int($TactivationTimeslot)) ? $activationTimeslot : int($TactivationTimeslot);
+                  $suspentionTimeslot = ($suspentionTimeslot > int($TsuspentionTimeslot)) ? $suspentionTimeslot : int($TsuspentionTimeslot);
                 }
 
-                $activationTimeslot = ($activationTimeslot < int($TactivationTimeslot)) ? $activationTimeslot : int($TactivationTimeslot);
-                $suspentionTimeslot = ($suspentionTimeslot > int($TsuspentionTimeslot)) ? $suspentionTimeslot : int($TsuspentionTimeslot);
-
                 $TcommentData =~ s/'/`/g;
-                $TcommentData =~ s/[\n\r]/<br>/g; 
-                $TcommentData =~ s/<br><br>/<br>/g;
+                $TcommentData =~ s/[\n\r]/<br>/g;
+                $TcommentData =~ s/(?:<br>)+/<br>/g;
                 $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
               }
             }
@@ -387,7 +412,7 @@ sub do_crontab {
           }
 
           $step          = $tinterval * 60;
-          $lastTimeslot  = get_timeslot ($currentDate);
+          $lastTimeslot  = get_timeslot ($creationDate);
           $firstTimeslot = $lastTimeslot - ($step * $NUMBEROFFTESTS);
           $timeCorrectie = 0;
           $findString    = 'select * from '.$SERVERTABLEVENTS.' force index (key_timeslot) where uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
@@ -396,11 +421,12 @@ sub do_crontab {
           $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $findString");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $findString") if $rv;
 
-          my (@itemStatus, @itemStarttime, @itemTimeslot, @tempStatusMessage);
-          @itemStatus = @itemStarttime = @itemTimeslot = @tempStatusMessage = ();
+          my (@itemTimelocal, @itemStatus, @itemStarttime, @itemTimeslot, @tempStatusMessage);
+          @itemTimelocal = @itemStatus = @itemStarttime = @itemTimeslot = @tempStatusMessage = ();
           $timeValue = $lastTimeslot;
 
           for (; $number <= $NUMBEROFFTESTS; $number++) {
+            push (@itemTimelocal, $timeValue);
             push (@itemStatus, ($number == 1) ? 'IN PROGRESS' : 'NO DATA');
             push (@itemStarttime, sprintf ("%02d:%02d:%02d", (localtime($timeValue+$timeCorrectie))[2,1,0]));
             push (@itemTimeslot, $timeValue);
@@ -412,7 +438,7 @@ sub do_crontab {
 
           if ($rv) {
             while (my $ref = $sth->fetchrow_hashref()) {
-              $timeslot = int(($lastTimeslot - $ref->{timeslot}) / $step);
+              $timeslot = ( $step ? int(($lastTimeslot - $ref->{timeslot}) / $step) : 0 );
               print "<", $timeslot, "><", $ref->{title}, "><", $ref->{startTime}, "><", $ref->{timeslot}, ">\n" if ($debug);
 
               if ($timeslot >= 0) {
@@ -437,6 +463,12 @@ sub do_crontab {
 
                 my $tstatusMessage = ($ref->{filename} eq '<NIHIL>') ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>';
                 $statusIcon = ($acked and ($activationTimeslot - $step < $ref->{timeslot}) and ($suspentionTimeslot > $ref->{timeslot})) ? $ICONSACK {$tstatus} : $ICONS{$tstatus};
+
+                if ( $timeslot == 0 or $timeslot == 1 ) {
+                  my ($year, $month, $day) = split (/-/, $ref->{endDate});
+                  my ($hour, $minute, $seconds) = split (/:/, $ref->{endTime});
+                  $itemTimelocal[$timeslot] = timelocal ( $seconds, $minute, $hour, $day, $month-1, $year-1900 );
+                }
 
                 if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
                   $statusOverlib = ( $timeslot ? $itemStatus[1] : $itemStatus[0] );
@@ -466,14 +498,16 @@ sub do_crontab {
           }
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
-            if (defined $tempStatusMessage[$number]) {
-              push (@itemStatusMessage, $tempStatusMessage[$number]);
-              push (@printStatusMessage, $printCondensedView);
-            }
+            push (@multiarrayStatusMessage, [ $tempStatusMessage[$number], $printCondensedView ] ) if (defined $tempStatusMessage[$number]);
           }
+
+          $itemTitle      = $title;
+          $itemStatus     = ( $itemStatus[0] eq 'IN PROGRESS' ? $itemStatus[1] : $itemStatus[0] );
+          $itemTimeslot   = ( $itemStatus[0] eq 'IN PROGRESS' ? $itemTimelocal[1] : $itemTimelocal[0] );
+          $itemStatusIcon = ( $acked and ( $activationTimeslot - $step < $itemTimeslot ) and ( $suspentionTimeslot > $itemTimeslot ) ) ? 1 : 0;
         }
 
-        printItemFooter('');
+        printItemFooter($itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemFullCondensedView, $printCondensedView);
       }
 
       print "\n" if ($debug);			
@@ -494,13 +528,11 @@ sub do_crontab {
   printGroepFooter('', 0);
   printStatusHeader('', $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus);
 
-  if (@itemStatusMessage) { 
-    my $teller = 0;
+  if (@multiarrayStatusMessage) {
     $emptyStatusMessage = 0;
 
-    foreach $dstatusMessage (@itemStatusMessage) { 
-      printStatusMessage($dstatusMessage, $printStatusMessage[$teller]);
-      $teller++;
+    foreach $dstatusMessage (@multiarrayStatusMessage) { 
+      printStatusMessage(@$dstatusMessage[0], @$dstatusMessage[1]);
     }
   }
 
@@ -617,8 +649,7 @@ sub printGroepHeader {
 
   if ($show) {
     $groupFullView = $groupCondensedView = 0;
-    delete @itemFullCondensedView[0..@itemFullCondensedView];
- 	delete @printCondensedView[0..@printCondensedView];
+ 	delete @multiarrayFullCondensedView[0..@multiarrayFullCondensedView];
   }
 }
 
@@ -669,14 +700,15 @@ sub printStatusHeader {
 sub printItemHeader {
   my ($environment, $resultsdir, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment) = @_;
 
-  my $htmlFilename = "$RESULTSPATH/$resultsdir/$command-$uniqueKey";
-  $htmlFilename .= "-sql.html";
+  unless ( defined $creationTime ) {
+    my $htmlFilename = "$RESULTSPATH/$resultsdir/$command-$uniqueKey";
+    $htmlFilename .= "-sql.html";
 
-  unless ( -e "$htmlFilename" ) {
-    my $rvOpen = open(PNG, ">$htmlFilename");
+    unless ( -e "$htmlFilename" ) {
+      my $rvOpen = open(PNG, ">$htmlFilename");
 
-    if ($rvOpen) {
-      print PNG <<EOM;
+      if ($rvOpen) {
+        print PNG <<EOM;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
@@ -690,10 +722,11 @@ sub printItemHeader {
 <BODY>
 EOM
 
-      print PNG '<IMG SRC="', $RESULTSURL, '/', $resultsdir, '/', $command, '-', $uniqueKey, '-sql.png"></BODY></HTML>', "\n";
-      close(PNG);
-    } else {
-      print "Cannot create $htmlFilename!\n";
+        print PNG '<IMG SRC="', $RESULTSURL, '/', $resultsdir, '/', $command, '-', $uniqueKey, '-sql.png"></BODY></HTML>', "\n";
+        close(PNG);
+      } else {
+        print "Cannot create $htmlFilename!\n";
+      }
     }
   }
 
@@ -731,8 +764,13 @@ EOM
   $checkOk = $checkSkip = $printCondensedView = $problemSolved = $verifyNumber = 0;
   $inProgressNumber = -1;
 
-  $itemFullCondensedView = '  <TR>'."\n".'    '.$exclaim.$comments.$helpfile."\n".'    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\'';
-  $itemFullCondensedView .= $RESULTSURL .'/'. $resultsdir .'/'. $command ."-". $uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test). '</A></TD>'. "\n";
+  $itemFullCondensedView = '  <TR>'."\n".'    '.$exclaim.$comments.$helpfile."\n";
+
+  if ( defined $creationTime ) {
+    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep. encode_html_entities('T', $test) .'</TD>'. "\n";
+  } else {
+    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command ."-". $uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -743,11 +781,10 @@ sub printGroepCV {
   if ($showGroup and $title ne '') {
     if ($groupFullView) {
       print HTML '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
-      my $teller = 0;
+      my $teller = @multiarrayFullCondensedView;
 
-      foreach $itemFullCondensedView (@itemFullCondensedView) {
-        print HTML $itemFullCondensedView[$teller];
-        $teller++;
+      foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
+        print HTML @$arrayFullCondensedView[4];
       }
 
 	  $emptyFullView = ($teller == 0) ? $emptyFullView : 0;
@@ -755,12 +792,16 @@ sub printGroepCV {
     }
 
     if ($groupCondensedView) {
-      print HTMLCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
-      my $teller = 0;
+      @multiarrayFullCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayFullCondensedView );
+      @multiarrayFullCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayFullCondensedView );
+      @multiarrayFullCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayFullCondensedView );
+      @multiarrayFullCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayFullCondensedView );
 
-      foreach $itemFullCondensedView (@itemFullCondensedView) {
-        print HTMLCV $itemFullCondensedView[$teller] if ($printCondensedView[$teller]);
-        $teller++;
+      print HTMLCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
+      my $teller = @multiarrayFullCondensedView;
+
+      foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
+        print HTMLCV @$arrayFullCondensedView[4] if ( @$arrayFullCondensedView[5] );
       }
 
 	  $emptyCondencedView = ($teller == 0) ? $emptyCondencedView : 0;
@@ -789,7 +830,7 @@ sub printItemStatus {
       if ( $number == 1 ) {
         $verifyNumber = $VERIFYNUMBEROK;
 
-	    if ( $interval < $VERIFYMINUTEOK ) {
+	    if ( $interval and $interval < $VERIFYMINUTEOK ) {
           $verifyNumber = int($VERIFYMINUTEOK / $interval);
 
   	      if ( $verifyNumber > $NUMBEROFFTESTS ) {
@@ -821,7 +862,7 @@ sub printItemStatus {
       my $notDowntimeOrPersistent = 1;
 
       if ( $downtime or $persistent ) {
-        $notDowntimeOrPersistent = ( $solvedTimeslot >= $activationTimeslot ) ? 0 : 1;
+        $notDowntimeOrPersistent = ( $solvedTimeslot >= $activationTimeslot ? 0 : 1 );
       }
 
       if ( $number <= $inProgressNumber ) {
@@ -846,8 +887,8 @@ sub printItemStatus {
       $printCondensedView = 0 if ($downtime and ! $persistent);
       $debugInfo .= "$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
 
-      my $update   = 0;
-      my $sqlWhere = "";
+      my $update = 0;
+      my $sqlWhere = '';
 
       if ( $persistent == 0 ) {
         if ( $problemSolved ) {
@@ -1045,15 +1086,16 @@ sub printGroepFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemFooter {
-  my ($title) = @_;
+  my ($title, $status, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView) = @_;
 
   $itemFullCondensedView .= '</TR>' . "\n";
-  push (@itemFullCondensedView, $itemFullCondensedView);
 
   $groupFullView += 1;
 
   $groupCondensedView += $printCondensedView;
-  push (@printCondensedView, $printCondensedView);
+
+  my $groep = ( $title =~ /^\[(\d+)\]/ ? $1 : 0);
+  push (@multiarrayFullCondensedView, [ $ERRORS{"$status"}, $groep, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView ] );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1063,11 +1105,33 @@ sub printStatusFooter {
 
   print HTML   '</TABLE>', "\n";
   print HTML   '<HR>', "\n" unless ( $emptyFullView or $emptyStatusMessage );
-  print HTML   "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\" hidden=\"true\" autostart=\"true\">\n" if ($playSoundStatus);
+
+  if ($playSoundStatus) {
+    print HTML <<EOH;
+<script language="JavaScript" type="text/javascript">
+  var soundState = getSoundCookie( 'soundState' );
+
+  if ( soundState != null && soundState == 'on' ) {
+    document.getElementById('SoundStatus').innerHTML='<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true"><\\/embed>'
+  }
+</script>
+EOH
+  }
 
   print HTMLCV '</TABLE>', "\n";
   print HTMLCV '<HR>', "\n" unless ( $emptyFullView or $emptyCondencedView or $emptyStatusMessage );
-  print HTMLCV "<embed src=\"$HTTPSURL/sound/", $SOUND{$playSoundStatus}, "\" alt=\"\" hidden=\"true\" autostart=\"true\">\n" if ($playSoundStatus);
+
+  if ($playSoundStatus) {
+    print HTMLCV <<EOH;
+<script language="JavaScript" type="text/javascript">
+  var soundState = getSoundCookie( 'soundState' );
+
+  if ( soundState != null && soundState == 'on' ) {
+    document.getElementById('SoundStatus').innerHTML='<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true"><\\/embed>'
+  }
+</script>
+EOH
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1111,7 +1175,7 @@ sub maskPassword {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub print_usage () {
-  print "Usage: $PROGNAME -H <MySQL hostname> [-C <Checklist>] [-P <pagedir>] [-L <loop>] [-T <displayTime>] [-l <lockMySQL>] [-D <debug>] [-V version] [-h help]\n";
+  print "Usage: $PROGNAME -H <MySQL hostname> [-C <Checklist>] [-P <pagedir>] [-L <loop>] [-c <YYYY-MM-DD HH:MM:SS> ] [-T <displayTime>] [-l <lockMySQL>] [-D <debug>] [-V version] [-h help]\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1129,6 +1193,8 @@ sub print_help () {
 -L, --loop=F|T
    F(alse)  : loop off (default)
    T(rue)   : loop on
+-c, --creationTime=<YYYY-MM-DD HH:MM:SS>
+   YYYY-MM-DD HH:MM:SS: year, month, day, hours, minutes and seconds to use instead of the current time when --loop = F
 -T, --displayTime=F|T
    F(alse)  : display timeslots into html output off
    T(rue)   : display timeslots into html output (default)

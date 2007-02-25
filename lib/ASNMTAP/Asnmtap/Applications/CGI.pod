@@ -42,6 +42,10 @@ this program make it possible to generate the plugin charts through the CGI Inte
 
 this program make it possible to get the plugin debug files through the CGI Interface.
 
+=item getArchivedDisplays.pl
+
+this program make it possible to get the display archives through the CGI Interface.
+
 =item getArchivedReport.pl
 
 this program make it possible to get the plugin report files through the CGI Interface.
@@ -107,6 +111,23 @@ this program allow you to add, modify and delete languages through the CGI Inter
 =item reports.pl
 
 this program allow you to add, modify and delete reports (used by generateReports.pl) through the CGI Interface.
+
+=item timeperiods.pl
+
+this program allow you to add, modify and delete timeperiods through the CGI Interface.
+
+ The record with `timeperiodID` equals '1' must be 'No Time Is A Good Time', otherwise you will have problems!
+ `timeperiodID`    '1'
+ `timeperiodAlias` 'none'
+ `timeperiodName`  'No Time Is A Good Time'
+ `sunday`          ''
+ `monday`          ''
+ `tuesday`         ''
+ `wednesday`       ''
+ `thursday`        ''
+ `friday`          ''
+ `saturday`        ''
+ `activated`       '1'
 
 =item users.pl
 
@@ -232,7 +253,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

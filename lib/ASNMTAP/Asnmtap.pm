@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -14,8 +14,8 @@ use Getopt::Long;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 no warnings 'deprecated';
 
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,7 +111,7 @@ if ( exists $_config{SUBDIR} ) {
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} )    ? $_config{COMMON}{APPLICATION}    : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )       ? $_config{COMMON}{BUSINESS}       : 'CITAP';
 our $DEPARTMENT      = ( exists $_config{COMMON}{DEPARTMENT} )     ? $_config{COMMON}{DEPARTMENT}     : 'Development';
-our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2006';
+our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2007';
 our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} )    ? $_config{COMMON}{SENDEMAILTO}    : 'alex.peeters@citap.be';
 our $TYPEMONITORING  = ( exists $_config{COMMON}{TYPEMONITORING} ) ? $_config{COMMON}{TYPEMONITORING} : 'central';
 
@@ -396,7 +396,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]

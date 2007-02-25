@@ -1,13 +1,17 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_nagios-comments-cleanup.pl
+# 2007/02/25, v3.000.013, check_nagios-comments-cleanup.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -21,26 +25,30 @@ my $commandFile = $nagiosPath .'/var/rw/nagios.cmd';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.012;
+use ASNMTAP::Time v3.000.013;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.012;
+use ASNMTAP::Asnmtap::Applications v3.000.013;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.012;
+use ASNMTAP::Asnmtap::Plugins v3.000.013;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $objectAsnmtap = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_nagios-comments-cleanup.pl',
   _programDescription => 'Nagios v2.x Comments Cleanup',
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programUsagePrefix => '[-E|--email <boolean>]',
   _programHelpPrefix  => "-E, --email=<boolean>
     BOOLEAN: 0 = FALSE and 1 = TRUE",

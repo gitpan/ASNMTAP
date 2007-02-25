@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -9,8 +9,8 @@ package ASNMTAP::Asnmtap::Plugins::WebTransact;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -128,7 +128,7 @@ sub new {
     }
   }
 
-  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, newAgent => 1, number_of_images_downloaded => 0 }, $classname;
+  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, newAgent => 1, number_of_images_downloaded => 0, _unknownErrors => 0, _KnownError => undef }, $classname;
 
   # The field urls contains a ref to a list of (hashes) records representing the web transaction.
 
@@ -191,6 +191,9 @@ sub check {
 
       # don't use $ua->proxy ( ['http', 'https', 'ftp'] => $proxyServer ); or $ua->proxy ( 'https' => undef ) ;
       $ua->proxy ( ['http', 'ftp'] => $proxyServer );
+
+      # do not proxy requests to the given domains. Calling no_proxy without any domains clears the list of domains.
+      ( defined ${$self->{asnmtapInherited}}->proxy ( 'no' ) and ${$self->{asnmtapInherited}}->proxy ( 'no' ) ne '' ? $ua->no_proxy( @{ ${$self->{asnmtapInherited}}->proxy ( 'no' ) } ) : $ua->no_proxy( ) ) ;
     }
 
     $ua->cookie_jar ( HTTP::Cookies->new ) if ( $parms{cookies} );
@@ -207,6 +210,7 @@ sub check {
   }
 
   foreach my $url_r ( @{ $self->{urls} } ) {
+    $self->{_KnownError} = undef;
     ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
 
     my $url = $url_r->{Url} ? $url_r->{Url} : &_next_url ($response, $response_as_content);
@@ -347,8 +351,9 @@ sub check {
           /417 Expectation Failed/ && do { $knownError = 1; $errorMessage = "417 Expectation Failed"; last; };
         }
 
-        rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => "'". $errorMessage ."' - ". $url_r->{Msg}, error => &_error_message( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
+        $self->{_KnownError} = $debugfile if ( defined $debugfile and $knownError );
+        $self->{_unknownErrors}++ unless ( $knownError );
         return ( $returnCode );
       }
     } else {
@@ -357,10 +362,11 @@ sub check {
 
     if ( $parms{custom} ) {
 	  my ($returnCode, $knownError, $errorMessage) = $parms{custom}->( $response_as_content );
-      rename ($debugfile, "$debugfile-KnownError") if ( defined $debugfile and $knownError );
 
 	  if ( $returnCode != $ERRORS{OK} and defined $errorMessage ) {
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $returnCode, alert => $errorMessage .' - '. $url_r->{Msg}, error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
+        $self->{_KnownError} = $debugfile if ( defined $debugfile and $knownError );
+        $self->{_unknownErrors}++ unless ( $knownError );
         return ( $returnCode );
 	  }
 	}
@@ -371,17 +377,20 @@ sub check {
       my $fault_ind = $url_r->{Exp_Fault};
       my ($bad_stuff) = $response_as_content =~ /($fault_ind.*\n.*\n)/;
       ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => $url_r->{Msg_Fault}, error => &_error_message ( $request->method .' '. $request->uri ), result => $bad_stuff }, $TYPE{REPLACE} );
+      $self->{_unknownErrors}++;
       return ( $ERRORS{CRITICAL} );
     } elsif ( ! ($found = $self->_my_match ( $url_r->{Exp}, $response_as_content, 1 )) ) {
       my $exp_type = ref $url_r->{Exp};
       my $exp_str = $exp_type eq 'ARRAY' ? "@{$url_r->{Exp}}" : $url_r->{Exp};
       ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". $exp_str ."' not in response", error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
+      $self->{_unknownErrors}++;
       return ( $ERRORS{CRITICAL} );
     } elsif (ref $url_r->{Exp} eq 'ARRAY') {
       my $exp_array = @{$url_r->{Exp}};
 
       if ( $exp_array != $found ) {
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "'". $url_r->{Msg} ."' - '". ( $exp_array - $found ) ."' element(s) not in response", error => &_error_message ( $request->method .' '. $request->uri ), result => $response_as_content }, $TYPE{REPLACE} );
+        $self->{_unknownErrors}++;
         return ( $ERRORS{CRITICAL} );
       }
     }
@@ -391,6 +400,7 @@ sub check {
 
       if ( $image_dl_nok ) {
         ${$self->{asnmtapInherited}}->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $image_dl_msg }, $TYPE{REPLACE} );
+        $self->{_unknownErrors}++;
         return ( $ERRORS{CRITICAL} );
       }
 
@@ -576,6 +586,9 @@ sub _write_debugfile {
     # $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[ $\/:;=?@.\-!*'()\w&+,]+\"(?:\s+\/?)?>)/<!--$1-->/img;
       $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[^"]+\"(?:\s+\/?)?>)/<!--$1-->/img;
 
+      # remove password from Basic Authentication URL before putting into database!
+      $response_as_content =~ s/(http[s]?)\:\/\/(\w+)\:(\w+)\@/$1\:\/\/$2\:********\@/img;
+
       # comment <SCRIPT></SCRIPT>
       $response_as_content =~ s/<SCRIPT/<!--<SCRIPT/gi;
       $response_as_content =~ s/<\/SCRIPT>/<\/SCRIPT>-->/gi;
@@ -619,7 +632,10 @@ sub _next_url {
 
 # Destructor  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub DESTROY { print (ref ($_[0]), "::DESTROY: ()\n") if ( ${$_[0]->{asnmtapInherited}}->getOptionsValue ( 'debug' ) ) }
+sub DESTROY { 
+  print (ref ($_[0]), "::DESTROY: ()\n") if ( ${$_[0]->{asnmtapInherited}}->getOptionsValue ( 'debug' ) );
+  rename ( $_[0]->{_KnownError}, $_[0]->{_KnownError} .'-KnownError' ) if ( defined $_[0]->{_KnownError} and ! $_[0]->{_unknownErrors} );
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

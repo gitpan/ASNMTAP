@@ -1,163 +1,117 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2006
-Version      : 3.000.012
+Latest update: xx xxx 2007
+Version      : 3.000.013
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.012, 2006/xx/xx, Central and Distributed support
-                               - added common variable TYPEMONITORING to Asnmtap.cnf
-                               fixRights.sh
-                               - updated: script om rechten (chmod en chown) te zetten
+Version 3.000.013, 2007/02/25, ASNMTAP
+                               - add BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+                               - FIX replace <script language="JavaScript..."> with <script language="JavaScript..." type="text/javascript">
+                               - UPDATE Mozilla/5.0 compatible
+                               - UPDATE CSE HTML Validator version 1.2.3 compatible
+                               - UPDATE CSS Level 2.1 compatible
                                Makefile.PL
-                               - version update CPAN 1.8802 & CPANPLUS 0.076
-                               - version update ExtUtils::MakeMaker 6.31
-                               - version update Module::AutoInstall 1.03
-                               - version update Bundle::DBI 1.53
-                               - version update CGI 3.25
-                               - version update Compress::Zlib 2.001
-                               - version update Config::General 2.31
-                               - version update Config::General::Interpolated 2.07
-                               - version update Crypt::OpenSSL::RSA 0.24
-                               - version update Cwd 3.23
-                               - version update Data::Dumper 2.121
-                               - version update DateTime 0.35
-                               - version update DateTime::Format::W3CDTF 0.04
-                               - version update Device::Modem 1.47
-                               - version update Digest::MD5 2.36
-                               - version update Email::Simple 1.995
-                               - version update Getopt::Long 2.35
-                               - version update IO 1.23
-                               - NEW IO::Socket::SSL 1.01
-                               - version update MIME::Tools 5.420
-                               - version update NetAddr::IP 4.004
-                               - version update Net::FTP 2.75
-                               - version update Net::Ifconfig::Wrapper 0.09
-                               - NEW Net::SSLeay 1.30
-                               - version update Proc::ProcessTable 0.41
-                               - version update Sys::Hostname::Long 1.4
-                               - NEW Test::Pod::Coverage 1.08
-                               - version update Test::Simple 0.47
-                               - version update Time::HiRes 1.94
-                               - version update Time::Local 1.13
-                               - version update XML::LibXML 1.61
-                               - version update XML::Simple 2.16
-                               - install 'ASNMTAP' with make install
-                                 PM - This hash will contain a list of all ASNMTAP files
-                               MANIFEST.SKIP
-                               - A file full of regular expressions to exclude when using 'make manifest' to generate the MANIFEST.
-                               - used by 'make manifest' to build the file MANIFEST
-                               - also used by 'make skipcheck' & 'make distcheck'
-                               Shared PERL & SSL support
-                               - added environment variable PERL5LIB, MANPATH & LD_LIBRARY_PATH to Asnmtap.cnf
-                               Windows Internet Explorer 7.0
-                               - tested and did look OK
-                               ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               ASNMTAP::Asnmtap::Applications
-                               - NEW purge_table.pl
-                               - add Environment after the Plugin Titles
-                               - add our %ENVIRONMENT = ('P'=>'Production', 'S'=>'Simulation', 'A'=>'Acceptation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
-                               - used into display.pl, comments.pl, contact.pl, getHelpPlugin.pl, info.pl, perfparse.pl, runCmdOnDemand.pl & users.pl
-                               - Applications.pod updated regarding 'perl Makefile.PL INSTALL_BASE=/opt/asnmtap/cpan-shared'
-                               ASNMTAP::Asnmtap::Plugins
-                               - Bugfix: replace: _programGetOptions  => [..., 'password|passwd|p=s', ...],
-                                         with   : _programGetOptions  => [..., 'password|p|passwd=s', ...],
-                               - Bugfix: replace: push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|dumphttp|httpdump|D:s', 'debug|d:s' );
-                                         with   : push ( @{ $_[0]->{_programGetOptions} }, 'status|S:s', 'asnmtapEnv|A:s', 'onDemand|O:s', 'logging|L:s', 'debugfile|D|dumphttp|httpdump:s', 'debug|d:s' );
-                               - check_memory-top.pl, now also Solaris 10 compatible
-                               - Bugfix: '<environment>PROD</environment>' into check_template-mail-xml.pl & check_template-mail-xml-fingerprint-xml.pl
-                               - replaced 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; ASNMTAP; U;' with 'Mozilla/4.7 (compatible; ASNMTAP; U;'
-                               - NEW $ENV{HTTPS_VERSION} for v2, v3 and v23
-                               ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_nagios-comments-cleanup.pl
-                               - NEW EPN (Embedded Perl Nagios) compatible
-                               ASNMTAP::Asnmtap::Plugins::NPTest
-                               - upgrade van version NPTest v1.11 to v1.13
-                               - replace NPTest->testCmd with ASNMTAP::Asnmtap::Plugins::NPTest->testCmd
-                               ASNMTAP::Asnmtap::Plugins::SOAP
-                               - add $SOAP::Constants::PATCH_HTTP_KEEPALIVE
-                               - add ws-security through WSRF::Lite
-                               ASNMTAP::Asnmtap::Plugins::WebTransact
-                               - based on 'Nagios::WebTransact' v0.14.1 & v0.16 from Stanley Hopcroft [Stanley.Hopcroft@IPAustralia.Gov.AU]
-             ATTENTION   -->   asnmtap-3.000.012.sql
-                               - NEW table `environment`
-                               - add `userPassword` varchar(15) NOT NULL default '' at table reports
-                               - remove `reportTitle` varchar(100) NOT NULL default '' from table reports
-                               - add `downtimeScheduling` tinyint(1) NOT NULL default '1' and `generatedReports` tinyint(1) NOT NULL default '0' at table users
-                               Bugfix Popup Calendar
-                               - replace document.forms[0].endDate with document.forms[1].endDate
-                               collector.pl
-                               - add automatically the environment at the end off the title
-                               collector.pl & display.pl
-                               - update atime and mtime from the PID file every timeslot
-                               - email message for started, stopped & reloaded
-                               collectorCrontabSchedulingReports.pl & collectorDaemonSchedulingReports.pl
-                               - show only the Plugins regarding correspondending server
-                               comments.pl & holidayBundleSetDowntimes.pl
-                               - Sending email for: Downtime Scheduling
-                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
-                               - Problem details: link to the correspondending 'Debug Report' when 'Format Output' equals 'HTML'
-                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl, generateChart.pl & trendlineCorrectionReports.pl
-                               - replace round(avg(duration), 2) with round(avg(time_to_sec(duration)), 2) because of wrong averages
+                               - version update Bundle::DBD::mysql 4.001
+                               - version update CGI::Session 4.20
+                               - version update Compress::Zlib 2.003
+                               - version update Crypt::OpenSSL::X509 0.4
+                               - version update Crypt::SSLeay 0.53
+                               - version update Cwd 3.24
+                               - version update DateTime 0.36
+                               - version update Email::Simple 1.996
+                               - NEW ExtUtils::Autoconf 0.02
+                               - version update Getopt::Long 2.36
+                               - version update IO::Socket::SSL 1.02
+                               - version update Net::IMAP::Simple 1.16
+                               - version update Time::HiRes 1.9704
+                               - version update Time::Local 1.17
+                               - version update WSRF::Lite 0.8.1
+                               - version update XML::LibXML 1.62
+                               MANIFEST
+                               - NEW applications/sbin/bash_stop_root.sh
+                               - UPDATE move plugins/check_file-counter.pl to plugins/templates/check_file-counter.pl
+                               - UPDATE move plugins/check_sendAndReceiveMail.pl to plugins/templates/check_sendAndReceiveMail.pl
+             ATTENTION   -->   asnmtap-3.000.013.sql
+                               - NEW table `timeperiods`
+                               - add `timeperiodID` int(11) NOT NULL default '1' at table reports
+                               - add KEY `timeperiodID` (`timeperiodID`), at table reports
+                               - add CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`timeperiodID`) REFERENCES `timeperiods` (`timeperiodID`) at table reports
+                               - UPDATE replace 'KEY `pagedir` (`pagedir`),' with 'UNIQUE KEY `pagedir` (`pagedir`),' at table displayDaemons
+                               asnmtap-3.000.013-distributed.sql
+                               - NEW example for distributed monitoring
+                               crontab verify disable email when ...
+                               - By default cron jobs sends a email to the user account executing the cronjob.
+                                 Because this is not needed we put the following command At the end of the cron job line.
+                                 '> /dev/null (default)' or '> /dev/null 2>&1'
+                               comments.pl
+                               - FIX regarding 'Please re-enter entry date/time: Date/Time are into the future!'
+                               - FIX regarding 'Please re-enter solved date/time: Date/Time are into the future!'
+                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl, generateChart.pl & htmlToPdf.pl
+                               - add my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : "none";
                                display.pl
-                               - possibility for sound on/off
-                               - onderdrukking ledige groepen in full view
-                               - vermelden op welke probe een test wordt uitgevoerd
-                               - onderdrukken niet persistent downtimes in condenced view
-                               - mask password for '--dnPass=', used by check_template-ldap.pl
-                               - environment icons, exclaim popup window for plugins and comments
-                               - 'In Progress'-animated icon replaced with 'In Progress'-static icon for faster display!
-                               - de debugrapporten onderaan de view enkel aanklikbaar maken als de file via rsync al aanwezig is op het moment van de display generatie, ter voorkoming van 404 errors.
-                               - add console messages: 'No Monitored Applications', 'All Monitored Applications are OK', '..., probably collector/config problems!' & , '..., probably database problems!'
-                               displayDaemons.pl
-                               - add 'ServerID' into general view
-                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
-                               - add a checkbox, to choose output destination: HTML/PDF 
-                               getArchivedReport.pl & getArchivedResults.pl
-                               - YYYY/MM/DD notatie met voorloopnullen voor maand en dag
+                               - add -c, --creationTime=<YYYY-MM-DD HH:MM:SS>, YYYY-MM-DD HH:MM:SS: year, month, day, hours, minutes and seconds to use instead of the current time when --loop = F
+                               - add sort results by status, group, comments and then by time
+                               - FIX <\\/embed> added
+                               - FIX stop caching sound during refresh when sound off
+                               - FIX when downtime into the future, problem with the 'Condended View'
+                               - UPDATE replace '$TcommentData =~ s/<br><br>/<br>/g;' with '$TcommentData =~ s/(?:<br>)+/<br>/g;'
+                               display.pl and plugins.pl
+                               - FIX interval/step must be greather then 0!
+                               getArchivedDisplays.pl
+                               - NEW Archived Displays
                                generateConfig.pl
-                               - check for 'help plugin filenames' without plugin reference
-                               - check for plugins without or with missing 'help plugin filename'
-                               - looking after existing plugins that are not defined into the database plugins
-                               - verify that the defined plugins into the table plugins, exists and are executable
-                               - generate automatic the Rsync Mirror Distributed & Failover Scripts / Collector Daemon
-                               generateReports.pl
-             ATTENTION   -->   - tested with HTMLDOC v1.8.27 and added --user-password password support
-                               - een plugin die disabled is waarvoor een rapport gevraagd wordt niet uitvoeren
-                               - specify F for --daysAfter means that the specified date will be used as the reportdate
-                               generateReports.pl & generateCollectorDaemonSchedulingReports.pl
-                               - ... already generated / will be generated
-                               - ... generated / generation failed
-                               generatedReports.pl, plugins & reports.pl
-                               - remove 'reportTitle'
-                               get_ArchivedReport.pl & get_ArchivedResults.pl
-                               - replace 'Week #' with 'Week # from monday off week until sunday off week'
+                               - FIX all SQL select statements regarding *.activated = 1 and add when needed
+                               - added print text to fix rights regarding chmod 755 for new CollectorCT-.*sh or DisplayCT-.*sh script
+                               - added edit, delete, duplicate and maintenance button for 'Plugin' and 'Help Plugin Filename'
+                               holidayBundleSetDowntimes.pl
+                               - FIX Global symbol "$SERVERTABLENVIRONMNT" requires explicit package name at ./holidayBundleSetDowntimes.pl line 152.
                                plugins.pl
-                               - upload for Help Plugin Filename (PDF)
-                               - controle op '{}' bij ingeven van de value voor het veld 'Title:'
-                               pluginCrontabSchedulingReports.pl
-                               - show only the Plugins regarding correspondending server
-                               removeModulePerl.pl
-                               - NEW
-                               rsync-mirror-*.sh
-                               - replace: rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-                                 with: ssh=<sshpath>; $Rsync -e "$ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-                               runCmdOnDemand.pl
-                               - mask password for '--dnPass=', used by check_template-ldap.pl
+                               - making it possible to edit 'Help Plugin Filename' manual or by uploading and to clear with '<NIHIL>'
                                runStatusOnDemand.pl
-                               - bugfix: 'Command: not found.' must be 'No Display|Collector daemons defined'
-                               trendlineCorrectionReports.pl
-                               - show only the Plugins regarding correspondending server and order by Title
-                               user.pl
-                               - Sending email for: Downtime Scheduling & Generated Reports
+                               - UPDATE doRequestedActions: added -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=$WWWKEYPATH/.ssh/known_hosts'
+                               rsync-wrapper-*.sh
+                               - UPDATE advanced debug information
+                               - UPDATE making rsync version 2.6.7
+                               /applications/bin/
+                               - UPDATE generateCollectorDaemonSchedulingReports.sh
+                               - UPDATE generateReports.sh
+                               - UPDATE holidayBundleSetDowntimes.sh
+                               /applications/sbin/
+                               - UPDATE perfparse_crontab.sh
+                               - NEW bash_stop_root.sh
+                               /plugins/templates/
+                               - UPDATE check_MySQL-database-replication.pl
+                               ASNMTAP::Asnmtap
+                               - replace '#!/usr/bin/perl' with '#!/usr/local/bin/perl'
+                               ASNMTAP::Asnmtap::Applications
+                               - FIX <\\/embed> added
+                               - FIX verify empty cgisess file at get_session_param () used by archive.pl
+                               - added Birthday, Firework, Halloween, Snowflake, Valentine, ... for view '/asnmtap/nav/index' or '/asnmtap/nav/test'
+                                 NEW applications/htmlroot/JSFX_Browser.js
+                                 NEW applications/htmlroot/JSFX_Falling.js
+                                 NEW applications/htmlroot/JSFX_Fireworks.js
+                                 NEW applications/htmlroot/JSFX_Fireworks2.js
+                                 NEW applications/htmlroot/JSFX_Halloween.js
+                                 NEW applications/htmlroot/JSFX_Layer.js
+                               ASNMTAP::Asnmtap::Applications::CGI
+                               - NEW timeperiods.pl
+                               ASNMTAP::Asnmtap::Plugins and ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - FIX debug information must be into the debug file '*.html' or '*.html-KnownError' but never into both
+                               - added info regarding keep_alive and SSL session resume
+                               - added do not proxy requests to the given domains. Calling no_proxy without any domains clears the list of domains.
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW check_fs-stat.pl
+                               ASNMTAP::Asnmtap::Plugins::SOAP
+                               - add TYPE_ERROR_RETURN
+                               ASNMTAP::Asnmtap::Plugins::WebTransact & runCmdOnDemand.pl
+                               - ADDED remove password from Basic Authentication URL before putting into database!
 
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -171,7 +125,7 @@ To install this module type the following:
 
 OR
 
-When ypu need a proxyserver, and your CPAN and/or CPANPLUS isn't confugured
+When you need a proxyserver, and your CPAN and/or CPANPLUS isn't confugured
 to use one, then you must set: HTTP_PROXY and/or FTP_PROXY
 
   export HTTP_PROXY="http://host:port"
@@ -236,14 +190,14 @@ Base package ASNMTAP::Asnmtap
 - Config::General::Interpolated: 2.06
 - Data::Dumper:                  2.12
 - Dumpvalue:                     1.11
-- Getopt::Long:                  2.32
+- Getopt::Long:                  2.36
 - IO::CaptureOutput:             1.03
 - Test::Simple:                  0.65
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Time
 - Date::Calc:                    5.4
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Asnmtap::Applications
 - ASNMTAP::Time:
@@ -251,25 +205,25 @@ ASNMTAP::Asnmtap::Applications
 - Carp:
 - Config::General:               2.30
 - Config::General::Interpolated: 2.06
-- Getopt::Long:                  2.32
+- Getopt::Long:                  2.36
 - HTML::Entities:                1.29
 - Mail::Sendmail:                0.79
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Asnmtap::Applications::CGI
 - ASNMTAP::Time:
 - ASNMTAP::Asnmtap::Applications:
 - Carp:
-- CGI::Session:                  4.13
+- CGI::Session:                  4.20
 - Date::Calc:                    5.4
 - NetAddr::IP:                   3.028
 - Proc::ProcessTable:            0.39
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Asnmtap::Applications::Collector
 - ASNMTAP::Asnmtap::Applications:
 - Carp:
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Asnmtap::Applications::Display
 - ASNMTAP::Asnmtap::Applications:
@@ -278,7 +232,7 @@ ASNMTAP::Asnmtap::Applications::Display
  
 ASNMTAP::Asnmtap::Plugins
 - ASNMTAP::Asnmtap:
-- Time::HiRes:                   1.66
+- Time::HiRes:                   1.9704
 
 ASNMTAP::Asnmtap::Plugins::IO
 - ASNMTAP::Asnmtap::Plugins:
@@ -286,7 +240,7 @@ ASNMTAP::Asnmtap::Plugins::IO
 
 ASNMTAP::Asnmtap::Plugins::Nagios
 - ASNMTAP::Asnmtap::Plugins:
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
   check_template-ldap.pl
   - Net::LDAP:
@@ -302,14 +256,14 @@ ASNMTAP::Asnmtap::Plugins::Nagios
 
 ASNMTAP::Asnmtap::Plugins::Mail
 - Date::Calc:                    5.4
-- Email::Simple:                 1.92
+- Email::Simple:                 1.996
 - Mail::POP3Client               2.17
 - Mail::Sendmail:                0.79
 - MIME::Base64:                  3.01
 - MIME::Parser                   5.419
-- Net::IMAP::Simple:             1.14
+- Net::IMAP::Simple:             1.16
 - Net::POP3:                     2.28
-- Time::Local:                   1.04
+- Time::Local:                   1.17
 
 ASNMTAP::Asnmtap::Plugins::Modem
 - ASNMTAP::Asnmtap::Plugins:
@@ -357,9 +311,9 @@ ASNMTAP::Asnmtap::Plugins::WebTransact
 - ASNMTAP::Asnmtap::Plugins:
 - Bundle::LWP:                   1.11
 - CGI:                           3.10
-- Compress::Zlib:                1.41
+- Compress::Zlib:                2.003
 - Digest::MD5:                   2.33
-- Crypt::SSLeay:                 0.51
+- Crypt::SSLeay:                 0.53
 - MIME::Base64:                  3.01
 - Net::FTP:                      2.58
 - URI:                           1.35
@@ -367,11 +321,11 @@ ASNMTAP::Asnmtap::Plugins::WebTransact
 ASNMTAP::Asnmtap::Plugins::XML
 - ASNMTAP::Asnmtap::Plugins:
 - XML::Parser:                   2.34
-- XML::LibXML:                   1.58
+- XML::LibXML:                   1.62
 - XML::Simple:                   2.14
 
 ASNMTAP::Asnmtap::Plugins::NPTest
-- Cwd:                           3.05
+- Cwd:                           3.24
 - Data::Dumper:                  2.12
 - File::Basename:                2.73
 
@@ -393,7 +347,7 @@ Dependencies Data::Structure::Util
 # COPYRIGHT AND LICENCE - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.com]
+© Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.com]
 
 Version 3.000.004, 2006/02/12, ASNMTAP CPAN module ASNMTAP::Asnmtap::Plugins::Mail and  ASNMTAP::Asnmtap::Plugins::Modem
 
@@ -442,7 +396,7 @@ Purpose: CronTab (CT, sysdCT),
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.com]
+© Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.com]
 
 ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
 
@@ -465,7 +419,7 @@ COPYRIGHT NOTICE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.com]
+© Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.com]
 
 'archive.pl'                              is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]
 'rsync-mirror-distributed-<hostname>.sh'  is based on 'Secure System Backup tool v1.3.2-03' written by Alex Peeters [alex.peeters@citap.com]

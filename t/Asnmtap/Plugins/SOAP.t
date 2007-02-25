@@ -1,4 +1,4 @@
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 
@@ -6,13 +6,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(&get_soap_request) ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.012;
+use ASNMTAP::Asnmtap::Plugins v3.000.013;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'SOAP.t ',
   _programDescription => "Testing ASNMTAP::Asnmtap::Plugins::SOAP",
-  _programVersion     => '3.000.012',
+  _programVersion     => '3.000.013',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -269,7 +269,23 @@ TODO: {
 
   $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QSOAP parameter WSRF must be 0 or 1\E/);
   ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): SOAP parameter WSRF must be 0 or 1');
-}
+
+  ($returnCode, $xml) = get_soap_request ( 
+    asnmtapInherited  => \$objectPlugins,
+    proxy             => $proxy,
+    namespace         => $namespace,
+    registerNamespace => \%soapService_Register_NS,
+    method            => $method,
+    xmlContent        => $xmlContent,
+    params            => $params,
+    cookies           => 1,
+    perfdataLabel     => 'SOAP.t',
+    TYPE_ERROR_RETURN => 'UNKNOWN'
+  );
+
+  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QSOAP parameter TYPE_ERROR_RETURN must be [REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT]\E/);
+  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): SOAP parameter TYPE_ERROR_RETURN must be [REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT]');
+ }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

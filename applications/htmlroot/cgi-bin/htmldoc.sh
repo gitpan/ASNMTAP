@@ -1,8 +1,8 @@
 #!/bin/sh
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, htmldoc.sh for ASNMTAP
+# 2007/02/25, v3.000.013, htmldoc.sh for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 #

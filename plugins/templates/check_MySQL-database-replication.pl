@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2006/xx/xx, v3.000.012, check_MySQL-database-replication.pl
+# 2007/02/25, v3.000.013, check_MySQL-database-replication.pl
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -17,8 +17,12 @@
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
-use warnings;           # Must be used in test mode only. This reduce a little process speed
-#use diagnostics;       # Must be used in test mode only. This reduce a lot of process speed
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -27,7 +31,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.012;
+use ASNMTAP::Asnmtap::Plugins v3.000.013;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,19 +39,19 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.012',
-  _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [--database=<database>] [--binlog=<binlog>] [--table=<table>] [--cluster=<cluster>]',
+  _programVersion     => '3.000.013',
+  _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [-1|--database=<database>] [-2|--binlog=<binlog>] [-3|--table=<table>] [-4|--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
 -c, --critical=<CRITICAL>
    <CRITICAL> = last \'Update Time from Table\' seconds ago
---database = <database> (default: asnmtap)
---binlog   = <binlog>   (default: asnmtap)
---table    = <table>    (default: events)
---cluster  = S|M
+-1, --database = <database> (default: asnmtap)
+-2, --binlog   = <binlog>   (default: asnmtap)
+-3, --table    = <table>    (default: events)
+-4, --cluster  = S|M
    S(lave) : check slave replication on
    M(aster): check master replication on',
-  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'port|P:i', 'username|u|loginname:s', 'password|p|passwd:s', 'database:s', 'binlog:s', 'table:s', 'cluster:s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'port|P:i', 'username|u|loginname:s', 'password|passwd|p:s', 'database|1:s', 'binlog|2:s', 'table|3:s', 'cluster|4:s', 'environment|e:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
   
@@ -106,15 +110,15 @@ if ( $exist ) {
 
       $ref = $sth->fetchrow_arrayref;
 
-      if ( $ref ) { 
-	    print "M) File '$$ref[0]' Position '$$ref[1]'\nM) Binlog_do_db '$$ref[2]' Binlog_ignore_db '$$ref[3]'\n" if ( $debug ); 
+      if ( $ref ) {
+        print "M) File '$$ref[0]' Position '$$ref[1]'\nM) Binlog_do_db '$$ref[2]' Binlog_ignore_db '$$ref[3]'\n" if ( $debug ); 
 
         if ( (index $$ref[2], $binlog) ne -1 ) {
           $alert .= '+Binlog do DB';
-		  print "M) Binlog do DB '$binlog' present\n" if ( $debug ); 
+		  print "M)+Binlog do DB '$binlog' present\n" if ( $debug ); 
         } else {
           $alert = "Binlog do DB '$binlog' not present";
-		  print "M) $alert\n" if ( $debug ); 
+		  print "M)-$alert\n" if ( $debug ); 
           $returnCode = $ERRORS{CRITICAL};
 	  	}
 	  }
@@ -134,31 +138,31 @@ if ( $exist ) {
           if ( (index $$ref[12], $binlog) ne -1 ) {
             if ( $cluster eq 'M' ) {
               $alert = "Replication for '$binlog' running on master server";
-              print "S) $alert\n" if ( $debug ); 
+              print "S)-$alert\n" if ( $debug ); 
               $returnCode = $ERRORS{WARNING};
             } else {
               if ( $$ref[11] eq 'No' ) {
                 $alert = "Replication ERROR: NO Slave SQL Running";
-                print "S) $alert\n" if ( $debug ); 
+                print "S)-$alert\n" if ( $debug ); 
                 $returnCode = $ERRORS{CRITICAL};
               } elsif ( $$ref[18] ne '0' ) {
                 $alert = "Replication ERROR '$$ref[18]' for '$binlog' running on slave server";
-                print "S) $alert\n" if ( $debug ); 
+                print "S)-$alert\n" if ( $debug ); 
                 $returnCode = $ERRORS{CRITICAL};
               } else {
                 $alert .= "+Replicate do DB+" . $$ref[0];
-      	        print "S) Replicate do DB '$binlog' present\n" if ( $debug ); 
+      	        print "S)+Replicate do DB '$binlog' present\n" if ( $debug ); 
               }
             }
           } else {
             $alert = "Replicate do DB '$binlog' not present";
-	        print "S) $alert\n" if ( $debug ); 
+	        print "S)-$alert\n" if ( $debug ); 
             $returnCode = $ERRORS{CRITICAL};
 		  }
         } else {
           if ( $cluster eq 'S' ) {
             $alert = "Replication for '$binlog' not running on slave server";
-            print "S) $alert\n" if ( $debug );
+            print "S)-$alert\n" if ( $debug );
             $returnCode = $ERRORS{WARNING};
           }
 		}
@@ -167,60 +171,60 @@ if ( $exist ) {
       }
     }
 
-    if ( $returnCode eq $ERRORS{OK} ) {
-      $prepareString = "SHOW TABLE STATUS FROM $database";
-      $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-      $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  # if ( $returnCode eq $ERRORS{OK} ) {
+  #   $prepareString = "SHOW TABLE STATUS FROM $database";
+  #   $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  #   $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
-      while ( $ref = $sth->fetchrow_arrayref ) {
-        if ( $$ref[1] eq $table ) {
-          my $updateTime = $$ref[12];
+  #   while ( $ref = $sth->fetchrow_arrayref ) {
+  #     if ( $$ref[1] eq $table ) {
+  #       my $updateTime = $$ref[12];
 
-          if ( $debug ) {
-            print "T) <DBI:mysql:$database:$hostname:$port><$username><$password><$table>\n";
-            my $autoIncrement = $$ref[10];
-            my $createTime    = $$ref[11];
-            if ( defined $autoIncrement ) { print "T) Auto increment <$autoIncrement>\n"; }
-            if ( defined $createTime )    { print "T) Create  Time   <$createTime>\n"; }
-            if ( defined $updateTime )    { print "T) Update  Time   <$updateTime>\n"; }
+  #       if ( $debug ) {
+  #         print "T) <DBI:mysql:$database:$hostname:$port><$username><$password><$table>\n";
+  #         my $autoIncrement = $$ref[10];
+  #         my $createTime    = $$ref[11];
+  #         if ( defined $autoIncrement ) { print "T) Auto increment <$autoIncrement>\n"; }
+  #         if ( defined $createTime )    { print "T) Create  Time   <$createTime>\n"; }
+  #         if ( defined $updateTime )    { print "T) Update  Time   <$updateTime>\n"; }
 
-            # for(my $i=0; $i<$sth->{NUM_OF_FIELDS}; $i++) {
-            #   my $field = $$ref[$i];
-            #   if ( defined $field ) { print "<", $field, ">\n"; }
-            # }
-          }
+  #         # for(my $i=0; $i<$sth->{NUM_OF_FIELDS}; $i++) {
+  #         #   my $field = $$ref[$i];
+  #         #   if ( defined $field ) { print "<", $field, ">\n"; }
+  #         # }
+  #       }
 
-          if ( defined $updateTime ) { 
-            if ( $dbh && defined $warning && defined $critical ) {
-		      my (@currentTime, @updateTime, @diffDateTime);
-              my ($year, $month, $day, $hour, $min, $sec, undef) = split(/\:/, get_yyyymmddhhmmsswday());
-              @currentTime  = ($year, $month, $day, $hour, $min, $sec);
-              print "T) Current Time   <$year-$month-$day $hour:$min:$sec>\n" if ( $debug );
-              ($year, $month, $day) = split(/\-/, substr($updateTime, 0, 10));
-              ($hour, $min, $sec)   = split(/\:/, substr($updateTime, 11));
-              @updateTime   = ($year, $month, $day, $hour, $min, $sec);
-              print "T) Update  Time   <$year-$month-$day $hour:$min:$sec>\n" if ( $debug );
-              @diffDateTime = Delta_DHMS(@updateTime, @currentTime); 
-              my $difference = ($diffDateTime[1]*3600)+($diffDateTime[2]*60)+$diffDateTime[3];
-              print "T) Difference     <$difference> Warning <$warning> Critical <$critical>\n" if ( $debug );
-              if ( $alert ne '' ) { $alert .= "+ "; }
-              $alert .= "Last update from table '$table' is $difference seconds ago";
+  #       if ( defined $updateTime ) { 
+  #         if ( $dbh && defined $warning && defined $critical ) {
+  #           my (@currentTime, @updateTime, @diffDateTime);
+  #           my ($year, $month, $day, $hour, $min, $sec, undef) = split(/\:/, get_yyyymmddhhmmsswday());
+  #           @currentTime  = ($year, $month, $day, $hour, $min, $sec);
+  #           print "T) Current Time   <$year-$month-$day $hour:$min:$sec>\n" if ( $debug );
+  #           ($year, $month, $day) = split(/\-/, substr($updateTime, 0, 10));
+  #           ($hour, $min, $sec)   = split(/\:/, substr($updateTime, 11));
+  #           @updateTime   = ($year, $month, $day, $hour, $min, $sec);
+  #           print "T) Update  Time   <$year-$month-$day $hour:$min:$sec>\n" if ( $debug );
+  #           @diffDateTime = Delta_DHMS(@updateTime, @currentTime); 
+  #           my $difference = ($diffDateTime[1]*3600)+($diffDateTime[2]*60)+$diffDateTime[3];
+  #           print "T) Difference     <$difference> Warning <$warning> Critical <$critical>\n" if ( $debug );
+  #           if ( $alert ne '' ) { $alert .= "+ "; }
+  #           $alert .= "Last update from table '$table' is $difference seconds ago";
 
-              if ( $difference > $critical ) {
-                $returnCode = $ERRORS{CRITICAL};
-              } elsif ( $difference > $warning ) {
-                $returnCode = $ERRORS{WARNING};
-              }
-	  	    }
-          } else {
-            $alert = "Update time for table '$table' don't exist";
-            $returnCode = $ERRORS{CRITICAL};
-          }
-        }
-	  }
+  #           if ( $difference > $critical ) {
+  #             $returnCode = $ERRORS{CRITICAL};
+  #           } elsif ( $difference > $warning ) {
+  #             $returnCode = $ERRORS{WARNING};
+  #           }
+  #  	    }
+  #       } else {
+  #         $alert = "Update time for table '$table' don't exist";
+  #         $returnCode = $ERRORS{CRITICAL};
+  #       }
+  #     }
+  #  }
 
-      $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
-    }
+  #   $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  # }
   }
 } else {
   $alert = "table '$table' don't exist";

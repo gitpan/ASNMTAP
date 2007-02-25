@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2006/xx/xx 9:01:36, ASNMTAP v3.000.012 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2007/02/25 9:01:36, ASNMTAP v3.000.013 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -452,8 +452,12 @@ the Archiver.
 
 Shell script to run archive.pl with the default command line options
 
+ cd /opt/asnmtap-3.000.xxx/applications/
+ mv archive.sh-orig archive.sh
+ chmod 755 archive.sh
+
  crontab -e
-  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh >/dev/null 2>&1
+  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh > /dev/null
 
 =back
 
@@ -471,8 +475,12 @@ this program generating automatically Collector Daemon Scheduling Reports in PDF
 
 Shell script to run generateCollectorDaemonSchedulingReports.pl with the default command line options
 
+ cd /opt/asnmtap-3.000.xxx/applications/bin
+ mv generateCollectorDaemonSchedulingReports.sh-orig generateCollectorDaemonSchedulingReports.sh
+ chmod 755 generateCollectorDaemonSchedulingReports.sh
+
  crontab -e
-  0  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateCollectorDaemonSchedulingReports.sh >/dev/null 2>&1
+  0  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateCollectorDaemonSchedulingReports.sh > /dev/null
 
 =item generateReports.pl
 
@@ -482,8 +490,12 @@ this program generate automatically reports in PDF format, defined by the CGI pr
 
 Shell script to run generateReports.pl with the default command line options
 
+ cd /opt/asnmtap-3.000.xxx/applications/bin
+ mv generateReports.sh-orig generateReports.sh
+ chmod 755 generateReports.sh
+
  crontab -e
- 30  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateReports.sh >/dev/null 2>&1
+ 30  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateReports.sh > /dev/null
 
 =item holidayBundleSetDowntimes.pl
 
@@ -493,14 +505,39 @@ this program automatically set the plugin downtimes, defined by the CGI program 
 
 Shell script to run holidayBundleSetDowntimes.pl with the default command line options
 
+ cd /opt/asnmtap-3.000.xxx/applications/bin
+ mv holidayBundleSetDowntimes.sh-orig holidayBundleSetDowntimes.sh
+ chmod 755 holidayBundleSetDowntimes.sh
+
  crontab -e
- 15  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/holidayBundleSetDowntimes.sh >/dev/null 2>&1
+ 15  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/holidayBundleSetDowntimes.sh > /dev/null
 
 =back
 
 =item located at /opt/asnmtap-3.000.xxx/applications/sbin
 
 =over 4
+
+=item bash_stop_root.sh
+
+Shell script to run CollectorCT-*.sh and DisplayCT-*.sh with uid protection.
+
+ cd /opt/asnmtap-3.000.xxx/applications/sbin
+ mv bash_stop_root.sh-orig bash_stop_root.sh
+ chmod 755 bash_stop_root.sh
+
+ Modify when required:
+
+ STOP_ROOT=TRUE
+   NOTICE: ASNMPTAP has been configured not to run as root !
+   WARNING: Running ASNMPTAP as root is not recommended !
+
+ ASNMPTAP_UID=32006
+ ASNMPTAP_USER=asnmtap
+   NOTICE: ASNMPTAP must be started with shell uid(user) !
+
+ HTTPD_UID=99
+   NOTICE: ASNMPTAP must be started with httpd uid !
 
 =item sshWrapperASNMTAP.pl
 
@@ -527,6 +564,8 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
 
    vi /home/asnmtap/.ssh/authorized_keys
    from="localhost", command="/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
+ or with
+   from="localhost", command="ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
 
    vi hosts.allow
    ssh: localhost
@@ -594,9 +633,28 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
  /usr/sbin/usermod -G asnmtapcmd asnmtap
  /usr/sbin/usermod -G asnmtapcmd nobody
 
+=item .cronprofile example
+
+ PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:${PATH}
+
+ LD_LIBRARY_PATH=/opt/asnmtap/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib/:${LD_LIBRARY_PATH}
+
+ http_proxy=http://proxy.citap.be:8080
+ ftp_proxy=http://proxy.citap.be:8080
+
+ alias su=/usr/bin/su
+ alias perl=/usr/local/bin/perl
+
+ if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
+   PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
+   MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
+ fi
+
+ umask 022
+
 =item .profile example
- 
- export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:/usr/local/mysql/bin:${PATH}
+
+ export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:${PATH}
 
  export LD_LIBRARY_PATH=/opt/asnmtap/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib/:${LD_LIBRARY_PATH}
 
@@ -612,7 +670,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
    export MANPATH PERL5LIB
  fi
 
- bash
+ umask 022
 
 =item .bash_profile example
 
@@ -643,8 +701,11 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 
  cat /home/asnmtap/.ssh/ssh.pub >> /home/asnmtap/.ssh/authorized_keys
  chmod 600 /home/asnmtap/.ssh/authorized_keys
+
  vi /home/asnmtap/.ssh/authorized_keys
- add command='/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
+   add command='/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
+ or
+   add command='ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
 
 =back
 
@@ -679,7 +740,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
    IndexOptions NameWidth=* FancyIndexing FoldersFirst SuppressDescription
    IndexOrderDefault Ascending Name
 
-   Alias /asnmtap/ "/opt/asnmtap/applications/htmlroot/"
+   Alias /asnmtap "/opt/asnmtap/applications/htmlroot"
 
    <Directory "/opt/asnmtap/applications/htmlroot">
      AllowOverride AuthConfig
@@ -688,7 +749,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
      Allow from all
    </Directory>
 
-   Alias /results/ "/opt/asnmtap/results/"
+   Alias /results "/opt/asnmtap/results"
 
    <Directory "/opt/asnmtap/results">
      HeaderName HEADER.html
@@ -700,7 +761,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
      Allow from all
    </Directory>
 
-   Alias /config/ "/opt/asnmtap/applications/tmp/config/"
+   Alias /config "/opt/asnmtap/applications/tmp/config"
 
    <Directory "/opt/asnmtap/applications/tmp/config">
      HeaderName HEADER.html
@@ -743,16 +804,23 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 
 =item onto the master and slave server:
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.012.sql
- or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.012.sql
+Standalone monitoring example
 
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.013.sql
+ or
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013.sql
+
+Distributed monitoring example
+
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.013-distributed.sql
+ or
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013-distributed.sql
 
 =item onto the master server:
 
  mysql -u root -p
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-master-server' IDENTIFIED BY 'passwd-ro';
  mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-slave-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
@@ -831,8 +899,8 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
    copy and untar mysql-snapshot.tar created earlier
 
  mysql -u root -p
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-slave-server' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-slave-server' IDENTIFIED BY 'passwd';
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-slave-server' IDENTIFIED BY 'passwd-ro';
  mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-master-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
@@ -1018,7 +1086,7 @@ Deletion policies are defined at various places with default and user-defined po
  To purge the Database daily using 'perfparse-db-purge' from crontab, you might use something like this:
 
  # Purge PerfParse Database daily at 3 AM.
- 0 3 * * * /opt/asnmtap-3.000.xxx/perfparse/bin/perfparse-db-purge > /dev/null 2>&1
+ 0 3 * * * /opt/asnmtap-3.000.xxx/perfparse/bin/perfparse-db-purge > /dev/null
 
 =back
 
@@ -1073,7 +1141,7 @@ Click on the Update License button to add a license to your system
 
 =item Testing the Software
 
- htmldoc -f '/opt/asnmtap-3.000.xxx/results/_ASNMTAP/reports/yyyydmmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-probe02-Daily.pdf' --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 21mm --bottom 10mm --left 26mm --right 10mm --fontsize 8.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 8.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage 'http://localhost/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?htmlToPdf=1&amp;sqlPeriode=3600&amp;width=1000&amp;xOffset=300&amp;yOffset=42&amp;labelOffset=32&amp;AreaBOffset=78&amp;hightMin=195'
+ htmldoc -f '/opt/asnmtap/results/_ASNMTAP/reports/yyyydmmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-probe02-Daily.pdf' --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 21mm --bottom 10mm --left 26mm --right 10mm --fontsize 8.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 8.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage 'http://localhost/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?htmlToPdf=1&amp;sqlPeriode=3600&amp;width=1000&amp;xOffset=300&amp;yOffset=42&amp;labelOffset=32&amp;AreaBOffset=78&amp;hightMin=195'
  cd /opt/asnmtap/applications/bin
  ./generateCollectorDaemonSchedulingReports.pl -D L
  ls /opt/asnmtap/results/_ASNMTAP/reports/
@@ -1149,7 +1217,7 @@ Click on the Update License button to add a license to your system
 
 
  vi /var/spool/cron/crontabs/root
- 15 * * * * /usr/local/awstats/tools/awstats_updateall.pl now > /dev/null 2> &1
+ 15 * * * * /usr/local/awstats/tools/awstats_updateall.pl now > /dev/null
 
  http://awstats.sourceforge.net/docs/awstats_setup.html
 
@@ -1204,8 +1272,8 @@ Click on the Update License button to add a license to your system
  cygrunsrv --start   "CYGWIN crontab"
  cygrunsrv --remove  "CYGWIN crontab"
 
- 0   2 * * * cd /opt/asnmtap-3.000.xxx/applications; ./archive.sh > /dev/null 2>&1  <-- crontab op master server
- 30 23 * * * cd /opt/asnmtap-3.000.xxx/applications/bin; ./holidayBundleSetDowntimes.sh > /dev/null 2> &1  <-- crontab op master server
+ 0   2 * * * cd /opt/asnmtap-3.000.xxx/applications; ./archive.sh > /dev/null  <-- crontab op master server
+ 30 23 * * * cd /opt/asnmtap-3.000.xxx/applications/bin; ./holidayBundleSetDowntimes.sh > /dev/null  <-- crontab op master server
 
 =item maximum timeslot interval greather then 2 hours:
 
@@ -1287,12 +1355,16 @@ perl -MCPAN -e 'CPAN::Shell->install(CPAN::Shell->r)'
 
  vi ~/.bash_profile
  ...
+ export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:/usr/local/mysql/bin:${PATH}
+
  if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then 
    PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
    MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
    export MANPATH PERL5LIB
  fi
 
+ export LD_LIBRARY_PATH=/opt/asnmtap/ssl/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib:${LD_LIBRARY_PATH}
+ ...
 
  vi /etc/init.d/httpd
  ...
@@ -1711,7 +1783,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2006 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
