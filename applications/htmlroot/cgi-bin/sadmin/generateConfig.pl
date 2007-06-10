@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.013;
+use ASNMTAP::Time v3.000.014;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -703,7 +703,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # plugins uploaded <-> plugins configurated - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
@@ -742,7 +742,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
 
-      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS";
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;

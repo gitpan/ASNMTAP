@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, generateReports.pl for ASNMTAP::Applications
+# 2007/06/10, v3.000.014, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.013;
+use ASNMTAP::Asnmtap::Applications v3.000.014;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -44,7 +44,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -199,18 +199,18 @@ for (my $dayAfter = ($daysAfter ? 1 : 0); $dayAfter <= $daysAfter; $dayAfter++) 
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
 
   if ($dbh and $rv) {
-    my ($id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $test, $resultsdir);
-    $sql = "select id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $uKeySqlWhere $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
+    my ($id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID, $test, $resultsdir);
+    $sql = "select id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, timeperiodID from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $uKeySqlWhere $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
     $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
     $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-    $sth->bind_columns( \$id, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+    $sth->bind_columns( \$id, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword, \$timeperiodID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
 
     my @commands = (); my @pdfFilenames = ();
 
     if ( $rv ) {
       if ( $sth->rows ) {
         while( $sth->fetch() ) {
-          $emailMessage = ($debug >= 2) ? "--> $id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword\n" : "";
+          $emailMessage = ($debug >= 2) ? "--> $id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID\n" : "";
           my ($urlAccessParameters, $periodeMessage);
 
           if ($periode eq 'D') {
@@ -247,6 +247,7 @@ for (my $dayAfter = ($daysAfter ? 1 : 0); $dayAfter <= $daysAfter; $dayAfter++) 
             $urlAccessParameters .= "&bar=on" if($bar);
             $urlAccessParameters .= "&hourlyAvg=on" if($hourlyAverage);
             $urlAccessParameters .= "&dailyAvg=on" if($dailyAverage);
+            $urlAccessParameters .= "&timeperiodID=$timeperiodID";
             $urlAccessParameters .= "&details=on" if($showDetails);
             $urlAccessParameters .= "&topx=on" if($showTop20SlowTests);
             $urlAccessParameters .= "&pf=on" if($printerFriendlyOutput);

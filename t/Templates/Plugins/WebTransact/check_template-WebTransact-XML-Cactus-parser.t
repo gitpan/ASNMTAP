@@ -1,8 +1,8 @@
 #! /usr/bin/perl -w -I ..
 #
-# ... Tests via check_template-WebTransact-XML-Cactus-parser.pl
+# ... Tests via check_template-WebTransact-Cactus-parser.pl
 #
-# $Id: check_template-WebTransact-XML-Cactus-parser.t, v 1.0 2006/02/01 Alex Peeters Exp $
+# $Id: check_template-WebTransact-Cactus-parser.t, v 1.0 2006/02/01 Alex Peeters Exp $
 #
 
 use strict;
@@ -14,7 +14,7 @@ BEGIN {$tests = 4; plan tests => $tests}
 
 my $t;
 my $prefix = '../plugins/templates';
-my $plugin = 'check_template-WebTransact-XML-Cactus-parser.pl';
+my $plugin = 'check_template-WebTransact-Cactus-parser.pl';
 
 if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");

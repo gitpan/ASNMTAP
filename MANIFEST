@@ -102,7 +102,9 @@ t/Templates/Plugins/Nagios/check_xml.t
 t/Templates/Plugins/SOAP/check_template-SOAP.t
 
 t/Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t
+t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-authorization.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t
+t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact.t
@@ -311,8 +313,8 @@ applications/sbin/perfparse_asnmtap_pulp_command.pl
 applications/sbin/perfparse_crontab.sh
 applications/sbin/purge_table.pl
 
-applications/tools/mysql/asnmtap-3.000.013.sql
-applications/tools/mysql/asnmtap-3.000.013-distributed.sql
+applications/tools/mysql/asnmtap-3.000.014.sql
+applications/tools/mysql/asnmtap-3.000.014-distributed.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -340,9 +342,13 @@ plugins/nagios/check_iowait.pl
 plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
 plugins/nagios/check_nagios-comments-cleanup.pl
+plugins/nagios/check_network_interface_status.pl
 plugins/nagios/check_snmptt_traps.pl
 plugins/nagios/check_swap.pl
 plugins/nagios/check_swap-allocated.pl
+plugins/nagios/create_NCPL_weblogic_configuration_for_SNMP.pl
+plugins/nagios/create_weblogic_configuration_database_with_SNMP.pl
+plugins/nagios/snmptt_traps_remove_pending_and_duplicated.pl
 
 plugins/nagios/templates/check_template-ftp.pl
 plugins/nagios/templates/check_template-ldap.pl
@@ -359,6 +365,9 @@ plugins/nagios/templates/xml/Monitoring-1.0-errorParsing.xml
 plugins/nagios/templates/xml/nagios-1.0.xml
 plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
+
+plugins/nagios/templates/snmptt/create_weblogic_configuration_database_with_SNMP.SQL
+plugins/nagios/templates/snmptt/snmptt-bea-weblogic.conf
 
 plugins/templates/check_dummy.pl
 plugins/templates/check_file-counter.pl
@@ -377,9 +386,11 @@ plugins/templates/check_template-ras.pl
 plugins/templates/check_template-SOAP.pl
 plugins/templates/check_template-WebTransact.pl
 plugins/templates/check_template-WebTransact-Perfdata.pl
+plugins/templates/check_template-WebTransact-with-client-authorization.pl
 plugins/templates/check_template-WebTransact-with-client-certificate.pl
 plugins/templates/check_template-WebTransact-XML.pl
 plugins/templates/check_template-WebTransact-XML-Cactus-parser.pl
+plugins/templates/check_template-WebTransact-XML-Monitoring.pl
 plugins/templates/check_template-XML.pl
 
 plugins/templates/dtd/email-upgrade-1.0.dtd

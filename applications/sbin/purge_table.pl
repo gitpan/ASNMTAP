@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, purge_table.pl for ASNMTAP
+# 2007/06/10, v3.000.014, purge_table.pl for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.013;
+use ASNMTAP::Time v3.000.014;
 use ASNMTAP::Time qw(&get_epoch &get_year &get_month &get_day);
 
-use ASNMTAP::Asnmtap::Applications v3.000.013;
+use ASNMTAP::Asnmtap::Applications v3.000.014;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_email_report);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_ema
 my $objectASNMTAP = ASNMTAP::Asnmtap::Applications->new (
   _programName        => 'purge_table.pl',
   _programDescription => 'Purge table',
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programUsagePrefix => '-H|--host <HOST> [-P|--port <PORT>] -D|--database=<database> -T|--table=<table> [-A|--ago=<ago by STRING>] -u|--username|--loginname
  <USERNAME> -p|--password|--passwd <PASSWORD>',
   _programHelpPrefix  => "-H, --host=<HOST>
@@ -94,7 +94,7 @@ sub purgeTables {
   my ($rv, $dbh, $sth, $sql, $year, $month, $day, $purgetime);
 
   $rv  = 1;
-  $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$username", "$password" ) or $rv = _errorTrapDBI("Cannot connect to the database", $debug);
+  $dbh = DBI->connect("dbi:mysql:$database:$host:$port", "$username", "$password" ) or $rv = _ErrorTrapDBI("Cannot connect to the database", $debug);
 
   if ($dbh and $rv) {
     $year  = get_year  ($tableAgo);
@@ -111,15 +111,15 @@ sub purgeTables {
 
     $sql = 'DELETE FROM `' .$table. '` WHERE archivetime < "' .$purgetime. '"';
     print "$sql\n" if ($debug);
-    $dbh->do( $sql ) or $rv = _errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+    $dbh->do( $sql ) or $rv = _ErrorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
 
-    $dbh->disconnect or $rv = _errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
+    $dbh->disconnect or $rv = _ErrorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
   }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub _errorTrapDBI {
+sub _ErrorTrapDBI {
   my ($error_message, $debug) = @_;
 
   print EMAILREPORT "   DBI Error:\n", $error_message, "\nERROR: $DBI::err ($DBI::errstr)\n";

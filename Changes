@@ -5,13 +5,73 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2007
-Version      : 3.000.013
+Latest update: 10 Juni 2007
+Version      : 3.000.014
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.014, 2007/06/10, Makefile.PL
+                               - version update CPAN 1.9101
+                               - version update CPANPLUS 0.78
+                               - version update Config::General 2.32
+                               - version update DateTime 0.37
+                               - version update Email::Simple 1.999
+                               - version update ExtUtils::MakeMaker 6.32
+                               - version update IO::Socket::SSL 1.040
+                               - version update Net::LDAP 0.34
+                               - version update Time::HiRes 1.9705
+                               - version update WSRF::Lite 0.8.2.1
+                               MANIFEST
+                               - NEW check_template-WebTransact-XML-Monitoring.pl
+                               - NEW check_template-WebTransact-XML-Monitoring.t
+                               - NEW check_template-WebTransact-with-client-authorization.pl
+                               - NEW check_template-WebTransact-with-client-authorization.t
+                               README
+                               - updated INSTALLATION procedure
+                               Applications.cnf
+                                 #<DATABASE_ACCOUNT>
+                                 #  <SERVER>
+                                 #    VERSION         4.x                    # '4.x' or '5.0.x'
+                                 #    MERGE           0                      # '0' or '1'
+                                 #  </SERVER>
+                               ASNMTAP::Asnmtap::*
+                               - optimalisation for MySQL queries
+                               ASNMTAP::Asnmtap::Applications.pm & display.pl
+                               - FIX sound sanity .innerHTML bug with FireFox
+                               - UPDATE sound default set to 'off' when FireFox, otherwise default set to 'on'
+                               - UPDATE $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
+                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
+                               - NEW $SERVERMYSQLVERSION = '4.x'             # '4.x' or '5.0.x'
+                               - NEW $SERVERMYSQLMERGE   = '0'               # '0' or '1'
+                               - UPDATE create_sql_query_events_from_range_year_month with MERGE when $SERVERMYSQLMERGE = 1 for much faster year and quarter statistics
+                               ASNMTAP::Asnmtap::Plugins
+                               - NEW create_NCPL_weblogic_configuration_for_SNMP.pl
+                               - NEW create_weblogic_configuration_database_with_SNMP.pl
+                               - NEW create_weblogic_configuration_database_with_SNMP.SQL
+                               ASNMTAP::Asnmtap::Plugins::Mail.pm
+                               - FIX regarding MIME-Encoding '7bit' and code optimalisation
+                               - NEW MIME-Encoding: '8bit', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
+                               - overview MIME-Encoding: '7bit', '8bit', 'quoted-printable', 'base64', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW check_network_interface_status.pl
+                               - NEW snmptt_traps_remove_pending_and_duplicated.pl
+                               ASNMTAP::Asnmtap::SOAP.pm
+                               - NEW added basic authentication and credentials
+                               - NEW added soapaction and readable
+                               ASNMTAP::Asnmtap::Plugins::WebTransact.pm
+                               - NEW Inherited LWP user agent object: $objectWebTransact->ua = LWP::UserAgent->new;
+                               check_template-WebTransact-XML-Monitoring.pl & check_template-WebTransact-XML-Monitoring.t
+                               - NEW WebTransact plugin template for XML Monitoring
+                               check_template-WebTransact-with-client-authorization.pl & check_template-WebTransact-with-client-authorization.t
+                               - NEW WebTransact plugin template with client authorization
+                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
+                               - add corresponding comments to the report
+                               generateReports.pl & getArchivedReport.pl
+                               - add support for timeperiod
+
 
 Version 3.000.013, 2007/02/25, ASNMTAP
                                - add BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
@@ -165,8 +225,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

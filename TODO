@@ -5,16 +5,12 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2007
-Version      : 3.000.013
+Latest update: 10 Juni 2007
+Version      : 3.000.014
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # TODO  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Als je niet kunt helpen, stoor dan!   Het voornaamste is deel te nemen!
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # TODO CURRENT VERSION  - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,37 +18,155 @@ Version      : 3.000.013
 
 # VERIFY  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-+ Update version from CPAN
-  - Makefile.PL
-                               - NEW Bundle::CPANPLUS::Dependencies
-    Warning: prerequisite Compress::Zlib 2.003 not found. We have 1.41.
-    Warning: prerequisite Crypt::OpenSSL::RSA 0.24 not found. We have 0.23.
-    Warning: prerequisite Crypt::OpenSSL::X509 0.4 not found. We have 0.3.1.
-    Warning: prerequisite HTTP::Daemon::SSL 1.02 not found. We have unknown version.
-    Warning: prerequisite IO::Socket::SSL 1.02 not found. We have unknown version.
-    Warning: prerequisite Net::IMAP::Simple 1.16 not found. We have 1.14.
+...
 
-+ PDFs gaan over de marge heen!
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
++ MOVE instead of INSERT and DELETE ...
+
+
++ archive.pl
+  - opruimen van /nav/_loop_<remoteuser>_pagedir/* als deze ouder zijn dan een week!
+
+
++ runCommandOnDemand.pl
+
+  - Proxy kiezen bij OnDemand.
+    - Mogelijkheid om bij een OnDemand te kiezen welke proxy te gebruiken uit een lijst. 
+
+  - I would like to have the possibility to download the dump files (html, xml, ...) for OnDemand tests
+    - html debug files for on demand tests
+
+    - Bij ondemands extra combobox met 2 mogelijkheden:
+      - Debug naar scherm
+      - Debug naar file en een link naar de httpdump file
+
+  - OnDemand run icoontje naar de hamertjes & vraagtekens.
+
+  - remove password from debug before putting into database!
+    + ASNMTAP::Asnmtap::Plugins::WebTransact & runCmdOnDemand.pl
+
+  - Welke plugin kan op welke servers draaien.
+
+  - tunnelen of laten doorverwijzen naar de juiste server.
+
+  - OnDemand versus Display
+    OnDemand
+      CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...: WARNING|'ping (...:8080)'=172ms;;;; 'monitorControls (...:8080)'=29682ms;;;; 'getVersion (...:8080)'=25ms;;;; 'ping (...:9108)'=25ms;;;; 'monitorControls (...:9108)'=30022ms;;;; 'getVersion (...:9108)'=24ms;;;; 'ping (...:9110)'=24ms;;;; 'monitorControls (...:9110)'=18898ms;;;; 'getVersion (...:9110)'=23ms;;;; Status=2;1;2;0;3 Compilation=1523ms;;;0; Trendline=79.039s;;;; Execution=80579ms;;;0; 
+    Display: afkapping op 254 characters
+      CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...
+
+    Values in VARCHAR columns are variable-length strings.
+    The length can be specified as a value from 0 to 255 before MySQL 5.0.3, and 0 to 65,535 in 5.0.3 and later versions.
+
+    TEXT A string with a maximum length of 65535 characters, from a variable length types that store large amounts of data.
+    Is similar to a larger version of VARCHAR. These types can store a large piece of data information, but is also processed much slower.
+
+  - OnDemand tests automatisch uitvoeren op de juiste probe.
+    - OnDemand voor testen op probes zoals RAS, DMZ, ...
+
+    - Vanuit de centrale console bij een ondemand automatisch deze uitvoeren op de probe waar deze ook draait vanuit de collector.
+      Default optie.
+      En custom optie om de test uit te voeren op een andere probe om een lokaal probleem op te sporen.
+      Bv test draait default op de 8 bij een on demand uitvoeren op de 8 maar ook de mogelijkheid om uit te voeren op de 7. 
+
+
++ use MEMORY tables instead od TEMP tables!
+
++ yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED unless ($deleted eq '0' and $skipped eq '0' and $warnings eq '0')
+  LOAD DATA LOW_PRIORITY LOCAL INFILE '$path/$filename' INTO TABLE events FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'
+  -> 'statusMessage' > 254 characters: 'statusMessage' varchar [254] & 'perfdata' blob, to solve this problem ofwel alleen wat voor '|' staat in database stockeren ?
+  -> alle 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' opzoeken en weergeven, zodat oplossing kan worden gezocht voor het geval er nog andere problemen mochten zijn
+  -> hoe perfdata aan Perfparse toevoegen van 'yyyymmdd-test-ukey.sql' en/of 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' data?
+
+      if ($updateEntryDBI) {
+        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
+        $dbh->do ( $updateString )  or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $updateString");
+      } elsif ($insertEntryDBI) {
+        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
+        $dbh->do ( $insertString ) or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $insertString");
+      }
+
++ Groeperen Mails bij 'Holliday Schedulings'
+  - Automatische mails met hetzelfde bericht maar verschillende applicaties consolideren in een bericht. 
+
++ Report with compilation times
+  - To be able to evaluate the load evolution on our monitoring probes it would be useful to have a report with the compilation time evolution (perfparse based).  
+
++ Soap testen webservices uitgebreid rapport.  
+  - Uitgebreid rapport met detail testen. Lijn in de display is vaak te kort. 
+
++ collectorDaemonSchedulingReports.pl
+  - I need the possibility to generate the 'collectorDaemonSchedulingReports' for another timestamp
+
++ Version 3.000.015, 2007/xx/xx, Makefile.PL
+                               - NEW Bundle::CPANPLUS::Dependencies 0.03
+                                 , 'Bundle::CPANPLUS::Dependencies' => '0.03
+
+  Warning: prerequisite CPANPLUS 0.78 not found.
+
+  Warning: prerequisite Bundle::DBD::mysql 4.001 not found. We have 2.9002.
+
+  Warning: prerequisite Net::IMAP::Simple 1.16 not found. We have 1.14.
+
+  Warning: prerequisite Crypt::OpenSSL::X509 0.4 not found.
+  Warning: prerequisite Crypt::SSLeay 0.53 not found.
+  Warning: prerequisite IO::Socket::SSL 1.04 not found.
+
++ To be able to evaluate the load evolution on our monitoring probes it would be useful to have a report with the compilation time evolution (perfparse based).
+
++ I need the possibility to generate the 'collectorDaemonSchedulingReports' for another timestamp.
+
++ It would be useful and less 'screen consuming' if the error summary at the bottom of the index screens apeared in collapsed form. 
+
++ verify 'startTime' and 'endTime' by initialization !
+  my ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
+  $_[0]->{_pluginValues}->{startTime}  = $startTimeSeconds .'.'. $startTimeMicroseconds;
+  $_[0]->{_pluginValues}->{endTime}    = $_[0]->{_pluginValues}->{startTime};
+
++ SNMP module
+  - Read and process an SNMP trap from Net-SNMP's snmptrapd
+    http://search.cpan.org/~tonvoon/SNMP-Trapinfo-1.0/
+
+  - http://www.unix.org.ua/orelly/networking_2ndEd/snmp/index.htm
+
++ PDFs gaan over de marge heen en tabel in rapporten wordt afgekapt.
   - upgrade to HTMLDOC 1.8.27 and verify parameters
+
++ AutoInstall with CPANPLUS
+  CPANPLUS
+    export http_proxy=http://proxy.citap.be:8080
+    export ftp_proxy=http://proxy.citap.be:8080
+
+    perl -MCPANPLUS -e shell
+    CPANPLUS::Shell::Default -- CPAN exploration and module installation (v0.076)
+    ...
+    CPAN Terminal> x --update_source
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # ASAP  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-+ SOAP debug toevoegen en extra testing on failure:
-  telnet hostname 80 and/or wget wsdl?
-  Zouden wij meer debug kunnen krijgen, ik zou het leuk vinden om de url te zien waar we de test op connecteerd, welke xml, paramters :)
-  Zodat in een long debug alle info zit die werkelijk uitgevoerd wordt, dat is handig als je het daarna es wil doen in soapui :) 
++ Introduction to the DOM of IE/ Firefox
+  - http://www.javascriptkit.com/javatutors/ns6update.shtml
 
-+ comments onderaan weergeven op rapport !
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-+ SNMP get module
++ sshfs om rsu-ync te vervangen
+  - http://fuse.sourceforge.net/sshfs.html
+
++ na database server disconnect automatische reconnect naar database server
+
++ collectorDaemonSchedulingReports.pl?
+  - je wil de datum en het uur kunnen opgeven, één of meerder collectoren kunnen selecteren, en om echt moeilijk
+    te doen, een plugin selecteren, en hiervan de collectoren zien op een tijdstip in't verleden?
+  - je zou dan ook nog kunnen zeggen dat als je op de basis monitoing view zit, en de trendline is overschreden, 
+    dat je de overeenkomstige grafiek onmiddelijk kan lanceren om te debugen.
+
++ omwille van de netwerktrafiek, resultaten in groep doorgegeven aan de database!
 
 + su - asnmtap -c "cd /opt/asnmtap-3.000.xxx/applications/master; ./DisplayCT-test.sh restart"
-
-+ http://search.cpan.org/~gbarr/perl-ldap-0.34/
-
-+ sorteren ack versus normal en time !
 
 + ExtUtils::Autoconf
   - Perl interface to GNU autoconf
@@ -63,12 +177,6 @@ Version      : 3.000.013
   Create an output variable from a shell variable. Make AC_OUTPUT substitute the variable variable into output files (typically one or more `Makefile's). 
   This means that AC_OUTPUT will replace instances of `@variable@' in input files with the value that the shell variable variable has when AC_OUTPUT is called. 
   This value of variable should not contain literal newlines. 
-
-+ archive.pl
-  - opruimen van /nav/_loop_<remoteuser>_pagedir/* als deze ouder zijn dan een week !
-
-+ ASNMTAP::Asnmtap::Plugins::WebTransact & runCmdOnDemand.pl
-  - remove password from debug before putting into database!
 
 + dubbele definitie in éénzelfde script van 'use lib'
   - BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
@@ -186,32 +294,6 @@ collectorCrontabSchedulingReports.pl & collectorDaemonSchedulingReports.pl
 + ASNMTAP::Asnmtap::Applications
   awstats icon onderdrukken dmv element in de config voorzien?
 
-+ OnDemand versus Display
-  OnDemand
-    CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...: WARNING|'ping (...:8080)'=172ms;;;; 'monitorControls (...:8080)'=29682ms;;;; 'getVersion (...:8080)'=25ms;;;; 'ping (...:9108)'=25ms;;;; 'monitorControls (...:9108)'=30022ms;;;; 'getVersion (...:9108)'=24ms;;;; 'ping (...:9110)'=24ms;;;; 'monitorControls (...:9110)'=18898ms;;;; 'getVersion (...:9110)'=23ms;;;; Status=2;1;2;0;3 Compilation=1523ms;;;0; Trendline=79.039s;;;; Execution=80579ms;;;0; 
-  Display: afkapping op 254 characters
-    CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...
-
-  Values in VARCHAR columns are variable-length strings.
-  The length can be specified as a value from 0 to 255 before MySQL 5.0.3, and 0 to 65,535 in 5.0.3 and later versions.
-
-  TEXT A string with a maximum length of 65535 characters, from a variable length types that store large amounts of data.
-  Is similar to a larger version of VARCHAR. These types can store a large piece of data information, but is also processed much slower.
-
-+ yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED unless ($deleted eq '0' and $skipped eq '0' and $warnings eq '0')
-  LOAD DATA LOW_PRIORITY LOCAL INFILE '$path/$filename' INTO TABLE events FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'
-  -> 'statusMessage' > 254 characters: 'statusMessage' varchar [254] & 'perfdata' blob, to solve this problem ofwel alleen wat voor '|' staat in database stockeren ?
-  -> alle 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' opzoeken en weergeven, zodat oplossing kan worden gezocht voor het geval er nog andere problemen mochten zijn
-  -> hoe perfdata aan Perfparse toevoegen van 'yyyymmdd-test-ukey.sql' en/of 'yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED' data?
-
-      if ($updateEntryDBI) {
-        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
-        $dbh->do ( $updateString )  or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $updateString");
-      } elsif ($insertEntryDBI) {
-        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET uKey="' .$uniqueKey. '", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
-        $dbh->do ( $insertString ) or $rv = errorTrapDBI($currentDate, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $filename, "Cannot dbh->do: $insertString");
-      }
-
 + generateConfig.pl
   - edit, delete, duplicate and maintenance button for 'Plugin' and 'Help Plugin Filename'
     &amp;plugin=$plugin&amp;todo=delete
@@ -303,7 +385,7 @@ http://www.cis.upenn.edu/~bcpierce/unison/
 # BUGS  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-It's not a bug, it's a feature!
+It's not a bug, it's a missing feature!
 
 1) malformed header from script. Bad header=: generateChart-new.pl, referer: http://asnmtap.citap.be/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends-new.pl
 
@@ -327,8 +409,6 @@ ASNMTAP Cross-site scripting (XSS) prevention?
 fixRights.sh
 - automatisch aanmaken
 - launch script before restart daemon
-
-ondemand voor testen op probes zoals RAS, DMZ, ...
 
 http://asnmtap.citap.be/asnmtap/nav/index/reports-index.html 
 - hier een url naar de plugin times plaatsen, is makkelijker om te onthouden 
@@ -360,7 +440,7 @@ Correcte werking van toggle button & environment switch.
 
 Restart Collector and Display: Ledig geworden collector moet overal worden verwijderd !!!
 
-multioffline, status in database offline -> in display als nog te testen weergaven
+multyoffline, status in database offline -> in display als nog te testen weergaven
 
 offline door holiday of scheduling niet in condenced view
 
@@ -371,8 +451,6 @@ proxy caching statische pagina's
 .cache files                                                     <- sound
 
 applications/custom/display.pm-orig                    <- custom function
-
-On demand run icoontje naar de hamertjes & vraagtekens.
 
 Openen van 'Help en Commands' into new window!
 
@@ -428,8 +506,6 @@ Implementation from 'HTML::HTMLDoc::PDF ' located at 'http://search.cpan.org/~mf
 http://search.cpan.org/~bmorrow/PerlInterp-0.03/Perl.pm
 
 Innodb Tranasction, bij mislukking is csv bestand wegschrijven en via archiver.pl importeren.
-
-omwille van de netwerktrafiek, resultaten in groep doorgegeven aan de database!
 
 user.pl
 - Sending email for: Downtime Scheduling Generated Reports, nagaan of de gebruiker dit zelf moet kunnen aanpassen en/of zien?

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, check_xml.pl
+# 2007/06/10, v3.000.014, check_xml.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.0";
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_xml.pl',
   _programDescription => 'Check Nagios by XML',
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [-P|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>

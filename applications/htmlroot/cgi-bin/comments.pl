@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -185,7 +185,7 @@ unless ( defined $errorUserAccessControl ) {
         } elsif ($action eq "deleteView") {
           $htmlTitle    = "$Ctitle: delete id $Cid ?";
           $commentText  = "Solution comment";
-          $commentData  = "Additional information:\n\n";
+          $commentData  = '';
           $submitButton = "Solved";
           $nextAction   = "delete" if ($rv);
         } elsif ($action eq "delete") {
@@ -209,7 +209,7 @@ unless ( defined $errorUserAccessControl ) {
         } elsif ($action eq "updateView") {
           $htmlTitle    = "$Ctitle: update id $Cid ?";
           $commentText  = "Update comment";
-          $commentData  = "Additional information:\n\n";
+          $commentData  = '';
           $submitButton = "Update";
           $nextAction   = "update" if ($rv);
         } elsif ($action eq "update") {
@@ -391,7 +391,7 @@ unless ( defined $errorUserAccessControl ) {
               $sqlWhere = "and problemSolved = '0' order by entryTimeslot limit $pageOffset, $RECORDSONPAGE";
 	  	    }
 
-            $sql = "select count(*) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
+            $sql = "select count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
             ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
             $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;action=$nextAction&amp;uKey=$CuKey");
 
@@ -839,7 +839,7 @@ HTML
         <td>Activation: </td>
         <td>
           <b><input type="text" name="activationDate" value="$CactivationDate" size="10" maxlength="10"></b>&nbsp;
-		  <a href="#" onclick="cal1Calendar.select(document.forms[1].activationDate, 'activationDateCalendar','yyyy-MM-dd'); return false;" name="activationDateCalendar" id="activationDateCalendar";><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		  <a href="#" onclick="cal1Calendar.select(document.forms[1].activationDate, 'activationDateCalendar','yyyy-MM-dd'); return false;" name="activationDateCalendar" id="activationDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <b><input type="text" name="activationTime" value="$CactivationTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].activationTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		</td>
       </tr><tr>

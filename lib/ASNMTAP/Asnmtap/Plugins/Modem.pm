@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -

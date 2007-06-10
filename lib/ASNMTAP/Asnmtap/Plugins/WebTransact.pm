@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ use constant Field_Refs	=> {
                              Exp_Return     => { is_ref => TRUE,  type => 'HASH'  },
                              Msg            => { is_ref => FALSE, type => ''      },
                              Msg_Fault	    => { is_ref => FALSE, type => ''      },
+                             Timeout        => { is_ref => FALSE, type => undef   },
                              Perfdata_Label => { is_ref => FALSE, type => undef   }
                            };
 
@@ -113,7 +114,7 @@ sub new {
   no strict 'refs';
 
   unless ( ref *$accessor_stash_slot{CODE} eq 'CODE' ) {
-    foreach my $accessor ( qw(urls matches returns) ) {
+    foreach my $accessor ( qw(urls matches returns ua) ) {
       my $full_name = $classname .'::'. $accessor;
 
       *{$full_name} = sub { my $self = shift @_;
@@ -128,7 +129,7 @@ sub new {
     }
   }
 
-  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, newAgent => 1, number_of_images_downloaded => 0, _unknownErrors => 0, _KnownError => undef }, $classname;
+  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, ua => undef, newAgent => 1, number_of_images_downloaded => 0, _unknownErrors => 0, _KnownError => undef }, $classname;
 
   # The field urls contains a ref to a list of (hashes) records representing the web transaction.
 
@@ -154,6 +155,7 @@ sub check {
   my %defaults = ( custom           => undef,
                    perfdataLabel    => undef,
                    newAgent         => undef,
+                   timeout          => undef,
                    openAppend       => TRUE,
                    cookies          => TRUE,
                    protocol         => TRUE,
@@ -176,6 +178,7 @@ sub check {
     $self->{newAgent} = 0;
     LWP::Debug::level('+') if ( $debug );
     $ua = LWP::UserAgent->new ( keep_alive => 1 );
+    $self->{ua} = $ua;
     $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
     $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
 
@@ -199,6 +202,11 @@ sub check {
     $ua->cookie_jar ( HTTP::Cookies->new ) if ( $parms{cookies} );
   }
 
+  if ( defined $parms{timeout} ) {
+    $ua->timeout ( $parms{timeout} );
+    $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} );
+  }
+
   my $returnCode = $parms{fail_if_1} ? $ERRORS{OK} : $ERRORS{CRITICAL};
   my ($response_as_content, $response, $found);
 
@@ -209,7 +217,25 @@ sub check {
     $startTime = ${$self->{asnmtapInherited}}->pluginValue ('endTime');
   }
 
+  my $statusTimeout;
+
   foreach my $url_r ( @{ $self->{urls} } ) {
+    if ( defined $url_r->{Timeout} ) {
+      $statusTimeout = 1;
+      $ua->timeout ( $url_r->{Timeout} );
+      $ua->default_headers->push_header ( 'Keep-Alive' => $url_r->{Timeout} );
+    } elsif ( defined $statusTimeout ) {
+      $statusTimeout = undef;
+
+      if ( defined $parms{timeout} ) {
+        $ua->timeout ( $parms{timeout} );
+        $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} );
+      } else {
+        $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
+        $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () );
+      }
+    }
+
     $self->{_KnownError} = undef;
     ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
 

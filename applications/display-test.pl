@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2007/06/10, v3.000.014, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.013;
+use ASNMTAP::Time v3.000.014;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.013;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.014;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -130,7 +130,7 @@ my ($dchecklist, $dtest, $dfetch, $tinterval, $tgroep, $resultsdir, $ttest, $fir
 my (@fetch, $dstart, $tstart, $start, $step, $names, $data, $rows, $columns, $line, $val, @vals);
 my ($command, $tstatus, $tduration, $timeValue, $prevGroep, @multiarrayFullCondensedView);
 my ($rv, $dbh, $sth, $lockString, $findString, $unlockString, $doChecklist, $timeCorrectie, $timeslot);
-my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $itemFullCondensedView);
+my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $itemFullCondensedView);
 my ($checkOk, $checkSkip, $configNumber, $printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
 my ($playSoundInProgress, $playSoundPreviousStatus, $playSoundStatus, %tableSoundStatusCache);
 
@@ -299,7 +299,6 @@ sub do_crontab {
 
   $prevGroep = "";
   my $dstatusMessage;
-  my @multiarrayStatusMessage = ();
 
   my $creationDate;
 
@@ -326,7 +325,7 @@ sub do_crontab {
 
   $configNumber = $playSoundStatus = 0;
   $doChecklist = ($dbh and $rv) ? 1 : 0;
-  $emptyFullView = $emptyCondencedView = $emptyStatusMessage = 1;
+  $emptyFullView = $emptyCondencedView = 1;
 
   if ($doChecklist) {
 	@multiarrayFullCondensedView = [];
@@ -360,9 +359,25 @@ sub do_crontab {
         my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon);
         $itemTimeslot = $itemStatusIcon = 0;
 
+        my @arrayStatusMessage = ();
+
         if ($dbh and $rv) {
           my ($acked, $sql, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
-          $sql = "select activationTimeslot, suspentionTimeslot, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
+
+          # APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes ->
+          my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
+
+          if ( $currentHour == 0 and $currentMin <= 15 ) {
+            my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
+            my $solvedTime     = "$currentHour:$currentMin:$currentSec";
+            my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+            $dbh->do ( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->do: $sql");
+          }
+
+          # <- end
+
+          $sql = "select SQL_NO_CACHE activationTimeslot, suspentionTimeslot, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
           $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
           my $statusOverlib = '<NIHIL>'; # $STATE{$ERRORS{'NO DATA'}};
@@ -402,6 +417,8 @@ sub do_crontab {
                 }
 
                 $TcommentData =~ s/'/`/g;
+                $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
+              # $TcommentData =~ s/[\n\r]+(?:Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (?:\d{4}-\d\d-\d\d) (?:\d\d:\d\d:\d\d)//g;
                 $TcommentData =~ s/[\n\r]/<br>/g;
                 $TcommentData =~ s/(?:<br>)+/<br>/g;
                 $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
@@ -415,7 +432,7 @@ sub do_crontab {
           $lastTimeslot  = get_timeslot ($creationDate);
           $firstTimeslot = $lastTimeslot - ($step * $NUMBEROFFTESTS);
           $timeCorrectie = 0;
-          $findString    = 'select * from '.$SERVERTABLEVENTS.' force index (key_timeslot) where uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' where uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
 
           print "<", $findString, ">\n" if ($debug);
           $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $findString");
@@ -475,7 +492,7 @@ sub do_crontab {
                 }
 
                 if ($dstatus ne 'OK' and $dstatus ne 'OFFLINE' and $dstatus ne 'NO DATA' and $dstatus ne 'NO TEST') {
-                  $tempStatusMessage[$timeslot] = encode_html_entities('T', $ref->{title}).'</TD><TD VALIGN="TOP"><IMG SRC="'.$IMAGESURL.'/'.$statusIcon.'" WIDTH="16" HEIGHT="16" BORDER=0 title="'.$tstatus.'" alt="'.$tstatus.'"></TD><TD class="StatusMessage">'.$ref->{startTime}.'</TD><TD class="StatusMessage">'.$tstatusMessage;
+                  $tempStatusMessage[$timeslot] = '<IMG SRC="'.$IMAGESURL.'/'.$statusIcon.'" WIDTH="16" HEIGHT="16" BORDER=0 title="'.$tstatus.'" alt="'.$tstatus.'"></TD><TD class="StatusMessage">'.$ref->{startTime}.'</TD><TD class="StatusMessage">'.$tstatusMessage;
 
                   if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
                     $ref->{statusMessage} =~ s/'/`/g;
@@ -498,7 +515,7 @@ sub do_crontab {
           }
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
-            push (@multiarrayStatusMessage, [ $tempStatusMessage[$number], $printCondensedView ] ) if (defined $tempStatusMessage[$number]);
+            push (@arrayStatusMessage, $tempStatusMessage[$number] ) if (defined $tempStatusMessage[$number]);
           }
 
           $itemTitle      = $title;
@@ -507,7 +524,7 @@ sub do_crontab {
           $itemStatusIcon = ( $acked and ( $activationTimeslot - $step < $itemTimeslot ) and ( $suspentionTimeslot > $itemTimeslot ) ) ? 1 : 0;
         }
 
-        printItemFooter($itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemFullCondensedView, $printCondensedView);
+        printItemFooter($uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
       }
 
       print "\n" if ($debug);			
@@ -528,15 +545,7 @@ sub do_crontab {
   printGroepFooter('', 0);
   printStatusHeader('', $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus);
 
-  if (@multiarrayStatusMessage) {
-    $emptyStatusMessage = 0;
-
-    foreach $dstatusMessage (@multiarrayStatusMessage) { 
-      printStatusMessage(@$dstatusMessage[0], @$dstatusMessage[1]);
-    }
-  }
-
-  printStatusFooter('', $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $playSoundStatus);
+  printStatusFooter('', $emptyFullView, $emptyCondencedView, $playSoundStatus);
   printHtmlFooter('');
   close(HTML);
   close(HTMLCV);
@@ -754,7 +763,7 @@ EOM
 
   # http://www.bosrup.com/web/overlib/?Command_Reference
   my $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR></TABLE>";
-  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
 
   my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
   my $comments = '<a href="/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
@@ -967,7 +976,7 @@ sub printItemStatus {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printStatusMessage {
-  my ($statusMessage, $printStatusMessage) = @_;
+  my ($statusMessage) = @_;
 
   my $break = '';
   my $errorMessage;
@@ -1059,13 +1068,9 @@ sub printStatusMessage {
 	$errorMessage = printStatusMessageCustom( decode_html_entities('E', $statusMessage) );
   }
 
-  print HTML '  <TR><TD class="StatusItem">', $statusMessage, '</TD></TR>', "\n";
-  if ($errorMessage) { print HTML '  <TR><TD COLSPAN="3"></TD><TD class="StatusMessageError">', encode_html_entities('E', $errorMessage), '</TD></TR>', "\n"; }
-
-  if ($printStatusMessage) {
-    print HTMLCV '  <TR><TD class="StatusItem">', $statusMessage, '</TD></TR>', "\n";
-    if ($errorMessage) { print HTMLCV '  <TR><TD COLSPAN="3"></TD><TD class="StatusMessageError">', encode_html_entities('E', $errorMessage), '</TD></TR>', "\n"; }
-  }
+  my $returnMessage = '  <TR><TD WIDTH="56">&nbsp;</TD><TD VALIGN="TOP">' . $statusMessage . '</TD></TR>' . "\n";
+  $returnMessage .= '  <TR><TD WIDTH="56">&nbsp;</TD><TD class="StatusMessageError">' . encode_html_entities('E', $errorMessage) . '</TD></TR>' . "\n" if ($errorMessage); 
+  return ( $returnMessage );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1086,9 +1091,15 @@ sub printGroepFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemFooter {
-  my ($title, $status, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView) = @_;
+  my ($uniqueKey, $title, $status, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
 
-  $itemFullCondensedView .= '</TR>' . "\n";
+  $itemFullCondensedView .= "</TR>\n";
+
+  if (@$arrayStatusMessage) {
+    $itemFullCondensedView .= '<TR style="{height: 0;}"><TD COLSPAN="'. $colspanDisplayTime .'"><DIV id="'.$uniqueKey.'" style="display:none"><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2>'. "\n";
+    foreach my $arrayStatusMessage ( @$arrayStatusMessage ) { $itemFullCondensedView .= printStatusMessage ( $arrayStatusMessage ); }
+    $itemFullCondensedView .= "</TABLE></DIV></TD></TR>\n";
+  }
 
   $groupFullView += 1;
 
@@ -1101,10 +1112,23 @@ sub printItemFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printStatusFooter {
-  my ($title, $emptyFullView, $emptyCondencedView, $emptyStatusMessage, $playSoundStatus) = @_;
+  my ($title, $emptyFullView, $emptyCondencedView, $playSoundStatus) = @_;
 
   print HTML   '</TABLE>', "\n";
-  print HTML   '<HR>', "\n" unless ( $emptyFullView or $emptyStatusMessage );
+
+  print HTML <<EOH;
+<script language="JavaScript" type="text/javascript">
+  function toggleDiv (div_id){
+    if (document.getElementById(div_id)) {
+      if (document.getElementById(div_id).style.display == 'none') {
+        document.getElementById(div_id).style.display = 'block';
+      } else {
+        document.getElementById(div_id).style.display = 'none';
+      }
+    }
+  }
+</script>
+EOH
 
   if ($playSoundStatus) {
     print HTML <<EOH;
@@ -1112,14 +1136,28 @@ sub printStatusFooter {
   var soundState = getSoundCookie( 'soundState' );
 
   if ( soundState != null && soundState == 'on' ) {
-    document.getElementById('SoundStatus').innerHTML='<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true"><\\/embed>'
+    playSound = '<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true" loop="false"><\\/embed>';
+    dynamicContentNS4NS6FF ('SoundStatus', playSound, 1);
   }
 </script>
 EOH
   }
 
   print HTMLCV '</TABLE>', "\n";
-  print HTMLCV '<HR>', "\n" unless ( $emptyFullView or $emptyCondencedView or $emptyStatusMessage );
+
+  print HTMLCV <<EOH;
+<script language="JavaScript" type="text/javascript">
+  function toggleDiv (div_id){
+    if (document.getElementById(div_id)) {
+      if (document.getElementById(div_id).style.display == 'none') {
+        document.getElementById(div_id).style.display = 'block';
+      } else {
+        document.getElementById(div_id).style.display = 'none';
+      }
+    }
+  }
+</script>
+EOH
 
   if ($playSoundStatus) {
     print HTMLCV <<EOH;
@@ -1127,7 +1165,8 @@ EOH
   var soundState = getSoundCookie( 'soundState' );
 
   if ( soundState != null && soundState == 'on' ) {
-    document.getElementById('SoundStatus').innerHTML='<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true"><\\/embed>'
+    playSound = '<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true" loop="false"><\\/embed>';
+    dynamicContentNS4NS6FF ('SoundStatus', playSound, 1);
   }
 </script>
 EOH

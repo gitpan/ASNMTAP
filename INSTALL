@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2007
-Version      : 3.000.013
+Latest update: 10 Juni 2007
+Version      : 3.000.014
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -211,9 +211,9 @@ Information about the configuration for ASNMTAP Applications can be found at:
   Install Mysql client need to be installed
   -----------------------------------------
 
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.013-distributed.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014-distributed.sql
 
   
   ASNMTAP Web Access is now possible

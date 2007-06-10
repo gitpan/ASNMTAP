@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
- use ASNMTAP::Asnmtap::Plugins v3.000.013;
+ use ASNMTAP::Asnmtap::Plugins v3.000.014;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-SOAP.pl',
    _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-   _programVersion     => '3.000.013',
+   _programVersion     => '3.000.014',
    _programGetOptions  => ['proxy:s', 'trendline|T:i'],
    _timeout            => 30,
    _debug              => 0);
@@ -39,8 +39,34 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
    registerNamespace => \%soapService_Register_NS,
    xmlContent        => $xmlContent,
    params            => $params,
+   readable          => 1,
    cookies           => 1,
    perfdataLabel     => 'SOAP'
+ );
+
+ ($returnCode, $xml) = get_soap_request ( 
+   asnmtapInherited  => \$objectPlugins,
+   proxy             => 'https://USERNAME:PASSWORD@secure.citap.be/authorization/hibye.cgi',
+   namespace         => $namespace,
+   method            => $method,
+   registerNamespace => \%soapService_Register_NS,
+   xmlContent        => $xmlContent,
+   params            => $params,
+   cookies           => 1,
+   perfdataLabel     => 'SOAP with Basic Authentication'
+ );
+
+ ($returnCode, $xml) = get_soap_request ( 
+   asnmtapInherited  => \$objectPlugins,
+   proxy             => 'https://secure.citap.be/authorization/hibye.cgi',
+   credentials       => [ 'secure.citap.be:443', "ASNMTAP's Authorization Access", 'USERNAME' => 'PASSWORD' ],
+   namespace         => $namespace,
+   method            => $method,
+   registerNamespace => \%soapService_Register_NS,
+   xmlContent        => $xmlContent,
+   params            => $params,
+   cookies           => 1,
+   perfdataLabel     => 'SOAP with Credentials'
  );
 
  unless ( $returnCode ) {
@@ -111,7 +137,21 @@ This lets you specify an endpoint (service address) and also loads the required 
 
  proxy: 'http://services.soaplite.com/hibye.cgi'
 
+When using SOAP with basic authentication you can add username and password to your URL as follows:
+
+ proxy: 'http://USERNAME:PASSWORD@services.soaplite.com/hibye.cgi'
+
 a required scalar.
+
+=item credentials
+
+Set the user name and password to be used for a realm.
+
+ credentials: [ $hostname_port, $realm, $username, $password ]
+
+              [ 'secure.citap.be:443', "ASNMTAP's Authorization Access", 'USERNAME' => 'PASSWORD' ]
+
+a optional array.
 
 =item namespace
 
@@ -142,6 +182,14 @@ The name is what the serializer will use for the tag when generating the XML for
 
 a required SOAP::Data->name definition
 
+=item soapaction
+
+This lets you specify a handler for on_action event. It is triggered when creating SOAPAction. 
+The default handler will set SOAPAction to "uri/method". 
+You can change this behavior, for a particular object to "uri/soapaction".
+
+optional scalar, soapaction
+
 =item xmlContent
 
 Parsing XML formatted data.
@@ -161,6 +209,18 @@ optional scalar, xmlContent is one XML
  params: SOAP::Data->name('req')->type('string')->value(xmlContent);
 
 optional scalar, params is one SOAP::Data->name definition
+
+=item readable
+
+This lets you specify the format for the generated XML code.
+Carriage returns <CR> and indentation will be added for readability.
+Useful in the case you want to see the generated code in a debugger.
+By default, there are no additional characters in generated XML code.
+
+optional, readable can be 0 or 1
+
+ 0, there are no additional characters in generated XML code (default)
+ 1, carriage returns <CR> and indentation will be added for readability
 
 =item cookies
 

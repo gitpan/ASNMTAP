@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -25,7 +25,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -98,6 +98,9 @@ if ($pf eq "on") {
   $forGround  = 0xF7F7F7;
   $axisColor  = 0x0000FF;
 }
+
+# set: forceIndex
+my $forceIndex = "force index (key_startDate)"; $forceIndex = "";
 
 # Init return value to true
 $rv = 1;
@@ -220,7 +223,7 @@ if ( $rv ) {
         if ( $rv and $uKey1 ne "none" ) {
           if ( $selChart eq "Status" ) {
             my ($title, $status, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, status, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, status, count(status) as aantal", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$status, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -270,7 +273,7 @@ if ( $rv ) {
             }
           } elsif ( $selChart eq "ErrorDetails" ) {
             my ($title, $statusmessage, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select title, statusmessage, count(*) as aantal", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, statusmessage, count(statusmessage) as aantal", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$statusmessage, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -309,7 +312,7 @@ if ( $rv ) {
           } elsif ( $selChart eq "Bar" ) {
             my ($seconden, $duration, $startDate, $startTime, $status, $step);
             my ($dataOK, $dataWarning, $dataCritical, $dataUnknown, $dataNoTest, $dataOffline);
-            $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select duration, startDate, startTime, status, step", "force index (key_startDate)", "WHERE uKey = '$uKey1'", $sqlPeriode, '', "", '', "order by startDate, startTime", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE duration, startDate, startTime, status, step", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, '', "", '', "order by startDate, startTime", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$duration, \$startDate, \$startTime, \$status, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -581,9 +584,9 @@ sub getAverage {
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $startDate, $hour, $average, @avg, @labels);
 
   if ( $selChart eq "HourlyAverage" ) {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, hour(startTime) as hour, round(avg(time_to_sec(duration)), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, hour(startTime) as hour, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
   } else {
-    $sql = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, round(avg(time_to_sec(duration)), 2)", "force index (key_startDate)", "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
   }
 
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, check_memory-free.pl
+# 2007/06/10, v3.000.014, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Solaris and TRU64: memory
 # ----------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberProcesses <number of processes> -s|--sortingOrder [cpu|size|res|time] -M|--memory [F|U]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

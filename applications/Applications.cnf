@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.xxx
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.014
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,6 +49,11 @@
 </PATH>
 
 #<DATABASE_ACCOUNT>
+#  <SERVER>
+#    VERSION         4.x                    # '4.x' or '5.0.x'
+#    MERGE           0                      # '0' or '1'
+#  </SERVER>
+
 #  <READONLY>
 #    HOST            localhost
 #    PORT            3306

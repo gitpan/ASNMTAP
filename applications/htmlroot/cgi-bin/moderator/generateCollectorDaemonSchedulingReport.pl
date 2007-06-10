@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -24,7 +24,7 @@ use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReport.pl";
 my $prgtext     = "Collector Daemon Scheduling Report";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -103,13 +103,13 @@ if ( $rv ) {
 
   if ( $dbh and $rv ) {
     my $uKeysSqlWhere = '';
-    $sql = "select $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.collectorDaemon = '$CcollectorDaemon' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
+    $sql = "select SQL_NO_CACHE $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.collectorDaemon = '$CcollectorDaemon' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
     ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, \$uKeysSqlWhere, $debug);
 
     if ( $rv ) {
       my ($uKey, $startDate, $startTime, $endDate, $endTime, $status, $timeslot, $step);
       $uKeysSqlWhere = "AND ($uKeysSqlWhere)" if ($uKeysSqlWhere);
-      $sql = "SELECT $SERVERTABLEVENTS.uKey, $SERVERTABLEVENTS.startDate, $SERVERTABLEVENTS.startTime, $SERVERTABLEVENTS.endDate, $SERVERTABLEVENTS.endTime, $SERVERTABLEVENTS.status, $SERVERTABLEVENTS.timeslot, $SERVERTABLEVENTS.step FROM $SERVERTABLEVENTS FORCE INDEX (key_timeslot), $SERVERTABLPLUGINS WHERE $SERVERTABLEVENTS.timeslot between '$sqlStartDate' AND '$sqlEndDate' $uKeysSqlWhere and $SERVERTABLEVENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLEVENTS.title, $SERVERTABLEVENTS.uKey";
+      $sql = "SELECT SQL_NO_CACHE $SERVERTABLEVENTS.uKey, $SERVERTABLEVENTS.startDate, $SERVERTABLEVENTS.startTime, $SERVERTABLEVENTS.endDate, $SERVERTABLEVENTS.endTime, $SERVERTABLEVENTS.status, $SERVERTABLEVENTS.timeslot, $SERVERTABLEVENTS.step FROM $SERVERTABLEVENTS FORCE INDEX (key_timeslot), $SERVERTABLPLUGINS WHERE $SERVERTABLEVENTS.timeslot between '$sqlStartDate' AND '$sqlEndDate' $uKeysSqlWhere and $SERVERTABLEVENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLEVENTS.title, $SERVERTABLEVENTS.uKey";
 
       $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
       $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;

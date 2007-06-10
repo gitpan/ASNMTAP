@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Applications
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -56,6 +56,7 @@ BEGIN {
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE $STATUSHEADER01
                                                  					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
+                                                                       $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
                                                                        $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
@@ -90,7 +91,7 @@ BEGIN {
                                                                        &read_table &get_session_param
                                                                        &init_email_report &send_email_report) ],
 
-                                                  DBARCHIVE    => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE $SERVERTABLEVENTS $SERVERTABLCOMMENTS)],
+                                                  DBARCHIVE    => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE $SERVERTABLEVENTS $SERVERTABLCOMMENTS)],
 
                                                   COLLECTOR    => [ qw($APPLICATIONPATH
 
@@ -104,7 +105,7 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
 
-                                                  DBCOLLECTOR  => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
+                                                  DBCOLLECTOR  => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERTABLCOMMENTS $SERVERTABLEVENTS) ],
  
                                                   DISPLAY      => [ qw($APPLICATIONPATH
@@ -119,7 +120,7 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
  
-                                                  DBDISPLAY    => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
+                                                  DBDISPLAY    => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
                                                                        $SERVERTABLCOMMENTS $SERVERTABLEVENTS) ],
 									   
                                                   CGI          => [ qw($APPLICATIONPATH
@@ -139,13 +140,14 @@ BEGIN {
                                                                        &set_doIt_and_doOffline
                                                                        &encode_html_entities &print_header &print_legend
  
+                                                                       $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
                                                                        $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -244,7 +246,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -340,7 +342,15 @@ our $HTMLTOPDFOPTNS = ( exists $_config{COMMON}{HTMLTOPD}{OPTIONS} ? $_config{CO
 
 our $DATABASE       = ( exists $_config{DATABASE}{ASNMTAP}         ? $_config{DATABASE}{ASNMTAP}         : 'asnmtap' );
 
-# archiver, collector.pl and display.pl - - - - - - - - - - - - - - - - -
+# CGI.pm  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# archiver.pl - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+our $SERVERMYSQLVERSION    = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     ? $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     : '4.x' );
+our $SERVERMYSQLMERGE      = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       ? $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       : '0' );
+
+$SERVERMYSQLVERSION        = '4.x' unless ( $SERVERMYSQLVERSION eq '5.0.x' );
+$SERVERMYSQLMERGE          = '0'   unless ( $SERVERMYSQLMERGE eq '1' );
+
+# archiver.pl, collector.pl and display.pl  - - - - - - - - - - - - - - -
 # comments.pl, holidayBundleSetDowntimes.pl - - - - - - - - - - - - - - -
 # scripts into directory /cgi-bin/admin & /cgi-bin/sadmin - - - - - - - -
 our $SERVERNAMEREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     : 'localhost' );
@@ -970,9 +980,28 @@ sub print_header {
 
     function deleteSoundCookie( name ) { setSoundCookie( name, '', -1 ); }
 
+    function dynamicContentNS4NS6FF (elementID, content, booleanBlur) {
+      if (document.all)
+        document.getElementById(elementID).innerHTML=content
+      else if (document.getElementById) {
+        var range = document.createRange ();
+        var element = document.getElementById (elementID);
+        range.setStartBefore (element);
+        var htmlFragment = range.createContextualFragment (content);
+        while ( element.hasChildNodes() ) element.removeChild (element.lastChild);
+        element.appendChild (htmlFragment);
+        if (booleanBlur) blur ();
+      }
+    }
+
     function initSound( ) {
       var soundState = getSoundCookie( 'soundState' );
-      if ( soundState == null || soundState == 'on' ) { startSound( ); } else { stopSound( ); }
+
+      if (document.all) {
+        if ( soundState == null || soundState == 'on' ) { startSound( ); } else { stopSound( ); }
+      } else {
+        if ( soundState == null || soundState == 'off' ) { stopSound( ); } else { startSound( ); }
+      }
     }
 
     function startSound( ) {
@@ -995,9 +1024,10 @@ EndOfHtml
     print $HTML <<EndOfHtml;
 
       if ( soundState != null && soundState == 'on' ) {
-        document.getElementById('LegendSound').innerHTML='<embed src=\"$HTTPSURL/sound/' + sound + '\" width=\"\" height=\"\" alt=\"\" hidden=\"true\" autostart=\"true\"><\\/embed>'
+        playSound = '<embed src="$HTTPSURL/sound/' + sound + '" width="" height="" alt="" hidden="true" autostart="true" loop="false"><\\/embed>';
+        dynamicContentNS4NS6FF ('LegendSound', playSound, 1);
       } else {
-        document.getElementById('LegendSound').innerHTML='&nbsp;'
+        dynamicContentNS4NS6FF ('LegendSound', '&nbsp;', 1);
       }
 EndOfHtml
   }

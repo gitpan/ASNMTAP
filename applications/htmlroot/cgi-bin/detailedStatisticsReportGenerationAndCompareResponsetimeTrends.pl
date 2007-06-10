@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -109,7 +109,7 @@ EndOfHtml
   my ($printerFriendlyOutputBox, $formatOutputSelect, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
   my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $rest, $dummy, $count);
   my ($averageQ, $numbersOfTestsQ, $startDateQ, $stepQ, $endDateQ, $errorMessage, $chartOrTableChecked);
-  my ($checkbox, $tables, $infoTable, $topxTable, $errorDetailList, $errorList, $responseTable, $goodDate);
+  my ($checkbox, $tables, $infoTable, $topxTable, $errorList, $errorDetailList, $commentDetailList, $responseTable, $goodDate);
   my ($fromto, $years, $weeks, $months, $quarters, $slaWindows, $selectedYear, $selectedWeek, $selectedMonth, $selectedQuarter, $slaWindow, $i);
   my @arrMonths = qw(January Februari March April May June July August September October November December);
 
@@ -223,10 +223,10 @@ EndOfHtml
       $quarters .= "        </select>\n";
 
       # Section: SLA windows
-      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select SQL_NO_CACHE timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
 
       if ( $timeperiodID > 1 ) {
-        $sqlQuery = "select timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
+        $sqlQuery = "select SQL_NO_CACHE timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
         $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
 
@@ -326,19 +326,20 @@ EndOfHtml
 
         # Sql init & Query's  - - - - - - - - - - - - - - - - - - - - - -
         if ((($details eq "on") or ($topx eq "on")) and ! defined $errorMessage) {
-          $sqlSelect  = "select startDate as startDateQ, startTime, endDate as endDateQ, endTime, duration, status, statusMessage";
-          $sqlAverage = "select avg(time_to_sec(duration)) as average";
-          $sqlErrors  = "select statusmessage, count(*) as aantal";
+          $sqlSelect  = "select SQL_NO_CACHE startDate as startDateQ, startTime, endDate as endDateQ, endTime, duration, status, statusMessage";
+          $sqlAverage = "select SQL_NO_CACHE avg(time_to_sec(duration)) as average";
+          $sqlErrors  = "select SQL_NO_CACHE statusmessage, count(statusmessage) as aantal";
           $sqlWhere   = "WHERE uKey = '$uKey1'";
           $sqlPeriode = "AND startDate BETWEEN '$sqlStartDate' AND '$sqlEndDate' $sqlPeriode " if (defined $sqlStartDate and defined $sqlEndDate);
         }
 
         my ($numbersOfTests, $step, $average);
-		
+        my $forceIndex = "force index (key_startDate)"; $forceIndex = "";
+
         if ($details eq "on" and ! defined $errorMessage) {
           # Details: General information  - - - - - - - - - - - - - - - - -
-          $sqlInfo  = "select count(id) as numbersOfTests, max(step) as step";
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlInfo, "force index (key_startDate)", $sqlWhere, $sqlPeriode, '', "group by uKey", '', "", "ALL");
+          $sqlInfo  = "select SQL_NO_CACHE count(id) as numbersOfTests, max(step) as step";
+          $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlInfo, $forceIndex, $sqlWhere, $sqlPeriode, '', "group by uKey", '', "", "ALL");
 
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -354,7 +355,7 @@ EndOfHtml
           }
 
           # Average: General information  - - - - - - - - - - - - - - - - -
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlAverage, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK'", '', "", '', "ALL");
+          $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlAverage, $forceIndex, $sqlWhere, $sqlPeriode, "AND status = 'OK'", '', "", '', "ALL");
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
           $sth->bind_columns( \$averageQ ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -390,11 +391,42 @@ EndOfHtml
 
           $infoTable .= "</table>\n";
 
+          # Comment Detail  - - - - - - - - - - - - - - - - - - - - - - -
+          my ($activationDate, $suspentionDate, $solvedDate, $activationTime, $suspentionTime, $solvedTime, $commentData, $persistent, $downtime, $problemSolved);
+          $commentDetailList = "<H1>Comment Details</H1>\n";
+
+          $sqlQuery = "select SQL_NO_CACHE activationDate, suspentionDate, solvedDate, activationTime, suspentionTime, solvedTime, commentData, persistent, downtime, problemSolved from $SERVERTABLCOMMENTS where uKey = '". $uKey1 ."' and activationDate <= '". $sqlEndDate ."' and ( ( problemSolved = '1' and '". $sqlStartDate ."' <= solvedDate ) or problemSolved = '0' )";
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$activationDate, \$suspentionDate, \$solvedDate, \$activationTime, \$suspentionTime, \$solvedTime, \$commentData, \$persistent, \$downtime, \$problemSolved ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+
+          if ( $rv ) {
+            if ($sth->rows) {
+  	          $commentDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th></th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Solved Date/Time</th><th>Persistent</th><th>Downtime</th><th>Problem Solved</th></tr>\n";
+
+              while( $sth->fetch() ) {
+                $commentData =~ s/'/`/g;
+                $commentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
+              # $commentData =~ s/[\n\r]+(?:Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (?:\d{4}-\d\d-\d\d) (?:\d\d:\d\d:\d\d)//g;
+                $commentData =~ s/[\n\r]/<br>/g;
+                $commentData =~ s/(?:<br>)+/<br>/g;
+                $commentData = encode_html_entities('C', $commentData);
+	            $commentDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">&nbsp;</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$solvedDate \@ $solvedTime</td><td>$persistent</td><td>$downtime</td><td>$problemSolved</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
+              }
+
+              $commentDetailList .= "</table>\n";
+            } else {
+              $commentDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No comments for this period!</td></tr></table>";
+            }
+
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
+          }
+
           # Problem Detail  - - - - - - - - - - - - - - - - - - - - - - - -
           my ($oneblock, $block, $firstrun, $nstartDateQ, $nstartTime, $nendDateQ, $nendTime, $nseconden);
           my ($test, $resultsdir, $tel, $wtel, $nstatus, $nrest, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $rrest);
 
-          $errorList     = "<H1>Problem details</H1>\n";
+          $errorDetailList = "<H1>Problem Details</H1>\n";
           $responseTable = "<H1>Response time warnings</H1>\n";
 
           $sqlQuery = "select test, resultsdir from $SERVERTABLPLUGINS $sqlWhere";
@@ -408,7 +440,7 @@ EndOfHtml
             if ( $rv ) {
               ($test, undef) = split(/\.pl/, $test);
 	  
-              $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", '', "", "order by startDateQ, startTime", "ALL");
+              $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlSelect, $forceIndex, $sqlWhere, $sqlPeriode, "AND status <> 'OK' AND status <> 'OFFLINE' AND status <> 'NO TEST'", '', "", "order by startDateQ, startTime", "ALL");
               $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
               $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
               $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -451,8 +483,8 @@ EndOfHtml
                   $responseTable .= "<tr $block><td>$dummy$wtel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td> ".encode_html_entities('M', $rrest)." </td></tr>\n";
                 } else {
                   $tel++;
-                  $errorList .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th width=\"40\"> # </th><th>Start</th><th>Stop</th><th>Duration</th><th>Status</th><th>Status Message</th></tr>\n" if ($tel == 1);
-                  $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS{$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
+                  $errorDetailList .= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th width=\"40\"> # </th><th>Start</th><th>Stop</th><th>Duration</th><th>Status</th><th>Status Message</th></tr>\n" if ($tel == 1);
+                  $errorDetailList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS{$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
                 }
               }
 
@@ -467,22 +499,22 @@ EndOfHtml
                 $responseTable .= "<tr $block><td>$dummy$wtel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td> ".encode_html_entities('M', $rrest)." </td></tr>\n";
               } else {
                 $tel++;
-                $errorList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
+                $errorDetailList .= "<tr $block><td>$dummy$tel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> ".encode_html_entities('S', $nstatus)." </font></td><td>".createLinkToDebugFile($nstartDateQ, $nstartTime, $nstatus, encode_html_entities('M', $rrest))." </td></tr>\n";
               }
             }
 
             $responseTable .= "</table>\n<br>\n<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td>Legende:</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{NOBLOCK}\">&nbsp;&nbsp;&nbsp;Single item&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\">&nbsp;&nbsp;&nbsp;Start of block&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">&nbsp;&nbsp;&nbsp;Next element of the same block&nbsp;&nbsp;&nbsp;</td></tr></table>\n" if ($wtel);
 
             if ($tel) {
-              $errorList .= "</table>\n<br>\n<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td>Legende:</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{NOBLOCK}\">&nbsp;&nbsp;&nbsp;Single item&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\">&nbsp;&nbsp;&nbsp;Start of block&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">&nbsp;&nbsp;&nbsp;Next element of the same block&nbsp;&nbsp;&nbsp;</td></tr></table>\n";
+              $errorDetailList .= "</table>\n<br>\n<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td>Legende:</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{NOBLOCK}\">&nbsp;&nbsp;&nbsp;Single item&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\">&nbsp;&nbsp;&nbsp;Start of block&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;</td><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">&nbsp;&nbsp;&nbsp;Next element of the same block&nbsp;&nbsp;&nbsp;</td></tr></table>\n";
             } else {
-              $errorList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\"  bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No problems for this period!</td></tr></table>\n";
+              $errorDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No problems for this period!</td></tr></table>\n";
             }
 
             $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
 
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlSelect, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status = 'OK' AND statusMessage regexp ': Response time [[:alnum:]]+.[[:alnum:]]+ > trendline [[:alnum:]]+'", '', "", "order by startDateQ, startTime", "ALL");
+          $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlSelect, $forceIndex, $sqlWhere, $sqlPeriode, "AND status = 'OK' AND statusMessage regexp ': Response time [[:alnum:]]+.[[:alnum:]]+ > trendline [[:alnum:]]+'", '', "", "order by startDateQ, startTime", "ALL");
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
           $sth->bind_columns( \$startDateQ, \$startTime, \$endDateQ, \$endTime, \$duration, \$status, \$statusMessage ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -518,7 +550,7 @@ EndOfHtml
           }
 
           # Problem Summary - - - - - - - - - - - - - - - - - - - - - - -
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, $sqlErrors, "force index (key_startDate)", $sqlWhere, $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "order by aantal desc, statusmessage", "ALL");
+          $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlErrors, $forceIndex, $sqlWhere, $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "order by aantal desc, statusmessage", "ALL");
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
           $sth->bind_columns( \$statusMessage, \$count ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -547,18 +579,18 @@ EndOfHtml
               }
             }
 
-            $errorDetailList = "<H1>Problem Summary </H1>\n";
+            $errorList = "<H1>Problem Summary </H1>\n";
 
   	        if ( $sth->rows > 0 ) {
-  	          $errorDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th>Statusmessage</th><th>Freq</th></tr>\n";
+  	          $errorList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th>Statusmessage</th><th>Freq</th></tr>\n";
 
     	      foreach my $rest (sort {$problemSummary{$b} <=> $problemSummary{$a}} (keys(%problemSummary))) {
-	            $errorDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td> " .encode_html_entities('M', $rest). " </td><td align=\"right\">" .$problemSummary{$rest}. "</td></tr>\n";
+	            $errorList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td> " .encode_html_entities('M', $rest). " </td><td align=\"right\">" .$problemSummary{$rest}. "</td></tr>\n";
 	          }
 
-              $errorDetailList .= "</table>\n";
+              $errorList .= "</table>\n";
             } else {
-              $errorDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No errors for this period!</td></tr></table>";
+              $errorList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No errors for this period!</td></tr></table>";
             }
 
             $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
@@ -568,7 +600,7 @@ EndOfHtml
         if ($topx eq 'on' and ! defined $errorMessage) {
           # Top X List  - - - - - - - - - - - - - - - - - - - - - - - - -
           my ($startDatetx, $durationtx, $startTimetx);
-          $sqlQuery = create_sql_query_events_from_range_year_month ($sqlStartDate, $sqlEndDate, "select startDate, startTime, duration", "force index (key_startDate)", $sqlWhere, $sqlPeriode, "and status <> 'OFFLINE' and status <> 'CRITICAL' and duration > 0", '', "", "order by duration desc, startDate desc, startTime desc limit 20", "ALL");
+          $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, startTime, duration", $forceIndex, $sqlWhere, $sqlPeriode, "and status <> 'OFFLINE' and status <> 'CRITICAL' and duration > 0", '', "", "order by duration desc, startDate desc, startTime desc limit 20", "ALL");
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
           $sth->bind_columns( \$startDatetx, \$startTimetx,\$durationtx ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -719,8 +751,9 @@ HTML
       print $images, "\n" if (defined $images );
       print $infoTable, "<br><br>\n" if (defined $infoTable);
       print $topxTable, "<br><br>\n" if (defined $topxTable);
-      print $errorDetailList, "<br><br>\n" if (defined $errorDetailList);
       print $errorList, "<br><br>\n" if (defined $errorList);
+      print $commentDetailList, "<br><br>\n" if (defined $commentDetailList);
+      print $errorDetailList, "<br><br>\n" if (defined $errorDetailList);
       print $responseTable if (defined $responseTable);
       print "<br><center><a href=\"/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));
     }

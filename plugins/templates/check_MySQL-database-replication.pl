@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, check_MySQL-database-replication.pl
+# 2007/06/10, v3.000.014, check_MySQL-database-replication.pl
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -31,7 +31,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.013;
+use ASNMTAP::Asnmtap::Plugins v3.000.014;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,7 +39,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [-1|--database=<database>] [-2|--binlog=<binlog>] [-3|--table=<table>] [-4|--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
@@ -95,8 +95,8 @@ $objectPlugins->pluginValue ( alert => "DBI:mysql:$database:$hostname:$port" );
 
 my ( $returnCode, $alert, $dbh, $sth, $ref, @tables, $dtable, $exist, $prepareString );
 
-$dbh = DBI->connect ("DBI:mysql:$database:$hostname:$port", "$username", "$password") or _errorTrapDBI ( 'Could not connect to MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" );
-@tables = $dbh->tables() or _errorTrapDBI ( 'No tables found for database '. $database .' on server '. $hostname, '');
+$dbh = DBI->connect ("DBI:mysql:$database:$hostname:$port", "$username", "$password") or _ErrorTrapDBI ( 'Could not connect to MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" );
+@tables = $dbh->tables() or _ErrorTrapDBI ( 'No tables found for database '. $database .' on server '. $hostname, '');
 foreach $dtable (@tables) { if ( $dtable eq "`$table`" ) { $exist = 1; last; } else { $exist = 0;} }
 
 if ( $exist ) {
@@ -105,8 +105,8 @@ if ( $exist ) {
   if ( $dbh ) {
     if ( $cluster =~ /^[SM]$/ ) {
       $prepareString = 'SHOW MASTER STATUS';
-      $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-      $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
       $ref = $sth->fetchrow_arrayref;
 
@@ -123,12 +123,12 @@ if ( $exist ) {
 	  	}
 	  }
 
-      $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+      $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
       if ( $returnCode eq $ERRORS{OK} ) {
         $prepareString = 'SHOW SLAVE STATUS';
-        $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-        $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
         $ref = $sth->fetchrow_arrayref;
 
@@ -167,14 +167,14 @@ if ( $exist ) {
           }
 		}
 
-        $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+        $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
       }
     }
 
   # if ( $returnCode eq $ERRORS{OK} ) {
   #   $prepareString = "SHOW TABLE STATUS FROM $database";
-  #   $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-  #   $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  #   $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  #   $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
   #   while ( $ref = $sth->fetchrow_arrayref ) {
   #     if ( $$ref[1] eq $table ) {
@@ -223,7 +223,7 @@ if ( $exist ) {
   #     }
   #  }
 
-  #   $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  #   $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
   # }
   }
 } else {
@@ -231,7 +231,7 @@ if ( $exist ) {
   $returnCode = $ERRORS{CRITICAL};
 }
 
-if ( $dbh ) { $dbh->disconnect or _errorTrapDBI ( 'Could not disconnect from MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" ); }
+if ( $dbh ) { $dbh->disconnect or _ErrorTrapDBI ( 'Could not disconnect from MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" ); }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -242,7 +242,7 @@ $objectPlugins->exit (7);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub _errorTrapDBI {
+sub _ErrorTrapDBI {
   my ($error, $errorDBI) = @_;
 
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => "$error - $errorDBI" }, $TYPE{APPEND} );

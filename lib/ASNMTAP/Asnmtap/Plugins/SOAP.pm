@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,11 +42,14 @@ sub get_soap_request {
                    custom               => undef,
                    customArguments      => undef,
                    proxy                => undef,
+                   credentials          => undef,
                    namespace            => undef,
                    registerNamespace    => undef,
                    method               => undef,
+                   soapaction           => undef,
                    xmlContent           => undef,
                    params               => undef,
+                   readable             => 1,
                    cookies              => undef,
                    perfdataLabel        => undef,
 
@@ -66,7 +69,9 @@ sub get_soap_request {
     return ( $ERRORS{UNKNOWN} );
   }
 
-  unless ( defined $parms{namespace} ) {
+  my $namespace = $parms{namespace};
+
+  unless ( defined $namespace ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing SOAP parameter namespace' }, $TYPE{APPEND} );
     return ( $ERRORS{UNKNOWN} );
   }
@@ -85,9 +90,18 @@ sub get_soap_request {
     return ( $ERRORS{UNKNOWN} );
   }
 
+  my $soapaction = $parms{soapaction};
+
   my $xmlContent = $parms{xmlContent};
 
   my $params = $parms{params};
+
+  my $readable = $parms{readable};
+
+  unless ( $readable =~ /^[01]$/ ) {
+    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter readable must be 0 or 1' }, $TYPE{APPEND} );
+    return ( $ERRORS{UNKNOWN} );
+  }
 
   my $cookies = $parms{cookies};
 
@@ -197,13 +211,13 @@ sub get_soap_request {
 
     $service = new WSRF::Lite
     -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
-    -> autotype   (1)
-    -> readable   (1)
-    -> envprefix  ('soapenv')
-    -> encprefix  ('soapenc')
-    -> xmlschema  ('http://www.w3.org/2001/XMLSchema')
-    -> uri        ( $parms{namespace} )
-    -> on_action  ( sub { sprintf '%s/%s', @_ } )
+    -> autotype   ( 1 )
+    -> readable   ( $readable )
+    -> envprefix  ( 'soapenv' )
+    -> encprefix  ( 'soapenc' )
+    -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
+    -> uri        ( $namespace )
+    -> on_action  ( sub { sprintf "%s/%s", $_[0], ( defined $soapaction ? $soapaction : $_[1] ) } )
     -> on_fault   ( sub { } )
     ;
   } else {
@@ -216,13 +230,13 @@ sub get_soap_request {
     }
 
     $service = new SOAP::Lite
-    -> autotype   (1)
-    -> readable   (1)
-    -> envprefix  ('soapenv')
-    -> encprefix  ('soapenc')
-    -> xmlschema  ('http://www.w3.org/2001/XMLSchema')
-    -> uri        ( $parms{namespace} )
-    -> on_action  ( sub { sprintf '%s/%s', @_ } )
+    -> autotype   ( 1 )
+    -> readable   ( $readable )
+    -> envprefix  ( 'soapenv' )
+    -> encprefix  ( 'soapenc' )
+    -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
+    -> uri        ( $namespace )
+    -> on_action  ( sub { sprintf "%s/%s", $_[0], ( defined $soapaction ? $soapaction : $_[1] ) } )
     -> on_fault   ( sub { } )
     ;
   }
@@ -241,9 +255,24 @@ sub get_soap_request {
     $service->proxy ( $parms{proxy}, timeout => $timeout );
   }
 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  $service->transport->credentials( @{$parms{credentials}} ) if ( defined $parms{credentials} );
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # $service->proxy ( 'https://USERNAME:PASSWORD@secure.citap.be/authorization/hibye.cgi' );
+  # or
+  # $service->proxy ( 'https://secure.citap.be/authorization/hibye.cgi', credentials => [ 'secure.citap.be:443', "ASNMTAP's Authorization Access", 'USERNAME' => 'PASSWORD' ], timeout => $timeout );
+  # or
+  # $service->transport->credentials( 'secure.citap.be:443', "ASNMTAP's Authorization Access", 'USERNAME' => 'PASSWORD' );
+  # or
+  # use MIME::Base64;
+  # $service->transport->http_request->header( 'Authorization' => 'Basic '. MIME::Base64::encode ( 'USERNAME' .':'. 'PASSWORD', '' ) );
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   $service->transport->agent( $browseragent );
   $service->transport->timeout( $timeout );  
- 
+
   use HTTP::Cookies;
   $service->transport->cookie_jar( HTTP::Cookies->new ) if ( $cookies );
 

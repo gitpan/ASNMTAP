@@ -267,6 +267,12 @@ This message is added to the error field when Exp_Fault found.
 
 Is an scalar (value is a string), ex. 'Status error when Exp_Fault found'
 
+=item Timeout
+
+This means that for this URL the specified timeout will be used.
+
+Is an scalar (value is a integer greater then 0), ex. 30
+
 =item Perfdata_Label
 
 This means that for this URL there performance data will be created and the name for the label equals the value from Perfdata_Label.
@@ -319,6 +325,7 @@ I<Structure of the array of hash references:>
    custom           => undef,
    perfdataLabel    => undef,
    newAgent         => undef,
+   timeout          => undef,
    openAppend       => 1,
    cookies          => 1,
    protocol         => 1,
@@ -398,6 +405,16 @@ Every time whel for a following call $objectWebTransact->check ( { }, ... ), new
 When newAgent equals 0, then we using the same (browser) session again.
 
 Optional, is an scalar, value is 0 or 1
+
+=item I<timeout>
+
+Every time we call $objectWebTransact->check ( { }, timeout => 30, ... ),
+
+is an scalar, value greater then 0 or undef (default)
+
+When timeout equals undef, then we using the timeout from the parent object.
+
+Optional, is an scalar, value is greater the 0
 
 =item I<openAppend>
 
@@ -523,6 +540,7 @@ Exp_Fault field the check fails.
                Exp_Return     => {},
                Msg            => 'Status error when not all Exp found',
                Msg_Fault      => 'Status error when Exp_Fault found',
+               Timeout        => 30,
                Perfdata_Label => 'Label x' } ];
 
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, $ar);
@@ -765,6 +783,24 @@ equals to:
 
   $returnCode = $objectWebTransact->check ( { } );
 
+=item Example 7
+
+@URLS = (
+  { Method => 'GET',  Url => 'https://USERNAME:PASSWORD@secure.citap.be/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
+);
+
+$returnCode = $objectWebTransact->check ( { } );
+
+equals to:
+
+@URLS = (
+  { Method => 'GET',  Url => 'https://secure.citap.com/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
+);
+
+$objectWebTransact->ua->credentials ( 'secure.citap.com:443', "ASNMTAP's Authorization Access", 'USERNAME', 'PASSWORD' );
+
+$returnCode = $objectWebTransact->check ( { } );
+
 =back
 
 =head1 TOOLS
@@ -831,9 +867,12 @@ Alex Peeters [alex.peeters@citap.be]
 ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
   check_template-WebTransact.pl
-  check_template-WebTransact-XML.pl
   check_template-WebTransact-Perfdata.pl
+  check_template-WebTransact-with-client-authorization.pl
   check_template-WebTransact-with-client-certificate.pl
+  check_template-WebTransact-XML.pl
+  check_template-WebTransact-XML-Cactus-parser.pl
+  check_template-WebTransact-XML-Monitoring.pl
 
 =head1 DEPENDENCIES
 

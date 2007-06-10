@@ -32,7 +32,7 @@ if ( $installed and -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult'", 3, '/Missing command line argument base/');
   $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be'", 3, '/Missing command line argument scope/');
   $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB'", 3, '/Missing command line argument filter/');
-  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB' --filter='(uid=alexpeeters)'", 3, "/ERROR: Can't get an connection to ldapserver/" );
+  $t += checkCmd( "$prefix/$plugin --host=ldap.citap.com --port=389 --password=password --dn='uid=ldapconsult,ou=People,dc=be' --dnPass='consult' --base='dc=be' --scope='SUB' --filter='(uid=alexpeeters)'", 3, "/ERROR: Can't get a connection to ldapserver/" );
 } else {
   $t += skipMissingCmd( "$prefix/$plugin", $tests );
 }

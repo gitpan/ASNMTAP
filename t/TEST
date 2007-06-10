@@ -77,10 +77,10 @@ if (@ARGV) {
       push ( @tests, <Templates/Plugins/SOAP/*.t> )       if ( -f 'PLUGINS_SOAP_ENABLED' );
 
       if ( -f 'PLUGINS_WEBTRANSACT_ENABLED' ) {
-        push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t>) );
+        push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-authorization.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t>) );
 
         if ( -f 'PLUGINS_XML_ENABLED' ) {
-          push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact-XML.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t>) );
+          push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact-XML.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t>) );
         }
       }
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2007/06/10, v3.000.014, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.013;
+use ASNMTAP::Asnmtap::Applications v3.000.014;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -153,7 +153,7 @@ if ($dbh and $rv) {
                     $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
                   }
 
-                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
+                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLENVIRONMNT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
                   $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
                   $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
                   $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
@@ -165,7 +165,7 @@ if ($dbh and $rv) {
                         $activationTimeslot = timelocal(0, 0, 0, $holidayDay, $holidayMonth-1, $holidayYear-1900);
                         $suspentionTimeslot = timelocal(59, 59, 23, $holidayDay, $holidayMonth-1, $holidayYear-1900);
                         $alert .= " Holiday: $holidayYear/$holidayMonth/$holidayDay, From: $activationTimeslot (" .scalar(localtime($activationTimeslot)). "), To: $suspentionTimeslot (" .scalar(localtime($suspentionTimeslot)). ")" if ($debug);
-                        my $sql = 'SELECT count(*) from ' .$SERVERTABLCOMMENTS. ' where uKey="' .$uKey. '" and downtime="1" and problemSolved="0" and activationTimeslot="' .$activationTimeslot. '" and suspentionTimeslot="' .$suspentionTimeslot. '"';
+                        my $sql = 'SELECT count(id) from ' .$SERVERTABLCOMMENTS. ' where uKey="' .$uKey. '" and downtime="1" and problemSolved="0" and activationTimeslot="' .$activationTimeslot. '" and suspentionTimeslot="' .$suspentionTimeslot. '"';
                         $alert .= "\n  C $sql" if ($debug >= 2);
                         my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
                         $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;

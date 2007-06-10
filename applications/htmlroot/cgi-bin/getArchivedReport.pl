@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.013;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedReport.pl";
 my $prgtext     = "Get Archived Report";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -68,7 +68,7 @@ unless ( defined $errorUserAccessControl ) {
     print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
     print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n";
   } else {
-    my ($rv, $dbh, $sth, $sql, $title, $resultsdir, $uKeySelect, $reportsSelect);
+    my ($rv, $dbh, $sth, $sql, $title, $resultsdir, $uKeySelect, $reportsSelect, %timeperiods);
 
     # open connection to database and query data
     $rv  = 1;
@@ -86,7 +86,16 @@ unless ( defined $errorUserAccessControl ) {
         if ( $rv ) {
           ($title, $resultsdir) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-        } 
+        }
+
+        $sql = "select $SERVERTABLREPORTS.id, $SERVERTABLTIMEPERIODS.timeperiodName from $SERVERTABLREPORTS, $SERVERTABLTIMEPERIODS where $SERVERTABLREPORTS.uKey = '$uKey' and $SERVERTABLREPORTS.timeperiodID = $SERVERTABLTIMEPERIODS.timeperiodID";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+
+        if ( $rv ) {
+          while (my $ref = $sth->fetchrow_hashref()) { $timeperiods{ $ref->{id} } = $ref->{timeperiodName}; }
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        }
       }
 
       # Close database connection - - - - - - - - - - - - - - - - - - - - -
@@ -96,7 +105,7 @@ unless ( defined $errorUserAccessControl ) {
     if ($rv) {
       if (defined $resultsdir) {
         my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;uKey=$uKey&amp;day=$day&amp;week=$week&amp;month=$month&amp;quarter=$quarter&amp;year=$year";
-        $reportsSelect = "  <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n    <tr><th colspan=\"3\"><a href=\"$urlWithAccessParameters&amp;ascending=0\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report <a href=\"$urlWithAccessParameters&amp;ascending=1\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th></tr>";
+        $reportsSelect = "  <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n    <tr><th colspan=\"4\"><a href=\"$urlWithAccessParameters&amp;ascending=0\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report <a href=\"$urlWithAccessParameters&amp;ascending=1\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th></tr>";
 
         my $rvOpendir = opendir(REPORTS, "$RESULTSPATH/$resultsdir/$REPORTDIR/");
 
@@ -144,7 +153,7 @@ unless ( defined $errorUserAccessControl ) {
               }
 
               if (defined $reportPeriode) {
-                $reportsSelect .= "\n    <tr><td><a href=\"$RESULTSURL/$resultsdir/$REPORTDIR/$archivedReportFile\" target=\"_blank\">$reportPeriode</a></td><td>- id $2 -</td><td>$reportDate</td></tr>";
+                $reportsSelect .= "\n    <tr><td><a href=\"$RESULTSURL/$resultsdir/$REPORTDIR/$archivedReportFile\" target=\"_blank\">$reportPeriode</a></td><td> - ". ( defined $timeperiods{ $2 } ? $timeperiods{ $2 } : 'UNDEF' ) ."</td><td>- id $2 -</td><td>$reportDate</td></tr>";
                 $noGeneratedReports = 0;
               }
             }

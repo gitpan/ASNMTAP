@@ -5,113 +5,71 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: xx xxx 2007
-Version      : 3.000.013
+Latest update: 10 Juni 2007
+Version      : 3.000.014
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.013, 2007/02/25, ASNMTAP
-                               - add BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
-                               - FIX replace <script language="JavaScript..."> with <script language="JavaScript..." type="text/javascript">
-                               - UPDATE Mozilla/5.0 compatible
-                               - UPDATE CSE HTML Validator version 1.2.3 compatible
-                               - UPDATE CSS Level 2.1 compatible
-                               Makefile.PL
-                               - version update Bundle::DBD::mysql 4.001
-                               - version update CGI::Session 4.20
-                               - version update Compress::Zlib 2.003
-                               - version update Crypt::OpenSSL::X509 0.4
-                               - version update Crypt::SSLeay 0.53
-                               - version update Cwd 3.24
-                               - version update DateTime 0.36
-                               - version update Email::Simple 1.996
-                               - NEW ExtUtils::Autoconf 0.02
-                               - version update Getopt::Long 2.36
-                               - version update IO::Socket::SSL 1.02
-                               - version update Net::IMAP::Simple 1.16
-                               - version update Time::HiRes 1.9704
-                               - version update Time::Local 1.17
-                               - version update WSRF::Lite 0.8.1
-                               - version update XML::LibXML 1.62
+Version 3.000.014, 2007/06/10, Makefile.PL
+                               - version update CPAN 1.9101
+                               - version update CPANPLUS 0.78
+                               - version update Config::General 2.32
+                               - version update DateTime 0.37
+                               - version update Email::Simple 1.999
+                               - version update ExtUtils::MakeMaker 6.32
+                               - version update IO::Socket::SSL 1.040
+                               - version update Net::LDAP 0.34
+                               - version update Time::HiRes 1.9705
+                               - version update WSRF::Lite 0.8.2.1
                                MANIFEST
-                               - NEW applications/sbin/bash_stop_root.sh
-                               - UPDATE move plugins/check_file-counter.pl to plugins/templates/check_file-counter.pl
-                               - UPDATE move plugins/check_sendAndReceiveMail.pl to plugins/templates/check_sendAndReceiveMail.pl
-             ATTENTION   -->   asnmtap-3.000.013.sql
-                               - NEW table `timeperiods`
-                               - add `timeperiodID` int(11) NOT NULL default '1' at table reports
-                               - add KEY `timeperiodID` (`timeperiodID`), at table reports
-                               - add CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`timeperiodID`) REFERENCES `timeperiods` (`timeperiodID`) at table reports
-                               - UPDATE replace 'KEY `pagedir` (`pagedir`),' with 'UNIQUE KEY `pagedir` (`pagedir`),' at table displayDaemons
-                               asnmtap-3.000.013-distributed.sql
-                               - NEW example for distributed monitoring
-                               crontab verify disable email when ...
-                               - By default cron jobs sends a email to the user account executing the cronjob.
-                                 Because this is not needed we put the following command At the end of the cron job line.
-                                 '> /dev/null (default)' or '> /dev/null 2>&1'
-                               comments.pl
-                               - FIX regarding 'Please re-enter entry date/time: Date/Time are into the future!'
-                               - FIX regarding 'Please re-enter solved date/time: Date/Time are into the future!'
-                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl, generateChart.pl & htmlToPdf.pl
-                               - add my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : "none";
-                               display.pl
-                               - add -c, --creationTime=<YYYY-MM-DD HH:MM:SS>, YYYY-MM-DD HH:MM:SS: year, month, day, hours, minutes and seconds to use instead of the current time when --loop = F
-                               - add sort results by status, group, comments and then by time
-                               - FIX <\\/embed> added
-                               - FIX stop caching sound during refresh when sound off
-                               - FIX when downtime into the future, problem with the 'Condended View'
-                               - UPDATE replace '$TcommentData =~ s/<br><br>/<br>/g;' with '$TcommentData =~ s/(?:<br>)+/<br>/g;'
-                               display.pl and plugins.pl
-                               - FIX interval/step must be greather then 0!
-                               getArchivedDisplays.pl
-                               - NEW Archived Displays
-                               generateConfig.pl
-                               - FIX all SQL select statements regarding *.activated = 1 and add when needed
-                               - added print text to fix rights regarding chmod 755 for new CollectorCT-.*sh or DisplayCT-.*sh script
-                               - added edit, delete, duplicate and maintenance button for 'Plugin' and 'Help Plugin Filename'
-                               holidayBundleSetDowntimes.pl
-                               - FIX Global symbol "$SERVERTABLENVIRONMNT" requires explicit package name at ./holidayBundleSetDowntimes.pl line 152.
-                               plugins.pl
-                               - making it possible to edit 'Help Plugin Filename' manual or by uploading and to clear with '<NIHIL>'
-                               runStatusOnDemand.pl
-                               - UPDATE doRequestedActions: added -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=$WWWKEYPATH/.ssh/known_hosts'
-                               rsync-wrapper-*.sh
-                               - UPDATE advanced debug information
-                               - UPDATE making rsync version 2.6.7
-                               /applications/bin/
-                               - UPDATE generateCollectorDaemonSchedulingReports.sh
-                               - UPDATE generateReports.sh
-                               - UPDATE holidayBundleSetDowntimes.sh
-                               /applications/sbin/
-                               - UPDATE perfparse_crontab.sh
-                               - NEW bash_stop_root.sh
-                               /plugins/templates/
-                               - UPDATE check_MySQL-database-replication.pl
-                               ASNMTAP::Asnmtap
-                               - replace '#!/usr/bin/perl' with '#!/usr/local/bin/perl'
-                               ASNMTAP::Asnmtap::Applications
-                               - FIX <\\/embed> added
-                               - FIX verify empty cgisess file at get_session_param () used by archive.pl
-                               - added Birthday, Firework, Halloween, Snowflake, Valentine, ... for view '/asnmtap/nav/index' or '/asnmtap/nav/test'
-                                 NEW applications/htmlroot/JSFX_Browser.js
-                                 NEW applications/htmlroot/JSFX_Falling.js
-                                 NEW applications/htmlroot/JSFX_Fireworks.js
-                                 NEW applications/htmlroot/JSFX_Fireworks2.js
-                                 NEW applications/htmlroot/JSFX_Halloween.js
-                                 NEW applications/htmlroot/JSFX_Layer.js
-                               ASNMTAP::Asnmtap::Applications::CGI
-                               - NEW timeperiods.pl
-                               ASNMTAP::Asnmtap::Plugins and ASNMTAP::Asnmtap::Plugins::WebTransact
-                               - FIX debug information must be into the debug file '*.html' or '*.html-KnownError' but never into both
-                               - added info regarding keep_alive and SSL session resume
-                               - added do not proxy requests to the given domains. Calling no_proxy without any domains clears the list of domains.
+                               - NEW check_template-WebTransact-XML-Monitoring.pl
+                               - NEW check_template-WebTransact-XML-Monitoring.t
+                               - NEW check_template-WebTransact-with-client-authorization.pl
+                               - NEW check_template-WebTransact-with-client-authorization.t
+                               README
+                               - updated INSTALLATION procedure
+                               Applications.cnf
+                                 #<DATABASE_ACCOUNT>
+                                 #  <SERVER>
+                                 #    VERSION         4.x                    # '4.x' or '5.0.x'
+                                 #    MERGE           0                      # '0' or '1'
+                                 #  </SERVER>
+                               ASNMTAP::Asnmtap::*
+                               - optimalisation for MySQL queries
+                               ASNMTAP::Asnmtap::Applications.pm & display.pl
+                               - FIX sound sanity .innerHTML bug with FireFox
+                               - UPDATE sound default set to 'off' when FireFox, otherwise default set to 'on'
+                               - UPDATE $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
+                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
+                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
+                               - NEW $SERVERMYSQLVERSION = '4.x'             # '4.x' or '5.0.x'
+                               - NEW $SERVERMYSQLMERGE   = '0'               # '0' or '1'
+                               - UPDATE create_sql_query_events_from_range_year_month with MERGE when $SERVERMYSQLMERGE = 1 for much faster year and quarter statistics
+                               ASNMTAP::Asnmtap::Plugins
+                               - NEW create_NCPL_weblogic_configuration_for_SNMP.pl
+                               - NEW create_weblogic_configuration_database_with_SNMP.pl
+                               - NEW create_weblogic_configuration_database_with_SNMP.SQL
+                               ASNMTAP::Asnmtap::Plugins::Mail.pm
+                               - FIX regarding MIME-Encoding '7bit' and code optimalisation
+                               - NEW MIME-Encoding: '8bit', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
+                               - overview MIME-Encoding: '7bit', '8bit', 'quoted-printable', 'base64', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
                                ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_fs-stat.pl
-                               ASNMTAP::Asnmtap::Plugins::SOAP
-                               - add TYPE_ERROR_RETURN
-                               ASNMTAP::Asnmtap::Plugins::WebTransact & runCmdOnDemand.pl
-                               - ADDED remove password from Basic Authentication URL before putting into database!
+                               - NEW check_network_interface_status.pl
+                               - NEW snmptt_traps_remove_pending_and_duplicated.pl
+                               ASNMTAP::Asnmtap::SOAP.pm
+                               - NEW added basic authentication and credentials
+                               - NEW added soapaction and readable
+                               ASNMTAP::Asnmtap::Plugins::WebTransact.pm
+                               - NEW Inherited LWP user agent object: $objectWebTransact->ua = LWP::UserAgent->new;
+                               check_template-WebTransact-XML-Monitoring.pl & check_template-WebTransact-XML-Monitoring.t
+                               - NEW WebTransact plugin template for XML Monitoring
+                               check_template-WebTransact-with-client-authorization.pl & check_template-WebTransact-with-client-authorization.t
+                               - NEW WebTransact plugin template with client authorization
+                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
+                               - add corresponding comments to the report
+                               generateReports.pl & getArchivedReport.pl
+                               - add support for timeperiod
 
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -126,13 +84,32 @@ To install this module type the following:
 OR
 
 When you need a proxyserver, and your CPAN and/or CPANPLUS isn't confugured
-to use one, then you must set: HTTP_PROXY and/or FTP_PROXY
+to use one, then you must set: 
+- CPAN    : HTTP_PROXY and/or FTP_PROXY
+- CPANPLUS: http_proxy and/or ftp_proxy
 
-  export HTTP_PROXY="http://host:port"
-  export FTP_PROXY="http://host:port"
+  CPAN
+    export HTTP_PROXY="http://host:port"
+    export FTP_PROXY="http://host:port"
 
-perl -MCPAN -e 'install ASNMTAP::Asnmtap'
-   
+    perl -MCPAN -e shell
+      cpan shell -- CPAN exploration and modules installation (v1.xxx)
+      ...
+
+      cpan> reload index
+
+  CPANPLUS
+    export http_proxy="http://host:port"
+    export ftp_proxy="http://host:port"
+
+    perl -MCPANPLUS -e shell
+      CPANPLUS::Shell::Default -- CPAN exploration and module installation (v0.xxx)
+      ...
+
+      CPAN Terminal> x --update_source
+
+  perl -MCPAN -e 'install ASNMTAP::Asnmtap'
+
 
 # BINARIES  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -310,7 +287,7 @@ ASNMTAP::Asnmtap::Plugins::SOAP
 ASNMTAP::Asnmtap::Plugins::WebTransact
 - ASNMTAP::Asnmtap::Plugins:
 - Bundle::LWP:                   1.11
-- CGI:                           3.10
+- CGI:                           3.28
 - Compress::Zlib:                2.003
 - Digest::MD5:                   2.33
 - Crypt::SSLeay:                 0.53

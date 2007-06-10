@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2007/06/10, v3.000.014, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.013;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -F, --FQDN=<F(alse)|T(rue)>
@@ -63,10 +63,11 @@ my $alert = 'UNKNOWN:';
 
 my ( $dbh, $sth, $prepareString );
 
-$dbh = DBI->connect ("DBI:mysql:$database:$serverDB:$port", "$username", "$password") or _errorTrapDBI ( 'Could not connect to MySQL server '. $serverDB, "$DBI::err ($DBI::errstr)" );
+$dbh = DBI->connect ("DBI:mysql:$database:$serverDB:$port", "$username", "$password") or _ErrorTrapDBI ( 'Could not connect to MySQL server '. $serverDB, "$DBI::err ($DBI::errstr)" );
 
 if ( $dbh ) {
-  my $hostnameString = ($FQDN eq 'T' ? "hostname = '$hostname'" : "hostname like '$hostname.%'");
+# my $hostnameString = ($FQDN eq 'T' ? "hostname = '$hostname'" : "hostname like '$hostname.%'");
+  my $hostnameString = ($FQDN eq 'T' ? "hostname = '$hostname'" : "hostname regexp '^$hostname.'");
 
   my $trapOIDsString = '';
 
@@ -82,39 +83,39 @@ if ( $dbh ) {
 
     my $sqlINSERT = "INSERT INTO `snmptt_archive` SELECT * FROM `snmptt` WHERE trapread = '1' and $hostnameString $trapOIDsString";
     print "    $sqlINSERT\n" if ( $debug );
-    $dbh->do ( $sqlINSERT ) or $rv = _errorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
+    $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 
     if ( $rv ) {
       my $sqlDELETE = "DELETE FROM `snmptt` WHERE trapread = '1' and $hostnameString $trapOIDsString";
       print "    $sqlDELETE\n" if ( $debug );
-      $dbh->do( $sqlDELETE ) or $rv = _errorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+      $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
     }
   }
 
-  $prepareString = "select count(*) from snmptt where $hostnameString $trapOIDsString";
+  $prepareString = "select count(id) from snmptt where $hostnameString $trapOIDsString";
   print "    $prepareString\n" if ( $debug );
-  $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-  $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
   my $count = $sth->fetchrow_array();
-  $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
-  $prepareString = "select count(*) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'CRITICAL' or severity = 'MAJOR' or severity = 'SEVERE')";
+  $prepareString = "select count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'CRITICAL' or severity = 'MAJOR' or severity = 'SEVERE')";
   print "    $prepareString\n" if ( $debug );
-  $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-  $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
   my $countCRITICAL = $sth->fetchrow_array();
-  $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+  $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
   if ( $countCRITICAL > 0 ) {
     $alert = "CRITICAL: $countCRITICAL Critical Traps for $hostname. $count Traps in Database";
     $returnCode = $ERRORS{CRITICAL};
   } else {
-    $prepareString = "select count(*) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'MINOR' or severity = 'WARNING')";
+    $prepareString = "select count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'MINOR' or severity = 'WARNING')";
     print "    $prepareString\n" if ( $debug );
-    $sth = $dbh->prepare($prepareString) or _errorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
-    $sth->execute or _errorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
+    $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
+    $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
     my $countWARNING = $sth->fetchrow_array();
-    $sth->finish() or _errorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
+    $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
     if ( $countWARNING > 0 ) {
       $alert = "WARNING: $countWARNING Warning Traps for $hostname. $count Traps in Database";
@@ -125,7 +126,7 @@ if ( $dbh ) {
     }
   }
 
-  $dbh->disconnect or _errorTrapDBI ( 'Could not disconnect from MySQL server '. $serverDB, "$DBI::err ($DBI::errstr)" );
+  $dbh->disconnect or _ErrorTrapDBI ( 'Could not disconnect from MySQL server '. $serverDB, "$DBI::err ($DBI::errstr)" );
 }
 
 $objectNagios->pluginValues ( { stateValue => $returnCode, alert => $alert }, $TYPE{APPEND} );
@@ -133,7 +134,7 @@ $objectNagios->exit (7);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub _errorTrapDBI {
+sub _ErrorTrapDBI {
   my ($asnmtapInherited, $error_message) = @_;
 
   $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => $error_message, error => "$DBI::err ($DBI::errstr)" }, $TYPE{APPEND} );

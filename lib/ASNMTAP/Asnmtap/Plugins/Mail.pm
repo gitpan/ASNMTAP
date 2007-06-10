@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -471,20 +471,17 @@ sub receiving_fingerprint_mails {
             $msgbuffer = $email->Body ( $msgnum );
           }
 
-          for ( $head->mime_encoding ) {
-            /^7bit$/i             && do { use MIME::QuotedPrint;
-                                          $msgbuffer = decode_qp ( $msgbuffer );
-                                          last; };
-            /^quoted-printable$/i && do { use MIME::QuotedPrint;
-                                          $msgbuffer = decode_qp ( $msgbuffer );
-                                          last; };
-            /^base64/i            && do { use MIME::Base64;
-                                          $msgbuffer = decode_base64 ( $msgbuffer );
-                                          last; };
-            /^8bit/i              && do { last; };
-            /^binary/i            && do { last; };
-            /^x-token/i           && do { last; };
+          use MIME::Decoder;
+
+          unless ( supported MIME::Decoder $head->mime_encoding ) {
+            print "MIME .... : '". $head->mime_encoding ."' encoding is not supported!\n" if ($debug );
+            $returnCode = $ERRORS{UNKNOWN};
+            $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, error => "MIME-Encoding: '". $head->mime_encoding ."' is not supported!" }, $TYPE{APPEND} );
+            next;
           }
+
+          my $decoder = new MIME::Decoder $head->mime_encoding;
+          $decoder->decode($msgbuffer, $msgbuffer);
 
           if ( $parms{checkFingerprint} ) {
             foreach my $msgline ( split (/[\n\r]/, $msgbuffer) ) {

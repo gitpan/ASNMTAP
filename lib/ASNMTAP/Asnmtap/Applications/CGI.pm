@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, package ASNMTAP::Asnmtap::Applications::CGI
+# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -131,7 +131,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -580,7 +580,7 @@ sub check_record_exist {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub create_sql_query_events_from_range_year_month {
-  my ($startDate, $endDate, $sqlSelect, $sqlForce, $sqlWhere, $sqlPeriode, $sqlQuery, $sqlGroup, $sqlOrder, $sqlOrderUnion, $sqlUnionKeyword) = @_;
+  my ($inputType, $startDate, $endDate, $sqlSelect, $sqlForce, $sqlWhere, $sqlPeriode, $sqlQuery, $sqlGroup, $sqlOrder, $sqlOrderUnion, $sqlUnionKeyword) = @_;
 
   $sqlUnionKeyword = 'ALL' if ($sqlUnionKeyword ne 'ALL' or $sqlUnionKeyword ne 'DISTINCT');
 
@@ -592,26 +592,36 @@ sub create_sql_query_events_from_range_year_month {
 
   my $sql;
 
-  if ($deltaDays >=0 ) {
-    my $sqlUnion;
-
-    foreach my $year ($yearFrom..$yearTo) {
-      my $monthF = ($year == $yearFrom) ? $monthFrom : 1;
-      my $monthT = ($year == $yearTo or $yearFrom == $yearTo) ? $monthTo : 12;
-
-      foreach my $month ($monthF..$monthT) {
-        my $yearTable  = sprintf ("%04d", $year);
-        my $monthTable = sprintf ("%02d", $month);
-        $sqlUnion .= " union $sqlUnionKeyword ($sqlSelect FROM `". $SERVERTABLEVENTS. "_". $yearTable ."_". $monthTable ."` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder)";
+  if ( $deltaDays >=0 ) {
+    if ( $SERVERMYSQLMERGE eq '1' ) {
+      if ($inputType eq "year" and $yearFrom = $yearTo) {
+        $sql = "$sqlSelect FROM `". $SERVERTABLEVENTS. "_". sprintf ("%04d", $yearFrom) ."` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder";
+      } elsif ($inputType eq "quarter" and $monthFrom = $monthTo) {
+        $sql = "$sqlSelect FROM `". $SERVERTABLEVENTS. "_". sprintf ("%04d", $yearFrom) ."_Q". (int(($monthFrom+2)/3)) ."` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder";
       }
     }
 
-    my $sqlCommon = "$sqlSelect FROM `$SERVERTABLEVENTS` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder";
+    unless (defined $sql) {
+      my $sqlUnion;
 
-    if (defined $sqlUnion) {
-      $sql = "($sqlCommon) $sqlUnion $sqlOrderUnion";
-    } else {
-      $sql = $sqlCommon;
+      foreach my $year ($yearFrom..$yearTo) {
+        my $monthF = ($year == $yearFrom) ? $monthFrom : 1;
+        my $monthT = ($year == $yearTo or $yearFrom == $yearTo) ? $monthTo : 12;
+
+        foreach my $month ($monthF..$monthT) {
+          my $yearTable  = sprintf ("%04d", $year);
+          my $monthTable = sprintf ("%02d", $month);
+          $sqlUnion .= " union $sqlUnionKeyword ($sqlSelect FROM `". $SERVERTABLEVENTS. "_". $yearTable ."_". $monthTable ."` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder)";
+        }
+      }
+
+      my $sqlCommon = "$sqlSelect FROM `$SERVERTABLEVENTS` $sqlForce $sqlWhere $sqlPeriode $sqlQuery $sqlGroup $sqlOrder";
+
+      if (defined $sqlUnion) {
+        $sql = "($sqlCommon) $sqlUnion $sqlOrderUnion";
+      } else {
+        $sql = $sqlCommon;
+      }
     }
   }
  

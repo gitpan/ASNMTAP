@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/02/25, v3.000.013, archive.pl for ASNMTAP::Applications
+# 2007/06/10, v3.000.014, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.013;
+use ASNMTAP::Time v3.000.014;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.013;
+use ASNMTAP::Asnmtap::Applications v3.000.014;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.013$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -216,13 +216,12 @@ sub archiveCommentsAndEventsTables {
 
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
-    $sql = "select * from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
-
     if ($debug) {
       print "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
-
+      $sql = "select SQL_NO_CACHE id, endDate, startDate, timeslot, uKey from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
     } else {
       print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
+      $sql = "select SQL_NO_CACHE id, endDate from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
     }
 
     $sth = $dbh->prepare($sql) or $rv = errorTrapDBI("dbh->prepare: $sql", $debug);
@@ -232,9 +231,11 @@ sub archiveCommentsAndEventsTables {
       while (my $ref = $sth->fetchrow_hashref()) {
         ($yearMOVE, $monthMOVE, undef) = split (/-/, $ref->{endDate});
         print "\n", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{startDate}, " ", $ref->{endDate}, " ",$ref->{timeslot}, " \n" if ($debug);
+
         $sqlMOVE = 'INSERT INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+
         $sqlMOVE = 'DELETE FROM `' .$SERVERTABLEVENTS. '` WHERE id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
@@ -249,12 +250,12 @@ sub archiveCommentsAndEventsTables {
 
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
-    $sql = "select * from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
-
     if ($debug) {
       print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
+      $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
     } else {
       print EMAILREPORT "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
+      $sql = "select SQL_NO_CACHE id, solvedDate from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
     }
 
     $sth = $dbh->prepare($sql) or $rv = errorTrapDBI("dbh->prepare: $sql", $debug);
@@ -264,9 +265,11 @@ sub archiveCommentsAndEventsTables {
       while (my $ref = $sth->fetchrow_hashref()) {
         ($yearMOVE, undef, undef) = split (/-/, $ref->{solvedDate});
         print "\n", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{solvedDate}, " ", $ref->{solvedTimeslot}, "\n" if ($debug);
+
         $sqlMOVE = 'INSERT INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+
         $sqlMOVE = 'DELETE FROM `' .$SERVERTABLCOMMENTS. '` WHERE id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
@@ -274,6 +277,14 @@ sub archiveCommentsAndEventsTables {
 
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
+
+    # APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes and a extra flag ->
+    my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
+    my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
+    my $solvedTime     = "$currentHour:$currentMin:$currentSec";
+    my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
+    my $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+    $dbh->do ( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sqlUPDATE", $debug) unless ( $debug );
 
     $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
   }
@@ -318,16 +329,17 @@ sub createCommentsAndEventsArchiveTables {
 
   # Init parameters
   my ($rv, $dbh, $sql, $year, $month);
-  $year = get_year  ($daysBefore);
+  $year = get_year ($daysBefore);
 
   $rv  = 1;
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = errorTrapDBI("Cannot connect to the database", $debug);
 
   if ($dbh and $rv) {
     foreach $month ('01'..'12') {
-      # $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLEVENTS .'_'. $year .'_'. $month ."` ( LIKE `$SERVERTABLEVENTS` )";
-
-      $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLEVENTS .'_'. $year .'_'. $month ."` (
+      unless ( $SERVERMYSQLVERSION eq '4.x' ) {
+        $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month .'` LIKE `'. $SERVERTABLEVENTS .'`';
+      } else {
+        $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month ."` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
   `test` varchar(100) NOT NULL default '',
@@ -356,6 +368,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `uKey` (`uKey`),
   KEY `key_endTime` (`endTime`)
 ) TYPE=InnoDB";
+      }
 
       $rv = checkTableDBI ($dbh, $DATABASE, $SERVERTABLEVENTS .'_'. $year .'_'. $month, 'check', 'error', "Table '$DATABASE.". $SERVERTABLEVENTS .'_'. $year .'_'. $month ."' doesn't exist");
 
@@ -366,16 +379,139 @@ sub createCommentsAndEventsArchiveTables {
           print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Status: ";
           $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
           $rv = checkTableDBI ($dbh, $DATABASE, $SERVERTABLEVENTS .'_'. $year .'_'. $month, 'check', 'status', 'OK');
-          if ($rv) { print EMAILREPORT "Created\n\n"; } else { print EMAILREPORT "NOT CREATED, PLEASE VERIFY\n\n"; }
+          if ($rv) { print EMAILREPORT "Created\n"; } else { print EMAILREPORT "NOT CREATED, PLEASE VERIFY\n"; }
         }
       } else {
-        print "Table: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Status: ALREADY CREATED\n\n" if ($debug);
+        $rv = 1;
+        print "Table: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Status: ALREADY CREATED\n" if ($debug);
+      }
+
+      if ( $SERVERMYSQLMERGE eq '1' ) {
+        if ($debug) {
+          print "Table: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Status: ENGINE\n";
+        } else {
+          print EMAILREPORT "Table: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Status: ENGINE\n";
+          $sql = sprintf ("ALTER TABLE `%s_%s_%02d` ENGINE = MyISAM", $SERVERTABLEVENTS, $year, $month);
+          $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+          if ($rv) { print EMAILREPORT "ENGINE = MyISAM\n\n"; } else { print EMAILREPORT "NOT ENGINE = MyISAM, PLEASE VERIFY '$sql'\n\n"; }
+        }
       }
     }
 
-    # $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` ( LIKE `$SERVERTABLCOMMENTS` )";
+    if ( $SERVERMYSQLMERGE eq '1' ) {
+      if ($debug) {
+        print "\nTable: '$SERVERTABLEVENTS', Year: '$year', Status: MERGE\n";
+      } else {
+        print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Status: MERGE\n";
+        $sql = 'DROP TABLE IF EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'`';
+        $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
 
-    $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` (
+        if ($rv) {
+          unless ( $SERVERMYSQLVERSION eq '4.x' ) {
+            $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_01`';
+          } else {
+            $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year ."` (
+  `id` int(11) NOT NULL auto_increment,
+  `uKey` varchar(11) NOT NULL default '',
+  `test` varchar(100) NOT NULL default '',
+  `title` varchar(75) NOT NULL default '',
+  `status` varchar(9) NOT NULL default '',
+  `startDate` date NOT NULL default '0000-00-00',
+  `startTime` time NOT NULL default '00:00:00',
+  `endDate` date NOT NULL default '0000-00-00',
+  `endTime` time NOT NULL default '00:00:00',
+  `duration` time NOT NULL default '00:00:00',
+  `statusMessage` varchar(254) NOT NULL default '',
+  `step` smallint(6) NOT NULL default '0',
+  `timeslot` varchar(10) NOT NULL default '',
+  `persistent` tinyint(1) NOT NULL default '9',
+  `downtime` tinyint(1) NOT NULL default '9',
+  `filename` varchar(254) default '',
+  PRIMARY KEY  (`id`),
+  KEY `key_timeslot` (`timeslot`),
+  KEY `key_status` (`status`),
+  KEY `idx_persistent` (`persistent`),
+  KEY `key_startTime` (`startTime`),
+  KEY `idx_downtime` (`downtime`),
+  KEY `key_endDate` (`endDate`),
+  KEY `key_test` (`test`),
+  KEY `key_startDate` (`startDate`),
+  KEY `uKey` (`uKey`),
+  KEY `key_endTime` (`endTime`)
+) TYPE=InnoDB";
+          }
+
+          $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+        }
+
+        if ($rv) {
+          $sql = 'ALTER TABLE `'. $SERVERTABLEVENTS .'_'. $year .'` ENGINE=MERGE UNION=(`'. $SERVERTABLEVENTS .'_'. $year .'_01`, `'. $SERVERTABLEVENTS .'_'. $year .'_02`, `'. $SERVERTABLEVENTS .'_'. $year .'_03`, `'. $SERVERTABLEVENTS .'_'. $year .'_04`, `'. $SERVERTABLEVENTS .'_'. $year .'_05`, `'. $SERVERTABLEVENTS .'_'. $year .'_06`, `'. $SERVERTABLEVENTS .'_'. $year .'_07`, `'. $SERVERTABLEVENTS .'_'. $year .'_08`, `'. $SERVERTABLEVENTS .'_'. $year .'_09`, `'. $SERVERTABLEVENTS .'_'. $year .'_10`, `'. $SERVERTABLEVENTS .'_'. $year .'_11`, `'. $SERVERTABLEVENTS .'_'. $year .'_12`) INSERT_METHOD=LAST';
+          $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+        }
+
+        if ($rv) { print EMAILREPORT "MERGED\n\n"; } else { print EMAILREPORT "NOT MERGED, PLEASE VERIFY '$sql'\n\n"; }
+      }
+
+      foreach my $quarter (1..4) {
+        if ($debug) {
+          print "\nTable: '$SERVERTABLEVENTS', Year: '$year' Quarter: 'Q$quarter', Status: MERGE\n";
+        } else {
+          print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year' Quarter: 'Q$quarter', Status: MERGE\n";
+          $sql = 'DROP TABLE IF EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'`';
+          $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+
+          if ($rv) {
+            unless ( $SERVERMYSQLVERSION eq '4.x' ) {
+              $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 2) .'`';
+            } else {
+              $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter ."` (
+  `id` int(11) NOT NULL auto_increment,
+  `uKey` varchar(11) NOT NULL default '',
+  `test` varchar(100) NOT NULL default '',
+  `title` varchar(75) NOT NULL default '',
+  `status` varchar(9) NOT NULL default '',
+  `startDate` date NOT NULL default '0000-00-00',
+  `startTime` time NOT NULL default '00:00:00',
+  `endDate` date NOT NULL default '0000-00-00',
+  `endTime` time NOT NULL default '00:00:00',
+  `duration` time NOT NULL default '00:00:00',
+  `statusMessage` varchar(254) NOT NULL default '',
+  `step` smallint(6) NOT NULL default '0',
+  `timeslot` varchar(10) NOT NULL default '',
+  `persistent` tinyint(1) NOT NULL default '9',
+  `downtime` tinyint(1) NOT NULL default '9',
+  `filename` varchar(254) default '',
+  PRIMARY KEY  (`id`),
+  KEY `key_timeslot` (`timeslot`),
+  KEY `key_status` (`status`),
+  KEY `idx_persistent` (`persistent`),
+  KEY `key_startTime` (`startTime`),
+  KEY `idx_downtime` (`downtime`),
+  KEY `key_endDate` (`endDate`),
+  KEY `key_test` (`test`),
+  KEY `key_startDate` (`startDate`),
+  KEY `uKey` (`uKey`),
+  KEY `key_endTime` (`endTime`)
+) TYPE=InnoDB";
+            }
+
+            $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+          }
+
+          if ($rv) {
+            $sql = 'ALTER TABLE `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'` ENGINE=MERGE UNION=(`'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 2) .'`, `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 1) .'`, `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 )) .'`) INSERT_METHOD=LAST';
+            $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+          }
+
+          if ($rv) { print EMAILREPORT "MERGED\n\n"; } else { print EMAILREPORT "NOT MERGED, PLEASE VERIFY '$sql'\n\n"; }
+        }
+      }
+    }
+
+    unless ( $SERVERMYSQLVERSION eq '4.x' ) {
+      $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` LIKE `$SERVERTABLCOMMENTS`";
+    } else {
+      $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
@@ -407,6 +543,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `uKey` (`uKey`),
   KEY `remoteUser` (`remoteUser`)
 ) TYPE=InnoDB";
+    }
 
     $rv = checkTableDBI ($dbh, $DATABASE, $SERVERTABLCOMMENTS .'_'. $year, 'check', 'error', "Table '$DATABASE.". $SERVERTABLCOMMENTS .'_'. $year ."' doesn't exist");
 

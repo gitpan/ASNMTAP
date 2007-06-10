@@ -1,4 +1,4 @@
-use Test::More tests => 24;
+use Test::More tests => 25;
 
 BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 
@@ -6,13 +6,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(&get_soap_request) ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.013;
+use ASNMTAP::Asnmtap::Plugins v3.000.014;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'SOAP.t ',
   _programDescription => "Testing ASNMTAP::Asnmtap::Plugins::SOAP",
-  _programVersion     => '3.000.013',
+  _programVersion     => '3.000.014',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -220,6 +220,19 @@ TODO: {
     namespace         => $namespace,
     registerNamespace => \%soapService_Register_NS,
     method            => $method,
+    readable          => 2
+  );
+
+  $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QSOAP parameter readable must be 0 or 1\E/);
+  ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): SOAP parameter readable must be 0 or 1');
+
+  ($returnCode, $xml) = get_soap_request ( 
+    asnmtapInherited  => \$objectPlugins,
+    proxy             => $proxy,
+    namespace         => $namespace,
+    registerNamespace => \%soapService_Register_NS,
+    method            => $method,
+    readline          => 1,
     cookies           => 2
   );
 
