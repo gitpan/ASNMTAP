@@ -5,13 +5,163 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 10 Juni 2007
-Version      : 3.000.014
+Latest update: 21 Oktober 2007
+Version      : 3.000.015
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Version 3.000.015, 2007/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+                               Makefile.PL
+                               - version update CPAN 1.9102
+                               - version update CGI 3.29
+                               - version update Compress::Zlib 2.004
+                               - version update Config::General 2.33
+                               - version update Crypt::OpenSSL::RSA 0.25
+                               - version update Crypt::OpenSSL::X509 0.5
+                               - version update Crypt::SSLeay 0.56
+                               - version update Cwd 3.25
+                               - version update Bundle::DBD::mysql 4.005
+                               - version update IO::Socket::SSL 1.07
+                               - version update NetAddr::IP 4.007
+                               - version update WSRF::Lite 0.8.2.2
+                               - version update XML::LibXML 1.63
+                               ASNMTAP CPAN module perl 5.8.0, 5.8.5 and 5.8.6 compatible
+                               - Making perl 5.8.8 compatible
+                               ASNMTAP::Asnmtap
+                               - NEW environment variable ASNMTAP_PATH used into the bash scripts
+                               - NEW making MySQL 5.0.x compatible
+                                 - NEW asnmtap-3.000.015_mysql-v5.0.x.sql
+                                 - NEW applications/tools/mysql/asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
+                                 - FIX OnDemand versus Display with 254 character limitation for MySQL >= v5.0.3 and yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED
+                                   Values in VARCHAR columns are variable-length strings.
+                                   The length can be specified as a value from 0 to 255 before MySQL 5.0.3, and 0 to 65,535 in 5.0.3 and later versions.
+                                   TEXT A string with a maximum length of 65535 characters, from a variable length types that store large amounts of data.
+                                   Is similar to a larger version of VARCHAR. These types can store a large piece of data information, but is also processed much slower.
+                                   - OnDemand
+                                     CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...: WARNING|'ping (...:8080)'=172ms;;;; 'monitorControls (...:8080)'=29682ms;;;; 'getVersion (...:8080)'=25ms;;;; 'ping (...:9108)'=25ms;;;; 'monitorControls (...:9108)'=30022ms;;;; 'getVersion (...:9108)'=24ms;;;; 'ping (...:9110)'=24ms;;;; 'monitorControls (...:9110)'=18898ms;;;; 'getVersion (...:9110)'=23ms;;;; Status=2;1;2;0;3 Compilation=1523ms;;;0; Trendline=79.039s;;;; Execution=80579ms;;;0; 
+                                   - Display: afkapping op 254 characters
+                                     CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...
+                                   - v4.x   : `statusMessage` varchar(254) NOT NULL default '',
+                                   - v5.0.x : `statusMessage` varchar(1024) NOT NULL default '',
+                                               alter table events_yyyy_mm change statusMessage statusMessage varchar(1024);
+                               - IMPROVED perfparse_crontab.sh
+                               - NEW perfparse_crontab_failed.sh (Yves Van den Hove)
+                               - NEW perfparse_debug.sh by (Yves Van den Hove)
+                               ASNMTAP::Asnmtap::Applications
+                               - Applications.cnf
+                                 <COMMON>
+                                 ...
+                                 #  <CHARTDIRECTOR>
+                                 #    LIB             /opt/ChartDirector/lib/.
+                                 #  </CHARTDIRECTOR>
+                                 ...
+                                 replace
+                                 #  <HTMLTOPD>
+                                 #  </HTMLTOPD>
+                                 with
+                                 #  <HTMLTOPDF>
+                                 #  </HTMLTOPDF>
+                                 </COMMON>
+                                 add                                 
+                                 <COMMON>
+                                 ...
+                                 #  <PERFPARSE>
+                                 #    BIN             /opt/asnmtap-3.000.xxx/perfparse/bin
+                                 #    ETC             /opt/asnmtap-3.000.xxx/perfparse/etc
+                                 #    LIB             /opt/asnmtap-3.000.xxx/perfparse/lib
+                                 #    SHARE           /opt/asnmtap-3.000.xxx/perfparse/share
+                                 #    CGI             /cgi-bin/perfparse.cgi
+                                 #    ENABLED         0                      # '0' or '1'
+                                 #    DATABASE        ~ <DATABASE_ACCOUNT><READWRITE><DATABASE>
+                                 #    HOST            ~ <DATABASE_ACCOUNT><READWRITE><HOST>
+                                 #    PORT            ~ <DATABASE_ACCOUNT><READWRITE><PORT>
+                                 #    USERNAME        ~ <DATABASE_ACCOUNT><READWRITE><USERNAME>
+                                 #    PASSWORD        ~ <DATABASE_ACCOUNT><READWRITE><PASSWORD>
+                                 #  </PERFPARSE>
+                                 </COMMON>
+                                 ...
+                                 replace
+                                 #<TABLES>
+                                 ...
+                                 #    REPORTS          reports
+                                 ...
+                                 #</TABLES>
+                                 with
+                                 #<TABLES>
+                                 ...
+                                 #    REPORTS          reports
+                                 #    REPORTSPERFDATA  reports_perfdata
+                                 ...
+                                 #</TABLES>
+                                - NEW $SERVERTABLREPORTSPRFDT into CGI.pm
+                                - NEW $CHARTDIRECTORLIB and $SERVERTABLREPORTSPRFDT into Applications.pm
+                                - NEW $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED into CGI.pm & Applications.pm
+                               ASNMTAP::Asnmtap::Applications::Collector
+                               - NEW $CHARTDIRECTORLIB into collector.pl
+                               ASNMTAP::Asnmtap::Applications::CGI
+                               - NEW $CHARTDIRECTORLIB into generateChart.pl , generateCollectorCrontabSchedulingReport.pl, generateCollectorDaemonSchedulingReport.pl & generatePluginCrontabSchedulingReport.pl
+                               ASNMTAP::Asnmtap::Plugins
+                               - NEW check_template-SNMPTT.pl
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW check_network_interface_traffic.pl
+                               display.pl
+                               - IMPROVED Status Message Error Displaying
+                               /bin/generateReports.pl
+                               - ADD show comments
+                               /sbin/purge_table.pl
+                               - FIX regarding: Can't create emailReport
+                               - FIX snmptt-3.000.015.sql: Cannot dbh->do: DELETE FROM `snmptt_unknown_archive` WHERE archivetime < "1161727200"
+                               /detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
+                               - ADD show comments
+                               - ADD short description
+                               - FIX Use of uninitialized value in concatenation (.) or string at line 333
+                               /moderator/collectorDaemonSchedulingReports.pl
+                               - FIX Use of uninitialized value in split at line 79.
+                               /moderator/plugins.pl
+                               - NEW Plugins (to edit short description, trendline, holiday bundle and uploading plugindoc)
+                               /moderator/trendlineCorrectionReports.pl
+                               - FIX Use of uninitialized value in split at line 93.
+                               - FIX Possible precedence problem on bitwise & operator at line 117.
+                               - FIX switch startdate with enddate
+                               /admin/reports.pl
+                               - ADD show comments
+                               - NEW Select 'Reports Perfdata'
+                               /admin/reports_perfdata.pl
+                               - NEW Reports Perfdata (to define the 'Performance Times' that are used by the automatically generated Reports)
+                               /sadmin/crontabs.pl
+                               - FIX 'select SQL_NO_CACHE count(id) from crontabs' with 'select SQL_NO_CACHE count(lineNumber) from crontabs'
+                               /sadmin/plugins.pl
+                               - ADD short desription
+                               - FIX $notActivated = ($Cactivated) ? '' : ' not'; with $notActivated = ($CTactivated) ? '' : ' not';
+                               integration with jUnit
+		                       - NEW /plugins/jUnit/
+                                 - NEW check_jUnit.pl
+                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+                               integration with SNMPTT
+                               - NEW /plugins/snmptt/
+                                 - NEW check_SNMPTT_weblogic.pl
+                                 - NEW create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+                                 - NEW create_weblogic_configuration_for_SNMPTT.pl
+                                 - FIX snmptt_traps_remove_pending_and_duplicated.pl
+		                       - NEW /plugins/templates/snmptt/
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+                                 - NEW create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+                                 - NEW snmptt-bea-weblogic.conf
+                                 - NEW snmptt-3.000.015.sql
+                                 - NEW snmptt.ini
+                               integration with NagTrap
+                               - NEW /applications/htmlroot/snmptraps
+                               table plugins
+                               - ADD `shortDesription` text,
+                               table reports
+                               - ADD `showComments` tinyint(1) NOT NULL default '0',
+                               - ADD `showPerfdata` tinyint(1) NOT NULL default '0',
+                               table reports_perfdata
+                               - NEW table reports_perfdata
+
 
 Version 3.000.014, 2007/06/10, Makefile.PL
                                - version update CPAN 1.9101
@@ -44,7 +194,7 @@ Version 3.000.014, 2007/06/10, Makefile.PL
                                - UPDATE sound default set to 'off' when FireFox, otherwise default set to 'on'
                                - UPDATE $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
                                ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
-                               - NEW $SERVERMYSQLVERSION = '4.x'             # '4.x' or '5.0.x'
+                               - NEW $SERVERMYSQLVERSION = '4.x            # '4.x' or '5.0.x'
                                - NEW $SERVERMYSQLMERGE   = '0'               # '0' or '1'
                                - UPDATE create_sql_query_events_from_range_year_month with MERGE when $SERVERMYSQLMERGE = 1 for much faster year and quarter statistics
                                ASNMTAP::Asnmtap::Plugins
@@ -117,7 +267,7 @@ Version 3.000.013, 2007/02/25, ASNMTAP
                                  Because this is not needed we put the following command At the end of the cron job line.
                                  '> /dev/null (default)' or '> /dev/null 2>&1'
                                detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl, generateChart.pl & htmlToPdf.pl
-                               - add my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : "none";
+                               - add my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 'none';
                                display.pl
                                - add -c, --creationTime=<YYYY-MM-DD HH:MM:SS>, YYYY-MM-DD HH:MM:SS: year, month, day, hours, minutes and seconds to use instead of the current time when --loop = F
                                - add sort results by status, group, comments and then by time
@@ -134,7 +284,7 @@ Version 3.000.013, 2007/02/25, ASNMTAP
                                - added print text to fix rights regarding chmod 755 for new CollectorCT-.*sh or DisplayCT-.*sh script
                                - added edit, delete, duplicate and maintenance button for 'Plugin' and 'Help Plugin Filename'
                                holidayBundleSetDowntimes.pl
-                               - FIX Global symbol "$SERVERTABLENVIRONMNT" requires explicit package name at ./holidayBundleSetDowntimes.pl line 152.
+                               - FIX Global symbol "$SERVERTABLENVIRONMENT" requires explicit package name at ./holidayBundleSetDowntimes.pl line 152.
                                plugins.pl
                                - making it possible to edit 'Help Plugin Filename' manual or by uploading and to clear with '<NIHIL>'
                                runStatusOnDemand.pl
@@ -225,8 +375,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

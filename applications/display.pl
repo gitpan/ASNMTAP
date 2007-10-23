@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2007/10/21, v3.000.015, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.014;
+use ASNMTAP::Time v3.000.015;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.014;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.015;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -297,7 +297,7 @@ sub do_crontab {
     exit 0;
   }
 
-  $prevGroep = "";
+  $prevGroep = '';
   my $dstatusMessage;
 
   my $creationDate;
@@ -336,7 +336,7 @@ sub do_crontab {
       my @stest = split(/\|/, $ttest);
 
       my $showGroepHeader = ($prevGroep ne $tgroep) ? 1 : 0;
-      my $showGroepFooter = (($prevGroep ne "") && $showGroepHeader) ? 1 : 0;
+      my $showGroepFooter = (($prevGroep ne '') && $showGroepHeader) ? 1 : 0;
       printGroepCV($prevGroep, $showGroepHeader, 1);
       $prevGroep = $tgroep;
       printGroepFooter('', $showGroepFooter);
@@ -1069,7 +1069,7 @@ sub printStatusMessage {
   }
 
   my $returnMessage = '  <TR><TD WIDTH="56">&nbsp;</TD><TD VALIGN="TOP">' . $statusMessage . '</TD></TR>' . "\n";
-  $returnMessage .= '  <TR><TD WIDTH="56">&nbsp;</TD><TD class="StatusMessageError">' . encode_html_entities('E', $errorMessage) . '</TD></TR>' . "\n" if ($errorMessage); 
+  $returnMessage .= '  <TR><TD WIDTH="56">&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD class="StatusMessageError">' . encode_html_entities('E', $errorMessage) . '</TD></TR>' . "\n" if ($errorMessage); 
   return ( $returnMessage );
 }
 
@@ -1206,6 +1206,11 @@ sub maskPassword {
   # --username= or -U and --password= or -P (ftp plugins)
   if ($parameters =~ /-P / and ($parameters =~ /-U / or $parameters =~ /--username=/)) {
     $parameters =~ s/(-P )\w+/$1********/g;
+  }
+
+  # j_username= or j_password= (J2EE based Applications)
+  if ($parameters =~ /j_username=/ and $parameters =~ /j_password=/) {
+    $parameters =~ s/(j_password=)\w+/$1********/g;
   }
 
   return ($parameters);

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2007/10/21, v3.000.015, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -139,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.014 postfix; nl-BE; rv:3.000.014) Gecko/20070610 libwww-perl/5.805';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.015 postfix; nl-BE; rv:3.000.015) Gecko/20071021 libwww-perl/5.805';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -257,7 +257,7 @@ sub _getOptions {
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{url} ) {
-    # TODO ...
+    # ... TODO ...
   } elsif ( exists $_[0]->{_getOptionsType}->{url} and $_[0]->{_getOptionsType}->{url} eq '=' ) {
     $_[0]->printUsage ('Missing command line argument url');
   }
@@ -270,25 +270,25 @@ sub _getOptions {
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{community} ) {
-    # TODO ...
+    # ... TODO ...
   } elsif ( exists $_[0]->{_getOptionsType}->{community} and $_[0]->{_getOptionsType}->{community} eq '=' ) {
     $_[0]->printUsage ('Missing command line argument community');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{username} ) {
-    # TODO ...
+    # ... TODO ...
   } elsif ( exists $_[0]->{_getOptionsType}->{username} and $_[0]->{_getOptionsType}->{username} eq '=' ) {
     $_[0]->printUsage ('Missing command line argument username');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{password} ) {
-    # TODO ...
+    # ... TODO ...
   } elsif ( exists $_[0]->{_getOptionsType}->{password} and $_[0]->{_getOptionsType}->{password} eq '=' ) {
     $_[0]->printUsage ('Missing command line argument password');
   }
 
   if ( exists $_[0]->{_getOptionsArgv}->{filename} ) {
-    # TODO ...
+    # ... TODO ...
   } elsif ( exists $_[0]->{_getOptionsType}->{filename} and $_[0]->{_getOptionsType}->{filename} eq '=' ) {
     $_[0]->printUsage ('Missing command line argument filename');
   }
@@ -789,7 +789,7 @@ Alex Peeters [alex.peeters@citap.be]
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -54,7 +54,10 @@ BEGIN {
                                                                            $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                            $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                            $RMVERSION $RMDEFAULTUSER
+                                                                           $CHARTDIRECTORLIB
                                                                            $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
+                                                                           $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
+                                                                           $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
                                                                            %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                            &get_session_param
@@ -63,7 +66,7 @@ BEGIN {
 
                                                                            $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                            $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
 					  
                                                                            &user_session_and_access_control
                                                                            &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month &create_sql_query_from_range_SLA_window
@@ -92,7 +95,9 @@ BEGIN {
                                                                            $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
                                                                            $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
                                                                            $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
+                                                                           $CHARTDIRECTORLIB
                                                                            $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
+                                                                           $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
                                                                            %ENVIRONMENT
                                                                            &encode_html_entities &print_header &print_legend
@@ -119,10 +124,11 @@ BEGIN {
                                                                            $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                            $RMVERSION $RMDEFAULTUSER ) ],
 
+                                                      DBPERFPARSE  => [ qw($PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD ) ],
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
-                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
-
+                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
+													  
                                                       REPORTS      => [ qw(%COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %QUARTERS
 
                                                                            &create_sql_query_events_from_range_year_month
@@ -131,7 +137,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -177,7 +183,7 @@ sub user_session_and_access_control {
   my ($sessionControl, $level, $cgi, $pagedir, $pageset, $debug, $htmlTitle, $subTitle, $queryString) = @_;
 
   my ($errorUserAccessControl, $sessionID, $userType, $cfhOld, $cfhNew, $password);
-  $sessionID = "";
+  $sessionID = '';
 
   if (! $sessionControl or ($ENV{REMOTE_ADDR} eq $REMOTE_ADDR)) {
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
@@ -222,7 +228,7 @@ sub user_session_and_access_control {
   $sessionID = $session->id();
 
   if ( $level eq 'guest' or $level eq 'member' ) {
-    my $cookieID = ( defined $sessionID ) ? $sessionID : "1";
+    my $cookieID = ( defined $sessionID ) ? $sessionID : '1';
     my $cgiCookieOutRootCgisess = $cgi->cookie(-name=>'asnmtap-root-cgisess', -value=>"$cookieID", -expires=>'+10h', -path=>'/cgi-bin', -domain=>"$HTTPSSERVER", -secure=>'0');
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
     print $cgi->header(-cookie=>$cgiCookieOutRootCgisess);
@@ -355,7 +361,7 @@ sub user_session_and_access_control {
           $errorUserAccessControl = "Time stamp invalid";
         } else {
           if ( $ENV{REMOTE_ADDR} ) {
-            if ( $CremoteAddr ne "" ) {
+            if ( $CremoteAddr ne '' ) {
               use NetAddr::IP;
               my $netmask = (int($CremoteNetmask) or 32);
               my $ipAddr  = NetAddr::IP->new($ENV{REMOTE_ADDR});
@@ -522,12 +528,12 @@ HTML
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 sub do_action_DBI {
-  my ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
+  my ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
 
-  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
   my $numberRecordsIntoQuery = ($rv) ? $sth->fetchrow_array() : 0;
-  $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
   return ($rv, $numberRecordsIntoQuery);
 }
@@ -557,12 +563,12 @@ sub error_trap_DBI {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub check_record_exist {
-  my ($rv, $dbh, $sql, $titleTXT, $keyTXT, $nameTXT, $matchingRecords, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
+  my ($rv, $dbh, $sql, $titleTXT, $keyTXT, $nameTXT, $matchingRecords, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
 
   my ($key, $title);
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$title ) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$title ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
   if ( $rv ) {
     if ( $sth->rows ) {
@@ -571,7 +577,7 @@ sub check_record_exist {
       $matchingRecords .= "</table>\n";
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   return ($rv, $matchingRecords);
@@ -667,7 +673,7 @@ sub get_title {
   my ($dbh, $rv, $uKey, $debug, $refresh, $sessionID) = @_;
 
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $title, $environment, $trendline, $step, $applicationTitle, $trendValue, $stepValue);
-  $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLPLUGINS.environment, trendline, step from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT WHERE uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
+  $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLPLUGINS.environment, trendline, step from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT WHERE uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", $refresh, '', $sessionID);
   $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
   $sth->bind_columns( \$title, \$environment, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
@@ -749,7 +755,7 @@ sub get_sql_startDate_sqlEndDate_numberOfDays_test {
   my ($startDate, $endDate, $goodDate);
 
   if ($inputType eq "fromto") {
-    if (defined $selEndDate and $selEndDate ne "") {
+    if (defined $selEndDate and $selEndDate ne '') {
       $startDate = $selStartDate;
       $endDate   = $selEndDate;
     } else {
@@ -916,13 +922,13 @@ sub create_combobox_from_keys_and_values_pairs {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub create_combobox_from_DBI {
-  my ($rv, $dbh, $sql, $firstOption, $nextAction, $Ckey, $selectName, $selectValue, $selectLabel, $formDisabled, $onChange, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
+  my ($rv, $dbh, $sql, $firstOption, $nextAction, $Ckey, $selectName, $selectValue, $selectLabel, $formDisabled, $onChange, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
 
   my ($key, $value);
 
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$value) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
   my $comboSelect  = "<select name=\"$selectName\" $formDisabled $onChange>\n";
 
@@ -946,7 +952,7 @@ sub create_combobox_from_DBI {
       $comboSelect .= ">$value</option>\n";
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   $comboSelect .= "        </select>\n";
@@ -956,20 +962,20 @@ sub create_combobox_from_DBI {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub create_combobox_multiple_from_DBI {
-  my ($rv, $dbh, $sql, $action, $Ckey, $selectName, $selectValue, $selectSize, $textareaCols, $formDisabled, $onChange, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
+  my ($rv, $dbh, $sql, $action, $Ckey, $selectName, $selectValue, $selectSize, $textareaCols, $formDisabled, $onChange, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
 
   my ($key, $value);
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-  $sth->bind_columns( \$key, \$value) or $rv = errorTrapDBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+  $sth->bind_columns( \$key, \$value) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
-  my $comboboxSelect = "";
+  my $comboboxSelect = '';
 
   if ($rv) {
     if ( $sth->rows ) {
       my $comboboxSelectSize = 0;
 
-      if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+      if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
         while( $sth->fetch() ) {
           $comboboxSelectSize++;
           $comboboxSelect .= "<option value=\"$key\"";
@@ -993,7 +999,7 @@ sub create_combobox_multiple_from_DBI {
       $comboboxSelect = $selectValue;
     }
 
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   return ($rv, $comboboxSelect);
@@ -1002,10 +1008,10 @@ sub create_combobox_multiple_from_DBI {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub record_navigation_table {
-  my ($rv, $dbh, $sql, $label, $keyLabels, $keyNumbers, $ignoreFieldNumbers, $translationFieldsKeysAndValues, $addAccessParameters, $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug) = @_;
-  
-  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-  $sth->execute() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+  my ($rv, $dbh, $sql, $label, $keyLabels, $keyNumbers, $ignoreFieldNumbers, $translationFieldsKeysAndValues, $addAccessParameters, $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
+
+  my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+  $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
   my $matchingRecords = '';
 
@@ -1030,7 +1036,7 @@ sub record_navigation_table {
     }
 
     my $actionPressend = ($iconAdd or $iconDelete or $iconDetails or $iconEdit) ? 1 : 0;
-    my $actionHeader = ($actionPressend) ? "<th>Action</th>" : "";
+    my $actionHeader = ($actionPressend) ? "<th>Action</th>" : '';
     my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0$addAccessParameters";
 
     $matchingRecords = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n	        <tr>$header$actionHeader</tr>\n";
@@ -1039,7 +1045,7 @@ sub record_navigation_table {
 
     if ( $sth->rows ) {
       while ( my $ref = $sth->fetchrow_arrayref ) {
-        my $actionItem = ($actionPressend) ? "<td align=\"center\">&nbsp;" : "";
+        my $actionItem = ($actionPressend) ? "<td align=\"center\">&nbsp;" : '';
         my $actionKeys = ''; 
         my $item       = 0;
 
@@ -1080,7 +1086,7 @@ sub record_navigation_table {
 
     $matchingRecords .= "        <tr><td colspan=\"$colspan\">$navigationBar</td></tr>\n" if ($navigationBar);
     $matchingRecords .= "      </table>\n";
-    $sth->finish() or $rv = errorTrapDBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     $nextAction = "listView";
   }
 
@@ -1169,7 +1175,7 @@ Alex Peeters [alex.peeters@citap.be]
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

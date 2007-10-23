@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,28 +31,28 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "displayDaemons.pl";
 my $prgtext     = "Display Daemons";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir             = (defined $cgi->param('pagedir'))       ? $cgi->param('pagedir')       : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : "sadmin";  $pageset =~ s/\+/ /g;
-my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : "F";
+my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : 'sadmin';  $pageset =~ s/\+/ /g;
+my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : 'F';
 my $pageNo              = (defined $cgi->param('pageNo'))        ? $cgi->param('pageNo')        : 1;
 my $pageOffset          = (defined $cgi->param('pageOffset'))    ? $cgi->param('pageOffset')    : 0;
-my $orderBy             = (defined $cgi->param('orderBy'))       ? $cgi->param('orderBy')       : "displayDaemon asc";
-my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : "listView";
-my $CdisplayDaemon      = (defined $cgi->param('displayDaemon')) ? $cgi->param('displayDaemon') : "";
-my $CgroupName          = (defined $cgi->param('groupName'))     ? $cgi->param('groupName')     : "";
-my $Cpagedir            = (defined $cgi->param('pagedirs'))      ? $cgi->param('pagedirs')      : "none";
-my $CserverID           = (defined $cgi->param('serverID'))      ? $cgi->param('serverID')      : "none";
-my $Cloop               = (defined $cgi->param('loop'))          ? $cgi->param('loop')          : "T";
-my $CdisplayTime        = (defined $cgi->param('displayTime'))   ? $cgi->param('displayTime')   : "T";
-my $ClockMySQL          = (defined $cgi->param('lockMySQL'))     ? $cgi->param('lockMySQL')     : "F";
-my $CdebugDaemon        = (defined $cgi->param('debugDaemon'))   ? $cgi->param('debugDaemon')   : "F";
-my $Cactivated          = (defined $cgi->param('activated'))     ? $cgi->param('activated')     : "off";
+my $orderBy             = (defined $cgi->param('orderBy'))       ? $cgi->param('orderBy')       : 'displayDaemon asc';
+my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : 'listView';
+my $CdisplayDaemon      = (defined $cgi->param('displayDaemon')) ? $cgi->param('displayDaemon') : '';
+my $CgroupName          = (defined $cgi->param('groupName'))     ? $cgi->param('groupName')     : '';
+my $Cpagedir            = (defined $cgi->param('pagedirs'))      ? $cgi->param('pagedirs')      : 'none';
+my $CserverID           = (defined $cgi->param('serverID'))      ? $cgi->param('serverID')      : 'none';
+my $Cloop               = (defined $cgi->param('loop'))          ? $cgi->param('loop')          : 'T';
+my $CdisplayTime        = (defined $cgi->param('displayTime'))   ? $cgi->param('displayTime')   : 'T';
+my $ClockMySQL          = (defined $cgi->param('lockMySQL'))     ? $cgi->param('lockMySQL')     : 'F';
+my $CdebugDaemon        = (defined $cgi->param('debugDaemon'))   ? $cgi->param('debugDaemon')   : 'F';
+my $Cactivated          = (defined $cgi->param('activated'))     ? $cgi->param('activated')     : 'off';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,7 +62,7 @@ my $htmlTitle = $APPLICATION;
 my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledPrimaryKey, $submitButton);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Daemon", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Daemon", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&displayDaemon=$CdisplayDaemon&groupName=$CgroupName&pagedirs=$Cpagedir&serverID=$CserverID&loop=$Cloop&displayTime=$CdisplayTime&lockMySQL=$ClockMySQL&debugDaemon=$CdebugDaemon&activated=$Cactivated";
@@ -78,112 +78,112 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $formDisabledAll = $formDisabledPrimaryKey = "";
+    $formDisabledAll = $formDisabledPrimaryKey = '';
 
-    if ($action eq "duplicateView" or $action eq "insertView") {
+    if ($action eq 'duplicateView' or $action eq 'insertView') {
       $htmlTitle    = "Insert Display Daemon";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
-    } elsif ($action eq "insert") {
+    } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Display Daemon $CdisplayDaemon exist before to insert";
 
-      $sql = "select displayDaemon from $SERVERTABLDSPLYDMNS WHERE displayDaemon='$CdisplayDaemon'";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select displayDaemon from $SERVERTABLDISPLAYDMNS WHERE displayDaemon='$CdisplayDaemon'";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
         $htmlTitle  = "Display Daemon $CdisplayDaemon exist already";
         $nextAction = "insertView";
       } else {
         $htmlTitle  = "Display Daemon $CdisplayDaemon inserted";
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
+        $sql = 'INSERT INTO ' .$SERVERTABLDISPLAYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
-    } elsif ($action eq "deleteView") {
-      $formDisabledPrimaryKey = $formDisabledAll = "disabled";
+    } elsif ($action eq 'deleteView') {
+      $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
       $htmlTitle    = "Delete Display Daemon $CdisplayDaemon";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
-    } elsif ($action eq "delete") {
+    } elsif ($action eq 'delete') {
       $sql = "select uKey, displayGroupID from $SERVERTABLVIEWS where displayDaemon = '$CdisplayDaemon' order by displayDaemon, uKey";
-      ($rv, $matchingDisplayDaemon) = check_record_exist ($rv, $dbh, $sql, 'Views', 'Unique Key', 'Display Daemon', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingDisplayDaemon) = check_record_exist ($rv, $dbh, $sql, 'Views', 'Unique Key', 'Display Daemon', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ($matchingDisplayDaemon eq "") {
+	  if ($matchingDisplayDaemon eq '') {
         $htmlTitle = "Display Daemon $CdisplayDaemon deleted";
-        $sql = 'DELETE FROM ' .$SERVERTABLDSPLYDMNS. ' WHERE displayDaemon="' .$CdisplayDaemon. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $sql = 'DELETE FROM ' .$SERVERTABLDISPLAYDMNS. ' WHERE displayDaemon="' .$CdisplayDaemon. '"';
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
       } else {
         $htmlTitle = "Display Daemon $CdisplayDaemon not deleted, still used by";
       }
 
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "displayView") {
-      $formDisabledPrimaryKey = $formDisabledAll = "disabled";
+    } elsif ($action eq 'displayView') {
+      $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
       $htmlTitle    = "Display Display Daemon $CdisplayDaemon";
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "editView") {
-      $formDisabledPrimaryKey = "disabled";
+    } elsif ($action eq 'editView') {
+      $formDisabledPrimaryKey = 'disabled';
       $htmlTitle    = "Edit Display Daemon $CdisplayDaemon";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
-    } elsif ($action eq "edit") {
+    } elsif ($action eq 'edit') {
       $htmlTitle    = "Display Daemon $CdisplayDaemon updated";
-      my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLDSPLYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE displayDaemon="' .$CdisplayDaemon. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
+      $sql = 'UPDATE ' .$SERVERTABLDISPLAYDMNS. ' SET displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE displayDaemon="' .$CdisplayDaemon. '"';
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "listView") {
+    } elsif ($action eq 'listView') {
       $htmlTitle    = "All Display Daemons listed";
 
-      $sql = "select count(displayDaemon) from $SERVERTABLDSPLYDMNS";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select SQL_NO_CACHE count(displayDaemon) from $SERVERTABLDISPLAYDMNS";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select displayDaemon, groupName, serverID, activated from $SERVERTABLDSPLYDMNS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select displayDaemon, groupName, serverID, activated from $SERVERTABLDISPLAYDMNS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=displayDaemon desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Primary Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=displayDaemon asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> serverID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingDisplayDaemon, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Display Daemon', 'displayDaemon', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingDisplayDaemon, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Display Daemon', 'displayDaemon', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
-      $sql = "select displayDaemon, groupName, pagedir, serverID, `loop`, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDSPLYDMNS where displayDaemon='$CdisplayDaemon'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
+      $sql = "select displayDaemon, groupName, pagedir, serverID, `loop`, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDISPLAYDMNS where displayDaemon='$CdisplayDaemon'";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CdisplayDaemon, $CgroupName, $Cpagedir, $CserverID, $Cloop, $CdisplayTime, $ClockMySQL, $CdebugDaemon, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-        $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        ($CdisplayDaemon, $CgroupName, $Cpagedir, $CserverID, $Cloop, $CdisplayTime, $ClockMySQL, $CdebugDaemon, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       $sql = "select pagedir, groupName from $SERVERTABLPAGEDIRS order by groupName";
-      ($rv, $pagedirsSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $Cpagedir, 'pagedirs', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $pagedirsSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $Cpagedir, 'pagedirs', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       $sql = "select serverID, serverTitle from $SERVERTABLSERVERS order by serverTitle";
-      ($rv, $serversSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CserverID, 'serverID', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $serversSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CserverID, 'serverID', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 	
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
 function validateForm() {
 HTML
 
-      if ($action eq "duplicateView" or $action eq "insertView") {
+      if ($action eq 'duplicateView' or $action eq 'insertView') {
         print <<HTML;
 
   var objectRegularExpressionCollectorDaemonFormat = /\^[a-z|A-Z|0-9|-]\+\$/;
@@ -291,15 +291,15 @@ HTML
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="displayDaemon" onSubmit="return validateForm();">
 HTML
-    } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    } elsif ($action eq 'deleteView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"displayDaemon\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print <<HTML;
   <input type="hidden" name="pagedir"      value="$pagedir">
   <input type="hidden" name="pageset"      value="$pageset">
@@ -314,7 +314,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"displayDaemon\" value=\"$CdisplayDaemon\">\n" if ($formDisabledPrimaryKey ne "" and $action ne "displayView");
+    print "  <input type=\"hidden\" name=\"displayDaemon\" value=\"$CdisplayDaemon\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -335,8 +335,8 @@ HTML
 	</td></tr>
 HTML
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      my $activatedChecked = ($Cactivated eq "on") ? " checked" : "";
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+      my $activatedChecked = ($Cactivated eq 'on') ? ' checked' : '';
 
       print <<HTML;
       <tr><td>&nbsp;</td></tr>
@@ -363,19 +363,19 @@ HTML
           </td></tr>
 HTML
 
-      print "    <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView");
-      print "    <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne "displayView");
+      print "    <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView');
+      print "    <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne 'displayView');
       print "      </table>\n";
-    } elsif ($action eq "delete" or $action eq "edit" or $action eq "insert") {
+    } elsif ($action eq 'delete' or $action eq 'edit' or $action eq 'insert') {
       print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle</h1></td></tr>";
-      print "    <tr><td align=\"center\">$matchingDisplayDaemon</td></tr>" if (defined $matchingDisplayDaemon and $matchingDisplayDaemon ne "");
+      print "    <tr><td align=\"center\">$matchingDisplayDaemon</td></tr>" if (defined $matchingDisplayDaemon and $matchingDisplayDaemon ne '');
     } else {
       print "    <tr><td align=\"center\"><br>$matchingDisplayDaemon</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print "</form>\n";
     } else {
       print "<br>\n";

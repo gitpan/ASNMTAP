@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, check_template-ras.pl
+# 2007/10/21, v3.000.015, check_template-ras.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.014;
+use ASNMTAP::Asnmtap::Plugins v3.000.015;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-ras.pl',
   _programDescription => "RAS plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.014',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '--phonenumber=<phonenumber> [--port=<port>] [--baud=<baud rate>]',
   _programHelpPrefix  => '--phonenumber<phonenumber>
 --port=<port>
@@ -50,7 +50,7 @@ $objectPlugins->printUsage ('Missing command line argument Baud') unless (define
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Modem v3.000.014;
+use ASNMTAP::Asnmtap::Plugins::Modem v3.000.015;
 use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

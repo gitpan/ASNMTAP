@@ -2,9 +2,9 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, check_memory-free.pl
+# 2007/10/21, v3.000.015, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
-# Solaris and TRU64: memory
+# Solaris 8, 9 & 10 and TRU64: memory
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.014',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberProcesses <number of processes> -s|--sortingOrder [cpu|size|res|time] -M|--memory [F|U]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn
@@ -65,7 +65,7 @@ $osType = $tOstype if ( defined $tOstype);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$objectNagios->printUsage ('Only ostype Solaris and True64 is supported!') unless ( defined $osType and $osType =~ /^(?:Solaris|Solaris10|True64)$/ );
+$objectNagios->printUsage ('Only ostype Solaris, Solaris10 and True64 is supported!') unless ( defined $osType and $osType =~ /^(?:Solaris|Solaris10|True64)$/ );
 $objectNagios->printUsage ('You must define WARNING and CRITICAL levels!') unless ($warning != 0 and $critical != 0);
 $objectNagios->printUsage ('WARNING level must not be greater than CRITICAL when checking memory!') if ($memory eq 'U' and $warning >= $critical);
 $objectNagios->printUsage ('CRITICAL level must not be greater than WARNING when checking memory!') if ($memory eq 'F' and $critical >= $warning);
@@ -113,14 +113,14 @@ $totalResValue  = convert_from_KB_to_metric($metric, $totalResValue);
 
 if (defined $memory_line) {
   if ($osType eq 'TRU64') {
-    $memory_line =~ s/^Memory:\s+Real:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+act\/tot\s+Virtual:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+use\/tot\s+Free:\s+([0-9.]+)([kMG])\s*/$7 $8 $9 $10/gi;
+    $memory_line =~ s/^Memory:\s+Real:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+act\/tot\s+Virtual:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+use\/tot\s+Free:\s+([0-9.]+)([kMG])\s*/$7;$8;$9;$10/gi;
   } elsif ($osType eq 'Solaris10') {
-    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+phys\s+mem,\s+([0-9.]+)([kKMG])\s+free\s+mem,\s+([0-9.]+)([kKMG])\s+swap,\s+([0-9.]+)([kKMG])\s+free\s+swap$/$1 $2 $3 $4/gi;
+    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+phys\s+mem,\s+([0-9.]+)([kKMG])\s+free\s+mem,\s+([0-9.]+)([kKMG])\s+total\s+swap,\s+([0-9.]+)([kKMG])\s+free\s+swap$/$1;$2;$3;$4/gi;
   } else {
-    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+real,\s+([0-9.]+)([kKMG])\s+free,\s+([0-9.]+)([kKMG])\s+swap\s+in\s+use,\s+([0-9.]+)([kKMG])\s+swap\s+free$/$1 $2 $3 $4/gi;
+    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+real,\s+([0-9.]+)([kKMG])\s+free,\s+([0-9.]+)([kKMG])\s+swap\s+in\s+use,\s+([0-9.]+)([kKMG])\s+swap\s+free$/$1;$2;$3;$4/gi;
   }
 
-  my @top = split(/ /, $memory_line);
+  my @top = split(/;/, $memory_line);
 
   # Define the calculating scalars
   $total_memory = convert_to_KB($top[1], $top[0]);

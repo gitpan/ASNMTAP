@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2007/10/21, v3.000.015, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.000.014',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -F, --FQDN=<F(alse)|T(rue)>
@@ -92,14 +92,14 @@ if ( $dbh ) {
     }
   }
 
-  $prepareString = "select count(id) from snmptt where $hostnameString $trapOIDsString";
+  $prepareString = "select SQL_NO_CACHE count(id) from snmptt where $hostnameString $trapOIDsString";
   print "    $prepareString\n" if ( $debug );
   $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
   $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
   my $count = $sth->fetchrow_array();
   $sth->finish() or _ErrorTrapDBI ( 'sth->finish '. $prepareString, "$DBI::err ($DBI::errstr)" );
 
-  $prepareString = "select count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'CRITICAL' or severity = 'MAJOR' or severity = 'SEVERE')";
+  $prepareString = "select SQL_NO_CACHE count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'CRITICAL' or severity = 'MAJOR' or severity = 'SEVERE')";
   print "    $prepareString\n" if ( $debug );
   $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
   $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );
@@ -110,7 +110,7 @@ if ( $dbh ) {
     $alert = "CRITICAL: $countCRITICAL Critical Traps for $hostname. $count Traps in Database";
     $returnCode = $ERRORS{CRITICAL};
   } else {
-    $prepareString = "select count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'MINOR' or severity = 'WARNING')";
+    $prepareString = "select SQL_NO_CACHE count(id) from snmptt where trapread = '0' and $hostnameString $trapOIDsString and (severity = 'MINOR' or severity = 'WARNING')";
     print "    $prepareString\n" if ( $debug );
     $sth = $dbh->prepare($prepareString) or _ErrorTrapDBI ( 'dbh->prepare '. $prepareString, "$DBI::err ($DBI::errstr)" );
     $sth->execute or _ErrorTrapDBI ( 'sth->execute '. $prepareString, "$DBI::err ($DBI::errstr)" );

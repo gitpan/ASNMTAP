@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduces a little 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -20,13 +20,15 @@ use DBI;
 use Time::Local;
 use Date::Calc qw(Add_Delta_Days Date_to_Text_Long Delta_Days);
 
-use lib qw(/opt/ChartDirector/lib/.);
-use perlchartdir;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
-use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
+use lib ( "$CHARTDIRECTORLIB" );
+use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,7 +38,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,25 +64,25 @@ my $trendZone   = 0xFFFF99;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : "index";    $pagedir =~ s/\+/ /g;
-my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : "F";
-my $sessionID    = (defined $cgi->param('CGISESSID'))    ? $cgi->param('CGISESSID')    : "";
-my $selChart     = (defined $cgi->param('chart'))        ? $cgi->param('chart')        : "ErrorDetails";
-my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : "none";
-my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : "none";
-my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : "none";
-my $startDateIN  = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : "none";
-my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : "none";
+my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
+my $sessionID    = (defined $cgi->param('CGISESSID'))    ? $cgi->param('CGISESSID')    : '';
+my $selChart     = (defined $cgi->param('chart'))        ? $cgi->param('chart')        : 'ErrorDetails';
+my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
+my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
+my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
+my $startDateIN  = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : 'none';
+my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : 'none';
 my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
 my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
 my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
 my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')         : 0;
 my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
-my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : "off";
+my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : 'off';
 
 # set: endDate
-$endDateIN = $cgi->param('endDate') if ( $cgi->param('endDate') ne "" );
+$endDateIN = $cgi->param('endDate') if ( $cgi->param('endDate') ne '' );
 
 # set: debug
 if ( $debug eq 'T' ) {
@@ -89,7 +91,7 @@ if ( $debug eq 'T' ) {
 }
 
 # set: colors
-if ($pf eq "on") {
+if ($pf eq 'on') {
   $background = 0xF7F7F7;
   $forGround  = 0x000000;
   $axisColor  = 0x0C0C0C;
@@ -100,7 +102,7 @@ if ($pf eq "on") {
 }
 
 # set: forceIndex
-my $forceIndex = "force index (key_startDate)"; $forceIndex = "";
+my $forceIndex = "force index (key_startDate)"; $forceIndex = '';
 
 # Init return value to true
 $rv = 1;
@@ -132,20 +134,20 @@ if ( $rv ) {
   $dbh = DBI->connect("DBI:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Cannot connect to the database", $debug, '', "", '', "", '', 0, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    if ( $uKey1 eq "none" ) {
+    if ( $uKey1 eq 'none' ) {
       $rv = 0; $errorMessage = "URL Access Parameters Error: Application 1";
     } else {
       ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle1, $trendvalue, undef) = get_title( $dbh, $rv, $uKey1, $debug, 0, $sessionID );
     }
 
-    if ( $rv ) { if ( $uKey2 ne "none" ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle2, undef, undef) = get_title( $dbh, $rv, $uKey2, $debug, 0, $sessionID ); } }
-    if ( $rv ) { if ( $uKey3 ne "none" ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle3, undef, undef) = get_title( $dbh, $rv, $uKey3, $debug, 0, $sessionID ); } }
+    if ( $rv ) { if ( $uKey2 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle2, undef, undef) = get_title( $dbh, $rv, $uKey2, $debug, 0, $sessionID ); } }
+    if ( $rv ) { if ( $uKey3 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle3, undef, undef) = get_title( $dbh, $rv, $uKey3, $debug, 0, $sessionID ); } }
 
     if ( $rv ) {
-      if ( $uKey1 eq "none" and $applicationTitle1 eq '<NIHIL>' ) {
+      if ( $uKey1 eq 'none' and $applicationTitle1 eq '<NIHIL>' ) {
         $rv = 0; $errorMessage = "URL Access Parameters Error: Application 1: $applicationTitle1";
       } else {
-        if ( $uKey2 eq "none" and $applicationTitle2 eq '<NIHIL>' ) {
+        if ( $uKey2 eq 'none' and $applicationTitle2 eq '<NIHIL>' ) {
           if ( $selChart eq "Status" ) {
             $chartTitle = "Status";
           } elsif ( $selChart eq "ErrorDetails" ) {
@@ -162,7 +164,7 @@ if ( $rv ) {
         } else {
           $chartTitle = "Comparing '$applicationTitle1'";
 
-          if ( $uKey3 eq "none" and $applicationTitle3 eq '<NIHIL>' ) {
+          if ( $uKey3 eq 'none' and $applicationTitle3 eq '<NIHIL>' ) {
             $chartTitle .= " and '$applicationTitle2' ";
           } else {
             $chartTitle .= ", '$applicationTitle2' and '$applicationTitle3' ";
@@ -220,7 +222,7 @@ if ( $rv ) {
           }
         }
 
-        if ( $rv and $uKey1 ne "none" ) {
+        if ( $rv and $uKey1 ne 'none' ) {
           if ( $selChart eq "Status" ) {
             my ($title, $status, $aantal, %problemSummary);
             $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, status, count(status) as aantal", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
@@ -377,13 +379,13 @@ if ( $rv ) {
           }
         }
 
-        if ( $rv and $uKey2 ne "none" ) {
+        if ( $rv and $uKey2 ne 'none' ) {
           if ( $selChart eq "HourlyAverage" or $selChart eq "DailyAverage" ) {
             ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = getAverage( 2, $dbh, $rv, $uKey2, $sqlStartDate, $sqlEndDate, $sqlPeriode, $selChart, $debug );
           }
         }
 
-        if ( $rv and $uKey3 ne "none" ) {
+        if ( $rv and $uKey3 ne 'none' ) {
           if ( $selChart eq "HourlyAverage" or $selChart eq "DailyAverage" ) {
             ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = getAverage( 3, $dbh, $rv, $uKey3, $sqlStartDate, $sqlEndDate, $sqlPeriode, $selChart, $debug );
           }
@@ -404,8 +406,8 @@ if ( $rv ) {
             $width = ( $numberOfDays > 1 ) ? 24 * $numberOfDays * 25 : $width;
 
             @avg1 = rebuildDataArrayHourlyAverage (\@refenentieLabels, \@labels1, \@avg1);
-            @avg2 = rebuildDataArrayHourlyAverage (\@refenentieLabels, \@labels2, \@avg2) if ($uKey2 ne "none");
-            @avg3 = rebuildDataArrayHourlyAverage (\@refenentieLabels, \@labels3, \@avg3) if ($uKey3 ne "none");
+            @avg2 = rebuildDataArrayHourlyAverage (\@refenentieLabels, \@labels2, \@avg2) if ($uKey2 ne 'none');
+            @avg3 = rebuildDataArrayHourlyAverage (\@refenentieLabels, \@labels3, \@avg3) if ($uKey3 ne 'none');
           } elsif ( $selChart eq "DailyAverage" ) {
             my $prev = "2003-10-12";
             @labels = sort(@labels1, @labels2, @labels3);
@@ -414,8 +416,8 @@ if ( $rv ) {
             $width = ( $numberOfLabels > 40 ) ? $numberOfLabels * 25 : $width;
 
             @avg1 = rebuildDataArrayDailyAverage (\@labels, \@labels1, \@avg1);
-            @avg2 = rebuildDataArrayDailyAverage (\@labels, \@labels2, \@avg2) if ($uKey2 ne "none");
-            @avg3 = rebuildDataArrayDailyAverage (\@labels, \@labels3, \@avg3) if ($uKey3 ne "none");
+            @avg2 = rebuildDataArrayDailyAverage (\@labels, \@labels2, \@avg2) if ($uKey2 ne 'none');
+            @avg3 = rebuildDataArrayDailyAverage (\@labels, \@labels3, \@avg3) if ($uKey3 ne 'none');
           }
         }
 	  }
@@ -452,7 +454,7 @@ if ( $selChart eq "Status" or $selChart eq "ErrorDetails" ) {
   $c->yAxis()->setColors($axisColor);
 
   # Add a title on the the y axis
-  my $yAxisTitle = ($selChart eq "Bar") ? "Response time" : "Average response time";
+  my $yAxisTitle = ($selChart eq 'Bar') ? 'Response time' : 'Average response time';
   $c->yAxis()->setTitle($yAxisTitle, "arial.ttf", 9, $forGround);
 
   # Add a title on the the x axis
@@ -513,7 +515,7 @@ if ( $rv ) {
     $c->yAxis()->setAutoScale(5, 10, 0);
 
     # Add a mark line ore zone to the chart and add the first two data sets to the chart as a stacked bar group
-    if ( $uKey2 eq "none" and $uKey3 eq "none" ) {
+    if ( $uKey2 eq 'none' and $uKey3 eq 'none' ) {
       $trendvalue = 3600 if ($trendvalue == 0);
       $trendvalue += 0.05;
       $c->yAxis()->addZone($trendvalue, 3600, $trendZone) if ($trendvalue != 0);
@@ -553,8 +555,8 @@ if ( $rv ) {
 
       # Add the first two data sets to the chart as a stacked bar group
       $layer->addDataSet(\@avg1, 0xcf4040, "$applicationTitle1")->setDataSymbol($perlchartdir::DiamondSymbol, 8);
-      if ($uKey2 ne "none") { $layer->addDataSet(\@avg2, 0x6699cc, "$applicationTitle2")->setDataSymbol($perlchartdir::DiamondSymbol, 8); }
-      if ($uKey3 ne "none") { $layer->addDataSet(\@avg3, 0x009900, "$applicationTitle3")->setDataSymbol($perlchartdir::DiamondSymbol, 8); }
+      if ($uKey2 ne 'none') { $layer->addDataSet(\@avg2, 0x6699cc, "$applicationTitle2")->setDataSymbol($perlchartdir::DiamondSymbol, 8); }
+      if ($uKey3 ne 'none') { $layer->addDataSet(\@avg3, 0x009900, "$applicationTitle3")->setDataSymbol($perlchartdir::DiamondSymbol, 8); }
 
       # Enable data label on the data points.
       $layer->setDataLabelFormat("{value|2,.}");
@@ -563,7 +565,7 @@ if ( $rv ) {
     # Set the bar border to transparent
     $layer->setBorderColor($perlchartdir::Transparent);
 
-    if ($pf eq "on") {
+    if ($pf eq 'on') {
       $c->addLegend(2, $hight - 32, 0, "arial.ttf", 8)->setBackground($perlchartdir::Transparent);
     } else {
       $c->addLegend(2, $hight - 32, 0, "arial.ttf", 8)->setFontColor($forGround);

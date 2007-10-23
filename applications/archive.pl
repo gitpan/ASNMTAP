@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, archive.pl for ASNMTAP::Applications
+# 2007/10/21, v3.000.015, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.014;
+use ASNMTAP::Time v3.000.015;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.014;
+use ASNMTAP::Asnmtap::Applications v3.000.015;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,11 +35,10 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $archivelist = 'ArchiveCT';               # default
 my $doCgisess   = 1;                         # default
 my $doReports   = 1;                         # default
 my $doDatabase  = 0;                         # default
@@ -49,6 +48,8 @@ my $debug       = 0;                         # default
 #------------------------------------------------------------------------
 # Don't edit below here unless you know what you are doing. -------------
 #------------------------------------------------------------------------
+
+my $archivelist;
 
 my $gzipDaysAgo          = 8;                                                     # GZIP files older then n date
 my $removeGzipDaysAgo    = 31;                                                    # Remove files older then n days ago
@@ -161,7 +162,7 @@ if ( $debug ) {
 my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, "archiverEmailReport.txt", $debug);
 
 if ( $rvOpen ) {
-  @archivelisttable = read_table($prgtext, $archivelist, 0, $debug);
+  @archivelisttable = read_table($prgtext, $archivelist, 0, $debug) if (defined $archivelist);
   doBackupCsvSqlErrorWeekDebugReport ($RESULTSPATH, $DEBUGDIR, $REPORTDIR, $gzipEpoch, $removeAllNokEpoch, $removeGzipEpoch, $removeDebugEpoch, $removeReportsEpoch, $removeWeeksEpoch, $firstDayOfWeekEpoch, $yesterdayEpoch, $currentEpoch) if ($doReports);
 
   createCommentsAndEventsArchiveTables ( "-$doYearsAgo year" ) if ($doYearsAgo != -1);
@@ -356,7 +357,7 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `key_timeslot` (`timeslot`),
   KEY `key_status` (`status`),
   KEY `idx_persistent` (`persistent`),
@@ -427,7 +428,7 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `key_timeslot` (`timeslot`),
   KEY `key_status` (`status`),
   KEY `idx_persistent` (`persistent`),
@@ -481,7 +482,7 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `key_timeslot` (`timeslot`),
   KEY `key_status` (`status`),
   KEY `idx_persistent` (`persistent`),
@@ -532,7 +533,7 @@ sub createCommentsAndEventsArchiveTables {
   `solvedTimeslot` varchar(10) NOT NULL default '0000000000',
   `problemSolved` tinyint(1) NOT NULL default '1',
   `commentData` blob NOT NULL,
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `activationTimeslot` (`activationTimeslot`),
   KEY `entryTimeslot` (`entryTimeslot`),
   KEY `suspentionTimeslot` (`suspentionTimeslot`),
@@ -962,7 +963,7 @@ sub print_help () {
   print "ASNMTAP Archiver for the '$APPLICATION'
 
 -A, --archivelist=<filename>
-   FILENAME : filename from the archivelist for the html output loop (default 'ArchiveCT')
+   FILENAME : filename from the archivelist for the html output loop (default undef)
 -c, --cgisess=F|T
    F(alse)  : don't remove the cgisess files
    T(true)  : remove the cgisess files (default)

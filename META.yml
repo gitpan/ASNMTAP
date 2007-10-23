@@ -1,24 +1,24 @@
 --- #YAML:1.0
 name:                ASNMTAP
-version:             3.000014
+version:             3.000015
 abstract:            Application System Network Monitoring Toolkit Alex Peeters
 license:             perl
 generated_by:        ExtUtils::MakeMaker version 6.32
 distribution_type:   module
 requires:     
-    Bundle::DBD::mysql:            4.001
+    Bundle::DBD::mysql:            4.005
     Bundle::DBI:                   1.53
     Bundle::LWP:                   1.11
-    CGI:                           3.28
-    Compress::Zlib:                2.003
-    Config::General:               2.32
+    CGI:                           3.29
+    Compress::Zlib:                2.004
+    Config::General:               2.33
     Config::General::Interpolated: 2.07
-    CPAN:                          1.9101
+    CPAN:                          1.9102
     CPANPLUS:                      0.078
-    Crypt::OpenSSL::RSA:           0.24
-    Crypt::OpenSSL::X509:          0.4
-    Crypt::SSLeay:                 0.53
-    Cwd:                           3.24
+    Crypt::OpenSSL::RSA:           0.25
+    Crypt::OpenSSL::X509:          0.5
+    Crypt::SSLeay:                 0.56
+    Cwd:                           3.25
     Data::Dumper:                  2.121
     Date::Calc:                    5.4
     DateTime:                      0.37
@@ -34,13 +34,13 @@ requires:
     HTTP::Daemon::SSL:             1.02
     IO:                            1.23
     IO::CaptureOutput:             1.03
-    IO::Socket::SSL:               1.04
+    IO::Socket::SSL:               1.07
     Mail::POP3Client:              2.17
     Mail::Sendmail:                0.79
     MIME::Base64:                  3.07
     MIME::Tools:                   5.420
     Net::FTP:                      2.75
-    Net::IMAP::Simple:             1.16
+    Net::IMAP::Simple:             1.14
     Net::SSLeay:                   1.30
     SOAP::Lite:                    0.69
     Sys::Hostname::Long:           1.4
@@ -49,10 +49,10 @@ requires:
     Time::HiRes:                   1.9705
     Time::Local:                   1.17
     URI:                           1.35
-    WSRF::Lite:                    0.8.2.1
+    WSRF::Lite:                    0.8.2.2
     XML::CanonicalizeXML:          0.03
     XML::DOM:                      1.44
-    XML::LibXML:                   1.62
+    XML::LibXML:                   1.63
     XML::Parser:                   2.34
     XML::Simple:                   2.16
 meta-spec:

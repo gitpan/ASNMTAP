@@ -256,7 +256,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

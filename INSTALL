@@ -5,12 +5,12 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 10 Juni 2007
-Version      : 3.000.014
+Latest update: 21 Oktober 2007
+Version      : 3.000.015
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# INSTALL - DRAFT v1  - - - - - - - - - - - - - - - - - - - - - - - - - -
+# INSTALL - DRAFT v1.1  - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 fixRights.sh
@@ -208,12 +208,18 @@ Information about the configuration for ASNMTAP Applications can be found at:
   restart your web server
 
 
-  Install Mysql client need to be installed
+  Install MySQL client need to be installed
   -----------------------------------------
 
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014.sql
+  MySQL version 4.x
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014-distributed.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015-distributed.sql
+
+  MySQL version 5.0.x
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015_mysql-v5.0.x.sql
+   or
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015_mysql-v5.0.x-distributed.sql
 
   
   ASNMTAP Web Access is now possible
@@ -243,8 +249,9 @@ Information about the configuration for ASNMTAP Applications can be found at:
   - Languages 
   - Countries 
   
-  - Holidays 
-  - Holidays Bundle 
+  - Holidays
+  - Holidays Bundle
+  - Timeperiods
   
   - Users 
   
@@ -262,6 +269,8 @@ Information about the configuration for ASNMTAP Applications can be found at:
   - Plugin Crontab Scheduling Reports (for the Collector) 
   - Collector Crontab Scheduling Reports (for the Collector) 
   - Collector Daemon Scheduling Reports (for the Collector) 
+
+  - Plugins (to edit short description, trendline, holiday bundle and uploading plugindoc)
 
 
   4) Guest and members at http://asnmtap.citap.com/asnmtap/nav/index/
@@ -284,8 +293,21 @@ Information about the configuration for ASNMTAP Applications can be found at:
     tar -xvzf chartdir_perl_linux.tar.gz
     rm chartdir_perl_linux.tar.gz
 
+    ASNMTAP configuration
+    ---------------------
 
-  Perfparse integration 
+    Applications.cnf
+
+    <COMMON>
+    ...
+      <CHARTDIRECTOR>
+        LIB             /opt/ChartDirector/lib/.
+      </CHARTDIRECTOR>
+    ...
+    </COMMON>
+ 
+
+  Perfparse integration
   ---------------------
 
     download latest snapshot from http://wiki.perfparse.org/cvs_snapshots/
@@ -296,6 +318,45 @@ Information about the configuration for ASNMTAP Applications can be found at:
     ./configure --prefix=/opt/asnmtap-3.000.xxx/perfparse --with-imagedir=/opt/asnmtap-3.000.xxx/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap
     make
     make install-strip
+
+
+  SNMPTT integration 
+  ------------------
+
+    Install net-snmp 5.4.x
+
+    ... TODO ... NO PART OF NORMAL SETUP ...
+
+    MySQL 4.x
+
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+     or
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+
+    MySQL 5.0.x
+
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+     or
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+
+    ... TODO ... NO PART OF NORMAL SETUP ...
+
+  NagTrap integration 
+  -------------------
+
+    ... TODO ... NO PART OF NORMAL SETUP ...
+
+    more /opt/asnmtap-3.000.xxx/applications/htmlroot/snmptraps/.htaccess
+    AuthName "CITAP's Nagios Access"
+    AuthType Basic
+    AuthUserFile /etc/httpd/conf/nagios-htpasswd.users
+    require valid-user
+
+    ... TODO ... NO PART OF NORMAL SETUP ...
 
 
   Install HTML to PDF converter for Perl 
@@ -355,4 +416,3 @@ Then you should install it for your own use into your home directory like so:
   perl Makefile.PL INSTALL_BASE=~
 
 -------------------------------------------------------------------------
-

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,22 +32,22 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedReport.pl";
 my $prgtext     = "Get Archived Report";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $uKey        = (defined $cgi->param('uKey'))      ? $cgi->param('uKey')      : '<NIHIL>';  $uKey    =~ s/\+/ /g;
-my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : "index";    $pagedir =~ s/\+/ /g;
-my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug       = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : "F";
+my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug       = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
 my $ascending   = (defined $cgi->param('ascending')) ? $cgi->param('ascending') : 0;
-my $day         = (defined $cgi->param('day'))       ? $cgi->param('day')       : "off";
-my $week        = (defined $cgi->param('week'))      ? $cgi->param('week')      : "off";
-my $month       = (defined $cgi->param('month'))     ? $cgi->param('month')     : "off";
-my $quarter     = (defined $cgi->param('quarter'))   ? $cgi->param('quarter')   : "off";
-my $year        = (defined $cgi->param('year'))      ? $cgi->param('year')      : "off";
+my $day         = (defined $cgi->param('day'))       ? $cgi->param('day')       : 'off';
+my $week        = (defined $cgi->param('week'))      ? $cgi->param('week')      : 'off';
+my $month       = (defined $cgi->param('month'))     ? $cgi->param('month')     : 'off';
+my $quarter     = (defined $cgi->param('quarter'))   ? $cgi->param('quarter')   : 'off';
+my $year        = (defined $cgi->param('year'))      ? $cgi->param('year')      : 'off';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -55,7 +55,7 @@ $environment = 'P' unless (defined $environment);
 my $htmlTitle   = "Get Archived Report(s)";
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Report Archive", "uKey=$uKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Report Archive", "uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&uKey=$uKey&ascending=$ascending&day=$day&week=$week&month=$month&quarter=$quarter&year=$year";
@@ -65,36 +65,36 @@ print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<b
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
-    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n";
   } else {
     my ($rv, $dbh, $sth, $sql, $title, $resultsdir, $uKeySelect, $reportsSelect, %timeperiods);
 
     # open connection to database and query data
     $rv  = 1;
-    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
-      ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLREPORTS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLREPORTS.uKey and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+      ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {
-        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
-          ($title, $resultsdir) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+          ($title, $resultsdir) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
 
         $sql = "select $SERVERTABLREPORTS.id, $SERVERTABLTIMEPERIODS.timeperiodName from $SERVERTABLREPORTS, $SERVERTABLTIMEPERIODS where $SERVERTABLREPORTS.uKey = '$uKey' and $SERVERTABLREPORTS.timeperiodID = $SERVERTABLTIMEPERIODS.timeperiodID";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           while (my $ref = $sth->fetchrow_hashref()) { $timeperiods{ $ref->{id} } = $ref->{timeperiodName}; }
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
       }
 
@@ -168,8 +168,8 @@ unless ( defined $errorUserAccessControl ) {
       }
 
       # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      my $onload = ($uKey ne '<NIHIL>') ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : "";
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, $onload, 'F', '', $sessionID);
+      my $onload = ($uKey ne '<NIHIL>') ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : '';
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
 
       my $urlWithAccessParameters = "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
 
@@ -191,11 +191,11 @@ unless ( defined $errorUserAccessControl ) {
 EndOfHtml
       }
 
-      my $checkboxDay     = "<input type=\"checkbox\" name=\"day\"" .(($day eq "on") ? ' checked' : ''). "> Daily";
-      my $checkboxWeek    = "<input type=\"checkbox\" name=\"week\"" .(($week eq "on") ? ' checked' : ''). "> Weekly";
-      my $checkboxMonth   = "<input type=\"checkbox\" name=\"month\"" .(($month eq "on") ? ' checked' : ''). "> Monthly";
-      my $checkboxQuarter = "<input type=\"checkbox\" name=\"quarter\"" .(($quarter eq "on") ? ' checked' : ''). "> Quarterly";
-      my $checkboxYear    = "<input type=\"checkbox\" name=\"year\"" .(($year eq "on") ? ' checked' : ''). "> Yearly";
+      my $checkboxDay     = "<input type=\"checkbox\" name=\"day\"" .(($day eq 'on') ? ' checked' : ''). "> Daily";
+      my $checkboxWeek    = "<input type=\"checkbox\" name=\"week\"" .(($week eq 'on') ? ' checked' : ''). "> Weekly";
+      my $checkboxMonth   = "<input type=\"checkbox\" name=\"month\"" .(($month eq 'on') ? ' checked' : ''). "> Monthly";
+      my $checkboxQuarter = "<input type=\"checkbox\" name=\"quarter\"" .(($quarter eq 'on') ? ' checked' : ''). "> Quarterly";
+      my $checkboxYear    = "<input type=\"checkbox\" name=\"year\"" .(($year eq 'on') ? ' checked' : ''). "> Yearly";
 	  
       print <<EndOfHtml;
   <BR>

@@ -1,7 +1,7 @@
 // Title: ISO 8601 Time Parser/Validator
 // Version: 1.0
 // Date: 12-07-2004 (mm-dd-yyyy)
-// Author: Alex Peeters [alex.peeters@citap.com]
+// Author: Alex Peeters [alex.peeters@citap.be]
 
 function ValidTime(h, m, s) {
    with (new Date(0, 0, 0, h, m, s))

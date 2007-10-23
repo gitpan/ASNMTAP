@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, generateCollectorCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, generateCollectorCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduces a little 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -19,13 +19,15 @@ use CGI;
 use DBI;
 use Time::Local;
 
-use lib qw(/opt/ChartDirector/lib/.);
-use perlchartdir;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
-use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
+use lib ( "$CHARTDIRECTORLIB" );
+use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +37,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateCollectorCrontabSchedulingReport.pl";
 my $prgtext     = "Collector Crontab Scheduling Report";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,11 +52,11 @@ my $currentSec = 0;
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : '<NIHIL>';   $pagedir =~ s/\+/ /g;
-my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : "moderator"; $pageset =~ s/\+/ /g;
-my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : "F";
-my $sessionID        = (defined $cgi->param('CGISESSID'))       ? $cgi->param('CGISESSID')       : "";
-my $CuKey            = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : "";
-my $CcollectorDaemon = (defined $cgi->param('collectorDaemon')) ? $cgi->param('collectorDaemon') : "";
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'moderator'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $sessionID        = (defined $cgi->param('CGISESSID'))       ? $cgi->param('CGISESSID')       : '';
+my $CuKey            = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '';
+my $CcollectorDaemon = (defined $cgi->param('collectorDaemon')) ? $cgi->param('collectorDaemon') : '';
 my $sqlEndDate       = (defined $cgi->param('sqlEndDate'))      ? $cgi->param('sqlEndDate')      : timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
 my $sqlPeriode       = (defined $cgi->param('sqlPeriode'))      ? $cgi->param('sqlPeriode')      : 3600;
 my $width            = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
@@ -63,8 +65,8 @@ my $yOffset          = (defined $cgi->param('yOffset'))         ? $cgi->param('y
 my $labelOffset      = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 32;
 my $AreaBOffset      = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
 my $hightMin         = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
-my $currentTimeslot  = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : "off";
-my $pf               = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : "off";
+my $currentTimeslot  = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : 'off';
+my $pf               = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
 
 my $sqlStartDate    = $sqlEndDate - $sqlPeriode;
 
@@ -74,7 +76,7 @@ my $step            = 60;
 my $hight           = $yOffset + $AreaBOffset + 2;
 
 # set: colors
-if ($pf eq "on") {
+if ($pf eq 'on') {
   $background = 0xF7F7F7;
   $forGround  = 0x000000;
   $axisColor  = 0x0C0C0C;
@@ -272,7 +274,7 @@ unless ( defined $errorMessage or defined $dbiErrorCode or defined $dbiErrorStri
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
-  if ($pf eq "on") {
+  if ($pf eq 'on') {
     $c->addLegend(2, $hight - 32, 0, "arial.ttf", 8)->setBackground($perlchartdir::Transparent);
   } else {
     $c->addLegend(2, $hight - 32, 0, "arial.ttf", 8)->setFontColor($forGround);

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.014
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.015
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,11 +32,29 @@
 #    STRICTDATE      0
 #    STATUSHEADER01  De resultaten worden weergegeven binnen timeslots van vastgestelde duur per groep. De testen binnen éénzelfde groep worden sequentieel uitgevoerd.
 
-#  <HTMLTOPD>
+#  <CHARTDIRECTOR>
+#    LIB             /opt/ChartDirector/lib/.
+#  </CHARTDIRECTOR>
+
+#  <HTMLTOPDF>
 #    PRG             htmldoc                # '<nihil>' or 'htmldoc'
 #    HOW             shell                  # '<nihil>', 'cgi' or 'shell'
 #    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
-#  </HTMLTOPD>
+#  </HTMLTOPDF>
+
+#  <PERFPARSE>
+#    BIN             /opt/asnmtap-3.000.xxx/perfparse/bin
+#    ETC             /opt/asnmtap-3.000.xxx/perfparse/etc
+#    LIB             /opt/asnmtap-3.000.xxx/perfparse/lib
+#    SHARE           /opt/asnmtap-3.000.xxx/perfparse/share
+#    CGI             /cgi-bin/perfparse.cgi
+#    ENABLED         1                      # '0' or '1'
+#    DATABASE        ~ <DATABASE_ACCOUNT><READWRITE><DATABASE>
+#    HOST            ~ <DATABASE_ACCOUNT><READWRITE><HOST>
+#    PORT            ~ <DATABASE_ACCOUNT><READWRITE><PORT>
+#    USERNAME        ~ <DATABASE_ACCOUNT><READWRITE><USERNAME>
+#    PASSWORD        ~ <DATABASE_ACCOUNT><READWRITE><PASSWORD>
+#  </PERFPARSE>
 </COMMON>
 
 <PATH>
@@ -58,14 +76,14 @@
 #    HOST            localhost
 #    PORT            3306
 #    USERNAME        asnmtapro
-#    PASSWORD        asnmtapro
+#    PASSWORD        <PASSWORD>
 #  </READONLY>
 
 #  <READWRITE>
 #    HOST            localhost
 #    PORT            3306
 #    USERNAME        asnmtap
-#    PASSWORD        asnmtap
+#    PASSWORD        <PASSWORD>
 #  </READWRITE>
 #</DATABASE_ACCOUNT>
 
@@ -220,6 +238,7 @@
 #    PAGEDIRS         pagedirs
 #    PLUGINS          plugins
 #    REPORTS          reports
+#    REPORTSPERFDATA  reports_perfdata
 #    RESULTSDIR       resultsdir
 #    SERVERS          servers
 #    TIMEPERIODS      timeperiods

@@ -84,6 +84,13 @@ chmod 644 *.*
 chmod 644 */*.*
 chmod 644 */*/*.*
 
+echo "cd $AMPATH/applications/htmlroot/snmptraps"
+cd $AMPATH/applications/htmlroot/snmptraps
+chmod 644 *.*
+chmod 644 */*.*
+chmod 644 */*/*/*.*
+chmod 644 */*/*/*/*.*
+
 echo "cd $AMPATH/applications/htmlroot/pdf"
 cd $AMPATH/applications/htmlroot/pdf
 chmod 644 *.*
@@ -206,6 +213,10 @@ chmod 755 *.pl
 
 echo "cd $AMPATH/plugins/templates/dtd"
 cd $AMPATH/plugins/templates/dtd
+chmod 644 *.*
+
+echo "cd $AMPATH/plugins/templates/snmptt"
+cd $AMPATH/plugins/templates/snmptt
 chmod 644 *.*
 
 echo "cd $AMPATH/plugins/templates/ssl"

@@ -1,24 +1,24 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.14 2007/06/10 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.15 2007/xx/xx 18:27:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
 
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
-# replace 'Latest update: xx xxx 2007' with ...
-# replace 'Version      : 3.000.014' with ...
+# - replace 'Latest update: xx xxx 2007' with ...
+# - replace 'Version      : 3.000.xxx' with ...
 
-# replace `# 2007/xx/xx, v` with `# 2007/mm/dd, v`
-# replace 'Gecko/2007xxxx' with 'Gecko/2007yymm'
+# - replace `# 2007/xx/xx, v` with `# 2007/10/21, v`
+# - replace 'Gecko/2007yyyymmdd' with 'Gecko/20071021'
 
-# replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
-# replace `v3.000.014` with `v3.000.yyy`
-# replace `'3.000.xxx'` with `'3.000.yyy'`
-# replace `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
-# rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
+# - replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
+# - replace `v3.000.015` with `v3.000.yyy`
+# - replace `'3.000.xxx'` with `'3.000.yyy'`
+# - replace `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
+# - rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
 
-# rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
+# - rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,7 +45,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -118,19 +118,19 @@ my @man3pods = qw (
 
 my @prerequisites = (
 # [ '<level>', '<feature>',                '<installed module>',                  <dependency hash>, <install by default: 0 = no, 1 = yes, 2 = always, 3 = reserved and 4 = info>, [[<files>, <x|r>], ...] ];
-  [ '*00',     'Package ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap',                    { 'CPAN' => '1.9101', 'CPANPLUS' => '0.078', 'Config::General' => '2.32', 'Config::General::Interpolated' => '2.07', 'Data::Dumper' => '2.121','Dumpvalue' => '1.11', 'Getopt::Long' => '2.36', 'IO::CaptureOutput' => '1.03', 'Test::Pod::Coverage' => '1.08', 'Test::Simple' => '0.65', 'Time::Local' => '1.17' }, 2, 
+  [ '*00',     'Package ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap',                    { 'CPAN' => '1.9102', 'CPANPLUS' => '0.078', 'Config::General' => '2.33', 'Config::General::Interpolated' => '2.07', 'Data::Dumper' => '2.121','Dumpvalue' => '1.11', 'Getopt::Long' => '2.36', 'IO::CaptureOutput' => '1.03', 'Test::Pod::Coverage' => '1.08', 'Test::Simple' => '0.65', 'Time::Local' => '1.17' }, 2, 
    [
     [ 'Changes',                        'r' ],
+    [ 'AUTHORS',                        'r' ],
     [ 'INSTALL',                        'r' ],
     [ 'README',                         'r' ],
-    [ 'TODO',                           'r' ],
     [ 'Asnmtap.cnf',                    'R' ],
     [ 'log',                            'd' ],
     [ 'pid',                            'd' ],
    ]
   ],
   [ '*02',     'Time',                     'ASNMTAP::Time',                       { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::Local' => '1.17' }, 2, [], [] ],
-  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Bundle::DBI' => '1.53', 'Bundle::DBD::mysql' => '4.001', 'Config::General' => '2.31', 'Config::General::Interpolated' => '2.07', 'Getopt::Long' => '2.36', 'HTML::Entities' => '1.35', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.17' }, 1,
+  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Bundle::DBI' => '1.53', 'Bundle::DBD::mysql' => '4.005', 'Config::General' => '2.33', 'Config::General::Interpolated' => '2.07', 'Getopt::Long' => '2.36', 'HTML::Entities' => '1.35', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.17' }, 1,
    [
     [ 'fixRights.sh',                   'X' ],
 
@@ -161,7 +161,7 @@ my @prerequisites = (
     [ 'results',                        'd' ],
    ]
   ],
-  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010', 'CGI::Session' => '4.20', 'Date::Calc' => '5.4', 'Proc::ProcessTable' => '0.41', 'NetAddr::IP' => '4.004', 'Time::Local' => '1.17' }, 0,
+  [ '*001000', 'Subclass CGI Interface',   'ASNMTAP::Asnmtap::Applications::CGI', { 'ASNMTAP::Asnmtap::Applications' => '*0010', 'CGI::Session' => '4.20', 'Date::Calc' => '5.4', 'Proc::ProcessTable' => '0.41', 'NetAddr::IP' => '4.007', 'Time::Local' => '1.17' }, 0,
    [
     [ 'applications/htmlroot/*.css',                   'r' ],
     [ 'applications/htmlroot/*.js',                    'x' ],
@@ -194,6 +194,33 @@ my @prerequisites = (
 
     [ 'applications/tools/templates/slave/*.conf',     'r' ],
     [ 'applications/tools/templates/slave/*.sh',       'x' ],
+
+
+    [ 'applications/htmlroot/snmptraps/*.php',                         'r' ],
+
+    [ 'applications/htmlroot/snmptraps/etc/config.ini.php',            'R' ],
+
+    [ 'applications/htmlroot/snmptraps/images/kde3/*.db',              'r' ],
+    [ 'applications/htmlroot/snmptraps/images/kde3/*.png',             'r' ],
+
+    [ 'applications/htmlroot/snmptraps/images/nuovo/*.db',             'r' ],
+    [ 'applications/htmlroot/snmptraps/images/nuovo/*.png',            'r' ],
+
+    [ 'applications/htmlroot/snmptraps/images/nuvola_1/*.db',          'r' ],
+    [ 'applications/htmlroot/snmptraps/images/nuvola_1/*.png',         'r' ],
+
+    [ 'applications/htmlroot/snmptraps/images/nuvola_2/*.db',          'r' ],
+    [ 'applications/htmlroot/snmptraps/images/nuvola_2/*.png',         'r' ],
+
+    [ 'applications/htmlroot/snmptraps/include/classes/*.php',         'r' ],
+
+    [ 'applications/htmlroot/snmptraps/include/css/*.css',             'r' ],
+
+    [ 'applications/htmlroot/snmptraps/include/js/*.js',               'r' ],
+
+    [ 'applications/htmlroot/snmptraps/include/xml/language/DE/*.xml', 'r' ],
+
+    [ 'applications/htmlroot/snmptraps/include/xml/language/EN/*.xml', 'r' ],
    ] 
   ],
   [ '*0011',   'Subclass Plugins',         'ASNMTAP::Asnmtap::Plugins',           { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::HiRes' => '1.9705' }, 2,
@@ -202,16 +229,22 @@ my @prerequisites = (
 
     [ 'plugins/*.SQL',                   'r' ],
 
+    [ 'plugins/jUnit/*.pl',              'x' ],
+
+    [ 'plugins/snmptt/*.pl',             'x' ],
+
     [ 'plugins/templates/*.pl',          'x' ],
 
     [ 'plugins/templates/dtd/*.dtd',     'r' ],
 
     [ 'plugins/templates/xml/*.xml',     'r' ],
 
+    [ 'plugins/templates/snmptt/*.*',    'r' ],
+
     [ 'plugins/templates/ssl/crt/*.crt', 'r' ],
 
     [ 'plugins/templates/ssl/key/*.key', 'r' ],
-	  
+
     [ 'plugins/tools/*.pl',              'x' ],
 
     [ 'plugins/tmp',                     'd' ]
@@ -227,12 +260,10 @@ my @prerequisites = (
 
     [ 'plugins/nagios/templates/xml/*.xml',   'r' ],
     [ 'plugins/nagios/templates/xml/*.xml-*', 'r' ],
-
-    [ 'plugins/nagios/templates/snmptt/*.*',  'r' ],
    ]
   ],
   [ '*011101', 'IO support',          'ASNMTAP::Asnmtap::Plugins::IO',          { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.23' }, 1, [], [] ],
-  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '1.999', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.07', 'MIME::Tools' => '5.420', 'Net::IMAP::Simple' => '1.16', 'Time::Local' => '1.17' }, 1, [], [] ],
+  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '1.999', 'Mail::POP3Client' => '2.17', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.07', 'MIME::Tools' => '5.420', 'Net::IMAP::Simple' => '1.14', 'Time::Local' => '1.17' }, 1, [], [] ],
   [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.23', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.09') ), 'Device::Modem' => '1.47' }, 0,
    [
     [ '/etc/chatscripts/ASNMTAP', 'R' ],
@@ -244,14 +275,14 @@ my @prerequisites = (
     [ '/usr/bin/pon',             'R' ],
    ]
   ],
-  [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.69', 'WSRF::Lite' => '0.8.2.1', 'DateTime' => '0.37', 'DateTime::Format::Epoch' => '0.10', 'DateTime::Format::W3CDTF' => '0.04', 'Digest::SHA1' => '2.11', 'Crypt::OpenSSL::RSA' => '0.24', 'Crypt::OpenSSL::X509' => '0.4', 'HTTP::Daemon::SSL' => '1.02', 'Sys::Hostname::Long' => '1.4', 'MIME::Base64' => '3.07', 'XML::CanonicalizeXML' => '0.03', 'XML::DOM' => '1.44' }, 1, [], [] ],
-  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.28', 'Compress::Zlib' => '2.003', 'Crypt::SSLeay' => '0.53', 'Digest::MD5' => '2.36', 'IO::Socket::SSL' => '1.04', 'MIME::Base64' => '3.07', 'Net::FTP' => '2.75', 'Net::SSLeay' => '1.30', 'URI' => '1.35' }, 1, [], [] ],
-  [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.62', 'XML::Simple' => '2.16' }, 2, [], [] ],
-  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.24', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.23' }, 1, [], [] ],
+  [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.69', 'WSRF::Lite' => '0.8.2.2', 'DateTime' => '0.37', 'DateTime::Format::Epoch' => '0.10', 'DateTime::Format::W3CDTF' => '0.04', 'Digest::SHA1' => '2.11', 'Crypt::OpenSSL::RSA' => '0.25', 'Crypt::OpenSSL::X509' => '0.5', 'HTTP::Daemon::SSL' => '1.02', 'Sys::Hostname::Long' => '1.4', 'MIME::Base64' => '3.07', 'XML::CanonicalizeXML' => '0.03', 'XML::DOM' => '1.44' }, 1, [], [] ],
+  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.29', 'Compress::Zlib' => '2.004', 'Crypt::SSLeay' => '0.56', 'Digest::MD5' => '2.36', 'IO::Socket::SSL' => '1.07', 'MIME::Base64' => '3.07', 'Net::FTP' => '2.75', 'Net::SSLeay' => '1.30', 'URI' => '1.35' }, 1, [], [] ],
+  [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.34', 'XML::LibXML' => '1.63', 'XML::Simple' => '2.16' }, 2, [], [] ],
+  [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.25', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.23' }, 1, [], [] ],
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.02', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],
   [ '', 'FTP template',               'check_template-ftp.pl',                  { 'Net::FTP' => '2.75' }, 4, [], [] ],
   [ '', 'LDAP template',              'check_template-ldap.pl',                 { 'Convert::ASN1' => '0.19', 'URI::ldap' => '1.11', 'Digest::MD5' => '2.36', 'XML::Parser' => '2.34', 'Net::LDAP' => '0.34' }, 4, [], [] ],
-  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.53', 'Bundle::DBD::mysql' => '4.001' }, 4, [], [] ]
+  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.53', 'Bundle::DBD::mysql' => '4.005' }, 4, [], [] ]
 );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

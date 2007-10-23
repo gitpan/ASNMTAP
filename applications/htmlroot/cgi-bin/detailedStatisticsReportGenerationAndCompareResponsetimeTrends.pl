@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,8 +22,8 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
-use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,45 +44,47 @@ my $endDate;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : "index"; $pagedir =~ s/\+/ /g;
-my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : "F";
-my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : "on";
-my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : "none";
-my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : "none";
-my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : "none";
+my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : 'index'; $pagedir =~ s/\+/ /g;
+my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
+my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : 'on';
+my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
+my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
+my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
 my $startDate    = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : "$currentYear-$currentMonth-$currentDay";
-my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : "fromto";
+my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : 'fromto';
 my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')         : 0;
 my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
 my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
 my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
 my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
-my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : "off";
-my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : "off";
-my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : "off";
-my $hourlyAvg    = (defined $cgi->param('hourlyAvg'))    ? $cgi->param('hourlyAvg')    : "off";
-my $dailyAvg     = (defined $cgi->param('dailyAvg'))     ? $cgi->param('dailyAvg')     : "off";
-my $details      = (defined $cgi->param('details'))      ? $cgi->param('details')      : "off";
-my $topx         = (defined $cgi->param('topx'))         ? $cgi->param('topx')         : "off";
-my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : "off";
+my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : 'off';
+my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : 'off';
+my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : 'off';
+my $hourlyAvg    = (defined $cgi->param('hourlyAvg'))    ? $cgi->param('hourlyAvg')    : 'off';
+my $dailyAvg     = (defined $cgi->param('dailyAvg'))     ? $cgi->param('dailyAvg')     : 'off';
+my $details      = (defined $cgi->param('details'))      ? $cgi->param('details')      : 'off';
+my $comments     = (defined $cgi->param('comments'))     ? $cgi->param('comments')     : 'off';
+my $perfdata     = (defined $cgi->param('perfdata'))     ? $cgi->param('perfdata')     : 'off';
+my $topx         = (defined $cgi->param('topx'))         ? $cgi->param('topx')         : 'off';
+my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : 'off';
 my $formatOutput = (defined $cgi->param('formatOutput')) ? $cgi->param('formatOutput') : 'html';
 my $htmlToPdf    = (defined $cgi->param('htmlToPdf'))    ? $cgi->param('htmlToPdf')    : 0;
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
 
-if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ""; }
-my $htmlTitle   = ( $selDetailed eq "on" ) ? "Detailed Statistics and Report Generation" : "Compare Response Time Trends";
+if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ''; }
+my $htmlTitle   = ( $selDetailed eq 'on' ) ? 'Detailed Statistics and Report Generation' : 'Compare Response Time Trends';
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&topx=$topx&pf=$pf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&comments=$comments&perfdata=$perfdata&topx=$topx&pf=$pf";
 
 # Debug information
-print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>comments    : $comments<br>perfdata    : $perfdata<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
@@ -107,46 +109,49 @@ EndOfHtml
 
   my ($rv, $dbh, $sth, $uKey, $sqlQuery, $sqlSelect, $sqlAverage, $sqlInfo, $sqlErrors, $sqlWhere, $sqlPeriode);
   my ($printerFriendlyOutputBox, $formatOutputSelect, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
-  my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $rest, $dummy, $count);
+  my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $Title, $shortDescription, $rest, $dummy, $count);
   my ($averageQ, $numbersOfTestsQ, $startDateQ, $stepQ, $endDateQ, $errorMessage, $chartOrTableChecked);
-  my ($checkbox, $tables, $infoTable, $topxTable, $errorList, $errorDetailList, $commentDetailList, $responseTable, $goodDate);
+  my ($checkbox, $tables, $shortDescriptionTextArea, $infoTable, $topxTable, $errorList, $errorDetailList, $commentDetailList, $perfdataDetailList, $responseTable, $goodDate);
   my ($fromto, $years, $weeks, $months, $quarters, $slaWindows, $selectedYear, $selectedWeek, $selectedMonth, $selectedQuarter, $slaWindow, $i);
   my @arrMonths = qw(January Februari March April May June July August September October November December);
 
   # open connection to database and query data
   $rv  = 1;
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
-    $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-    $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+    $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+    $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+    $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
     if ( $rv ) {
-      $dummy = ($uKey1 eq "none") ? " selected" : "";
+      $dummy = ($uKey1 eq 'none') ? " selected" : '';
       $uKeySelect1 = "          <option value=\"none\"$dummy>-Select-</option>\n";
 
-      $dummy = ($uKey2 eq "none") ? " selected" : "";
+      $dummy = ($uKey2 eq 'none') ? " selected" : '';
       $uKeySelect2 .= "          <option value=\"none\"$dummy>-Select-</option>\n";
 
-      $dummy = ($uKey3 eq "none") ? " selected" : "";
+      $dummy = ($uKey3 eq 'none') ? " selected" : '';
       $uKeySelect3 .= "          <option value=\"none\"$dummy>-Select-</option>\n";
 
       while( $sth->fetch() ) {
-        $htmlTitle = "Results for $title" if ($uKey eq $uKey1 and $selDetailed eq "on");
+        if ($uKey eq $uKey1 and $selDetailed eq 'on') {
+          $htmlTitle = "Results for $title";
+	      $Title = $title;
+        }
 
-        $dummy = ($uKey eq $uKey1) ? " selected" : "";
+        $dummy = ($uKey eq $uKey1) ? " selected" : '';
         $uKeySelect1 .= "          <option value=\"$uKey\"$dummy>$title</option>\n";
 
-        $dummy = ($uKey eq $uKey2) ? " selected" : "";
+        $dummy = ($uKey eq $uKey2) ? " selected" : '';
         $uKeySelect2 .= "          <option value=\"$uKey\"$dummy>$title</option>\n";
 	
-        $dummy = ($uKey eq $uKey3) ? " selected" : "";
+        $dummy = ($uKey eq $uKey3) ? " selected" : '';
         $uKeySelect3 .= "          <option value=\"$uKey\"$dummy>$title</option>\n";
       }
 
-      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
       if ($htmlToPdf) {
         print <<EndOfHtml;
@@ -160,15 +165,15 @@ EndOfHtml
 <BODY>
 EndOfHtml
       } else {
-        print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
+        print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
       }
 
       # Section: FromTo
-      $dummy  = ($inputType eq "fromto") ? " checked" : "";
+      $dummy  = ($inputType eq "fromto") ? ' checked' : '';
       $fromto = "<input type=\"radio\" name=\"inputType\" value=\"fromto\"$dummy>From:";
 
       # Section: Years
-      $dummy  = ($inputType eq "year") ? " checked" : "";
+      $dummy  = ($inputType eq "year") ? ' checked' : '';
       $years  = "<input type=\"radio\" name=\"inputType\" value=\"year\"$dummy>Year:</td><td>\n";
       $years .= "        <select name=\"year\">\n";
       ($selectedWeek, $selectedYear) = Week_of_Year( $currentYear, $currentMonth, $currentDay );
@@ -177,124 +182,125 @@ EndOfHtml
       my ($firstSelectedYear, undef, undef) = split (/-/, $FIRSTSTARTDATE);
 
       for ($i = $firstSelectedYear; $i <= $currentYear; $i++) {
-        $dummy = ($i == $selectedYear) ? " selected" : "";
+        $dummy = ($i == $selectedYear) ? " selected" : '';
         $years .= "          <option value=\"". $i ."\"$dummy>". $i ."</option>\n";
       }
 
       $years .= "        </select>";
 
       # Section: Weeks
-      $dummy = ($inputType eq "week") ? " checked" : "";
+      $dummy = ($inputType eq "week") ? ' checked' : '';
       $weeks = "<input type=\"radio\" name=\"inputType\" value=\"week\"$dummy>Week:</td><td>";
       $weeks .= "        <select name=\"week\">\n";
       $selectedWeek = $selWeek if ($selWeek != 0);
 
       for ($i = 1; $i <= 53; $i++) {
-        $dummy = ($i == $selectedWeek) ? " selected" : "";
+        $dummy = ($i == $selectedWeek) ? " selected" : '';
         $weeks .= "          <option value=\"". $i ."\"$dummy>". $i ."</option>\n";
       }
 
       $weeks .= "        </select>\n";
 
       # Section: Months
-      $dummy  = ($inputType eq "month") ? " checked" : "";
+      $dummy  = ($inputType eq "month") ? ' checked' : '';
       $months = "<input type=\"radio\" name=\"inputType\" value=\"month\"$dummy>Month:</td><td>\n";
       $months .= "        <select name=\"month\">\n";
       $selectedMonth = ($selMonth == 0) ? $localMonth : $selMonth - 1;
 
       for ($i = 0; $i < 12; $i++) {
-        $dummy = ($i == $selectedMonth) ? " selected" : "";
+        $dummy = ($i == $selectedMonth) ? " selected" : '';
         $months .= "          <option value=\"". ($i+1) ."\"$dummy>". $arrMonths[$i] ."</option>\n";
       }
 
       $months .= "        </select>\n";
 
       # Section: Quarters
-      $dummy     = ($inputType eq "quarter") ? " checked" : "";
+      $dummy     = ($inputType eq "quarter") ? ' checked' : '';
       $quarters  = "<input type=\"radio\" name=\"inputType\" value=\"quarter\"$dummy>Quarter:</td><td>\n";
       $quarters .= "        <select name=\"quarter\">\n";
       $selectedQuarter = ($selQuarter == 0) ?  (int (($localMonth + 2) / 3)) : $selQuarter;
 
       for ($i = 1; $i <= 4; $i++) {
-        $dummy = ($i == $selectedQuarter) ? " selected" : "";
+        $dummy = ($i == $selectedQuarter) ? " selected" : '';
         $quarters .= "          <option value=\"". $i ."\"$dummy>". $i ."</option>\n";
       }
 
       $quarters .= "        </select>\n";
 
       # Section: SLA windows
-      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select SQL_NO_CACHE timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select SQL_NO_CACHE timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sqlPeriode = '';
 
       if ( $timeperiodID > 1 ) {
         $sqlQuery = "select SQL_NO_CACHE timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
-        $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+        $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
-          ($slaWindow, my ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday)) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+          ($slaWindow, my ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday)) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sqlPeriode = create_sql_query_from_range_SLA_window ($sunday, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday);
         }
       }
 
       # Components for the selection of the charts  - - - - - - - - - - - -
-      $checkbox = $tables = "";
+      $checkbox = $tables = '';
       $chartOrTableChecked = 0;
-      $errorMessage = "<br>Select application<br>\n" if ($uKey1 eq "none");
+      $errorMessage = "<br>Select application<br>\n" if ($uKey1 eq 'none');
 
-      if ( $selDetailed eq "on") {
-        if ($statuspie eq "on") {
+      if ( $selDetailed eq 'on') {
+        if ($statuspie eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Status&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne "none");
+          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Status&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
-          $dummy = "";
+          $dummy = '';
         }
 
         $checkbox .= "        <input type=\"checkbox\" name=\"statuspie\"$dummy> Status\n";
 
-        if ($errorpie eq "on") {
+        if ($errorpie eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=ErrorDetails&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne "none");
+          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=ErrorDetails&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
-          $dummy = "";
+          $dummy = '';
         }
 
         $checkbox .= "        <input type=\"checkbox\" name=\"errorpie\"$dummy> Error Details\n";
 
-        if ($bar eq "on") {
+        if ($bar eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Bar&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne "none");
+          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Bar&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
-          $dummy = "";
+          $dummy = '';
         }
 
         $checkbox .= "        <input type=\"checkbox\" name=\"bar\"$dummy> Bar\n";
       }
 
-      if ($hourlyAvg eq "on") {
+      if ($hourlyAvg eq 'on') {
         $dummy = " checked";
         $chartOrTableChecked = 1;
-        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=HourlyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne "none");
+        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=HourlyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
       } else {
-        $dummy = "";
+        $dummy = '';
       }
 			
       $checkbox .= "        <input type=\"checkbox\" name=\"hourlyAvg\"$dummy> Hourly Average \n";
 
-      if ($dailyAvg eq "on") {
+      if ($dailyAvg eq 'on') {
         $dummy = " checked";
         $chartOrTableChecked = 1;
-        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=DailyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne "none");
+        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=DailyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
       } else {
-        $dummy = "";
+        $dummy = '';
       }
 			
       $checkbox .= "        <input type=\"checkbox\" name=\"dailyAvg\"$dummy> Daily Average (long term stats)";
 
-      $dummy = ($pf eq "on") ? " checked" : "";
+      $dummy = ($pf eq 'on') ? ' checked' : '';
       $printerFriendlyOutputBox = "<input type=\"checkbox\" name=\"pf\"$dummy> Printer friendly output\n";
 
       my $comboboxSelectKeysAndValuesPairs = 'html=>HTML';
@@ -305,27 +311,47 @@ EndOfHtml
       ($goodDate, $sqlStartDate, $sqlEndDate, $numberOfDays) = get_sql_startDate_sqlEndDate_numberOfDays_test ($STRICTDATE, $FIRSTSTARTDATE, $inputType, $selYear, $selQuarter, $selMonth, $selWeek, $startDate, $endDate, $currentYear, $currentMonth, $currentDay, $debug);
       $errorMessage .= "<br><font color=\"Red\">Wrong Startdate and/or Enddate</font><br>" unless ( $goodDate );
 
-      if ( $selDetailed eq "on" ) {
-        if ($details eq "on") {
+      if ( $selDetailed eq 'on' ) {
+        if ($details eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
         } else {
-          $dummy = "";
+          $dummy = '';
         }
 
-        $tables .= "<input type=\"checkbox\" name=\"details\"$dummy> Show Details\n";
+        $tables .= "        <input type=\"checkbox\" name=\"details\"$dummy> Show Details\n";
 
-        if ($topx eq "on") {
+        if ($comments eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
         } else {
-          $dummy = "";
+          $dummy = '';
+        }
+
+        $tables .= "        <input type=\"checkbox\" name=\"comments\"$dummy> Show Comments\n";
+
+        if ( $PERFPARSEENABLED ) {
+          if ($perfdata eq 'on') {
+            $dummy = " checked";
+            $chartOrTableChecked = 1;
+          } else {
+            $dummy = '';
+          }
+
+          $tables .= "        <input type=\"checkbox\" name=\"perfdata\"$dummy> Show Performance Data\n";
+        }
+
+        if ($topx eq 'on') {
+          $dummy = " checked";
+          $chartOrTableChecked = 1;
+        } else {
+          $dummy = '';
         }
 
         $tables .= "        <input type=\"checkbox\" name=\"topx\"$dummy> Show Top 20 Slow tests<br>";
 
         # Sql init & Query's  - - - - - - - - - - - - - - - - - - - - - -
-        if ((($details eq "on") or ($topx eq "on")) and ! defined $errorMessage) {
+        if ((($details eq 'on') or ($comments eq 'on') or ($perfdata eq 'on') or ($topx eq 'on')) and ! defined $errorMessage) {
           $sqlSelect  = "select SQL_NO_CACHE startDate as startDateQ, startTime, endDate as endDateQ, endTime, duration, status, statusMessage";
           $sqlAverage = "select SQL_NO_CACHE avg(time_to_sec(duration)) as average";
           $sqlErrors  = "select SQL_NO_CACHE statusmessage, count(statusmessage) as aantal";
@@ -334,9 +360,26 @@ EndOfHtml
         }
 
         my ($numbersOfTests, $step, $average);
-        my $forceIndex = "force index (key_startDate)"; $forceIndex = "";
+        my $forceIndex = "force index (key_startDate)"; $forceIndex = '';
 
-        if ($details eq "on" and ! defined $errorMessage) {
+        # Short Description - - - - - - - - - - - - - - - - - - - - - - - -
+        if ( $uKey1 ne 'none' ) {
+          $sqlQuery = "select SQL_NO_CACHE shortDescription from $SERVERTABLPLUGINS WHERE uKey = '$uKey1'";
+          $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+
+          if ( $rv ) {
+            ($shortDescription) = $sth->fetchrow_array() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+            $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+
+            if ( $rv and defined $shortDescription and $shortDescription ) {
+              $shortDescriptionTextArea = "<H1>Short Description</H1>\n";
+              $shortDescriptionTextArea .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td>$shortDescription</td></tr></table>\n";
+            }
+          }
+        }
+
+        if ($details eq 'on' and ! defined $errorMessage) {
           # Details: General information  - - - - - - - - - - - - - - - - -
           $sqlInfo  = "select SQL_NO_CACHE count(id) as numbersOfTests, max(step) as step";
           $sqlQuery = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, $sqlInfo, $forceIndex, $sqlWhere, $sqlPeriode, '', "group by uKey", '', "", "ALL");
@@ -375,7 +418,7 @@ EndOfHtml
           }
 
           # General information table - - - - - - - - - - - - - - - - - - -
-          $infoTable = "<H1>General Information</H1>\n";
+          $infoTable = "<H1>General information</H1>\n";
           $infoTable .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th width=\"200\">Entry</th><th>Value</th></tr>\n";
           $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Application</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .substr($htmlTitle, 11). " </td></tr>\n";
           $infoTable .= "  <tr><td bgcolor=\"$COLORSTABLE{ENDBLOCK}\">Report Type</td><td bgcolor=\"$COLORSTABLE{STARTBLOCK}\"> " .$inputType. ( defined $slaWindow ? ", " .$slaWindow : '') ." </td></tr>\n";
@@ -390,7 +433,9 @@ EndOfHtml
           }
 
           $infoTable .= "</table>\n";
+        }
 
+        if ($comments eq 'on' and ! defined $errorMessage) {
           # Comment Detail  - - - - - - - - - - - - - - - - - - - - - - -
           my ($activationDate, $suspentionDate, $solvedDate, $activationTime, $suspentionTime, $solvedTime, $commentData, $persistent, $downtime, $problemSolved);
           $commentDetailList = "<H1>Comment Details</H1>\n";
@@ -407,7 +452,6 @@ EndOfHtml
               while( $sth->fetch() ) {
                 $commentData =~ s/'/`/g;
                 $commentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
-              # $commentData =~ s/[\n\r]+(?:Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (?:\d{4}-\d\d-\d\d) (?:\d\d:\d\d:\d\d)//g;
                 $commentData =~ s/[\n\r]/<br>/g;
                 $commentData =~ s/(?:<br>)+/<br>/g;
                 $commentData = encode_html_entities('C', $commentData);
@@ -421,7 +465,168 @@ EndOfHtml
 
             $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
           }
+        }
 
+        if ($perfdata eq 'on' and ! defined $errorMessage) {
+          # Performance Data Detail - - - - - - - - - - - - - - - - - - -
+          $perfdataDetailList = "<H1>Performance Data Details</H1>\n";
+
+          unless ( $PERFPARSEENABLED ) {
+            $perfdataDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">Performance Data not enabled!</td></tr></table>";
+          } else {
+            my ($dbhPERFPARSE, $dbiPERFPARSE, $sthPERFPARSE, $metric_id, $metric, $times, $percentiles, $unit, $Unit, $periodePERFPARSE, $countPERFPARSE, $valuePERFPARSE);
+
+            if ( $DATABASE eq $PERFPARSEDATABASE and $SERVERNAMEREADONLY eq $PERFPARSEHOST and $SERVERPORTREADONLY eq $PERFPARSEPORT and $SERVERUSERREADONLY eq $PERFPARSEUSERNAME and $SERVERPASSREADONLY eq $PERFPARSEPASSWORD ) {
+              $dbhPERFPARSE = $dbh;
+            } else {
+              $dbiPERFPARSE = 1;
+              $dbhPERFPARSE = DBI->connect("dbi:mysql:$PERFPARSEDATABASE:$PERFPARSEHOST:$PERFPARSEPORT", "$PERFPARSEUSERNAME", "$PERFPARSEPASSWORD" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            }
+
+            my $toggle = 0;
+            $sqlQuery = "select $SERVERTABLREPORTSPRFDT.metric_id, perfdata_service_metric.metric, $SERVERTABLREPORTSPRFDT.times, $SERVERTABLREPORTSPRFDT.percentiles, $SERVERTABLREPORTSPRFDT.unit, perfdata_service_metric.unit from $SERVERTABLREPORTSPRFDT, perfdata_service_metric WHERE $SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $SERVERTABLREPORTSPRFDT.activated='1' and $SERVERTABLREPORTSPRFDT.metric_id = perfdata_service_metric.metric_id";
+            $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+            $sth->bind_columns( \$metric_id, \$metric, \$times, \$percentiles, \$unit, \$Unit ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+
+            if ( $rv ) {
+              if ($sth->rows) {
+                my $sqlPeriodePERFDATA = $sqlPeriode;
+                $sqlPeriodePERFDATA    =~ s/AND startDate BETWEEN '(\d+-\d+-\d+)' AND '(\d+-\d+-\d+)'/AND ctime BETWEEN '$1 00:00:00' AND '$2 23:59:59'/g;
+                $sqlPeriodePERFDATA    =~ s/(startDate|startTime)/ctime/g;
+
+                my $groupPERFDATA       = ($inputType eq 'fromto' ? 'dayofmonth' : $inputType); # 'dayofmonth' < 4.1.1 <= 'dayofmonth' or 'day' !!!
+                my $percentagePERFDATA  = ($inputType eq 'fromto' and $startDate ne $endDate) ? 0 : 1;
+
+  	            $perfdataDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n";
+
+                while( $sth->fetch() ) {
+    	          $perfdataDetailList .= "<tr><th>&nbsp;$groupPERFDATA&nbsp;</th><th align=\"left\">&nbsp;$metric&nbsp;</th><th>&nbsp;Expression&nbsp;</th></tr>\n";
+                  $times = ( defined $times and $times ne '' ) ? '0,'. $times : '0'; 
+
+                  my $sqlValuePERFDATA = '';
+                  my $countRows = 0;
+
+                  if ( $unit =~ /(?:s|ms)/ and $Unit =~ /(?:s|ms)/ ) {
+                    foreach my $time (split (/,/, $times)) {
+                      $toggle = ( $toggle ) ? 0 : 1;
+
+                      my $value = $time;
+
+                      if ( $value ) {
+                        if ( $unit ne $Unit ) {
+                          if ( $Unit eq 'ms' ) {
+                            $value *= 1000;
+                          }  elsif ( $Unit eq 's' ) {
+                            $value /= 1000;
+                          }
+                        }
+
+                        $sqlValuePERFDATA = 'and value <= '. $value;
+                      }
+
+                      my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), count(ctime) FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA $sqlValuePERFDATA group by $groupPERFDATA(ctime)";
+                      $sthPERFPARSE = $dbhPERFPARSE->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
+                      $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+                      $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$countPERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+
+                      my $expresionPERFPARSE = ( $debug eq 'T' ? "($value&nbsp;$Unit)&nbsp;" : '' );
+
+                      my $bgcolor = ( $toggle ) ? $COLORSTABLE{ENDBLOCK} : $COLORSTABLE{STARTBLOCK};
+                      $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td colspan=\"2\">&nbsp;$sqlPERFDATA&nbsp;</td><td>&nbsp;<=&nbsp;$time&nbsp;$unit&nbsp;$expresionPERFPARSE</td></tr>\n" if ( $debug eq 'T' );
+
+                      if ( $rv ) {
+                        if ($sthPERFPARSE->rows) {
+                          while( $sthPERFPARSE->fetch() ) {
+                            unless ( $value ) {
+                              $countRows = $countPERFPARSE;
+                            } else {
+                              if ( $percentagePERFDATA ) {
+                                my $percentage = sprintf "%.2f", ( ( $countPERFPARSE / $countRows ) * 100 );
+                                $percentage = "( $countPERFPARSE / $countRows ) * 100 = $percentage" if ( $debug eq 'T' );
+                                $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td align=\"right\">&nbsp;$periodePERFPARSE&nbsp;</td><td align=\"right\">&nbsp;$percentage %&nbsp;</td><td>&nbsp;<=&nbsp;$time&nbsp;$unit&nbsp;$expresionPERFPARSE</td></tr>\n";
+                              } else {
+                                $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td align=\"right\">&nbsp;$periodePERFPARSE&nbsp;</td><td align=\"right\">&nbsp;$countPERFPARSE #&nbsp;</td><td>&nbsp;<=&nbsp;$time&nbsp;$unit&nbsp;$expresionPERFPARSE</td></tr>\n";
+                              }
+                            }
+                          }
+                        } elsif ( $debug eq 'T' ) {
+                          $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td align=\"right\">&nbsp;</td><td align=\"right\">&nbsp;0 ". ( $percentagePERFDATA ? '%' : '#' ) ."&nbsp;</td><td>&nbsp;<=&nbsp;$time&nbsp;$unit&nbsp;$expresionPERFPARSE</td></tr>\n";
+                        }
+
+                        $sthPERFPARSE->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
+                      }
+                    }
+
+                    if ( $percentagePERFDATA ) {
+                      foreach my $percentile (split (/,/, $percentiles)) {
+                        $toggle = ( $toggle ) ? 0 : 1;
+
+                        my ($IR, $FR) = split (/\./, sprintf "%.2f", ( ( $percentile / 100 ) * ( $countRows + 1 ) ) );
+                        my $limit = ( $FR eq '00' ) ? 1 : 2;
+                        my $offset = $IR - 1;
+                        $FR = sprintf "0.%d", $FR;
+
+                        my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), value FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA order by value limit $offset, $limit";
+                        $sthPERFPARSE = $dbhPERFPARSE->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
+                        $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+                        $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$valuePERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+
+                        my $bgcolor = ( $toggle ) ? $COLORSTABLE{ENDBLOCK} : $COLORSTABLE{STARTBLOCK};
+                        $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td colspan=\"2\">&nbsp;( ( $percentile / 100 ) * ( $countRows + 1 ) ), IR: $IR, FR: $FR, offset: $offset, limit: $limit & # $countRows&nbsp;<br>&nbsp;$sqlPERFDATA&nbsp;</td><td>&nbsp;$percentile&nbsp;ste&nbsp;percentile&nbsp;</td></tr>\n" if ( $debug eq 'T' );
+
+                        if ( $rv ) {
+                          if ($sthPERFPARSE->rows) {
+                            my ($value1, $value2);
+
+                            while( $sthPERFPARSE->fetch() ) {
+                              $value1 = $valuePERFPARSE unless (defined $value1);
+                              $value2 = $valuePERFPARSE if (defined $value1);
+                            }
+
+                            $value2 = $value1 unless (defined $value2);
+
+                            if ( $unit ne $Unit ) {
+                              if ( $Unit eq 'ms' ) {
+                                $value1 /= 1000;
+                                $value2 /= 1000;
+                              }  elsif ( $Unit eq 's' ) {
+                                $value1 *= 1000;
+                                $value2 *= 1000;
+                              }
+                            }
+
+                            my $percentilePERFPARSE = sprintf "%.2f $unit", ( "$FR" * ( $value2 - $value1 ) + $value1 );
+                            $percentilePERFPARSE = "( $FR * ( $value2 - $value1 ) + $value1 ) = $percentilePERFPARSE" if ( $debug eq 'T' );
+                            $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td align=\"right\">&nbsp;$periodePERFPARSE&nbsp;</td><td align=\"right\">&nbsp;$percentilePERFPARSE&nbsp;</td><td>&nbsp;$percentile&nbsp;ste&nbsp;percentile&nbsp;</td></tr>\n";
+                          } elsif ( $debug eq 'T' ) {
+                            $perfdataDetailList .= "<tr bgcolor=\"$bgcolor\"><td align=\"right\">&nbsp;</td><td align=\"right\">&nbsp;missing data&nbsp;</td><td>&nbsp;$percentile&nbsp;ste&nbsp;percentile&nbsp;</td></tr>\n";
+                          }
+
+                          $sthPERFPARSE->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
+                        }
+                      }
+                    } else {
+                      $perfdataDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td colspan=\"3\">&nbsp;ASNMTAP/Performance Data: percentile not supported when $startDate ne $endDate&nbsp;</td></tr>\n";
+                    }
+                  } else {
+                    $perfdataDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td colspan=\"2\">&nbsp;ASNMTAP/Performance Data: unit not supported&nbsp;%&nbsp;</td><td>&nbsp;$unit/$Unit&nbsp;</td></tr>\n";
+                  }
+                }
+
+                $perfdataDetailList .= "</table>\n";
+              } else {
+                $perfdataDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">No Performance Data defined!</td></tr></table>";
+              }
+
+              $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
+            }
+
+            $dbhPERFPARSE->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ( defined $dbiPERFPARSE and $dbiPERFPARSE );
+          }
+        }
+
+        if ($details eq 'on' and ! defined $errorMessage) {
           # Problem Detail  - - - - - - - - - - - - - - - - - - - - - - - -
           my ($oneblock, $block, $firstrun, $nstartDateQ, $nstartTime, $nendDateQ, $nendTime, $nseconden);
           my ($test, $resultsdir, $tel, $wtel, $nstatus, $nrest, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $rrest);
@@ -429,7 +634,7 @@ EndOfHtml
           $errorDetailList = "<H1>Problem Details</H1>\n";
           $responseTable = "<H1>Response time warnings</H1>\n";
 
-          $sqlQuery = "select test, resultsdir from $SERVERTABLPLUGINS $sqlWhere";
+          $sqlQuery = "select SQL_NO_CACHE test, resultsdir from $SERVERTABLPLUGINS $sqlWhere";
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
@@ -637,7 +842,7 @@ EndOfHtml
       my ($type, $range);
 		
       if ($inputType eq "fromto") {
-        if ($endDate ne "")	{
+        if ($endDate ne '')	{
           $type  = '';
           $range = "Between $startDate and $endDate";
         } else {
@@ -684,7 +889,7 @@ EndOfHtml
     <table border="0">
 HTML
 
-      if ( $selDetailed eq "on" ) {
+      if ( $selDetailed eq 'on' ) {
         print <<HTML;
       <tr align="left"><td>Application:</td><td>
         <select name="uKey1">
@@ -731,7 +936,7 @@ HTML
       </td></tr><tr align="left"><td valign="top">Charts:</td><td>$checkbox
 HTML
 
-      print "      </td></tr><tr align=\"left\"><td valign=\"top\">Tables:</td><td>$tables\n" if ( $selDetailed eq "on" );
+      print "      </td></tr><tr align=\"left\"><td valign=\"top\">Tables:</td><td>$tables\n" if ( $selDetailed eq 'on' );
 
       print <<HTML;
       </td></tr><tr align="left"><td>Options:</td><td>$printerFriendlyOutputBox
@@ -748,11 +953,13 @@ HTML
     if (defined $errorMessage) {
       print $errorMessage, "\n" ;
     } else {
+      print $shortDescriptionTextArea, "<br><br>\n" if (defined $shortDescriptionTextArea);
       print $images, "\n" if (defined $images );
       print $infoTable, "<br><br>\n" if (defined $infoTable);
       print $topxTable, "<br><br>\n" if (defined $topxTable);
       print $errorList, "<br><br>\n" if (defined $errorList);
       print $commentDetailList, "<br><br>\n" if (defined $commentDetailList);
+      print $perfdataDetailList, "<br><br>\n" if (defined $perfdataDetailList);
       print $errorDetailList, "<br><br>\n" if (defined $errorDetailList);
       print $responseTable if (defined $responseTable);
       print "<br><center><a href=\"/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));

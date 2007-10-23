@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, package ASNMTAP::Asnmtap::Applications
+# 2007/10/21, v3.000.015, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -53,13 +53,16 @@ BEGIN {
                                                                        $SMTPUNIXSYSTEM $SERVERLISTSMTP $SERVERSMTP $SENDMAILFROM
                                                                        $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                        $RMVERSION $RMDEFAULTUSER
+                                                                       $CHARTDIRECTORLIB
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
+                                                                       $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
+                                                                       $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE $STATUSHEADER01
                                                  					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
                                                                        &read_table &get_session_param &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
@@ -96,7 +99,9 @@ BEGIN {
                                                   COLLECTOR    => [ qw($APPLICATIONPATH
 
                                                                        $DEBUGDIR
+                                                                       $CHARTDIRECTORLIB
                                                                        $HTTPSPATH $RESULTSPATH $PIDPATH
+                                                                       $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                        %COLORSRRD %ENVIRONMENT
                                                                        &read_table &get_trendline_from_test
@@ -133,7 +138,10 @@ BEGIN {
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                        $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                        $RMVERSION $RMDEFAULTUSER
+                                                                       $CHARTDIRECTORLIB
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
+                                                                       $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
+                                                                       $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
                                                                        %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        &get_session_param
@@ -143,11 +151,11 @@ BEGIN {
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDSPLYDMNS $SERVERTABLDSPLYGRPS $SERVERTABLENVIRONMNT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHLDSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLRSLTSDR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -246,7 +254,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -336,76 +344,94 @@ if ( exists $_config{URL} ) {
   $RESULTSURL       = $_config{URL}{RESULTS} if ( exists $_config{URL}{RESULTS} );
 }
 
-our $HTMLTOPDFPRG   = ( exists $_config{COMMON}{HTMLTOPD}{PRG}     ? $_config{COMMON}{HTMLTOPD}{PRG}     : 'htmldoc' );
-our $HTMLTOPDFHOW   = ( exists $_config{COMMON}{HTMLTOPD}{HOW}     ? $_config{COMMON}{HTMLTOPD}{HOW}     : 'shell' );
-our $HTMLTOPDFOPTNS = ( exists $_config{COMMON}{HTMLTOPD}{OPTIONS} ? $_config{COMMON}{HTMLTOPD}{OPTIONS} : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ..." );
+our $CHARTDIRECTORLIB  = ( exists $_config{COMMON}{CHARTDIRECTOR}{LIB}  ? $_config{COMMON}{CHARTDIRECTOR}{LIB}  : '/opt/ChartDirector/lib/.' );
 
-our $DATABASE       = ( exists $_config{DATABASE}{ASNMTAP}         ? $_config{DATABASE}{ASNMTAP}         : 'asnmtap' );
+our $HTMLTOPDFPRG      = ( exists $_config{COMMON}{HTMLTOPDF}{PRG}      ? $_config{COMMON}{HTMLTOPDF}{PRG}      : 'htmldoc' );
+our $HTMLTOPDFHOW      = ( exists $_config{COMMON}{HTMLTOPDF}{HOW}      ? $_config{COMMON}{HTMLTOPDF}{HOW}      : 'shell' );
+our $HTMLTOPDFOPTNS    = ( exists $_config{COMMON}{HTMLTOPDF}{OPTIONS}  ? $_config{COMMON}{HTMLTOPDF}{OPTIONS}  : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ..." );
+
+our $DATABASE          = ( exists $_config{DATABASE}{ASNMTAP}           ? $_config{DATABASE}{ASNMTAP}           : 'asnmtap' );
 
 # CGI.pm  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # archiver.pl - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-our $SERVERMYSQLVERSION    = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     ? $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     : '4.x' );
-our $SERVERMYSQLMERGE      = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       ? $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       : '0' );
+our $SERVERMYSQLVERSION     = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     ? $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     : '4.x' );
+our $SERVERMYSQLMERGE       = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       ? $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       : '0' );
 
-$SERVERMYSQLVERSION        = '4.x' unless ( $SERVERMYSQLVERSION eq '5.0.x' );
-$SERVERMYSQLMERGE          = '0'   unless ( $SERVERMYSQLMERGE eq '1' );
+$SERVERMYSQLVERSION         = '4.x' unless ( $SERVERMYSQLVERSION eq '5.0.x' );
+$SERVERMYSQLMERGE           = '0'   unless ( $SERVERMYSQLMERGE eq '1' );
 
 # archiver.pl, collector.pl and display.pl  - - - - - - - - - - - - - - -
 # comments.pl, holidayBundleSetDowntimes.pl - - - - - - - - - - - - - - -
 # scripts into directory /cgi-bin/admin & /cgi-bin/sadmin - - - - - - - -
-our $SERVERNAMEREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     : 'localhost' );
-our $SERVERPORTREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     : '3306' );
-our $SERVERUSERREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} ? $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} : 'asnmtap' );
-our $SERVERPASSREADWRITE   = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} ? $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} : 'asnmtap' );
+our $SERVERNAMEREADWRITE    = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{HOST}     : 'localhost' );
+our $SERVERPORTREADWRITE    = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     ? $_config{DATABASE_ACCOUNT}{READWRITE}{PORT}     : '3306' );
+our $SERVERUSERREADWRITE    = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} ? $_config{DATABASE_ACCOUNT}{READWRITE}{USERNAME} : 'asnmtap' );
+our $SERVERPASSREADWRITE    = ( exists $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} ? $_config{DATABASE_ACCOUNT}{READWRITE}{PASSWORD} : 'asnmtap' );
 
 # comments.pl, generateChart.pl, getHelpPlugin.pl, runCommandOnDemand.pl
 # and detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl -
-our $SERVERNAMEREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      ? $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      : 'localhost' );
-our $SERVERPORTREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      ? $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      : '3306' );
-our $SERVERUSERREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  ? $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  : 'asnmtapro' );
-our $SERVERPASSREADONLY    = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  ? $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  : 'asnmtapro' );
+our $SERVERNAMEREADONLY     = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      ? $_config{DATABASE_ACCOUNT}{READONLY}{HOST}      : 'localhost' );
+our $SERVERPORTREADONLY     = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      ? $_config{DATABASE_ACCOUNT}{READONLY}{PORT}      : '3306' );
+our $SERVERUSERREADONLY     = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  ? $_config{DATABASE_ACCOUNT}{READONLY}{USERNAME}  : 'asnmtapro' );
+our $SERVERPASSREADONLY     = ( exists $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  ? $_config{DATABASE_ACCOUNT}{READONLY}{PASSWORD}  : 'asnmtapro' );
+
+# collector.pl, perfdata.pl & reports.pl
+our $PERFPARSEBIN      = ( exists $_config{COMMON}{PERFPARSE}{BIN}      ? $_config{COMMON}{PERFPARSE}{BIN}      : $PREFIXPATH .'/perfparse/bin' );
+our $PERFPARSEETC      = ( exists $_config{COMMON}{PERFPARSE}{ETC}      ? $_config{COMMON}{PERFPARSE}{ETC}      : $PREFIXPATH .'/perfparse/etc' );
+our $PERFPARSELIB      = ( exists $_config{COMMON}{PERFPARSE}{LIB}      ? $_config{COMMON}{PERFPARSE}{LIB}      : $PREFIXPATH .'/perfparse/lib' );
+our $PERFPARSESHARE    = ( exists $_config{COMMON}{PERFPARSE}{SHARE}    ? $_config{COMMON}{PERFPARSE}{SHARE}    : $PREFIXPATH .'/perfparse/share' );
+our $PERFPARSECGI      = ( exists $_config{COMMON}{PERFPARSE}{CGI}      ? $_config{COMMON}{PERFPARSE}{CGI}      : '/cgi-bin/perfparse.cgi' );
+our $PERFPARSEENABLED  = ( exists $_config{COMMON}{PERFPARSE}{ENABLED}  ? $_config{COMMON}{PERFPARSE}{ENABLED}  : 1 );
+
+our $PERFPARSEDATABASE = ( exists $_config{COMMON}{PERFPARSE}{DATABASE} ? $_config{COMMON}{PERFPARSE}{DATABASE} : $DATABASE );
+our $PERFPARSEHOST     = ( exists $_config{COMMON}{PERFPARSE}{HOST}     ? $_config{COMMON}{PERFPARSE}{HOST}     : $SERVERNAMEREADWRITE );
+our $PERFPARSEPORT     = ( exists $_config{COMMON}{PERFPARSE}{PORT}     ? $_config{COMMON}{PERFPARSE}{PORT}     : $SERVERPORTREADWRITE );
+our $PERFPARSEUSERNAME = ( exists $_config{COMMON}{PERFPARSE}{USERNAME} ? $_config{COMMON}{PERFPARSE}{USERNAME} : $SERVERUSERREADWRITE );
+our $PERFPARSEPASSWORD = ( exists $_config{COMMON}{PERFPARSE}{PASSWORD} ? $_config{COMMON}{PERFPARSE}{PASSWORD} : $SERVERPASSREADWRITE );
 
 # tables
-our $SERVERTABLCLLCTRDMNS  = 'collectorDaemons';
-our $SERVERTABLCOMMENTS    = 'comments';
-our $SERVERTABLCOUNTRIES   = 'countries';
-our $SERVERTABLCRONTABS    = 'crontabs';
-our $SERVERTABLDSPLYDMNS   = 'displayDaemons';
-our $SERVERTABLDSPLYGRPS   = 'displayGroups';
-our $SERVERTABLENVIRONMNT  = 'environment';
-our $SERVERTABLEVENTS      = 'events';
-our $SERVERTABLHOLIDYS     = 'holidays';
-our $SERVERTABLHLDSBNDL    = 'holidaysBundle';
-our $SERVERTABLLANGUAGE    = 'language';
-our $SERVERTABLPAGEDIRS    = 'pagedirs';
-our $SERVERTABLPLUGINS     = 'plugins';
-our $SERVERTABLREPORTS     = 'reports';
-our $SERVERTABLRSLTSDR     = 'resultsdir';
-our $SERVERTABLSERVERS     = 'servers';
-our $SERVERTABLTIMEPERIODS = 'timeperiods';
-our $SERVERTABLUSERS       = 'users';
-our $SERVERTABLVIEWS       = 'views';
+our $SERVERTABLCLLCTRDMNS   = 'collectorDaemons';
+our $SERVERTABLCOMMENTS     = 'comments';
+our $SERVERTABLCOUNTRIES    = 'countries';
+our $SERVERTABLCRONTABS     = 'crontabs';
+our $SERVERTABLDISPLAYDMNS  = 'displayDaemons';
+our $SERVERTABLDISPLAYGRPS  = 'displayGroups';
+our $SERVERTABLENVIRONMENT  = 'environment';
+our $SERVERTABLEVENTS       = 'events';
+our $SERVERTABLHOLIDYS      = 'holidays';
+our $SERVERTABLHOLIDYSBNDL  = 'holidaysBundle';
+our $SERVERTABLLANGUAGE     = 'language';
+our $SERVERTABLPAGEDIRS     = 'pagedirs';
+our $SERVERTABLPLUGINS      = 'plugins';
+our $SERVERTABLREPORTS      = 'reports';
+our $SERVERTABLREPORTSPRFDT = 'reports_perfdata';
+our $SERVERTABLRESULTSDIR   = 'resultsdir';
+our $SERVERTABLSERVERS      = 'servers';
+our $SERVERTABLTIMEPERIODS  = 'timeperiods';
+our $SERVERTABLUSERS        = 'users';
+our $SERVERTABLVIEWS        = 'views';
 
 if ( exists $_config{TABLES} ) {
-  $SERVERTABLCLLCTRDMNS    = $_config{TABLES}{COLLECTORDAEMONS} if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
-  $SERVERTABLCOMMENTS      = $_config{TABLES}{COMMENTS}         if ( exists $_config{TABLES}{COMMENTS} );
-  $SERVERTABLCOUNTRIES     = $_config{TABLES}{COUNTRIES}        if ( exists $_config{TABLES}{COUNTRIES} );
-  $SERVERTABLCRONTABS      = $_config{TABLES}{CRONTABS}         if ( exists $_config{TABLES}{CRONTABS} );
-  $SERVERTABLDSPLYDMNS     = $_config{TABLES}{DISPLAYDAEMONS}   if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
-  $SERVERTABLDSPLYGRPS     = $_config{TABLES}{DISPLAYGROUPS}    if ( exists $_config{TABLES}{DISPLAYGROUPS} );
-  $SERVERTABLENVIRONMNT    = $_config{TABLES}{ENVIRONMENT}      if ( exists $_config{TABLES}{ENVIRONMENT} );
-  $SERVERTABLEVENTS        = $_config{TABLES}{EVENTS}           if ( exists $_config{TABLES}{EVENTS} );
-  $SERVERTABLHOLIDYS       = $_config{TABLES}{HOLIDAYS}         if ( exists $_config{TABLES}{HOLIDAYS} );
-  $SERVERTABLHLDSBNDL      = $_config{TABLES}{HOLIDAYSBUNDLE}   if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
-  $SERVERTABLLANGUAGE      = $_config{TABLES}{LANGUAGE}         if ( exists $_config{TABLES}{LANGUAGE} );
-  $SERVERTABLPAGEDIRS      = $_config{TABLES}{PAGEDIRS}         if ( exists $_config{TABLES}{PAGEDIRS} );
-  $SERVERTABLPLUGINS       = $_config{TABLES}{PLUGINS}          if ( exists $_config{TABLES}{PLUGINS} );
-  $SERVERTABLREPORTS       = $_config{TABLES}{REPORTS}          if ( exists $_config{TABLES}{REPORTS} );
-  $SERVERTABLRSLTSDR       = $_config{TABLES}{RESULTSDIR}       if ( exists $_config{TABLES}{RESULTSDIR} );
-  $SERVERTABLSERVERS       = $_config{TABLES}{SERVERS}          if ( exists $_config{TABLES}{SERVERS} );
-  $SERVERTABLTIMEPERIODS   = $_config{TABLES}{TIMEPERIODS}      if ( exists $_config{TABLES}{TIMEPERIODS} );
-  $SERVERTABLUSERS         = $_config{TABLES}{USERS}            if ( exists $_config{TABLES}{USERS} );
-  $SERVERTABLVIEWS         = $_config{TABLES}{VIEWS}            if ( exists $_config{TABLES}{VIEWS} );
+  $SERVERTABLCLLCTRDMNS     = $_config{TABLES}{COLLECTORDAEMONS} if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
+  $SERVERTABLCOMMENTS       = $_config{TABLES}{COMMENTS}         if ( exists $_config{TABLES}{COMMENTS} );
+  $SERVERTABLCOUNTRIES      = $_config{TABLES}{COUNTRIES}        if ( exists $_config{TABLES}{COUNTRIES} );
+  $SERVERTABLCRONTABS       = $_config{TABLES}{CRONTABS}         if ( exists $_config{TABLES}{CRONTABS} );
+  $SERVERTABLDISPLAYDMNS    = $_config{TABLES}{DISPLAYDAEMONS}   if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
+  $SERVERTABLDISPLAYGRPS    = $_config{TABLES}{DISPLAYGROUPS}    if ( exists $_config{TABLES}{DISPLAYGROUPS} );
+  $SERVERTABLENVIRONMENT    = $_config{TABLES}{ENVIRONMENT}      if ( exists $_config{TABLES}{ENVIRONMENT} );
+  $SERVERTABLEVENTS         = $_config{TABLES}{EVENTS}           if ( exists $_config{TABLES}{EVENTS} );
+  $SERVERTABLHOLIDYS        = $_config{TABLES}{HOLIDAYS}         if ( exists $_config{TABLES}{HOLIDAYS} );
+  $SERVERTABLHOLIDYSBNDL    = $_config{TABLES}{HOLIDAYSBUNDLE}   if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
+  $SERVERTABLLANGUAGE       = $_config{TABLES}{LANGUAGE}         if ( exists $_config{TABLES}{LANGUAGE} );
+  $SERVERTABLPAGEDIRS       = $_config{TABLES}{PAGEDIRS}         if ( exists $_config{TABLES}{PAGEDIRS} );
+  $SERVERTABLPLUGINS        = $_config{TABLES}{PLUGINS}          if ( exists $_config{TABLES}{PLUGINS} );
+  $SERVERTABLREPORTS        = $_config{TABLES}{REPORTS}          if ( exists $_config{TABLES}{REPORTS} );
+  $SERVERTABLREPORTSPRFDT   = $_config{TABLES}{REPORTSPERFDATA}  if ( exists $_config{TABLES}{REPORTSPERFDATA} );
+  $SERVERTABLRESULTSDIR     = $_config{TABLES}{RESULTSDIR}       if ( exists $_config{TABLES}{RESULTSDIR} );
+  $SERVERTABLSERVERS        = $_config{TABLES}{SERVERS}          if ( exists $_config{TABLES}{SERVERS} );
+  $SERVERTABLTIMEPERIODS    = $_config{TABLES}{TIMEPERIODS}      if ( exists $_config{TABLES}{TIMEPERIODS} );
+  $SERVERTABLUSERS          = $_config{TABLES}{USERS}            if ( exists $_config{TABLES}{USERS} );
+  $SERVERTABLVIEWS          = $_config{TABLES}{VIEWS}            if ( exists $_config{TABLES}{VIEWS} );
 }
 
 our %COLORS      = ('OK'=>'#99CC99','WARNING'=>'#FFFF00','CRITICAL'=>'#FF4444','UNKNOWN'=>'#FFFFFF','DEPENDENT'=>'#D8D8BF','OFFLINE'=>'#0000FF','NO DATA'=>'#CC00CC','IN PROGRESS'=>'#99CC99','NO TEST'=>'#99CC99', '<NIHIL>'=>'#CC00CC','TRENDLINE'=>'#ffa000');
@@ -605,7 +631,7 @@ sub get_session_param {
     $Tdebug = $debug;
   }
 
-  my $cgipathFilename = ($cgipath eq "") ? "$filename" : "$cgipath/$filename";
+  my $cgipathFilename = ($cgipath eq '') ? "$filename" : "$cgipath/$filename";
 
   if ( -e "$cgipathFilename" ) {
     my $rvOpen = open(CGISESSION, "$cgipathFilename");
@@ -893,9 +919,9 @@ sub print_header {
   my $sessionIdOrCookie = ( defined $sessionID ) ? "&amp;CGISESSID=$sessionID" : "&amp;CGICOOKIE=1";
   my $showToggle   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/$pageset.html\">" : "<A HREF=\"/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
   $showToggle     .= "<IMG SRC=\"$IMAGESURL/toggle.gif\" title=\"Toggle\" alt=\"Toggle\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
-  my $showReport   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/reports-$pageset.html\"><IMG SRC=\"$IMAGESURL/report.gif\" title=\"Report\" alt=\"Report\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : "";
-  my $showOnDemand = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/runCmdOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/ondemand.gif\" title=\"On demand\" alt=\"On demand\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : "";
-  my $showData     = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/getArchivedReport.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/data.gif\" title=\"Report Archive\" alt=\"Report Archive\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : "";
+  my $showReport   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/reports-$pageset.html\"><IMG SRC=\"$IMAGESURL/report.gif\" title=\"Report\" alt=\"Report\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
+  my $showOnDemand = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/runCmdOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/ondemand.gif\" title=\"On demand\" alt=\"On demand\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
+  my $showData     = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/getArchivedReport.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/data.gif\" title=\"Report Archive\" alt=\"Report Archive\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
   my $showAwstats  = "<A HREF=\"/awstats/awstats.pl\" target=\"_blank\"><IMG SRC=\"$IMAGESURL/awstats.gif\" title=\"Awstats\" alt=\"Awstats\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
   my $showInfo     = "<A HREF=\"/cgi-bin/info.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/info.gif\" title=\"Info\" alt=\"Info\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
 
@@ -1161,7 +1187,7 @@ EndOfHtml
     <tr><td>&nbsp;</td></tr>
 EndOfHtml
 
-        print REPORTS '    <tr><td>&nbsp;</td></tr>', "\n", '    <tr><td>&nbsp;</td></tr>', "\n", "    <tr><td class=\"ReportItem\"><a href=\"/cgi-bin/perfparse.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1\">PerfParse facilities for the performance data produced by the $APPLICATION</a></td></tr>", "\n" if (-e "$HTTPSPATH/cgi-bin/perfparse.cgi");
+        print REPORTS '    <tr><td>&nbsp;</td></tr>', "\n", '    <tr><td>&nbsp;</td></tr>', "\n", "    <tr><td class=\"ReportItem\"><a href=\"/cgi-bin/perfparse.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1\">PerfParse facilities for the performance data produced by the $APPLICATION</a></td></tr>", "\n" if (-e "${HTTPSPATH}${PERFPARSECGI}");
         print REPORTS '  </table>', "\n", '  <br>', "\n";
         print_legend (*REPORTS);
         print REPORTS '</body>', "\n", '</html>', "\n";
@@ -1322,7 +1348,7 @@ Alex Peeters [alex.peeters@citap.be]
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, asnmtap-3.000.014-distributed.sql
+# 2007/10/21, v3.000.015, asnmtap-3.000.015-distributed.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -31,7 +31,7 @@ CREATE TABLE `collectorDaemons` (
   `debugAllFile` char(1) NOT NULL default 'F',
   `debugNokFile` char(1) NOT NULL default 'F',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`collectorDaemon`),
+  PRIMARY KEY (`collectorDaemon`),
   KEY `serverID` (`serverID`),
   CONSTRAINT `collectorDaemons_ibfk_2` FOREIGN KEY (`serverID`) REFERENCES `servers` (`serverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -68,7 +68,7 @@ CREATE TABLE `comments` (
   `solvedTimeslot` varchar(10) NOT NULL default '0000000000',
   `problemSolved` tinyint(1) NOT NULL default '1',
   `commentData` blob NOT NULL,
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `uKey` (`uKey`),
   KEY `remoteUser` (`remoteUser`),
   KEY `persistent` (`persistent`),
@@ -92,7 +92,7 @@ CREATE TABLE `countries` (
   `countryID` char(2) NOT NULL default '',
   `countryName` varchar(45) default NULL,
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`countryID`)
+  PRIMARY KEY (`countryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `countries` */
@@ -358,7 +358,7 @@ CREATE TABLE `crontabs` (
   `dayOfTheWeek` varchar(13) NOT NULL default '*',
   `noOffline` varchar(12) default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`lineNumber`,`uKey`),
+  PRIMARY KEY (`lineNumber`,`uKey`),
   KEY `uKey` (`uKey`),
   KEY `collectorDaemon` (`collectorDaemon`),
   CONSTRAINT `crontabs_ibfk_1` FOREIGN KEY (`collectorDaemon`) REFERENCES `collectorDaemons` (`collectorDaemon`),
@@ -397,7 +397,7 @@ CREATE TABLE `displayDaemons` (
   `lockMySQL` char(1) NOT NULL default 'F',
   `debugDaemon` char(1) NOT NULL default 'F',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`displayDaemon`),
+  PRIMARY KEY (`displayDaemon`),
   UNIQUE KEY `pagedir` (`pagedir`),
   KEY `serverID` (`serverID`),
   CONSTRAINT `displayDaemons_ibfk_1` FOREIGN KEY (`pagedir`) REFERENCES `pagedirs` (`pagedir`),
@@ -417,7 +417,7 @@ CREATE TABLE `displayGroups` (
   `displayGroupID` int(11) NOT NULL auto_increment,
   `groupTitle` varchar(100) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`displayGroupID`)
+  PRIMARY KEY (`displayGroupID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `displayGroups` */
@@ -433,7 +433,7 @@ DROP TABLE IF EXISTS `environment`;
 CREATE TABLE `environment` (
   `environment` char(1) NOT NULL default 'L',
   `label` varchar(12) default 'Local',
-  PRIMARY KEY  (`environment`)
+  PRIMARY KEY (`environment`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `environment` */
@@ -466,7 +466,7 @@ CREATE TABLE `events` (
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `uKey` (`uKey`),
   KEY `key_test` (`test`),
   KEY `key_status` (`status`),
@@ -494,7 +494,7 @@ CREATE TABLE `holidays` (
   `countryID` char(2) NOT NULL default '00',
   `holiday` varchar(64) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`holidayID`),
+  PRIMARY KEY (`holidayID`),
   KEY `countryID` (`countryID`),
   CONSTRAINT `holidays_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -529,7 +529,7 @@ CREATE TABLE `holidaysBundle` (
   `holidayID` varchar(254) NOT NULL default '',
   `countryID` char(2) NOT NULL default '00',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`holidayBundleID`),
+  PRIMARY KEY (`holidayBundleID`),
   KEY `holidayID` (`holidayID`),
   KEY `countryID` (`countryID`),
   CONSTRAINT `holidaysBundle_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`)
@@ -548,7 +548,7 @@ CREATE TABLE `language` (
   `languageActive` tinyint(1) NOT NULL default '0',
   `languageName` varchar(16) default NULL,
   `languageFamily` varchar(24) default NULL,
-  PRIMARY KEY  (`keyLanguage`)
+  PRIMARY KEY (`keyLanguage`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `language` */
@@ -698,7 +698,7 @@ CREATE TABLE `pagedirs` (
   `pagedir` varchar(11) NOT NULL default '',
   `groupName` varchar(64) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`pagedir`)
+  PRIMARY KEY (`pagedir`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `pagedirs` */
@@ -716,6 +716,7 @@ CREATE TABLE `plugins` (
   `arguments` varchar(254) default '',
   `argumentsOndemand` varchar(254) default '',
   `title` varchar(75) NOT NULL default '',
+  `shortDescription` text,
   `trendline` smallint(6) NOT NULL default '0',
   `percentage` tinyint(1) NOT NULL default '25',
   `tolerance` tinyint(1) NOT NULL default '5',
@@ -728,7 +729,7 @@ CREATE TABLE `plugins` (
   `helpPluginFilename` varchar(100) default '<NIHIL>',
   `holidayBundleID` int(11) default NULL,
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`uKey`),
+  PRIMARY KEY (`uKey`),
   KEY `resultsdir` (`resultsdir`),
   KEY `holidayBundleID` (`holidayBundleID`),
   KEY `test` (`test`),
@@ -763,12 +764,14 @@ CREATE TABLE `reports` (
   `hourlyAverage` tinyint(1) NOT NULL default '0',
   `dailyAverage` tinyint(1) NOT NULL default '0',
   `showDetails` tinyint(1) NOT NULL default '0',
+  `showComments` tinyint(1) NOT NULL default '0',
+  `showPerfdata` tinyint(1) NOT NULL default '0',
   `showTop20SlowTests` tinyint(1) NOT NULL default '0',
   `printerFriendlyOutput` tinyint(1) NOT NULL default '0',
   `formatOutput` varchar(4) NOT NULL default 'pdf',
   `userPassword` varchar(15) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
+  PRIMARY KEY (`id`),
   KEY `uKey` (`uKey`),
   KEY `periode` (`periode`),
   KEY `timeperiodID` (`timeperiodID`),
@@ -778,6 +781,23 @@ CREATE TABLE `reports` (
 
 /*Data for the table `reports` */
 
+#
+# Table structure for table reports_perfdata
+#
+
+DROP TABLE IF EXISTS `reports_perfdata`;
+
+CREATE TABLE `reports_perfdata` (
+  `uKey` varchar(11) NOT NULL,
+  `metric_id` int(11) NOT NULL default '0',
+  `times` varchar(64) NOT NULL,
+  `percentiles` varchar(64) NOT NULL,
+  `unit` enum('ms','s') NOT NULL default 's',
+  `activated` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`uKey`,`metric_id`),
+  KEY `uKey` (`uKey`)  
+) ENGINE=InnoDB;
+
 /*Table structure for table `resultsdir` */
 
 DROP TABLE IF EXISTS `resultsdir`;
@@ -786,7 +806,7 @@ CREATE TABLE `resultsdir` (
   `resultsdir` varchar(64) NOT NULL default '',
   `groupName` varchar(64) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`resultsdir`)
+  PRIMARY KEY (`resultsdir`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `resultsdir` */
@@ -820,7 +840,7 @@ CREATE TABLE `servers` (
   `typeServers` tinyint(1) NOT NULL default '0',
   `typeMonitoring` tinyint(1) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`serverID`)
+  PRIMARY KEY (`serverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `servers` */
@@ -845,7 +865,7 @@ CREATE TABLE `timeperiods` (
   `friday` varchar(36) default NULL,
   `saturday` varchar(36) default NULL,
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`timeperiodID`)
+  PRIMARY KEY (`timeperiodID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `timeperiods` */
@@ -864,7 +884,7 @@ CREATE TABLE `titles` (
   `keyLanguage` char(2) default NULL,
   `titleActive` tinyint(1) NOT NULL default '0',
   `titleName` varchar(64) default NULL,
-  PRIMARY KEY  (`cKeyTitle`),
+  PRIMARY KEY (`cKeyTitle`),
   KEY `keyTitle` (`keyTitle`),
   KEY `keyLanguage` (`keyLanguage`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -889,7 +909,7 @@ CREATE TABLE `users` (
   `pagedir` varchar(254) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
   `keyLanguage` char(2) NOT NULL default '',
-  PRIMARY KEY  (`remoteUser`),
+  PRIMARY KEY (`remoteUser`),
   KEY `keyLanguage` (`keyLanguage`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`keyLanguage`) REFERENCES `language` (`keyLanguage`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -910,7 +930,7 @@ CREATE TABLE `views` (
   `displayDaemon` varchar(64) NOT NULL default '',
   `displayGroupID` int(11) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`uKey`,`displayDaemon`),
+  PRIMARY KEY (`uKey`,`displayDaemon`),
   KEY `uKey` (`uKey`),
   KEY `displayDaemon` (`displayDaemon`),
   KEY `displayGroupID` (`displayGroupID`),

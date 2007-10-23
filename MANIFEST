@@ -1,13 +1,13 @@
 Changes												History of this package
-Makefile.PL											Makefile generator
+README												Get you started with this package
 MANIFEST											This file
 MANIFEST.SKIP										MANIFEST.SKIP file
-README												Get you started with this package
-Asnmtap.cnf                                         General config file for ASNMTAP
-META.yml                                            Module meta-data (added by MakeMaker)
-fixRights.sh                                        Fix Rights
+AUTHORS                                             Authors File
 INSTALL                                             Installation DOC
-TODO
+META.yml                                            Module meta-data (added by MakeMaker)
+Makefile.PL											Makefile generator
+Asnmtap.cnf                                         General config file for ASNMTAP
+fixRights.sh                                        Fix Rights
 
 applications/etc/.exists
 applications/htmlroot/nav/.exists
@@ -179,6 +179,7 @@ applications/htmlroot/cgi-bin/admin/holidaysBundle.pl
 applications/htmlroot/cgi-bin/admin/index.pl
 applications/htmlroot/cgi-bin/admin/languages.pl
 applications/htmlroot/cgi-bin/admin/reports.pl
+applications/htmlroot/cgi-bin/admin/reports_perfdata.pl
 applications/htmlroot/cgi-bin/admin/timeperiods.pl
 applications/htmlroot/cgi-bin/admin/users.pl
 
@@ -189,6 +190,7 @@ applications/htmlroot/cgi-bin/moderator/generateCollectorDaemonSchedulingReport.
 applications/htmlroot/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl
 applications/htmlroot/cgi-bin/moderator/index.pl
 applications/htmlroot/cgi-bin/moderator/pluginCrontabSchedulingReports.pl
+applications/htmlroot/cgi-bin/moderator/plugins.pl
 applications/htmlroot/cgi-bin/moderator/runStatusOnDemand.pl
 applications/htmlroot/cgi-bin/moderator/sessions.pl
 applications/htmlroot/cgi-bin/moderator/trendlineCorrectionReports.pl
@@ -301,6 +303,60 @@ applications/htmlroot/img/yellow.gif
 applications/htmlroot/pdf/ApplicationMonitorVersion2.000.xxx.pdf
 applications/htmlroot/pdf/CheckDummy.pdf
 
+applications/htmlroot/snmptraps/index.php
+
+applications/htmlroot/snmptraps/etc/config.ini.php
+
+applications/htmlroot/snmptraps/images/kde3/Thumbs.db
+applications/htmlroot/snmptraps/images/kde3/arrow.png
+applications/htmlroot/snmptraps/images/kde3/comment.png
+applications/htmlroot/snmptraps/images/kde3/delete.png
+applications/htmlroot/snmptraps/images/kde3/mark.png
+applications/htmlroot/snmptraps/images/kde3/next.png
+applications/htmlroot/snmptraps/images/kde3/previous.png
+
+applications/htmlroot/snmptraps/images/nuovo/Thumbs.db
+applications/htmlroot/snmptraps/images/nuovo/arrow.png
+applications/htmlroot/snmptraps/images/nuovo/comment.png
+applications/htmlroot/snmptraps/images/nuovo/delete.png
+applications/htmlroot/snmptraps/images/nuovo/mark.png
+applications/htmlroot/snmptraps/images/nuovo/next.png
+applications/htmlroot/snmptraps/images/nuovo/previous.png
+
+applications/htmlroot/snmptraps/images/nuvola_1/Thumbs.db
+applications/htmlroot/snmptraps/images/nuvola_1/arrow.png
+applications/htmlroot/snmptraps/images/nuvola_1/comment.png
+applications/htmlroot/snmptraps/images/nuvola_1/delete.png
+applications/htmlroot/snmptraps/images/nuvola_1/mark.png
+applications/htmlroot/snmptraps/images/nuvola_1/next.png
+applications/htmlroot/snmptraps/images/nuvola_1/previous.png
+
+applications/htmlroot/snmptraps/images/nuvola_2/Thumbs.db
+applications/htmlroot/snmptraps/images/nuvola_2/arrow.png
+applications/htmlroot/snmptraps/images/nuvola_2/comment.png
+applications/htmlroot/snmptraps/images/nuvola_2/delete.png
+applications/htmlroot/snmptraps/images/nuvola_2/mark.png
+applications/htmlroot/snmptraps/images/nuvola_2/next.png
+applications/htmlroot/snmptraps/images/nuvola_2/previous.png
+
+applications/htmlroot/snmptraps/include/classes/class.common.php
+applications/htmlroot/snmptraps/include/classes/class.frontend.php
+applications/htmlroot/snmptraps/include/classes/class.main.php
+applications/htmlroot/snmptraps/include/classes/class.mysqlDB.php
+
+applications/htmlroot/snmptraps/include/css/nagtrap.css
+applications/htmlroot/snmptraps/include/css/showlog.css
+applications/htmlroot/snmptraps/include/css/status.css
+
+applications/htmlroot/snmptraps/include/js/nagtrap.js
+applications/htmlroot/snmptraps/include/js/overlib.js
+
+applications/htmlroot/snmptraps/include/xml/language/DE/error.xml
+applications/htmlroot/snmptraps/include/xml/language/DE/main.xml
+
+applications/htmlroot/snmptraps/include/xml/language/EN/error.xml
+applications/htmlroot/snmptraps/include/xml/language/EN/main.xml
+
 applications/htmlroot/sound/attention.wav
 applications/htmlroot/sound/critical.wav
 applications/htmlroot/sound/nodata.wav
@@ -308,13 +364,17 @@ applications/htmlroot/sound/unknown.wav
 applications/htmlroot/sound/warning.wav
 
 applications/sbin/bash_stop_root.sh
-applications/sbin/sshWrapperASNMTAP.pl
 applications/sbin/perfparse_asnmtap_pulp_command.pl
 applications/sbin/perfparse_crontab.sh
+applications/sbin/perfparse_crontab_failed.sh
+applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
+applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.014.sql
-applications/tools/mysql/asnmtap-3.000.014-distributed.sql
+applications/tools/mysql/asnmtap-3.000.015.sql
+applications/tools/mysql/asnmtap-3.000.015_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.015-distributed.sql
+applications/tools/mysql/asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -343,12 +403,10 @@ plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
 plugins/nagios/check_nagios-comments-cleanup.pl
 plugins/nagios/check_network_interface_status.pl
+plugins/nagios/check_network_interface_traffic.pl
 plugins/nagios/check_snmptt_traps.pl
 plugins/nagios/check_swap.pl
 plugins/nagios/check_swap-allocated.pl
-plugins/nagios/create_NCPL_weblogic_configuration_for_SNMP.pl
-plugins/nagios/create_weblogic_configuration_database_with_SNMP.pl
-plugins/nagios/snmptt_traps_remove_pending_and_duplicated.pl
 
 plugins/nagios/templates/check_template-ftp.pl
 plugins/nagios/templates/check_template-ldap.pl
@@ -366,8 +424,15 @@ plugins/nagios/templates/xml/nagios-1.0.xml
 plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
 
-plugins/nagios/templates/snmptt/create_weblogic_configuration_database_with_SNMP.SQL
-plugins/nagios/templates/snmptt/snmptt-bea-weblogic.conf
+plugins/jUnit/check_jUnit.pl
+plugins/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+
+plugins/snmptt/check_SNMPTT_weblogic.pl
+plugins/snmptt/create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+plugins/snmptt/create_NCPL_weblogic_configuration_for_SNMP.pl
+plugins/snmptt/create_weblogic_configuration_database_with_SNMP.pl
+plugins/snmptt/create_weblogic_configuration_for_SNMPTT.pl
+plugins/snmptt/snmptt_traps_remove_pending_and_duplicated.pl
 
 plugins/templates/check_dummy.pl
 plugins/templates/check_file-counter.pl
@@ -384,6 +449,7 @@ plugins/templates/check_template-mail-without-fingerprint.pl
 plugins/templates/check_template-modem.pl
 plugins/templates/check_template-ras.pl
 plugins/templates/check_template-SOAP.pl
+plugins/templates/check_template-SNMPTT.pl
 plugins/templates/check_template-WebTransact.pl
 plugins/templates/check_template-WebTransact-Perfdata.pl
 plugins/templates/check_template-WebTransact-with-client-authorization.pl
@@ -396,6 +462,12 @@ plugins/templates/check_template-XML.pl
 plugins/templates/dtd/email-upgrade-1.0.dtd
 plugins/templates/dtd/FingerprintEmail-1.0.dtd
 plugins/templates/dtd/Monitoring-1.0.dtd
+
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+plugins/templates/snmptt/snmptt-bea-weblogic.conf
+plugins/templates/snmptt/snmptt-3.000.015.sql
+plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml
 plugins/templates/xml/FingerprintEmail-1.0.xml

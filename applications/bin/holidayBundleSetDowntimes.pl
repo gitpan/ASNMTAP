@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2007/10/21, v3.000.015, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.014;
+use ASNMTAP::Asnmtap::Applications v3.000.015;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
                                       &error_Trap_DBI
 
                                       $DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                      $SERVERTABLCOMMENTS $SERVERTABLENVIRONMNT $SERVERTABLHLDSBNDL $SERVERTABLHOLIDYS $SERVERTABLPLUGINS $SERVERTABLUSERS);
+                                      $SERVERTABLCOMMENTS $SERVERTABLENVIRONMENT $SERVERTABLHOLIDYSBNDL $SERVERTABLHOLIDYS $SERVERTABLPLUGINS $SERVERTABLUSERS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -88,7 +88,7 @@ $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRI
 
 if ($dbh and $rv) {
   my ($holidayBundleID, $holidayBundleName, $holidayID);
-  $sql = "select holidayBundleID, holidayBundleName, holidayID from $SERVERTABLHLDSBNDL where activated = '1' order by holidayBundleName";
+  $sql = "select holidayBundleID, holidayBundleName, holidayID from $SERVERTABLHOLIDYSBNDL where activated = '1' order by holidayBundleName";
   $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
   $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
   $sth->bind_columns( \$holidayBundleID, \$holidayBundleName, \$holidayID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
@@ -153,7 +153,7 @@ if ($dbh and $rv) {
                     $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
                   }
 
-                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ), $SERVERTABLENVIRONMNT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by uKey";
+                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLENVIRONMENT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by uKey";
                   $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
                   $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
                   $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;

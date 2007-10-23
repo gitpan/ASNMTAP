@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,8 +40,8 @@ use Date::Calc qw(Delta_Days);
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir    = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : '<NIHIL>';   $pagedir =~ s/\+/ /g;
-my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : "moderator"; $pageset =~ s/\+/ /g;
-my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : "F";
+my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'moderator'; $pageset =~ s/\+/ /g;
+my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
 my $status     = (defined $cgi->param('status'))    ? $cgi->param('status')    : '<NIHIL>';   $status  =~ s/\+/ /g;
 my $action     = (defined $cgi->param('action'))    ? $cgi->param('action')    : '<NIHIL>';
 my $Cpid       = (defined $cgi->param('pid'))       ? $cgi->param('pid')       : -1;
@@ -60,7 +60,7 @@ my (%daemonProcessTableCmndline, %daemonProcessTablePctmem, %daemonProcessTableS
 my $htmlTitle = $APPLICATION;
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Status", "status=$status");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Status", "status=$status");
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&status=$status";
@@ -75,8 +75,8 @@ unless ( defined $errorUserAccessControl ) {
   my $typeStatusSelect = create_combobox_from_keys_and_values_pairs ('collector=>Collectors|display=>Displays', 'K', 0, $status, 'status', 'none', '-Select-', '', '', $debug);
 
   # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  my $onload = ($status ne '<NIHIL>') ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : "";
-  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, $onload, 'F', '', $sessionID);
+  my $onload = ($status ne '<NIHIL>') ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : '';
+  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
 
   print <<EndOfHtml;
   <BR>

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2006 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/04/06, v1.0, check_network_interface_status.pl
+# 2007/10/21, v3.000.015, check_network_interface_status.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,11 +11,11 @@ use warnings;           # Must be used in test mode only. This reduces a little 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use lib qw(. /export/home/nagios/cpan-shared/lib/perl5/. /opt/supervision/cpan-shared/lib/perl5/.);
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.012;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_network_interface_status.pl',
   _programDescription => 'Network Interface Status',
-  _programVersion     => '1.0',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '--interface=<interface>',
   _programHelpPrefix  => '--interface=<interface>',
   _programGetOptions  => ['interface|i=s'],

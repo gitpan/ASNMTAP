@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, session.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, session.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "sessions.pl";
 my $prgtext     = "Blocked Sessions";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,10 +39,10 @@ use Time::Local;
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir    = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : '<NIHIL>';   $pagedir =~ s/\+/ /g;
-my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : "moderator"; $pageset =~ s/\+/ /g;
-my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : "F";
-my $action     = (defined $cgi->param('action'))    ? $cgi->param('action')    : "listView";
-my $CsessionID = (defined $cgi->param('sessionID')) ? $cgi->param('sessionID') : "";
+my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'moderator'; $pageset =~ s/\+/ /g;
+my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
+my $action     = (defined $cgi->param('action'))    ? $cgi->param('action')    : 'listView';
+my $CsessionID = (defined $cgi->param('sessionID')) ? $cgi->param('sessionID') : '';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -52,7 +52,7 @@ my $htmlTitle = $APPLICATION;
 my ($rvOpendir, @cgisessPathFilenames, $nextAction, $submitButton);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Sessions", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Sessions", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action&sessionID=$CsessionID";
@@ -65,11 +65,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
   my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
 
-  if ($action eq "deleteView") {
+  if ($action eq 'deleteView') {
     $htmlTitle    = "Delete Session '$CsessionID'";
     $submitButton = "Delete";
     $nextAction   = "delete";
-  } elsif ($action eq "delete") {
+  } elsif ($action eq 'delete') {
     my $cgisessFilename = "cgisess_$CsessionID";
 
     if (-e "$CGISESSPATH/$cgisessFilename") {
@@ -83,7 +83,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } else {
       $htmlTitle = "Session '$cgisessFilename' not deleted, don't exists";
     }
-  } elsif ($action eq "detailsView") {
+  } elsif ($action eq 'detailsView') {
     $htmlTitle    = "Details for session '$CsessionID'";
     $submitButton = "Display";
     $nextAction   = "listView";
@@ -126,11 +126,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     $matchingSessionDetails .= "      </table>\n";
-  } elsif ($action eq "listView") {
+  } elsif ($action eq 'listView') {
     $htmlTitle    = "All sessions listed";
 
     my $actionPressend = ($iconDelete or $iconDetails) ? 1 : 0;
-    my $actionHeader = ($actionPressend) ? "<th>Action</th>" : "";
+    my $actionHeader = ($actionPressend) ? "<th>Action</th>" : '';
     my $colspan = 7 + $actionPressend;
 
     my $table  = "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n";
@@ -176,7 +176,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        my $actionItem = ($actionPressend) ? "<td align=\"center\">&nbsp;" : "";
+        my $actionItem = ($actionPressend) ? "<td align=\"center\">&nbsp;" : '';
         my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;sessionID=$CsessionID&amp;action";
         $actionItem .= "<a href=\"$urlWithAccessParametersAction=detailsView\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Session Details\" alt=\"Session Details\" border=\"0\"></a>&nbsp;" if ($iconDetails);
 
@@ -195,17 +195,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         if (defined $session{ASNMTAP}) {
           my $loginTrials  = (defined $session{'~login-trials'}) ? $session{'~login-trials'} : 0;
           my $loggedIn     = (defined $session{'~logged-in'})    ? $session{'~logged-in'}    : undef;
-          my $remoteUser   = (defined $session{remoteUser})      ? $session{remoteUser}      : "UNKNOWN";
+          my $remoteUser   = (defined $session{remoteUser})      ? $session{remoteUser}      : 'UNKNOWN';
           my $givenName    = (defined $session{givenName})       ? $session{givenName}       : undef;
           my $familyName   = (defined $session{familyName})      ? $session{familyName}      : undef;
-          my $activated    = (defined $session{activated})       ? $session{activated}       : "UNKNOWN";
+          my $activated    = (defined $session{activated})       ? $session{activated}       : 'UNKNOWN';
 
-          my $username     = (defined $givenName and defined $familyName) ? encode_html_entities('V', $givenName). ", " .encode_html_entities('V', $familyName) : "";
+          my $username     = (defined $givenName and defined $familyName) ? encode_html_entities('V', $givenName). ", " .encode_html_entities('V', $familyName) : '';
  
           if ( $debug eq 'T' ) {
-            $remoteAddr = "c: " . scalar(localtime($currentTime));
-            $remoteAddr .= " A: " . scalar(localtime($sessionAtime)) if (defined $sessionAtime);
-            $remoteAddr .= " E: $sessionEtime " if (defined $sessionEtime);
+            $remoteAddr = 'c: '. scalar(localtime($currentTime));
+            $remoteAddr .= ' A: '. scalar(localtime($sessionAtime)) if (defined $sessionAtime);
+            $remoteAddr .= ' E: '. $sessionEtime .' ' if (defined $sessionEtime);
           }
 
           my $currentSession = "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$CsessionID</td><td>$remoteUser</td><td>$username</td><td>$remoteAddr</td><td>$activated</td><td align=\"right\">$loginTrials</td><td>" .scalar(localtime($sessionAtime+$sessionEtime)). "</td>$actionItem</tr>\n";
@@ -243,11 +243,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $matchingSessionsEmpty   .= "      </table>\n";
 
     $nextAction = "listView";
-  } elsif ($action eq "unblockView") {
+  } elsif ($action eq 'unblockView') {
     $htmlTitle    = "Unblock Session '$CsessionID'";
     $submitButton = "Unblock";
     $nextAction   = "unblock";
-  } elsif ($action eq "unblock") {
+  } elsif ($action eq 'unblock') {
     my $cgisessFilename = "cgisess_$CsessionID";
 
     if (-e "$CGISESSPATH/$cgisessFilename") {
@@ -260,9 +260,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
   # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
 
-  if ($action eq "deleteView" or $action eq "unblockView") {
+  if ($action eq 'deleteView' or $action eq 'unblockView') {
     print <<HTML;
 <form action=\"$ENV{SCRIPT_NAME}\" method=\"post\" name=\"sessions\">
   <input type="hidden" name="pagedir"   value="$pagedir">
@@ -285,7 +285,7 @@ HTML
     </td></tr>
 HTML
 
-  if ($action eq "deleteView" or $action eq "unblockView") {
+  if ($action eq 'deleteView' or $action eq 'unblockView') {
     print <<HTML;
     <tr><td>&nbsp;</td></tr>
     <tr><td>
@@ -295,9 +295,9 @@ HTML
       </table>
     </td></tr>
 HTML
-  } elsif ($action eq "delete" or $action eq "unblock") {
+  } elsif ($action eq 'delete' or $action eq 'unblock') {
     print "    <tr><td align=\"center\"><br><br><h1>Session ID: $htmlTitle</h1></td></tr>";
-  } elsif ($action eq "detailsView") {
+  } elsif ($action eq 'detailsView') {
     print <<HTML;
     <tr><td>
       <table border="0" cellspacing="0" cellpadding="0" align="center">
@@ -320,7 +320,7 @@ HTML
 
   print "  </table>\n";
 
-  if ($action eq "deleteView" or $action eq "unblockView") {
+  if ($action eq 'deleteView' or $action eq 'unblockView') {
     print "</form>\n";
   } else {
     print "<br>\n";

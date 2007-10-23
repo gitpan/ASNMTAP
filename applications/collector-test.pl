@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2007/10/21, v3.000.015, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;           # Must be used in test mode only. This reduces a little 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -21,16 +21,18 @@ use Time::Local;
 use Getopt::Long;
 use Date::Calc qw(Delta_DHMS);
 
-use lib qw(/opt/ChartDirector/lib/.);
-use perlchartdir;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
+
+use ASNMTAP::Asnmtap::Applications::Collector v3.000.015;
+use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.014;
-use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
-
-use ASNMTAP::Asnmtap::Applications::Collector v3.000.014;
-use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
+use lib ( "$CHARTDIRECTORLIB" );
+use perlchartdir;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,7 +42,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -169,7 +171,7 @@ create_dir ($directory);
 
 create_dir ($RESULTSPATH);
 
-my $boolean_perfParseInstalled = (-e "$HTTPSPATH/cgi-bin/perfparse.cgi") ? 1 : 0;
+my $boolean_perfParseInstalled = ( $PERFPARSEENABLED and -e "${HTTPSPATH}${PERFPARSECGI}" ) ? 1 : 0;
 
 if ($mode eq 'C') {
   create_header ($RESULTSPATH .'/HEADER.html');
@@ -561,8 +563,8 @@ sub call_system {
   my ($asnmtapEnv, $currentDate, $uniqueKey, $resultsdir, $title, $system_action, $status, $interval, $debug, $dbiFilename, $logging, $httpdump, $dumphttp, $queryMySQL) = @_;
 
   my $rvOpen;
-  my $action = "";
-  my $httpdumpFilename = "";
+  my $action = '';
+  my $httpdumpFilename = '';
   my $debugFilename    = '<NIHIL>';
   my $dumphttpRename   = '<NIHIL>';
   my ($stdout, $stderr, $exit_value, $signal_num, $dumped_core);
@@ -710,7 +712,7 @@ sub call_system {
       if ( $perfParseMethode eq 'PULP' ) {
         $perfParseCommand = "$APPLICATIONPATH/sbin/perfparse_asnmtap_pulp_command.pl $PREFIXPATH/log/perfdata-asnmtap.log \"$perfParseTimeslot\t$eTitle\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\"";
       } else {
-        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$eTitle\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PREFIXPATH/perfparse/bin/perfparse-log2mysql -c $PREFIXPATH/perfparse/etc/perfparse.cfg";
+        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$eTitle\t$uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PERFPARSEBIN/perfparse-log2mysql -c $PERFPARSEETC/perfparse.cfg";
       }
 
       if ($CAPTUREOUTPUT) {

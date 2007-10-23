@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, timeperiods.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, timeperiods.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,30 +31,30 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "timeperiods.pl";
 my $prgtext     = "Timeperiods";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : "admin";   $pageset =~ s/\+/ /g;
-my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : "F";
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'admin';   $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
 my $pageNo           = (defined $cgi->param('pageNo'))          ? $cgi->param('pageNo')          : 1;
 my $pageOffset       = (defined $cgi->param('pageOffset'))      ? $cgi->param('pageOffset')      : 0;
-my $orderBy          = (defined $cgi->param('orderBy'))         ? $cgi->param('orderBy')         : "timeperiodName";
-my $action           = (defined $cgi->param('action'))          ? $cgi->param('action')          : "listView";
-my $CtimeperiodID    = (defined $cgi->param('timeperiodID'))    ? $cgi->param('timeperiodID')    : "new";
-my $CtimeperiodAlias = (defined $cgi->param('timeperiodAlias')) ? $cgi->param('timeperiodAlias') : "";
-my $CtimeperiodName  = (defined $cgi->param('timeperiodName'))  ? $cgi->param('timeperiodName')  : "";
-my $Csunday          = (defined $cgi->param('sunday'))          ? $cgi->param('sunday')          : "";
-my $Cmonday          = (defined $cgi->param('monday'))          ? $cgi->param('monday')          : "";
-my $Ctuesday         = (defined $cgi->param('tuesday'))         ? $cgi->param('tuesday')         : "";
-my $Cwednesday       = (defined $cgi->param('wednesday'))       ? $cgi->param('wednesday')       : "";
-my $Cthursday        = (defined $cgi->param('thursday'))        ? $cgi->param('thursday')        : "";
-my $Cfriday          = (defined $cgi->param('friday'))          ? $cgi->param('friday')          : "";
-my $Csaturday        = (defined $cgi->param('saturday'))        ? $cgi->param('saturday')        : "";
-my $Cactivated       = (defined $cgi->param('activated'))       ? $cgi->param('activated')       : "off";
+my $orderBy          = (defined $cgi->param('orderBy'))         ? $cgi->param('orderBy')         : 'timeperiodName';
+my $action           = (defined $cgi->param('action'))          ? $cgi->param('action')          : 'listView';
+my $CtimeperiodID    = (defined $cgi->param('timeperiodID'))    ? $cgi->param('timeperiodID')    : 'new';
+my $CtimeperiodAlias = (defined $cgi->param('timeperiodAlias')) ? $cgi->param('timeperiodAlias') : '';
+my $CtimeperiodName  = (defined $cgi->param('timeperiodName'))  ? $cgi->param('timeperiodName')  : '';
+my $Csunday          = (defined $cgi->param('sunday'))          ? $cgi->param('sunday')          : '';
+my $Cmonday          = (defined $cgi->param('monday'))          ? $cgi->param('monday')          : '';
+my $Ctuesday         = (defined $cgi->param('tuesday'))         ? $cgi->param('tuesday')         : '';
+my $Cwednesday       = (defined $cgi->param('wednesday'))       ? $cgi->param('wednesday')       : '';
+my $Cthursday        = (defined $cgi->param('thursday'))        ? $cgi->param('thursday')        : '';
+my $Cfriday          = (defined $cgi->param('friday'))          ? $cgi->param('friday')          : '';
+my $Csaturday        = (defined $cgi->param('saturday'))        ? $cgi->param('saturday')        : '';
+my $Cactivated       = (defined $cgi->param('activated'))       ? $cgi->param('activated')       : 'off';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -64,7 +64,7 @@ my $htmlTitle = $APPLICATION;
 my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledPrimaryKey, $submitButton);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Timeperiods", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Timeperiods", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&timeperiodID=$CtimeperiodID&timeperiodAlias=$CtimeperiodAlias&timeperiodName=$CtimeperiodName&sunday=$Csunday&monday=$Cmonday&tuesday=$Ctuesday&wednesday=$Cwednesday&thursday=$Cthursday&friday=$Cfriday&saturday=$Csaturday&activated=$Cactivated";
@@ -80,107 +80,107 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $formDisabledAll = ""; $formDisabledPrimaryKey = "disabled";
+    $formDisabledAll = ''; $formDisabledPrimaryKey = 'disabled';
 
-    if ($action eq "duplicateView" or $action eq "insertView") {
+    if ($action eq 'duplicateView' or $action eq 'insertView') {
       $htmlTitle    = "Insert Timeperiod";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
-    } elsif ($action eq "insert") {
+    } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Timeperiod $CtimeperiodID exist before to insert";
 
       $sql = "select timeperiodID from $SERVERTABLTIMEPERIODS WHERE timeperiodID='$CtimeperiodID'";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
         $htmlTitle    = "Timeperiod $CtimeperiodID exist already";
         $nextAction   = "insertView";
       } else {
         $htmlTitle    = "Timeperiod $CtimeperiodID inserted";
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLTIMEPERIODS. ' SET timeperiodID="' .$CtimeperiodID. '", timeperiodAlias="' .$CtimeperiodAlias. '", timeperiodName="' .$CtimeperiodName. '", sunday="' . $Csunday. '", monday="' . $Cmonday. '", tuesday="' . $Ctuesday. '", wednesday="' . $Cwednesday. '", thursday="' . $Cthursday. '", friday="' . $Cfriday. '", saturday="' . $Csaturday. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
-    } elsif ($action eq "deleteView") {
-      $formDisabledAll = "disabled";
+    } elsif ($action eq 'deleteView') {
+      $formDisabledAll = 'disabled';
       $htmlTitle    = "Delete Timeperiod $CtimeperiodID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
-    } elsif ($action eq "delete") {
+    } elsif ($action eq 'delete') {
       $sql = "select id, uKey from $SERVERTABLREPORTS where timeperiodID = '$CtimeperiodID' order by id";
-      ($rv, $matchingTimeperiods) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'uKey', $matchingTimeperiods, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingTimeperiods) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'uKey', $matchingTimeperiods, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ($matchingTimeperiods eq "") {
+	  if ($matchingTimeperiods eq '') {
         $sql = 'DELETE FROM ' .$SERVERTABLTIMEPERIODS. ' WHERE timeperiodID="' .$CtimeperiodID. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
         $htmlTitle = "Timeperiod $CtimeperiodID deleted";
       } else {
         $htmlTitle = "Timeperiod $CtimeperiodID not deleted, still used by";
       }
-    } elsif ($action eq "displayView") {
-      $formDisabledAll = "disabled";
+    } elsif ($action eq 'displayView') {
+      $formDisabledAll = 'disabled';
       $htmlTitle    = "Display timeperiod $CtimeperiodID";
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "editView") {
+    } elsif ($action eq 'editView') {
       $htmlTitle    = "Edit timeperiod $CtimeperiodID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
-    } elsif ($action eq "edit") {
-      $matchingTimeperiods = "";
-      my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+    } elsif ($action eq 'edit') {
+      $matchingTimeperiods = '';
+      my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
 
       unless ( $dummyActivated ) {
         $sql = "select id, uKey from $SERVERTABLREPORTS where timeperiodID = '$CtimeperiodID' order by id";
-        ($rv, $matchingTimeperiods) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'uKey', $matchingTimeperiods, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+        ($rv, $matchingTimeperiods) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'uKey', $matchingTimeperiods, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       }
 
-	  if ($dummyActivated or $matchingTimeperiods eq "") {
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+	  if ($dummyActivated or $matchingTimeperiods eq '') {
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $sql = 'UPDATE ' .$SERVERTABLTIMEPERIODS. ' SET timeperiodID="' .$CtimeperiodID. '", timeperiodAlias="' .$CtimeperiodAlias. '", timeperiodName="' .$CtimeperiodName. '", sunday="' . $Csunday. '", monday="' . $Cmonday. '", tuesday="' . $Ctuesday. '", wednesday="' . $Cwednesday. '", thursday="' . $Cthursday. '", friday="' . $Cfriday. '", saturday="' . $Csaturday. '", activated="' .$dummyActivated. '" WHERE timeperiodID="' .$CtimeperiodID. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
         $htmlTitle    = "Timeperiod $CtimeperiodID updated";
       } else {
         $htmlTitle    = "Timeperiod $CtimeperiodID not deactivated and updated, still used by";
       }
-    } elsif ($action eq "listView") {
+    } elsif ($action eq 'listView') {
       $htmlTitle    = "All timeperiods listed";
 
-      $sql = "select count(timeperiodID) from $SERVERTABLTIMEPERIODS";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select SQL_NO_CACHE count(timeperiodID) from $SERVERTABLTIMEPERIODS";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
  
       $sql = "select timeperiodID, timeperiodName, activated from $SERVERTABLTIMEPERIODS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodID desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Timeperiod ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Timeperiod Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, timeperiodName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, timeperiodName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingTimeperiods, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Timeperiod', 'timeperiodID', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingTimeperiods, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Timeperiod', 'timeperiodID', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
       $sql = "select timeperiodID, timeperiodAlias, timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday, activated from $SERVERTABLTIMEPERIODS where timeperiodID = '$CtimeperiodID'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CtimeperiodID, $CtimeperiodAlias, $CtimeperiodName, $Csunday, $Cmonday, $Ctuesday, $Cwednesday, $Cthursday, $Cfriday, $Csaturday, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-        $CtimeperiodID = 'new' if ($action eq "duplicateView");
-        $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        ($CtimeperiodID, $CtimeperiodAlias, $CtimeperiodName, $Csunday, $Cmonday, $Ctuesday, $Cwednesday, $Cthursday, $Cfriday, $Csaturday, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CtimeperiodID = 'new' if ($action eq 'duplicateView');
+        $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -290,15 +290,15 @@ function validateForm() {
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="timeperiods" onSubmit="return validateForm();">
 HTML
-    } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    } elsif ($action eq 'deleteView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"timeperiods\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print <<HTML;
   <input type="hidden" name="pagedir"    value="$pagedir">
   <input type="hidden" name="pageset"    value="$pageset">
@@ -313,7 +313,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"timeperiodID\" value=\"$CtimeperiodID\">\n" if ($formDisabledPrimaryKey ne "" and $action ne "displayView");
+    print "  <input type=\"hidden\" name=\"timeperiodID\" value=\"$CtimeperiodID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -334,8 +334,8 @@ HTML
 	</td></tr>
 HTML
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      my $activatedChecked = ($Cactivated eq "on") ? " checked" : "";
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+      my $activatedChecked = ($Cactivated eq 'on') ? ' checked' : '';
 
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
@@ -366,19 +366,19 @@ HTML
         </td></tr>
 HTML
 
-      print "        <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView");
-      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne "displayView");
+      print "        <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView');
+      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne 'displayView');
       print "      </table>\n";
-    } elsif ($action eq "delete" or $action eq "edit" or $action eq "insert") {
+    } elsif ($action eq 'delete' or $action eq 'edit' or $action eq 'insert') {
       print "    <tr><td align=\"center\"><br><br><h1>Timeperiod: $htmlTitle</h1></td></tr>";
-      print "    <tr><td align=\"center\">$matchingTimeperiods</td></tr>" if (defined $matchingTimeperiods and $matchingTimeperiods ne "");
+      print "    <tr><td align=\"center\">$matchingTimeperiods</td></tr>" if (defined $matchingTimeperiods and $matchingTimeperiods ne '');
     } else {
       print "    <tr><td align=\"center\"><br>$matchingTimeperiods</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print "</form>\n";
     } else {
       print "<br>\n";

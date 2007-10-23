@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -37,18 +37,18 @@ use CGI;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir             = (defined $cgi->param('pagedir'))       ? $cgi->param('pagedir')       : "index"; $pagedir =~ s/\+/ /g;
-my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : "F";
-my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : "editView";
-my $CremoteUser         = (defined $cgi->param('remoteUser'))    ? $cgi->param('remoteUser')    : "";
-my $CremoteAddr         = (defined $cgi->param('remoteAddr'))    ? $cgi->param('remoteAddr')    : "";
-my $CremoteNetmask      = (defined $cgi->param('remoteNetmask')) ? $cgi->param('remoteNetmask') : "";
-my $CgivenName          = (defined $cgi->param('givenName'))     ? $cgi->param('givenName')     : "";
-my $CfamilyName         = (defined $cgi->param('familyName'))    ? $cgi->param('familyName')    : "";
-my $Cemail              = (defined $cgi->param('email'))         ? $cgi->param('email')         : "";
-my $Cpassword           = (defined $cgi->param('password'))      ? $cgi->param('password')      : "";
-my $CkeyLanguage        = (defined $cgi->param('keyLanguage'))   ? $cgi->param('keyLanguage')   : "EN";
+my $pagedir             = (defined $cgi->param('pagedir'))       ? $cgi->param('pagedir')       : 'index'; $pagedir =~ s/\+/ /g;
+my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : 'F';
+my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : 'editView';
+my $CremoteUser         = (defined $cgi->param('remoteUser'))    ? $cgi->param('remoteUser')    : '';
+my $CremoteAddr         = (defined $cgi->param('remoteAddr'))    ? $cgi->param('remoteAddr')    : '';
+my $CremoteNetmask      = (defined $cgi->param('remoteNetmask')) ? $cgi->param('remoteNetmask') : '';
+my $CgivenName          = (defined $cgi->param('givenName'))     ? $cgi->param('givenName')     : '';
+my $CfamilyName         = (defined $cgi->param('familyName'))    ? $cgi->param('familyName')    : '';
+my $Cemail              = (defined $cgi->param('email'))         ? $cgi->param('email')         : '';
+my $Cpassword           = (defined $cgi->param('password'))      ? $cgi->param('password')      : '';
+my $CkeyLanguage        = (defined $cgi->param('keyLanguage'))   ? $cgi->param('keyLanguage')   : 'EN';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -59,7 +59,7 @@ my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 my ($rv, $dbh, $sth, $sql, $nextAction, $submitButton, $keyLanguageSelect, $givenName, $familyName, $password);
 
 # User Session and Access Control
-my ($sessionID, undef, undef, undef, undef, undef, undef, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
+my ($sessionID, undef, undef, undef, undef, undef, undef, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&password=$Cpassword&keyLanguage=$CkeyLanguage";
@@ -73,45 +73,45 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    if ($action eq "editView") {
+    if ($action eq 'editView') {
       $CremoteUser  = $remoteUserLoggedOn if (defined $remoteUserLoggedOn);
       $htmlTitle    = "Edit user $CremoteUser";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
-    } elsif ($action eq "edit") {
+    } elsif ($action eq 'edit') {
       $htmlTitle    = "User $CremoteUser updated";
       my $dummyPassword  = ($Cpassword eq "***************") ? '' : ', password="' .$Cpassword. '"';
       $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '"' .$dummyPassword. ', keyLanguage="' .$CkeyLanguage. '" WHERE remoteUser="' .$CremoteUser. '"';
-      $dbh->do( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $dbh->do( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     }
 
-    if ($action eq "editView") {
+    if ($action eq 'editView') {
       $sql = "select remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, password, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-        $Cpassword = "***************" if ($Cpassword ne "");
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $Cpassword = "***************" if ($Cpassword ne '');
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
 
       $sql = "select keyLanguage, languageName from $SERVERTABLLANGUAGE where languageActive = '1' order by languageName";
-      ($rv, $keyLanguageSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CkeyLanguage, 'keyLanguage', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $keyLanguageSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CkeyLanguage, 'keyLanguage', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if ($action eq "editView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/md5.js\"></script>", $sessionID);
+    if ($action eq 'editView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/md5.js\"></script>", $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -204,7 +204,7 @@ function validateForm() {
   <input type="hidden" name="password"   value="$Cpassword">
 HTML
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<br>\n";
     }
 
@@ -213,7 +213,7 @@ HTML
     <tr align="center"><td><table border="0" cellspacing="0" cellpadding="0">
 HTML
 
-    if ($action eq "editView") {
+    if ($action eq 'editView') {
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
     <tr><td><b>Remote User: </b></td><td>
@@ -254,7 +254,7 @@ HTML
 
     print "  </table>\n  </td></tr></table>\n";
 
-    if ($action eq "editView") {
+    if ($action eq 'editView') {
       print "</form>\n";
     } else {
       print "<br>\n";

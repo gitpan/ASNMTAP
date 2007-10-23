@@ -349,9 +349,9 @@ sub getTestParameter
   # Set "none" if no terminal attached (eg, tinderbox build servers when new variables set)
   return "" unless (-t STDERR);
 
-  my $userResponse = "";
+  my $userResponse = '';
 
-  while ( $userResponse eq "" )
+  while ( $userResponse eq '' )
   {
     print STDERR "\n";
     print STDERR "Test Harness         : $testharness\n";
@@ -362,7 +362,7 @@ sub getTestParameter
     $userResponse = <STDIN>;
     $userResponse = "" if ! defined( $userResponse ); # Handle EOF
     chomp( $userResponse );
-    if ( $defaultValid && $userResponse eq "" )
+    if ( $defaultValid && $userResponse eq '' )
     {
       $userResponse = $default;
     }
@@ -371,7 +371,7 @@ sub getTestParameter
   print STDERR "\n";
 
   if ($userResponse =~ /^(na|none)$/) {
-	$userResponse = "";
+	$userResponse = '';
   }
 
   # define all user responses at global scope

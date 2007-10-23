@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -241,6 +241,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_memory-top.pl
   check_nagios-comments-cleanup.pl
   check_network_interface_status.pl
+  check_network_interface_traffic.pl
   check_snmptt_traps.pl
   check_swap.pl
   check_swap-allocated.pl
@@ -274,7 +275,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

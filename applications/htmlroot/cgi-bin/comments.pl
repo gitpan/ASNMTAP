@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -48,24 +48,24 @@ my $currentSec      = sprintf ("%02d", (localtime)[0] );
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir         = (defined $cgi->param('pagedir'))        ? $cgi->param('pagedir')        : "index"; $pagedir =~ s/\+/ /g;
-my $pageset         = (defined $cgi->param('pageset'))        ? $cgi->param('pageset')        : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug           = (defined $cgi->param('debug'))          ? $cgi->param('debug')          : "F";
+my $pagedir         = (defined $cgi->param('pagedir'))        ? $cgi->param('pagedir')        : 'index'; $pagedir =~ s/\+/ /g;
+my $pageset         = (defined $cgi->param('pageset'))        ? $cgi->param('pageset')        : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug           = (defined $cgi->param('debug'))          ? $cgi->param('debug')          : 'F';
 my $pageNo          = (defined $cgi->param('pageNo'))         ? $cgi->param('pageNo')         : 1;
 my $pageOffset      = (defined $cgi->param('pageOffset'))     ? $cgi->param('pageOffset')     : 0;
-my $action          = (defined $cgi->param('action'))         ? $cgi->param('action')         : "listView";
-my $Cid             = (defined $cgi->param('id'))             ? $cgi->param('id')             : "";
-my $CuKey           = (defined $cgi->param('uKey'))           ? $cgi->param('uKey')           : "none";
-my $Ctitle          = (defined $cgi->param('title'))          ? $cgi->param('title')          : "";
-my $Cpersistent     = (defined $cgi->param('persistent'))     ? $cgi->param('persistent')     : "off";
-my $Cdowntime       = (defined $cgi->param('downtime'))       ? $cgi->param('downtime')       : "off";
-my $CactivationDate = (defined $cgi->param('activationDate')) ? $cgi->param('activationDate') : "";
-my $CactivationTime = (defined $cgi->param('activationTime')) ? $cgi->param('activationTime') : "";
-my $CsuspentionDate = (defined $cgi->param('suspentionDate')) ? $cgi->param('suspentionDate') : "";
-my $CsuspentionTime = (defined $cgi->param('suspentionTime')) ? $cgi->param('suspentionTime') : "";
+my $action          = (defined $cgi->param('action'))         ? $cgi->param('action')         : 'listView';
+my $Cid             = (defined $cgi->param('id'))             ? $cgi->param('id')             : '';
+my $CuKey           = (defined $cgi->param('uKey'))           ? $cgi->param('uKey')           : 'none';
+my $Ctitle          = (defined $cgi->param('title'))          ? $cgi->param('title')          : '';
+my $Cpersistent     = (defined $cgi->param('persistent'))     ? $cgi->param('persistent')     : 'off';
+my $Cdowntime       = (defined $cgi->param('downtime'))       ? $cgi->param('downtime')       : 'off';
+my $CactivationDate = (defined $cgi->param('activationDate')) ? $cgi->param('activationDate') : '';
+my $CactivationTime = (defined $cgi->param('activationTime')) ? $cgi->param('activationTime') : '';
+my $CsuspentionDate = (defined $cgi->param('suspentionDate')) ? $cgi->param('suspentionDate') : '';
+my $CsuspentionTime = (defined $cgi->param('suspentionTime')) ? $cgi->param('suspentionTime') : '';
 my $CproblemSolved  = (defined $cgi->param('problemSolved'))  ? $cgi->param('problemSolved')  : 0;
-my $CremoteUser     = (defined $cgi->param('remoteUser'))     ? $cgi->param('remoteUser')     : "none";
-my $CcommentData    = (defined $cgi->param('commentData'))    ? $cgi->param('commentData')    : "";
+my $CremoteUser     = (defined $cgi->param('remoteUser'))     ? $cgi->param('remoteUser')     : 'none';
+my $CcommentData    = (defined $cgi->param('commentData'))    ? $cgi->param('commentData')    : '';
 
 $CcommentData =~ s/"/'/g;
 
@@ -75,14 +75,14 @@ $environment = 'P' unless (defined $environment);
 my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Comments", "uKey=$CuKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Comments", "uKey=$CuKey");
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
-    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n";
   } else {
-    $action = "listView" if ( $userType == 0 and ($action eq "insertView" or $action eq "insert" or $action eq "deleteView" or $action eq "delete" or $action eq "editView" or $action eq "edit" or $action eq "updateView" or $action eq "update" ) );
+    $action = "listView" if ( $userType == 0 and ($action eq 'insertView' or $action eq 'insert' or $action eq 'deleteView' or $action eq 'delete' or $action eq 'editView' or $action eq 'edit' or $action eq 'updateView' or $action eq 'update' ) );
     my $urlWithAccessParameters = $ENV{SCRIPT_NAME} ."?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
 
     my ($CactivationTimeslot, $CsuspentionTimeslot, $tsec, $tmin, $thour, $tday, $tmonth, $tyear);
@@ -107,7 +107,7 @@ unless ( defined $errorUserAccessControl ) {
 
     my ($CentryDate, $CentryTime, $CentryTimeslot, $CsolvedDate, $CsolvedTime, $CsolvedTimeslot);
 
-    if ($action eq "historyView" or $action eq "history") {
+    if ($action eq 'historyView' or $action eq 'history') {
       $CentryDate = ($cgi->param('entryDate') or '');
       $CentryTime = ($cgi->param('entryTime') or '');
 
@@ -160,98 +160,98 @@ unless ( defined $errorUserAccessControl ) {
     # open connection to database and query data
     $rv  = 1;
 
-    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
     if ($dbh and $rv) {
-      if ($action eq "insertView" or $action eq "historyView") {
-        if ($CuKey eq "none") {
-          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment order by optionValueTitle";
+      if ($action eq 'insertView' or $action eq 'historyView') {
+        if ($CuKey eq 'none') {
+          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
         } else {
-          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMNT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMNT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMNT.environment";
+          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
         }
 
-        ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, 'insert', $CuKey, 'uKey', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+        ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, 'insert', $CuKey, 'uKey', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
         if ($rv) {
-          $nextAction = ($action eq "insertView") ? "insert" : "history";
+          $nextAction = ($action eq 'insertView') ? 'insert' : 'history';
         }
       } else {
         ($rv, $Ctitle) = get_title( $dbh, $rv, $CuKey, $debug, -1, $sessionID );
         $Ctitle = $CuKey if (! defined $Ctitle or $Ctitle eq '');
 
-        if ($action eq "insert") {
+        if ($action eq 'insert') {
           $htmlTitle    = "$Ctitle: id $Cid inserted";
           $nextAction   = "listView" if ($rv);
-        } elsif ($action eq "deleteView") {
+        } elsif ($action eq 'deleteView') {
           $htmlTitle    = "$Ctitle: delete id $Cid ?";
           $commentText  = "Solution comment";
           $commentData  = '';
           $submitButton = "Solved";
           $nextAction   = "delete" if ($rv);
-        } elsif ($action eq "delete") {
+        } elsif ($action eq 'delete') {
           $htmlTitle    = "$Ctitle: id $Cid solved";
           $nextAction   = "listView" if ($rv);
-        } elsif ($action eq "editView") {
+        } elsif ($action eq 'editView') {
           $htmlTitle    = "$Ctitle: edit id $Cid ?";
           $commentText  = "Edit comment";
           $commentData  = '';
           $submitButton = "Edit";
           $nextAction   = "edit" if ($rv);
-        } elsif ($action eq "edit") {
+        } elsif ($action eq 'edit') {
           $htmlTitle    = "$Ctitle: id $Cid edited";
           $nextAction   = "listView" if ($rv);
-        } elsif ($action eq "listView") {
+        } elsif ($action eq 'listView') {
           $htmlTitle    = "$Ctitle: active id's listed";
           $nextAction   = "listView" if ($rv);
-        } elsif ($action eq "listAllView") {
+        } elsif ($action eq 'listAllView') {
           $htmlTitle    = "$Ctitle: all active id's listed";
           $nextAction   = "listAllView" if ($rv);
-        } elsif ($action eq "updateView") {
+        } elsif ($action eq 'updateView') {
           $htmlTitle    = "$Ctitle: update id $Cid ?";
           $commentText  = "Update comment";
           $commentData  = '';
           $submitButton = "Update";
           $nextAction   = "update" if ($rv);
-        } elsif ($action eq "update") {
+        } elsif ($action eq 'update') {
           $htmlTitle    = "$Ctitle: id $Cid updated";
           $nextAction   = "listView" if ($rv);
-        } elsif ($action eq "solvedView") {
+        } elsif ($action eq 'solvedView') {
           $htmlTitle    = "$Ctitle: solved id's listed";
           $nextAction   = "solvedView" if ($rv);
-        } elsif ($action eq "history") {
+        } elsif ($action eq 'history') {
           $htmlTitle    = "$Ctitle: history id's listed";
           $nextAction   = "history" if ($rv);
         }
       }
 
-      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     }
 
     if ( $rv ) {
-      $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
-      if ($action eq "insertView" or $action eq "historyView") {
+      if ($action eq 'insertView' or $action eq 'historyView') {
         my ($remoteUser, $givenName, $familyName);
 
-        if ($action eq "insertView" and defined $remoteUserLoggedOn) {
+        if ($action eq 'insertView' and defined $remoteUserLoggedOn) {
           $CremoteUser = $remoteUserLoggedOn;
           $sql = "select remoteUser, email from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
         } else {
-          my $andActivated = ($action eq "insertView") ? "and activated = 1" : "";
+          my $andActivated = ($action eq 'insertView') ? "and activated = 1" : '';
           $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$pageDir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
         }
 
-        ($rv, $remoteUsersSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, '', $CremoteUser, 'remoteUser', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+        ($rv, $remoteUsersSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, '', $CremoteUser, 'remoteUser', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       } else {
         if ($dbh and $rv) {
-          if ($action eq "insert") {
-            if ($CactivationDate eq "" or $CactivationTime eq '') {
+          if ($action eq 'insert') {
+            if ($CactivationDate eq '' or $CactivationTime eq '') {
               $CactivationDate     = $CentryDate;
               $CactivationTime     = $CentryTime;
               $CactivationTimeslot = $CentryTimeslot;
             }
 
-            if ($CsuspentionDate eq "" or $CsuspentionTime eq '') {
+            if ($CsuspentionDate eq '' or $CsuspentionTime eq '') {
               $CsuspentionDate     = "0000-00-00";
               $CsuspentionTime     = "00:00:00";
               $CsuspentionTimeslot = "9999999999";
@@ -260,25 +260,25 @@ unless ( defined $errorUserAccessControl ) {
             my $dummyPersistent = ($Cpersistent eq 'on') ? 1 : 0;
             my $dummydowntime   = ($Cdowntime   eq 'on') ? 1 : 0;
             $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$CuKey. '", title="' .$Ctitle. '", entryDate="' .$CentryDate. '", entryTime="' .$CentryTime.'", entryTimeslot="' .$CentryTimeslot. '", persistent="' .$dummyPersistent. '", downtime="' .$dummydowntime. '", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", remoteUser="' .$CremoteUser. '", commentData="' .$CcommentData. '", activationDate="' .$CactivationDate. '", activationTime="' .$CactivationTime. '", activationTimeslot="' .$CactivationTimeslot. '", suspentionDate="' .$CsuspentionDate. '", suspentionTime="' .$CsuspentionTime. '", suspentionTimeslot="' .$CsuspentionTimeslot. '"';
-            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
             if ( $dummydowntime ) {
               my $tDebug = ($debug eq 'T') ? 2 : 0;
 
               my ($Tpagedirs, $Temail, $Tpagedir, $sendEmailTo);
               $sql = "select pagedir from $SERVERTABLPLUGINS where uKey = '$CuKey' order by uKey";
-              $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-              $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+              $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+              $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
               if ( $rv ) {
-                ($Tpagedirs) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-                $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+                ($Tpagedirs) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+                $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
               }
 
               $sql = "select email, pagedir from $SERVERTABLUSERS where activated = 1 and downtimeScheduling = 1 and userType > 0";
-              $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-              $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-              $sth->bind_columns( \$Temail, \$Tpagedir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+              $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+              $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+              $sth->bind_columns( \$Temail, \$Tpagedir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
               if ( $rv ) {
                 while( $sth->fetch() ) { 
@@ -293,11 +293,11 @@ unless ( defined $errorUserAccessControl ) {
                   }
                 }
 
-                $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+                $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
               }
 
               my $header = "Downtime scheduling for $Ctitle from $CactivationDate $CactivationTime until ";
-              $header .= ($CsuspentionDate eq '0000-00-00') ? "????-??-?? ??:??:??" : "$CsuspentionDate $CsuspentionTime.";
+              $header .= ($CsuspentionDate eq '0000-00-00') ? '????-??-?? ??:??:??' : "$CsuspentionDate $CsuspentionTime.";
               my $subject = "$BUSINESS / $DEPARTMENT / $APPLICATION / $header";
               my $message = "Geachte, Cher,\n\n$header\n\n$CcommentData\n\n-- $givenNameLoggedOn $familyNameLoggedOn\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
 
@@ -306,41 +306,41 @@ unless ( defined $errorUserAccessControl ) {
                 print "Problem sending email to the '$APPLICATION' members\n" unless ( $returnCode );
               }
             }
-          } elsif ($action eq "delete") {
+          } elsif ($action eq 'delete') {
             $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
  			$commentData = "$commentData\n<hr>$CcommentData\n\nClosed by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CsolvedDate $CsolvedTime";
 
             $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", commentData="' .$commentData. '" where id="' .$Cid. '"';
-            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-          } elsif ($action eq "editView") {
+            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          } elsif ($action eq 'editView') {
             $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
-          } elsif ($action eq "edit") {
+          } elsif ($action eq 'edit') {
  			my $commentData = "$CcommentData\n\nEdited by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CentryDate $CentryTime";
             $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET commentData="' .$commentData. '" where id="' .$Cid. '"';
-             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-          } elsif ($action eq "update") {
+             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          } elsif ($action eq 'update') {
             $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
  			$commentData = "$commentData\n<hr>$CcommentData\n\nUpdated by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CentryDate $CentryTime";
 
             $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET commentData="' .$commentData. '" where id="' .$Cid. '"';
-            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+            $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           }
 
-          if ($action eq "deleteView" or $action eq "editView" or $action eq "updateView") {
+          if ($action eq 'deleteView' or $action eq 'editView' or $action eq 'updateView') {
             my ($id, $uKey, $title, $givenName, $familyName, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $commentData);
             $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where id = '$Cid' and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser";
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
               $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Persistent</th><th>Downtime</th></tr>\n";
@@ -356,20 +356,20 @@ unless ( defined $errorUserAccessControl ) {
               }
 
               $matchingComments .= "      </table>";
-              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             }
   	      } else {
             my ($sqlUKey, $sqlUKeyRows, $sqlWhere, $actionColspan, $actionHeader, $ActionItem, $navigationBarSqlWhere);
 			
-            if ($action eq "solvedView" or $action eq "historyView" or $action eq "history") {
+            if ($action eq 'solvedView' or $action eq 'historyView' or $action eq 'history') {
               $actionColspan = 1;
               $actionHeader  = "<th>Solved Date/Time</th>";
               $sqlUKey       = "uKey = '$CuKey' and";
               $sqlUKeyRows   = "uKey: $CuKey";
               $sqlWhere      = '';
 
-              if ($action eq "history") {
-                $sqlWhere .= "and $SERVERTABLCOMMENTS.remoteUser = '$CremoteUser' " if ($CremoteUser ne "none");
+              if ($action eq 'history') {
+                $sqlWhere .= "and $SERVERTABLCOMMENTS.remoteUser = '$CremoteUser' " if ($CremoteUser ne 'none');
                 $sqlWhere .= "and entryTimeslot >= $CentryTimeslot " if ($CentryTimeslot ne '');
                 $sqlWhere .= "and solvedTimeslot <= $CsolvedTimeslot " if ($CsolvedTimeslot ne '');
               }
@@ -377,7 +377,7 @@ unless ( defined $errorUserAccessControl ) {
               $navigationBarSqlWhere = "$sqlWhere and problemSolved = '1'";
               $sqlWhere .= "and problemSolved = '1' order by solvedTimeslot desc limit $pageOffset, $RECORDSONPAGE";
             } else {
-              if ($action eq "listAllView") {
+              if ($action eq 'listAllView') {
                 $actionHeader = $sqlUKey = '';
                 $sqlUKeyRows  = "all plugins";
               } else {
@@ -391,15 +391,15 @@ unless ( defined $errorUserAccessControl ) {
               $sqlWhere = "and problemSolved = '0' order by entryTimeslot limit $pageOffset, $RECORDSONPAGE";
 	  	    }
 
-            $sql = "select count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
-            ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+            $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
+            ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
             $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;action=$nextAction&amp;uKey=$CuKey");
 
     		my ($id, $uKey, $title, $givenName, $familyName, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $solvedDate, $solvedTime, $commentData);
             $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
-            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$solvedDate, \$solvedTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+            $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$solvedDate, \$solvedTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
               $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Persistent</th><th>Downtime</th>$actionHeader</tr>\n";
@@ -409,9 +409,9 @@ unless ( defined $errorUserAccessControl ) {
                   $commentData = encode_html_entities('C', $commentData);
                   $commentData =~ s/\n/<br>/g;
 
-                  if ($action eq "solvedView" or $action eq "historyView" or $action eq "history") {
+                  if ($action eq 'solvedView' or $action eq 'historyView' or $action eq 'history') {
 		  	        $ActionItem = "<td>$solvedDate \@ $solvedTime</td>";
-                  } elsif ($action eq "listAllView") {
+                  } elsif ($action eq 'listAllView') {
 	  		        $ActionItem = '';
                   } else {
                     my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;id=$id&amp;uKey=$uKey";
@@ -433,21 +433,21 @@ unless ( defined $errorUserAccessControl ) {
 
               $matchingComments .= "        <tr><td colspan=\"". (9 + $actionColspan) ."\">$navigationBar</td></tr>\n" if ($navigationBar);
               $matchingComments .= "      </table>\n";
-              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+              $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             }
           }
         }
 
-        $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
 
       if ( $rv ) {
         # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        if ($action eq "insertView" or $action eq "deleteView" or $action eq "editView" or $action eq "historyView" or $action eq "updateView" ) {
-          print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/TimeParserValidator.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
+        if ($action eq 'insertView' or $action eq 'deleteView' or $action eq 'editView' or $action eq 'historyView' or $action eq 'updateView' ) {
+          print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/TimeParserValidator.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
 
-          if ($action eq "insertView" or $action eq "historyView") {
-            if ($action eq "insertView") {
+          if ($action eq 'insertView' or $action eq 'historyView') {
+            if ($action eq 'insertView') {
               my ($firstYear, $firstMonth, $firstDay) = Add_Delta_Days ($currentYear, $currentMonth, $currentDay, -1);
 
               print <<HTML;
@@ -500,7 +500,7 @@ function validateForm() {
 
 HTML
 
-            if ($action eq "insertView") {
+            if ($action eq 'insertView') {
               print <<HTML;
   if( document.comments.remoteUser.options[document.comments.remoteUser.selectedIndex].value == 'none' ) {
     document.comments.remoteUser.focus();
@@ -636,7 +636,7 @@ HTML
     }
   }
 HTML
-          } elsif ($action eq "historyView") {
+          } elsif ($action eq 'historyView') {
             print <<HTML;
   if ( document.comments.entryDate.value != null && document.comments.entryDate.value != '' ) {
     if ( ! objectRegularExpressionDateFormat.test(document.comments.entryDate.value) ) {
@@ -781,7 +781,7 @@ HTML
   <input type="hidden" name="action"     value="$nextAction">
 HTML
         } else {
-          print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+          print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
           print "<br>\n";
         }
 
@@ -811,9 +811,9 @@ HTML
     <tr><td>&nbsp;</td></tr>
 HTML
 
-        if ($action eq "insertView" or $action eq "historyView") {
-          my $persistentChecked = ($Cpersistent eq 'on') ? " checked" : "";
-          my $downtimeChecked   = ($Cdowntime   eq 'on') ? " checked" : "";
+        if ($action eq 'insertView' or $action eq 'historyView') {
+          my $persistentChecked = ($Cpersistent eq 'on') ? ' checked' : '';
+          my $downtimeChecked   = ($Cdowntime   eq 'on') ? ' checked' : '';
 	
           print <<HTML;
     <tr><td><table border="0" cellspacing="0" cellpadding="0">
@@ -824,7 +824,7 @@ HTML
       </td>
 HTML
 
-          if ($action eq "insertView") {
+          if ($action eq 'insertView') {
             print <<HTML;
       </tr><tr>
         <td valign="top"><b>Comment: </b></td>
@@ -870,7 +870,7 @@ HTML
 HTML
 
             $submitButton = "Insert";
-          } elsif ($action eq "historyView") {
+          } elsif ($action eq 'historyView') {
             $submitButton = "History";
 
             print <<HTML;
@@ -895,7 +895,7 @@ HTML
       </tr><tr align="left"><td align="right"><br><input type="submit" value="$submitButton"></td><td><br><input type="reset" value="Reset"></td></tr>
 	</table></td></tr>
 HTML
-        } elsif ($action eq "deleteView" or $action eq "editView" or $action eq "updateView") {
+        } elsif ($action eq 'deleteView' or $action eq 'editView' or $action eq 'updateView') {
           print <<HTML;
       <tr align="center"><td>
         <input type="hidden" name="id"             value="$Cid">
@@ -920,7 +920,7 @@ HTML
 
         print "  </table>\n";
 
-        if ($action eq "insertView" or $action eq "deleteView" or $action eq "editView" or $action eq "historyView" or $action eq "updateView") {
+        if ($action eq 'insertView' or $action eq 'deleteView' or $action eq 'editView' or $action eq 'historyView' or $action eq 'updateView') {
           print "</form>\n";
         } else {
           print "<br>\n";

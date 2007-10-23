@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, servers.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, servers.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,34 +31,34 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "servers.pl";
 my $prgtext     = "Servers";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir             = (defined $cgi->param('pagedir'))            ? $cgi->param('pagedir')            : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset             = (defined $cgi->param('pageset'))            ? $cgi->param('pageset')            : "sadmin";  $pageset =~ s/\+/ /g;
-my $debug               = (defined $cgi->param('debug'))              ? $cgi->param('debug')              : "F";
+my $pageset             = (defined $cgi->param('pageset'))            ? $cgi->param('pageset')            : 'sadmin';  $pageset =~ s/\+/ /g;
+my $debug               = (defined $cgi->param('debug'))              ? $cgi->param('debug')              : 'F';
 my $pageNo              = (defined $cgi->param('pageNo'))             ? $cgi->param('pageNo')             : 1;
 my $pageOffset          = (defined $cgi->param('pageOffset'))         ? $cgi->param('pageOffset')         : 0;
-my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : "serverID asc";
-my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : "listView";
-my $CserverID           = (defined $cgi->param('serverID'))           ? $cgi->param('serverID')           : "";
-my $CserverTitle        = (defined $cgi->param('serverTitle'))        ? $cgi->param('serverTitle')        : "";
-my $CmasterFQDN         = (defined $cgi->param('masterFQDN'))         ? $cgi->param('masterFQDN')         : "";
-my $CmasterSSHlogon     = (defined $cgi->param('masterSSHlogon'))     ? $cgi->param('masterSSHlogon')     : "";
-my $CmasterSSHpasswd    = (defined $cgi->param('masterSSHpasswd'))    ? $cgi->param('masterSSHpasswd')    : "";
-my $CmasterDatabaseFQDN = (defined $cgi->param('masterDatabaseFQDN')) ? $cgi->param('masterDatabaseFQDN') : "";
-my $CmasterDatabasePort = (defined $cgi->param('masterDatabasePort')) ? $cgi->param('masterDatabasePort') : "3306";
-my $CslaveFQDN          = (defined $cgi->param('slaveFQDN'))          ? $cgi->param('slaveFQDN')          : "";
-my $CslaveSSHlogon      = (defined $cgi->param('slaveSSHlogon'))      ? $cgi->param('slaveSSHlogon')      : "";
-my $CslaveSSHpasswd     = (defined $cgi->param('slaveSSHpasswd'))     ? $cgi->param('slaveSSHpasswd')     : "";
-my $CslaveDatabaseFQDN  = (defined $cgi->param('slaveDatabaseFQDN'))  ? $cgi->param('slaveDatabaseFQDN')  : "";
-my $CslaveDatabasePort  = (defined $cgi->param('slaveDatabasePort'))  ? $cgi->param('slaveDatabasePort')  : "3306";
+my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : 'serverID asc';
+my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : 'listView';
+my $CserverID           = (defined $cgi->param('serverID'))           ? $cgi->param('serverID')           : '';
+my $CserverTitle        = (defined $cgi->param('serverTitle'))        ? $cgi->param('serverTitle')        : '';
+my $CmasterFQDN         = (defined $cgi->param('masterFQDN'))         ? $cgi->param('masterFQDN')         : '';
+my $CmasterSSHlogon     = (defined $cgi->param('masterSSHlogon'))     ? $cgi->param('masterSSHlogon')     : '';
+my $CmasterSSHpasswd    = (defined $cgi->param('masterSSHpasswd'))    ? $cgi->param('masterSSHpasswd')    : '';
+my $CmasterDatabaseFQDN = (defined $cgi->param('masterDatabaseFQDN')) ? $cgi->param('masterDatabaseFQDN') : '';
+my $CmasterDatabasePort = (defined $cgi->param('masterDatabasePort')) ? $cgi->param('masterDatabasePort') : '3306';
+my $CslaveFQDN          = (defined $cgi->param('slaveFQDN'))          ? $cgi->param('slaveFQDN')          : '';
+my $CslaveSSHlogon      = (defined $cgi->param('slaveSSHlogon'))      ? $cgi->param('slaveSSHlogon')      : '';
+my $CslaveSSHpasswd     = (defined $cgi->param('slaveSSHpasswd'))     ? $cgi->param('slaveSSHpasswd')     : '';
+my $CslaveDatabaseFQDN  = (defined $cgi->param('slaveDatabaseFQDN'))  ? $cgi->param('slaveDatabaseFQDN')  : '';
+my $CslaveDatabasePort  = (defined $cgi->param('slaveDatabasePort'))  ? $cgi->param('slaveDatabasePort')  : '3306';
 my $CtypeServers        = (defined $cgi->param('typeServers'))        ? $cgi->param('typeServers')        : 0;
 my $CtypeMonitoring     = (defined $cgi->param('typeMonitoring'))     ? $cgi->param('typeMonitoring')     : 0;
-my $Cactivated          = (defined $cgi->param('activated'))          ? $cgi->param('activated')          : "off";
+my $Cactivated          = (defined $cgi->param('activated'))          ? $cgi->param('activated')          : 'off';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -68,7 +68,7 @@ my $htmlTitle = $APPLICATION;
 my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledPrimaryKey, $submitButton);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Server ID", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Server ID", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&serverID=$CserverID&serverTitle=$CserverTitle&masterFQDN=$CmasterFQDN&masterSSHlogon=$CmasterSSHlogon&masterSSHpasswd=$CmasterSSHpasswd&masterDatabaseFQDN=$CmasterDatabaseFQDN&masterDatabasePort=$CmasterDatabasePort&slaveFQDN=$CslaveFQDN&slaveSSHlogon=$CslaveSSHlogon&slaveSSHpasswd=$CslaveSSHpasswd&slaveDatabaseFQDN=$CslaveDatabaseFQDN&slaveDatabasePort=$CslaveDatabasePort&typeServers=$CtypeServers&typeMonitoring=$CtypeMonitoring&activated=$Cactivated";
@@ -84,102 +84,102 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $formDisabledAll = $formDisabledPrimaryKey = "";
+    $formDisabledAll = $formDisabledPrimaryKey = '';
 
-    if ($action eq "duplicateView" or $action eq "insertView") {
+    if ($action eq 'duplicateView' or $action eq 'insertView') {
       $htmlTitle    = "Insert Server ID";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
-    } elsif ($action eq "insert") {
+    } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Server ID $CserverID exist before to insert";
 
       $sql = "select serverID from $SERVERTABLSERVERS WHERE serverID='$CserverID'";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
         $htmlTitle  = "Server ID $CserverID exist already";
         $nextAction = "insertView";
       } else {
         $htmlTitle  = "Server ID $CserverID inserted";
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
-    } elsif ($action eq "deleteView") {
-      $formDisabledPrimaryKey = $formDisabledAll = "disabled";
+    } elsif ($action eq 'deleteView') {
+      $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
       $htmlTitle    = "Delete Server ID $CserverID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
-    } elsif ($action eq "delete") {
+    } elsif ($action eq 'delete') {
       $sql = "select collectorDaemon, groupName from $SERVERTABLCLLCTRDMNS where serverID = '$CserverID' order by groupName";
-      ($rv, $matchingServers) = check_record_exist ($rv, $dbh, $sql, 'Collector Daemon', 'Collector Daemon', 'Group Name', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingServers) = check_record_exist ($rv, $dbh, $sql, 'Collector Daemon', 'Collector Daemon', 'Group Name', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select displayDaemon, groupName from $SERVERTABLDSPLYDMNS where serverID = '$CserverID' order by groupName";
-      ($rv, $matchingServers) = check_record_exist ($rv, $dbh, $sql, 'Display Daemons', 'Display Daemon', 'Group Name', $matchingServers, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select displayDaemon, groupName from $SERVERTABLDISPLAYDMNS where serverID = '$CserverID' order by groupName";
+      ($rv, $matchingServers) = check_record_exist ($rv, $dbh, $sql, 'Display Daemons', 'Display Daemon', 'Group Name', $matchingServers, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ($matchingServers eq "") {
+	  if ($matchingServers eq '') {
         $htmlTitle = "Server ID $CserverID deleted";
         $sql = 'DELETE FROM ' .$SERVERTABLSERVERS. ' WHERE serverID="' .$CserverID. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
       } else {
         $htmlTitle = "Server ID $CserverID not deleted, still used by";
       }
 
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "displayView") {
-      $formDisabledPrimaryKey = $formDisabledAll = "disabled";
+    } elsif ($action eq 'displayView') {
+      $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
       $htmlTitle    = "Display Server ID $CserverID";
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "editView") {
-      $formDisabledPrimaryKey = "disabled";
+    } elsif ($action eq 'editView') {
+      $formDisabledPrimaryKey = 'disabled';
       $htmlTitle    = "Edit Server ID $CserverID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
-    } elsif ($action eq "edit") {
+    } elsif ($action eq 'edit') {
       $htmlTitle    = "Server ID $CserverID updated";
-      my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+      my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
       $sql = 'UPDATE ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '" WHERE serverID="' .$CserverID. '"';
-      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "listView") {
+    } elsif ($action eq 'listView') {
       $htmlTitle    = "All Servers listed";
       $nextAction   = "listView";
 
-      $sql = "select count(serverID) from $SERVERTABLSERVERS";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select SQL_NO_CACHE count(serverID) from $SERVERTABLSERVERS";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
       $sql = "select serverID, serverTitle, typeMonitoring, typeServers, activated from $SERVERTABLSERVERS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Primary Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Server Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=typeMonitoring desc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Type Monitoring <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=typeMonitoring asc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=typeServers desc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Type Servers <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=typeServers asc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, serverTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingServers, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Server', 'serverID', '0', '', '2#0=>Central|1=>Distributed||3#0=>Standalone|1=>Failover', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingServers, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Server', 'serverID', '0', '', '2#0=>Central|1=>Distributed||3#0=>Standalone|1=>Failover', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
       $sql = "select serverID, serverTitle, masterFQDN, masterSSHlogon, masterSSHpasswd, masterDatabaseFQDN, masterDatabasePort, slaveFQDN, slaveSSHlogon, slaveSSHpasswd, slaveDatabaseFQDN, slaveDatabasePort, typeServers, typeMonitoring, activated from $SERVERTABLSERVERS where serverID='$CserverID'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CserverID, $CserverTitle, $CmasterFQDN, $CmasterSSHlogon, $CmasterSSHpasswd, $CmasterDatabaseFQDN, $CmasterDatabasePort, $CslaveFQDN, $CslaveSSHlogon, $CslaveSSHpasswd, $CslaveDatabaseFQDN, $CslaveDatabasePort, $CtypeServers, $CtypeMonitoring, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-        $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        ($CserverID, $CserverTitle, $CmasterFQDN, $CmasterSSHlogon, $CmasterSSHpasswd, $CmasterDatabaseFQDN, $CmasterDatabasePort, $CslaveFQDN, $CslaveSSHlogon, $CslaveSSHpasswd, $CslaveDatabaseFQDN, $CslaveDatabasePort, $CtypeServers, $CtypeMonitoring, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       my $onload = "ONLOAD=\"enableOrDisableFields();\"";
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, $onload, 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -220,7 +220,7 @@ function validateForm() {
 
 HTML
 
-      if ($action eq "duplicateView" or $action eq "insertView") {
+      if ($action eq 'duplicateView' or $action eq 'insertView') {
         print <<HTML;
   var objectRegularExpressionServerIDFormat = /\^[a-z|A-Z|0-9|-]\+\$/;
 
@@ -367,15 +367,15 @@ HTML
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="servers" onSubmit="return validateForm();">
 HTML
-    } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    } elsif ($action eq 'deleteView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"serverID\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print <<HTML;
   <input type="hidden" name="pagedir"      value="$pagedir">
   <input type="hidden" name="pageset"      value="$pageset">
@@ -390,7 +390,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"serverID\" value=\"$CserverID\">\n" if ($formDisabledPrimaryKey ne "" and $action ne "displayView");
+    print "  <input type=\"hidden\" name=\"serverID\" value=\"$CserverID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -411,12 +411,12 @@ HTML
 	</td></tr>
 HTML
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       my $typeMonitoringSelect = create_combobox_from_keys_and_values_pairs ('0=>Central|1=>Distributed', 'K', 0, $CtypeMonitoring, 'typeMonitoring', '', '', $formDisabledAll, 'onChange="javascript:enableOrDisableFields();"', $debug);
 
       my $typeServersSelect = create_combobox_from_keys_and_values_pairs ('0=>Standalone|1=>Failover', 'K', 0, $CtypeServers, 'typeServers', '', '', $formDisabledAll, 'onChange="javascript:enableOrDisableFields();"', $debug);
 
-      my $activatedChecked = ($Cactivated eq "on") ? " checked" : "";
+      my $activatedChecked = ($Cactivated eq 'on') ? ' checked' : '';
 
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
@@ -457,19 +457,19 @@ HTML
         </td></tr>
 HTML
 
-      print "        <tr><td>&nbsp;</td><td colspan=\"3\"><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView");
-      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td colspan=\"3\"><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne "displayView");
+      print "        <tr><td>&nbsp;</td><td colspan=\"3\"><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView');
+      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td colspan=\"3\"><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne 'displayView');
       print "      </table>\n";
-    } elsif ($action eq "delete" or $action eq "edit" or $action eq "insert") {
+    } elsif ($action eq 'delete' or $action eq 'edit' or $action eq 'insert') {
       print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle</h1></td></tr>";
-      print "    <tr><td align=\"center\">$matchingServers</td></tr>" if (defined $matchingServers and $matchingServers ne "");
+      print "    <tr><td align=\"center\">$matchingServers</td></tr>" if (defined $matchingServers and $matchingServers ne '');
     } else {
       print "    <tr><td align=\"center\"><br>$matchingServers</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print "</form>\n";
     } else {
       print "<br>\n";

@@ -49,7 +49,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap-3.000.xxx/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2007/02/25 8:11:16, ASNMTAP v3.000.014 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2007/06/10 15:19:16, ASNMTAP v3.000.015 or higher
  #
  # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]
  #
@@ -128,7 +128,7 @@ the PID files his atime and mtime is updated every timeslot, to make monitoring 
 
  $perfParseMethode = 'PALP'
 
- ... TODO
+ ... TODO ...
 
 =item 2) ASNMTAP Invokes Perfparse
 
@@ -144,17 +144,23 @@ the PID files his atime and mtime is updated every timeslot, to make monitoring 
 
  when 'crontab': 0,5,10,15,20,25,30,35,40,45,50,55 * * * * /opt/asnmtap-3.000.xxx/applications/sbin/perfparse_crontab.sh > /dev/null
 
+ mv perfparse_crontab_failed.sh-orig perfparse_crontab_failed.sh
+ chmod 755 perfparse_crontab_failed.sh
+
+ when 'crontab':  30 23 * * * /opt/asnmtap-3.000.xxx/applications/sbin/perfparse_crontab_failed.sh > /dev/null
+
+
 =item 4) Pipe to Perfparse
 
  $perfParseMethode = 'PTP'
 
- ... TODO
+ ... TODO ...
 
 =item 5) Perfparse Daemon Server
 
  $perfParseMethode = 'PDS'
 
- ... TODO
+ ... TODO ...
 
 =back
 
@@ -221,7 +227,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

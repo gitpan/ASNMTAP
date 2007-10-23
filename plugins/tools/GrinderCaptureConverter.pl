@@ -1,31 +1,9 @@
 #!/usr/local/bin/perl -w
 # ---------------------------------------------------------------------------------------------------------
-#
-# Copyright (c)2004-2007 Yves Van den Hove (yves\@vandenhove.tk) & Alex Peeters (alex.peeters\@citap.com)
-#
+# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be] & Yves Van den Hove [yvdhove@users.sourceforge.net]
 # ---------------------------------------------------------------------------------------------------------
-# 2007-03-16 - Version 1.19: Bugfix for posts with only one variable
-# 2007-03-14 - Version 1.18: Bugfix for basicAuthenticationUser & basicAuthenticationPassword
-# 2007-03-10 - Version 1.17: Bugfix for POST requests without arguments, code optimalisations
-# 2007-01-30 - Version 1.16: Bugfix for POST requests with arguments, code optimalisations
-# 2007-01-25 - Version 1.15: Added basicAuthenticationUser & basicAuthenticationPassword
-# 2006-12-05 - Version 1.14: No more .bmp
-# 2006-11-27 - Version 1.13: Support for robots.txt, automatic numbering for Perfdata_Label
-# 2006-03-10 - Version 1.12: "POST" --> 'POST', "GET" --> 'GET', bug fixed for missing 0 in values
-# 2006-02-22 - Version 1.11: " --> '
-# 2006-02-21 - Version 1.10: Variables are now quoted, little optimalisations
-# 2006-02-20 - Version 1.9:  Changes for compatibility with new Webtransact library
-# 2006-02-20 - Version 1.9:  Changes for compatibility with new library
-# 2006-01-30 - Version 1.8:  use constant EXP_FAULT, little bugfix, sub URLDecode()
-# 2006-01-12 - Version 1.7:  Qs_fixed for GET requests, /i for regexp, my @URLS, Perfdata_Label, Msg, Msg_fault
-# 2005-09-06 - Version 1.6:  No more .ico
-# 2004-08-30 - Version 1.5:  $directory
-# 2004-08-30 - Version 1.4:  Script now removes \n and \r
-# 2004-08-30 - Version 1.3:  No more .js, .css
-# 2004-06-14 - Version 1.2:  Webtransact output format
-# 2004-06-11 - Version 1.1:  List output format
-# 2004-06-09 - Version 1.0:  Original design
-# ---------------------------------------------------------------------------------------------------------
+# 2007/10/21, v3.000.015, GrinderCaptureConverter.pl
+# ----------------------------------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -203,7 +181,7 @@ sub build_QS_fixed($) {
 	foreach my $line (@$tArray) {
 	  my ($name, $value) = split(/=/, $line);
 
-      if (! defined $value) { $value = ""; }
+      if (! defined $value) { $value = ''; }
       $Qs_fixed .= ", " if($Qs_fixed ne '');
       $Qs_fixed .= "'" . URLDecode($name) . "'" . " => " . "'" . URLDecode($value) . "'";
 	}
@@ -272,7 +250,7 @@ sub print_revision() {
 sub print_help() {
   print_revision();
   print_usage();
-  print "Send an email to yves.vandenhove\@smals-mvm.be if you have any questions regarding the use of this software.\n";
+  print "Send an email to yvdhove\@users.sourceforge.net if you have any questions regarding the use of this software.\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

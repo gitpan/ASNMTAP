@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, collectorDaemonSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, collectorDaemonSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "collectorDaemonSchedulingReports.pl";
 my $prgtext     = "Collector Daemon Scheduling Reports";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,9 +41,9 @@ my $currentSec = 0;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir         = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : "index";    $pagedir =~ s/\+/ /g;
-my $pageset         = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : "index-cv"; $pageset =~ s/\+/ /g;
-my $debug           = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : "F";
+my $pagedir         = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset         = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug           = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
 my $sqlEndDate      = (defined $cgi->param('sqlEndDate'))      ? $cgi->param('sqlEndDate')      : timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
 my $sqlPeriode      = (defined $cgi->param('sqlPeriode'))      ? $cgi->param('sqlPeriode')      : 3600;
 my $width           = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
@@ -52,14 +52,14 @@ my $yOffset         = (defined $cgi->param('yOffset'))         ? $cgi->param('yO
 my $labelOffset     = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 32;
 my $AreaBOffset     = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
 my $hightMin        = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
-my $currentTimeslot = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : "off";
-my $pf              = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : "off";
+my $currentTimeslot = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : 'off';
+my $pf              = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
 my $htmlToPdf       = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
 
 my $htmlTitle       = $prgtext;
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Daemons", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Daemons", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&sqlEndDate=$sqlEndDate&sqlPeriode=$sqlPeriode&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&currentTimeslot=$currentTimeslot&pf=$pf&htmlToPdf=$htmlToPdf";
@@ -73,16 +73,17 @@ unless ( defined $errorUserAccessControl ) {
 
   # open connection to database and query data
   $rv  = 1;
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    (undef, undef, my $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} );
+    my $hostname = '';
+    (undef, undef, $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} ) if ( $ENV{HTTP_REFERER} );
 
     my $collectorDaemon;
     $sql = "select distinct $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLSERVERS where $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." order by $SERVERTABLCLLCTRDMNS.collectorDaemon";
-    $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
-    $sth->bind_columns( \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+    $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+    $sth->bind_columns( \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
     if ( $rv ) {
       if ( $sth->rows ) {
@@ -91,7 +92,7 @@ unless ( defined $errorUserAccessControl ) {
         $errorMessage .= "<br>There are no Collector Daemons available<br>\n";
       }
 
-      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+      $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     }
 
     # Close database connection - - - - - - - - - - - - - - - - - - - - -
@@ -113,12 +114,12 @@ unless ( defined $errorUserAccessControl ) {
 <H1>$DEPARTMENT \@ $BUSINESS: '$APPLICATION' $prgtext</H1>
 EndOfHtml
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
 
-      my $dummy = ($currentTimeslot eq "on") ? " checked" : "";
+      my $dummy = ($currentTimeslot eq 'on') ? ' checked' : '';
       my $currentTimeslotOutputBox = "<input type=\"checkbox\" name=\"currentTimeslot\"$dummy>Endpoint used from latest timeslot\n";
 
-      $dummy = ($pf eq "on") ? " checked" : "";
+      $dummy = ($pf eq 'on') ? ' checked' : '';
       my $printerFriendlyOutputBox = "<input type=\"checkbox\" name=\"pf\"$dummy> Printer friendly output\n";
 
       print <<HTML;

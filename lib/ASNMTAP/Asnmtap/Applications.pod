@@ -28,12 +28,12 @@ General configuration file for the ASNMTAP Applications
 
 For testing HTML to PDF you can rename /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif
 
-You can lateron copy your wanted bodyimage picture to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPD>OPTIONS into the Application.cnf config file.
+You can lateron copy your wanted bodyimage picture to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPDF>OPTIONS into the Application.cnf config file.
 
  <COMMON>
-   <HTMLTOPD>
+   <HTMLTOPDF>
      OPTIONS --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
-   </HTMLTOPD>
+   </HTMLTOPDF>
  </COMMON>
 
 If you change the --bodyimage parameter, don't forget also to change the same parameter into the file /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/htmldoc.sh for the on the fly HTML to PDF generating.
@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2007/02/25 9:01:36, ASNMTAP v3.000.014 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2007/06/10 15:19:36, ASNMTAP v3.000.015 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -440,11 +440,15 @@ the Archiver.
 
 =over 4
 
-=item Central
+=item Central ASNMTAP
 
- archive.pl -A ArchiveCT -c T -r T -d T
+ archive.pl -A ArchiveCT -c F -r T -d T
 
-=item Distributed
+=item Central Apache
+
+ archive.pl -c T -r F -d F
+
+=item Distributed ASNMTAP
 
  archive.pl -A ArchiveCT -c T -r T -d F
 
@@ -453,11 +457,20 @@ the Archiver.
 Shell script to run archive.pl with the default command line options
 
  cd /opt/asnmtap-3.000.xxx/applications/
- mv archive.sh-orig archive.sh
+ cp archive.sh-orig archive.sh
  chmod 755 archive.sh
 
  crontab -e
   0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh > /dev/null
+
+ cd /opt/asnmtap-3.000.xxx/applications/
+ mv archive.sh-orig archive-apache.sh
+ chmod 755 archive-apache.sh
+ chown <apache>:<apache> archive-apache.sh
+
+ su - <apache>
+ crontab -e
+  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive-apache.sh > /dev/null
 
 =back
 
@@ -607,6 +620,30 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
  Dependencies:
 
  - Getopt::Long
+
+=item perfparse_asnmtap_pulp_command.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item perfparse_crontab.sh
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item perfparse_crontab_failed.sh
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item perfparse_debug.sh
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item purge_table.pl
+
+ perl /opt/asnmtap/applications/sbin/purge_table.pl -H dtbs.citap.be -D snmptt -T 'snmptt_archive' -u asnmtap -p asnmtap --ago='-14 days'
+
+ perl /opt/asnmtap/applications/sbin/purge_table.pl -H dtbs.citap.be -D snmptt -T 'snmptt_unknown_archive' -u asnmtap -p asnmtap --ago='-14 days'
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
 
 =back
 
@@ -806,15 +843,31 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 
 Standalone monitoring example
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.014.sql
+MySQL 4.x
+
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015.sql
+
+MySQL 5.0.x
+
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015_mysql-v5.0.x.sql
+ or
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.014-distributed.sql
+MySQL 4.x
+
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.014-distributed.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015-distributed.sql
+
+MySQL 5.0.x
+
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
+ or
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1090,6 +1143,128 @@ Deletion policies are defined at various places with default and user-defined po
 
 =back
 
+=item SNMPTT integration
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=over 4
+
+=item Install SNMPTT
+
+Install net-snmp 5.4.x
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ MySQL 4.x
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+  or
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+
+ MySQL 5.0.x
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+  or
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item Configuration of SNMPTT for ASNMTAP
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=over 4
+
+=item 1
+
+ plugins/templates/snmptt/snmptt-bea-weblogic.conf
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/templates/snmptt/snmptt.ini
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item 2
+
+ plugins/snmptt/create_weblogic_configuration_database_with_SNMP.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item 3
+
+ plugins/snmptt/create_weblogic_configuration_for_SNMPTT.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item 4a ASNMTAP
+
+ plugins/snmptt/create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/snmptt/check_SNMPTT_weblogic.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/templates/check_template-SNMPTT.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item 4b Nagios
+
+ plugins/snmptt/create_NCPL_weblogic_configuration_for_SNMP.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/nagios/check_snmptt_traps.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item 5
+
+ plugins/snmptt/snmptt_traps_remove_pending_and_duplicated.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=back
+
+=item Testing configuration
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=back
+
+=item NagTrap integration
+  
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=over 4
+
+=item Install NagTrap
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item Configuration of NagTrap for ASNMTAP
+
+ more /opt/asnmtap-3.000.xxx/applications/htmlroot/snmptraps/.htaccess
+ AuthName "CITAP's Nagios Access"
+ AuthType Basic
+ AuthUserFile /etc/httpd/conf/nagios-htpasswd.users
+ require valid-user
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=item Testing configuration
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+=back
+
 =item Install HTML to PDF converter for Perl
 
 HTMLDOC: http://www.htmldoc.org/
@@ -1100,7 +1275,7 @@ HTMLDOC: http://www.htmldoc.org/
 
  Get the software from http://www.htmldoc.org/
    cd /export/download
-   wget http://ftp.easysw.com/pub/htmldoc/1.8.26/htmldoc-1.8.26-source.tar.gz
+   wget http://ftp.easysw.com/pub/htmldoc/1.8.27/htmldoc-1.8.27-source.tar.gz
 
 =item Installing the Software
 
@@ -1109,14 +1284,14 @@ HTMLDOC: http://www.htmldoc.org/
 =item Linux
 
  cd /export/download/directory
- rpm -i htmldoc-1.8.26-linux-intel.rpm
+ rpm -i htmldoc-1.8.27-linux-intel.rpm
  /usr/bin/htmldoc
 
 =item Solaris
 
  cd /export/download/directory
- tar -xvzf htmldoc-1.8.26-source.tar.gz
- cd /export/download/htmldoc-1.8.26
+ tar -xvzf htmldoc-1.8.27-source.tar.gz
+ cd /export/download/htmldoc-1.8.27
  ./configure
  make
  make install
@@ -1152,7 +1327,7 @@ Click on the Update License button to add a license to your system
 
 =over 4
 
-=item Linux
+=item Linux installation
 
  download chartdir_perl_linux.tar.gz from http://www.advsofteng.com/
    wget http://www.advsofteng.com/chartdir_perl_linux.tar.gz
@@ -1161,7 +1336,7 @@ Click on the Update License button to add a license to your system
    tar -xvzf chartdir_perl_linux.tar.gz
    rm chartdir_perl_linux.tar.gz
 
-=item Solaris
+=item Solaris installation
 
  download chartdir_perl_sunos.tar.gz from http://www.advsofteng.com/
    wget http://www.advsofteng.com/chartdir_perl_sunos.tar.gz
@@ -1169,6 +1344,18 @@ Click on the Update License button to add a license to your system
    cd /opt
    tar -xvzf chartdir_perl_sunos.tar.gz
    rm chartdir_perl_sunos.tar.gz
+
+=item ASNMTAP configuration
+
+ Applications.cnf
+
+ <COMMON>
+ ...
+   <CHARTDIRECTOR>
+     LIB             /opt/ChartDirector/lib/.
+   </CHARTDIRECTOR>
+ ...
+ </COMMON>
 
 =back
 
@@ -1593,50 +1780,50 @@ InnoDB does not allow you to drop a table that is referenced by a FOREIGN KEY co
 
  Staring from a core installation you need:
 
- rpm -i autoconf-2.59-5.noarch.rpm
- rpm -i automake-1.9.2-3.noarch.rpm
+ rpm -i autoconf-2.60.noarch.rpm
+ rpm -i automake-1.10.noarch.rpm
 
  rpm -i libtool-1.5.6-4.EL4.1.i386.rpm
  rpm -i libtool-libs-1.5.6-4.EL4.1.i386.rpm
 
  rpm -i libstdc++-devel-3.4.5-2.i386.rpm
- rpm -i gcc-c++-3.4.5-2.i386.rpm
+ rpm -i gcc-c++-3.4.6.i386.rpm
 
  rpm -i libpng10-1.0.16-1.i386.rpm
  rpm -i libpng10-devel-1.0.16-1.i386.rpm
 
- rpm -i libpng-1.2.7-1.el4.2.i386.rpm
- rpm -i libpng-devel-1.2.7-1.el4.2.i386.rpm
+ rpm -i libpng-1.2.16.el4.2.i386.rpm
+ rpm -i libpng-devel-1.2.16.el4.2.i386.rpm
 
  rpm -i libjpeg-6b-33.i386.rpm
  rpm -i libjpeg-devel-6b-33.i386.rpm
 
- rpm -i freetype-2.1.9-1.i386.rpm
- rpm -i freetype-devel-2.1.9-1.i386.rpm
- rpm -i freetype-utils-2.1.9-1.i386.rpm
+ rpm -i freetype-2.3.1.i386.rpm
+ rpm -i freetype-devel-2.3.1.i386.rpm
+ rpm -i freetype-utils-2.3.1.i386.rpm
 
- rpm -i fontconfig-2.2.3-7.i386.rpm
- rpm -i fontconfig-devel-2.2.3-7.i386.rpm
+ rpm -i fontconfig-2.4.2.i386.rpm
+ rpm -i fontconfig-devel-2.4.2.i386.rpm
 
- rpm -i glib2-2.4.7-1.i386.rpm
- rpm -i glib2-devel-2.4.7-1.i386.rpm
+ rpm -i glib2-2.13.0.i386.rpm
+ rpm -i glib2-devel-2.13.0.i386.rpm
 
- rpm -i zlib-devel-1.2.1.2-1.2.i386.rpm
+ rpm -i zlib-devel-1.2.3.i386.rpm
  rpm -i e2fsprogs-devel-1.35-12.3.EL4.i386.rpm
  rpm -i krb5-devel-1.3.4-27.i386.rpm
- rpm -i openssl-devel-0.9.7a-43.8.i386.rpm
+ rpm -i openssl-devel-0.9.8e.i386.rpm
 
- rpm -i libtool-libs-1.5.6-4.EL4.1.i386.rpm
  rpm -i gd-2.0.33-4.4E.1.i386.rpm
  rpm -i gd-devel-2.0.33-4.4E.1.i386.rpm
  rpm -i gd-progs-2.0.33-4.4E.1.i386.rpm
 
  rpm -i libmcrypt-2.5.7-1.2.el4.rf.i386.rpm
- rpm -i libxml2-2.6.16-6.i386.rpm
+ rpm -i libxml2-2.6.26.i386.rpm
 
- rpm -i httpd-2.0.52-22.ent.i386.rpm httpd-suexec-2.0.52-22.ent.i386.rpm
- rpm -i mysql-4.1.12-3.RHEL4.1.i386.rpm
- rpm -i mysql-devel-4.1.12-3.RHEL4.1.i386.rpm
+ rpm -i httpd-2.0.59.ent.i386.rpm
+ rpm -i httpd-suexec-2.0.59.ent.i386.rpm
+ rpm -i mysql-5.0.29.RHEL4.1.i386.rpm
+ rpm -i mysql-devel-5.0.29.RHEL4.1.i386.rpm
 
  perl -MCPAN -e 'install Bundle::CPAN'
  perl -MCPAN -e 'install Pod::Coverage'
@@ -1670,7 +1857,7 @@ InnoDB does not allow you to drop a table that is referenced by a FOREIGN KEY co
  pkgadd -d coreutils-4.5.4-sol9-sparc-local
  pkgadd -d libiconv-1.8-sol9-sparc-local
  pkgadd -d ncurses-5.4-sol9-sparc-local
- pkgadd -d perl-5.8.7-sol9-sparc-local
+ pkgadd -d perl-5.8.8-sol9-sparc-local
  pkgadd -d popt-1.7-sol9-sparc-local
  pkgadd -d tar-1.15.1-sol9-sparc-local
  pkgadd -d tcp_wrappers-7.6-sol9-sparc-local
@@ -1731,7 +1918,9 @@ InnoDB does not allow you to drop a table that is referenced by a FOREIGN KEY co
 
 =item MySQL
 
- tar -xvzf mysql-4.1.20.tar.gz 
+ MySQL 4.x and 5.0.x are supported
+
+ tar -xvzf mysql-4.1.20.tar.gz or higher
  cd mysql-4.1.20
  ./configure --without-server --enable-local-infile 
  make
@@ -1786,7 +1975,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 (c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
-ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.com]
+ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
 
  Purpose: CronTab (CT, sysdCT),
           Disk Filesystem monitoring (DF, sysdDF),

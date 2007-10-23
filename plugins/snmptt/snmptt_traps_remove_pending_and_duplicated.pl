@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, snmptt_traps_remove_pending_and_duplicated.pl
+# 2007/10/21, v3.000.015, snmptt_traps_remove_pending_and_duplicated.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.014;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'snmptt_traps_remove_pending_and_duplicated.pl',
   _programDescription => 'Remove Pending and Duplicated SNMPTT Traps from Database',
-  _programVersion     => '3.000.014',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: snmptt)",
@@ -41,7 +41,7 @@ my $serverDB = $objectNagios->getOptionsArgv ('server')   ? $objectNagios->getOp
 my $port     = $objectNagios->getOptionsArgv ('port')     ? $objectNagios->getOptionsArgv ('port')     : 3306;
 my $database = $objectNagios->getOptionsArgv ('database') ? $objectNagios->getOptionsArgv ('database') : 'snmptt';
 my $username = $objectNagios->getOptionsArgv ('username') ? $objectNagios->getOptionsArgv ('username') : 'asnmtap';
-my $password = $objectNagios->getOptionsArgv ('password') ? $objectNagios->getOptionsArgv ('password') : 'asnmtap';
+my $password = $objectNagios->getOptionsArgv ('password') ? $objectNagios->getOptionsArgv ('password') : '<PASSWORD>';
 
 my $debug    = $objectNagios->getOptionsValue ('debug');
 my $onDemand = $objectNagios->getOptionsValue ('onDemand');
@@ -59,21 +59,25 @@ if ( $dbh ) {
   my $rv = 1;
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Cleanup LOGONLY and PENDING traps
+  # Cleanup LOGONLY and NAGIOS traps
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  my $CATEGORY = '^(LOGONLY|NAGIOS)$';
 
   # Known Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  my $sqlINSERT = "INSERT INTO snmptt_archive SELECT * FROM snmptt WHERE category regexp '^(LOGONLY|NAGIOS)\$'";
+  my $sqlINSERT = "INSERT INTO snmptt_archive SELECT * FROM snmptt WHERE category regexp '$CATEGORY'";
   print "    $sqlINSERT\n" if ( $debug );
   $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 
-  my $sqlDELETE = "DELETE snmptt FROM snmptt, snmptt_archive WHERE snmptt.id = snmptt_archive.id";
-  print "    $sqlDELETE\n" if ( $debug );
-  $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  if ( $rv ) {
+    my $sqlDELETE = "DELETE snmptt FROM snmptt, snmptt_archive WHERE snmptt.id = snmptt_archive.id and snmptt.category regexp '$CATEGORY'";
+    print "    $sqlDELETE\n" if ( $debug );
+    $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Cleanip duplicated traps
+  # Cleanup duplicated traps
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # Known Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,6 +96,7 @@ if ( $dbh ) {
                        AND b.severity = snmptt.severity
                        AND b.uptime = snmptt.uptime
                        AND b.formatline = snmptt.formatline
+                       AND b.category regexp '$CATEGORY'
                      GROUP BY trapoid, enterprise, community, hostname, agentip, uptime, category, severity
                      HAVING snmptt.id < MAX(b.id)
                    )";
@@ -99,9 +104,11 @@ if ( $dbh ) {
   print "    $sqlINSERT\n" if ( $debug );
   $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 
-  my $sqlDELETE = "DELETE snmptt FROM snmptt, snmptt_archive WHERE snmptt.id = snmptt_archive.id";
-  print "    $sqlDELETE\n" if ( $debug );
-  $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  if ( $rv ) {
+    my $sqlDELETE = "DELETE snmptt FROM snmptt, snmptt_archive WHERE snmptt.id = snmptt_archive.id and snmptt.category regexp '$CATEGORY'";
+    print "    $sqlDELETE\n" if ( $debug );
+    $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  }
 
   # Unknown Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -122,9 +129,11 @@ if ( $dbh ) {
   print "    $sqlINSERT\n" if ( $debug );
   $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 
-  my $sqlDELETE = "DELETE snmptt_unknown FROM snmptt_unknown, snmptt_unknown_archive WHERE snmptt_unknown.id = snmptt_unknown_archive.id";
-  print "    $sqlDELETE\n" if ( $debug );
-  $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  if ( $rv ) {
+    my $sqlDELETE = "DELETE snmptt_unknown FROM snmptt_unknown, snmptt_unknown_archive WHERE snmptt_unknown.id = snmptt_unknown_archive.id";
+    print "    $sqlDELETE\n" if ( $debug );
+    $dbh->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlDELETE );
+  }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

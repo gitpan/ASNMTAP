@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, create_weblogic_configuration_database_with_SNMP.pl
+# 2007/10/21, v3.000.015, create_weblogic_configuration_database_with_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.014;
+use ASNMTAP::Asnmtap::Plugins v3.000.015;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_database_with_SNMP.pl',
   _programDescription => 'Create Weblogic Configuration Database with SNMP',
-  _programVersion     => '3.000.014',
+  _programVersion     => '3.000.015',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogic)",
@@ -42,7 +42,7 @@ my $serverDB = $objectPlugins->getOptionsArgv ('server')   ? $objectPlugins->get
 my $port     = $objectPlugins->getOptionsArgv ('port')     ? $objectPlugins->getOptionsArgv ('port')     : 3306;
 my $database = $objectPlugins->getOptionsArgv ('database') ? $objectPlugins->getOptionsArgv ('database') : 'weblogicConfig';
 my $username = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : 'jUnit';
-my $password = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : 'jUnit';
+my $password = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : '<PASSWORD>';
 
 my $debug    = $objectPlugins->getOptionsValue ('debug');
 
@@ -118,7 +118,7 @@ if ( $dbh ) {
       }
 
       my $domain_name = ( defined $server->{serverParent} ? $server->{serverParent} : 'DOMAIN:'. $domain );
-      my $sqlSTRING = 'SELECT count(SERVER_NAME) FROM `SERVER_CONFIG` WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
+      my $sqlSTRING = 'SELECT count(SERVER_NAME) FROM `SERVERS` WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
       print "    $sqlSTRING\n" if ( $debug );
       $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
       $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
@@ -128,14 +128,15 @@ if ( $dbh ) {
         $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
 
         if ( $updateRecord ) {
-          $sqlSTRING = 'UPDATE `SERVER_CONFIG` SET SERVER_NAME="'. $server->{serverName} .'", DOMAIN_NAME="'. $domain_name .'", MACHINE="'. $server->{serverMachine} .'", LISTEN_PORT="'. $server->{serverListenPort} .'", CLUSTER_NAME="'. $server->{serverCluster} .'", EXPECTED_TO_RUN="'. $server->{serverExpectedToRun} .'", ENV="'. $server->{environment} .'", LISTEN_ADDRESS="'. $server->{serverListenAddress} .'" WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
+          $sqlSTRING = 'UPDATE `SERVERS` SET SERVER_NAME="'. $server->{serverName} .'", DOMAIN_NAME="'. $domain_name .'", MACHINE="'. $server->{serverMachine} .'", LISTEN_PORT="'. $server->{serverListenPort} .'", CLUSTER_NAME="'. $server->{serverCluster} .'", EXPECTED_TO_RUN="'. $server->{serverExpectedToRun} .'", ENV="'. $server->{environment} .'", LISTEN_ADDRESS="'. $server->{serverListenAddress} .'" WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
         } else {
-          $sqlSTRING = 'INSERT INTO `SERVER_CONFIG` SET SERVER_NAME="'. $server->{serverName} .'", DOMAIN_NAME="'. $domain_name .'", MACHINE="'. $server->{serverMachine} .'", LISTEN_PORT="'. $server->{serverListenPort} .'", CLUSTER_NAME="'. $server->{serverCluster} .'", EXPECTED_TO_RUN="'. $server->{serverExpectedToRun} .'", ENV="'. $server->{environment} .'", LISTEN_ADDRESS="'. $server->{serverListenAddress} .'"';
+          $sqlSTRING = 'INSERT INTO `SERVERS` SET SERVER_NAME="'. $server->{serverName} .'", DOMAIN_NAME="'. $domain_name .'", MACHINE="'. $server->{serverMachine} .'", LISTEN_PORT="'. $server->{serverListenPort} .'", CLUSTER_NAME="'. $server->{serverCluster} .'", EXPECTED_TO_RUN="'. $server->{serverExpectedToRun} .'", ENV="'. $server->{environment} .'", LISTEN_ADDRESS="'. $server->{serverListenAddress} .'"';
         }
 
         print "    $sqlSTRING\n" if ( $debug );
         $dbh->do ( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlSTRING );
       }
+
     }
   }
 
@@ -149,7 +150,7 @@ if ( $dbh ) {
         print "\n". $cluster->{clusterName} .' => '. $cluster->{clusterServers} ."\n";
       }
 
-      my $sqlSTRING = 'SELECT count(CLUSTER_NAME) FROM `CLUSTER_CONFIG` WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
+      my $sqlSTRING = 'SELECT count(CLUSTER_NAME) FROM `CLUSTERS` WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
       print "    $sqlSTRING\n" if ( $debug );
       $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
       $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
@@ -159,9 +160,9 @@ if ( $dbh ) {
         $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
 
         if ( $updateRecord ) {
-          $sqlSTRING = 'UPDATE `CLUSTER_CONFIG` SET CLUSTER_NAME="'. $cluster->{clusterName} .'", CLUSTER_SERVERS="'. $cluster->{clusterServers} .'", ENV="'. $cluster->{environment} .'" WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
+          $sqlSTRING = 'UPDATE `CLUSTERS` SET CLUSTER_NAME="'. $cluster->{clusterName} .'", CLUSTER_SERVERS="'. $cluster->{clusterServers} .'", ENV="'. $cluster->{environment} .'" WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
         } else {
-          $sqlSTRING = 'INSERT INTO `CLUSTER_CONFIG` SET CLUSTER_NAME="'. $cluster->{clusterName} .'", CLUSTER_SERVERS="'. $cluster->{clusterServers} .'", ENV="'. $cluster->{environment} .'"';
+          $sqlSTRING = 'INSERT INTO `CLUSTERS` SET CLUSTER_NAME="'. $cluster->{clusterName} .'", CLUSTER_SERVERS="'. $cluster->{clusterServers} .'", ENV="'. $cluster->{environment} .'"';
         }
 
         print "    $sqlSTRING\n" if ( $debug );

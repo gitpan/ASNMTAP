@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/06/10, v3.000.014, holidays.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2007/10/21, v3.000.015, holidays.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.014;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,27 +31,27 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "holidays.pl";
 my $prgtext     = "Holidays";
-my $version     = do { my @r = (q$Revision: 3.000.014$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir      = (defined $cgi->param('pagedir'))     ? $cgi->param('pagedir')     : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset      = (defined $cgi->param('pageset'))     ? $cgi->param('pageset')     : "admin";   $pageset =~ s/\+/ /g;
-my $debug        = (defined $cgi->param('debug'))       ? $cgi->param('debug')       : "F";
+my $pageset      = (defined $cgi->param('pageset'))     ? $cgi->param('pageset')     : 'admin';   $pageset =~ s/\+/ /g;
+my $debug        = (defined $cgi->param('debug'))       ? $cgi->param('debug')       : 'F';
 my $pageNo       = (defined $cgi->param('pageNo'))      ? $cgi->param('pageNo')      : 1;
 my $pageOffset   = (defined $cgi->param('pageOffset'))  ? $cgi->param('pageOffset')  : 0;
-my $orderBy      = (defined $cgi->param('orderBy'))     ? $cgi->param('orderBy')     : "holiday asc, countryName asc, formule asc, month asc, day asc, offset asc";
-my $action       = (defined $cgi->param('action'))      ? $cgi->param('action')      : "listView";
+my $orderBy      = (defined $cgi->param('orderBy'))     ? $cgi->param('orderBy')     : 'holiday asc, countryName asc, formule asc, month asc, day asc, offset asc';
+my $action       = (defined $cgi->param('action'))      ? $cgi->param('action')      : 'listView';
 my $CholidayID   = (defined $cgi->param('holidayID'))   ? $cgi->param('holidayID')   : 'none';
 my $Cformule     = (defined $cgi->param('formule'))     ? $cgi->param('formule')     : 0;
 my $Cmonth       = (defined $cgi->param('month'))       ? $cgi->param('month')       : 0;
 my $Cday         = (defined $cgi->param('day'))         ? $cgi->param('day')         : 0;
 my $Coffset      = (defined $cgi->param('offset'))      ? $cgi->param('offset')      : 0;
-my $CcountryID   = (defined $cgi->param('countryID'))   ? $cgi->param('countryID')   : "none";
-my $Choliday     = (defined $cgi->param('holiday'))     ? $cgi->param('holiday')     : "";
-my $Cactivated   = (defined $cgi->param('activated'))   ? $cgi->param('activated')   : "off";
+my $CcountryID   = (defined $cgi->param('countryID'))   ? $cgi->param('countryID')   : 'none';
+my $Choliday     = (defined $cgi->param('holiday'))     ? $cgi->param('holiday')     : '';
+my $Cactivated   = (defined $cgi->param('activated'))   ? $cgi->param('activated')   : 'off';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -61,7 +61,7 @@ my $htmlTitle = $APPLICATION;
 my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledPrimaryKey, $submitButton);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTiltle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Holidays", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Holidays", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&holidayID=$CholidayID&formule$Cformule=&month=$Cmonth&day=$Cday&offset=$Coffset&countryID=$CcountryID&holiday=$Choliday&activated=$Cactivated";
@@ -77,115 +77,115 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $formDisabledAll = $formDisabledPrimaryKey = "";
+    $formDisabledAll = $formDisabledPrimaryKey = '';
 
-    if ($action eq "duplicateView" or $action eq "insertView") {
+    if ($action eq 'duplicateView' or $action eq 'insertView') {
       $htmlTitle    = "Insert Holiday";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
-    } elsif ($action eq "insert") {
+    } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Holiday $CholidayID exist before to insert";
 
       $CholidayID   = "$Cformule-$Cmonth-$Cday-$Coffset-$CcountryID";
       $sql = "select holidayID from $SERVERTABLHOLIDYS WHERE holidayID = '$CholidayID'";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
         $htmlTitle    = "Holiday $CholidayID exist already";
         $nextAction   = "insertView";
       } else {
         $htmlTitle    = "Holiday $CholidayID inserted";
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $sql = 'INSERT INTO ' .$SERVERTABLHOLIDYS. ' SET holidayID="' .$CholidayID. '", formule="' .$Cformule. '", month="' .$Cmonth. '", day="' .$Cday. '", offset="' .$Coffset. '", countryID="' .$CcountryID. '", holiday="' .$Choliday. '", activated="' .$dummyActivated. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
-    } elsif ($action eq "deleteView") {
-      $formDisabledAll = $formDisabledPrimaryKey = "disabled";
+    } elsif ($action eq 'deleteView') {
+      $formDisabledAll = $formDisabledPrimaryKey = 'disabled';
       $htmlTitle    = "Delete Holiday $CholidayID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
-    } elsif ($action eq "delete") {
-      $sql = "select holidayBundleID, holidayBundleName from $SERVERTABLHLDSBNDL where holidayID REGEXP '/$CholidayID/' order by holidayBundleName";
-      ($rv, $matchingHolidays) = check_record_exist ($rv, $dbh, $sql, 'Holiday Bundle', 'ID', 'Name', '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+    } elsif ($action eq 'delete') {
+      $sql = "select holidayBundleID, holidayBundleName from $SERVERTABLHOLIDYSBNDL where holidayID REGEXP '/$CholidayID/' order by holidayBundleName";
+      ($rv, $matchingHolidays) = check_record_exist ($rv, $dbh, $sql, 'Holiday Bundle', 'ID', 'Name', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ($matchingHolidays eq "") {
+	  if ($matchingHolidays eq '') {
         $sql = 'DELETE FROM ' .$SERVERTABLHOLIDYS. ' WHERE holidayID="' .$CholidayID. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
         $htmlTitle = "Holiday $CholidayID deleted";
       } else {
         $htmlTitle = "Holiday $CholidayID not deleted, still used by";
       }
-    } elsif ($action eq "displayView") {
-      $formDisabledAll = $formDisabledPrimaryKey = "disabled";
+    } elsif ($action eq 'displayView') {
+      $formDisabledAll = $formDisabledPrimaryKey = 'disabled';
       $htmlTitle    = "Display holiday $CholidayID";
       $nextAction   = "listView" if ($rv);
-    } elsif ($action eq "editView") {
-      $formDisabledPrimaryKey = "disabled";
+    } elsif ($action eq 'editView') {
+      $formDisabledPrimaryKey = 'disabled';
       $htmlTitle    = "Edit holiday $CholidayID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
-    } elsif ($action eq "edit") {
-      $matchingHolidays = "";
-      my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+    } elsif ($action eq 'edit') {
+      $matchingHolidays = '';
+      my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
 
       unless ( $dummyActivated ) {
-        $sql = "select holidayBundleID, holidayBundleName from $SERVERTABLHLDSBNDL where holidayID REGEXP '/$CholidayID/' order by holidayBundleName";
-        ($rv, $matchingHolidays) = check_record_exist ($rv, $dbh, $sql, 'Holiday Bundle', 'ID', 'Name', $matchingHolidays, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+        $sql = "select holidayBundleID, holidayBundleName from $SERVERTABLHOLIDYSBNDL where holidayID REGEXP '/$CholidayID/' order by holidayBundleName";
+        ($rv, $matchingHolidays) = check_record_exist ($rv, $dbh, $sql, 'Holiday Bundle', 'ID', 'Name', $matchingHolidays, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       }
 
-	  if ($dummyActivated or $matchingHolidays eq "") {
-        my $dummyActivated = ($Cactivated eq "on") ? 1 : 0;
+	  if ($dummyActivated or $matchingHolidays eq '') {
+        my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $sql = 'UPDATE ' .$SERVERTABLHOLIDYS. ' SET holidayID="' .$CholidayID. '", formule="' .$Cformule. '", month="' .$Cmonth. '", day="' .$Cday. '", offset="' .$Coffset. '", countryID="' .$CcountryID. '", holiday="' .$Choliday. '", activated="' .$dummyActivated. '" WHERE holidayID="' .$CholidayID. '"';
-        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
         $htmlTitle    = "Holiday $CholidayID updated";
       } else {
         $htmlTitle    = "Holiday $CholidayID not deactivated and updated, still used by";
       }	  
-    } elsif ($action eq "listView") {
+    } elsif ($action eq 'listView') {
       $htmlTitle    = "All holidays listed";
 
-      $sql = "select count(holidayID) from $SERVERTABLHOLIDYS";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      $sql = "select SQL_NO_CACHE count(holidayID) from $SERVERTABLHOLIDYS";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
  
       $sql = "select $SERVERTABLHOLIDYS.holidayID, $SERVERTABLHOLIDYS.formule, $SERVERTABLHOLIDYS.month, $SERVERTABLHOLIDYS.day, $SERVERTABLHOLIDYS.offset, $SERVERTABLCOUNTRIES.countryName, $SERVERTABLHOLIDYS.holiday, $SERVERTABLHOLIDYS.activated from $SERVERTABLHOLIDYS, $SERVERTABLCOUNTRIES where $SERVERTABLCOUNTRIES.countryID = $SERVERTABLHOLIDYS.countryID order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header  = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formule desc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Formule <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formule asc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=month desc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Month <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=month asc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=day desc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Day <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=day asc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=offset desc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Offset <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=offset asc, countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=countryName desc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Country <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=countryName asc, holiday asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holiday desc, countryName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Holiday <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holiday asc, countryName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, holiday asc, countryName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, holiday asc, countryName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingHolidays, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Holiday', 'holidayID', '0', '0', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $matchingHolidays, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Holiday', 'holidayID', '0', '0', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
       $sql = "select holidayID, formule, month, day, offset, countryID, holiday, activated from $SERVERTABLHOLIDYS where holidayID = '$CholidayID'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CholidayID, $Cformule, $Cmonth, $Cday, $Coffset, $CcountryID, $Choliday, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID) if ($sth->rows);
-        $CholidayID = "" if ($action eq "duplicateView");
-        $Cactivated = ($Cactivated == 1) ? "on" : "off";
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+        ($CholidayID, $Cformule, $Cmonth, $Cday, $Coffset, $CcountryID, $Choliday, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CholidayID = "" if ($action eq 'duplicateView');
+        $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       $sql = "select countryID, countryName from $SERVERTABLCOUNTRIES where activated = '1' order by countryName";
-      ($rv, $countryIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcountryID, 'countryID', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTiltle, $sessionID, $debug);
+      ($rv, $countryIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcountryID, 'countryID', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
-    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', $sessionID);
+    $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
   if ( $rv ) {
     # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, "onload=\"javascript:enableDisableFields();\"", 'F', '', $sessionID);
+    if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, "onload=\"javascript:enableDisableFields();\"", 'F', '', $sessionID);
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
@@ -279,15 +279,15 @@ function validateForm() {
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="holidays" onSubmit="return validateForm();">
 HTML
-    } elsif ($action eq "deleteView") {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+    } elsif ($action eq 'deleteView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"holidays\">\n";
       $pageNo = 1; $pageOffset = 0;
     } else {
-      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTiltle, 3600, '', 'F', '', $sessionID);
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print <<HTML;
   <input type="hidden" name="pagedir"    value="$pagedir">
   <input type="hidden" name="pageset"    value="$pageset">
@@ -302,7 +302,7 @@ HTML
       print "<br>\n";
     }
 
-    if ($formDisabledPrimaryKey ne "" and $action ne "displayView") {
+    if ($formDisabledPrimaryKey ne '' and $action ne 'displayView') {
       print <<HTML;
   <input type=\"hidden\" name=\"holidayID\" value=\"$CholidayID\">
   <input type=\"hidden\" name=\"formule\"   value=\"$Cformule\">
@@ -332,9 +332,9 @@ HTML
     </td></tr>
 HTML
 
-    if ($action eq "deleteView" or $action eq "displayView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       my $formuleSelect = create_combobox_from_keys_and_values_pairs ('0=>Fixed|1=>Easter', 'V', 0, $Cformule, 'formule', '', '', $formDisabledPrimaryKey, 'onChange="javascript:enableDisableFields();"', $debug);
-      my $activatedChecked = ($Cactivated eq "on") ? " checked" : "";
+      my $activatedChecked = ($Cactivated eq 'on') ? ' checked' : '';
 
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
@@ -363,19 +363,19 @@ HTML
         </td></tr>
 HTML
 
-      print "        <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq "duplicateView" or $action eq "editView" or $action eq "insertView");
-      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne "displayView");
+      print "        <tr><td>&nbsp;</td><td><br>Please enter all required information before committing the required information. Required fields are marked in bold.</td></tr>\n" if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView');
+      print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne 'displayView');
       print "      </table>\n";
-    } elsif ($action eq "delete" or $action eq "edit" or $action eq "insert") {
+    } elsif ($action eq 'delete' or $action eq 'edit' or $action eq 'insert') {
       print "    <tr><td align=\"center\"><br><br><h1>Holiday: $htmlTitle</h1></td></tr>";
-      print "    <tr><td align=\"center\">$matchingHolidays</td></tr>" if (defined $matchingHolidays and $matchingHolidays ne "");
+      print "    <tr><td align=\"center\">$matchingHolidays</td></tr>" if (defined $matchingHolidays and $matchingHolidays ne '');
     } else {
       print "    <tr><td align=\"center\"><br>$matchingHolidays</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq "deleteView" or $action eq "duplicateView" or $action eq "editView" or $action eq "insertView") {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
       print "</form>\n";
     } else {
       print "<br>\n";
