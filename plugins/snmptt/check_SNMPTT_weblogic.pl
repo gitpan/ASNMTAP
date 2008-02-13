@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, check_SNMPTT_weblogic.pl
+# 2008/02/13, v3.000.016, check_SNMPTT_weblogic.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_weblogic.pl',
   _programDescription => 'Check SNMP Trap Translator Database for Weblogic SNMP traps',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '[--adminConsole=<adminConsole>] [--uKey|-K=<uKey>] [-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => '--adminConsole=<adminConsole>
 -K, --uKey=<uKey>
@@ -57,7 +57,7 @@ my $onDemand     = $objectPlugins->getOptionsValue ('onDemand');
 
 my $serverHost   = $objectPlugins->getOptionsArgv ('server')   ? $objectPlugins->getOptionsArgv ('server')   : 'localhost';
 my $serverPort   = $objectPlugins->getOptionsArgv ('port')     ? $objectPlugins->getOptionsArgv ('port')     : 3306;
-my $serverUser   = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : 'asnmtap';;
+my $serverUser   = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : 'asnmtap';
 my $serverPass   = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : '<PASSWORD>';
 my $serverDb     = $objectPlugins->getOptionsArgv ('database') ? $objectPlugins->getOptionsArgv ('database') : 'snmptt';
 
@@ -82,13 +82,13 @@ my $tMessage  = 'SNMP Trap Translator Database';
 my $tHostname = ( defined $hostname ? "and hostname='$hostname'" : '' );
 $hostname = 'undef' unless ( defined $hostname ) ;
 
-my (undef, undef, $tAdminConsole, undef) = split ( /\//, $adminConsole, 4 );
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $debugfileMessage = "\n<HTML><HEAD><TITLE>$tMessage \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$tMessage \@ $APPLICATION</H1><HR>\n";
 
 if ( defined $adminConsole ) {
+  my (undef, undef, $tAdminConsole, undef) = split ( /\//, $adminConsole, 4 );
+
   use ASNMTAP::Asnmtap::Plugins::WebTransact;
 
   my @URLS = ();
@@ -133,27 +133,34 @@ if ( $dbh and $rv ) {
       my ( $uniqueProblem, $codeBefore, $codeAfter );
 
       while( $sth->fetch() ) {
-        my ($_eventname, $detailLine, $uniqueTrap, $trapServerName, $trapMonitorType, $trapMBeanName, $trapMBeanType, $trapAttributeName) = ($eventname, $formatline, 'NULL', $tEpochtime);
+        my ($_eventname, $detailLine, $uniqueTrap, $trapServerName, $trapMonitorType, $trapMBeanName, $trapMBeanType, $trapAttributeName, $trapMachineName, $trapLogThreadId, $trapLogTransactionId, $trapLogUserId, $trapLogSubsystem, $trapLogMsgId, $trapLogSeverity, $trapLogMessage) = ($eventname, $formatline, '(NULL)', $tEpochtime);
 
         for ( $eventname ) {
-          /^wlsLogNotification$/ && do {     # Server log received from $2, $3, $4, $5, $6, $7, $8, $9, $10
-            $uniqueTrap = 'wlsLogNotification';
+          /^wlsLogNotification$/ && do {     # Server Log Notification: $2, $3, $4, $5, $6, $7, $8, $9, $10
+            my (undef, $variables, ) = split ( /: /, $formatline, 2 );
+            ($trapServerName, $trapMachineName, $trapLogThreadId, $trapLogTransactionId, $trapLogUserId, $trapLogSubsystem, $trapLogMsgId, $trapLogSeverity, $trapLogMessage) = split ( /, /, $variables, 9 );
+
+            if ( ( $trapLogSeverity eq 'Error' and $trapLogMessage =~ /which is more than the configured time \(StuckThreadMaxTime\) of/ ) 
+			  or ( $trapLogSeverity eq 'Info'  and $trapLogMessage =~ /^ExecuteThread: \\*'\d+\\*' for queue: \\*'[\w.]+\\*' has become \\*\"unstuck\\*\".$/ ) ) {
+              $_eventname = 'wlsLogNotification: StuckThreadMaxTime';
+              ( $uniqueTrap ) = ( $trapLogMessage =~ /^(ExecuteThread: \\'\d+\\' for queue: \\'[\w.]+\\') has / );
+              print "\n\n$trapLogSeverity\n$trapLogMessage\n\n" if ( $debug > 2);
+            }
+
 		    last; };
           /^wlsServerStart$/ && do {         # This trap is generated when the server $2 was started on $1
             $_eventname = 'wlsServerShutDown or wlsServerStart';
-            $formatline =~ /^This trap is generated when the server (\w+) was started on /;
-            $trapServerName = $1 if ( defined $1 );
-            $uniqueTrap = 'wlsServerRestart';
+            ( $trapServerName ) = ( $formatline =~ /^This trap is generated when the server (\w+) was started on / );
+            $uniqueTrap = 'wlsServerStart';
 		    last; };
           /^wlsServerShutDown$/ && do {      # This trap is generated when the server $2 has been shut down $1
             $_eventname = 'wlsServerShutDown or wlsServerStart';
-            $formatline =~ /^This trap is generated when the server (\w+) has been shut down /;
-            $trapServerName = $1 if ( defined $1 );
-            $uniqueTrap = 'wlsServerRestart';
+            ( $trapServerName ) = ( $formatline =~ /^This trap is generated when the server (\w+) has been shut down / );
+            $uniqueTrap = 'wlsServerStart';
 		    last; };
           /^wlsMonitorNotification$/ && do { # JMX Monitor Notification: $2, $3, $6, $7, $8
-            my (undef, $variables, ) = split ( /: /, $formatline );
-            ($trapServerName, $trapMonitorType, $trapMBeanName, $trapMBeanType, $trapAttributeName) = split ( /, /, $variables );
+            my (undef, $variables, ) = split ( /: /, $formatline, 2 );
+            ($trapServerName, $trapMonitorType, $trapMBeanName, $trapMBeanType, $trapAttributeName) = split ( /, /, $variables, 5 );
 
             if ( $trapMonitorType =~ /^(jmx.monitor)\.(\w+)\.(\w+)$/ ) {
               $uniqueTrap = "$trapMBeanName|$trapAttributeName|$trapMBeanType|$1.$2";
@@ -161,8 +168,9 @@ if ( $dbh and $rv ) {
             }
 
 		    last; };
-          /^wlsAttributeChange$/ && do {     # Observed attribute change received from $2, $3, $4, $5, $6, $7, $8, $9
+          /^wlsAttributeChange$/ && do {     # Observed Attribute Change: $2, $3, $4, $5, $6, $7, $8, $9
             $uniqueTrap = 'wlsAttributeChange';
+            # TODO ...
 		    last; };
         }
 
@@ -245,7 +253,13 @@ if ( $dbh and $rv ) {
 
       if ( $ERRORS{$severity} == 0 ) {
         if ( ! $onDemand ) {
-          my $sqlDELETE = "DELETE FROM `$serverTact` WHERE uniqueProblem='$uniqueProblem' and trapread='2'";
+          my ( $trapServerName, $eventname, $uniqueTrap, $sqlDELETE ) = split ( /\|/, $uniqueProblem, 3 );
+
+          if ( $uniqueTrap eq 'wlsServerStart' ) {
+            $sqlDELETE = "DELETE FROM `$serverTact` WHERE uniqueProblem regexp '^$trapServerName\\\\|' and trapread='2'";
+          } else {
+            $sqlDELETE = "DELETE FROM `$serverTact` WHERE uniqueProblem='$uniqueProblem' and trapread='2'";
+          }
 
           if ( $debug >= 2 ) {
             print "             - $sqlDELETE\n";
@@ -342,8 +356,8 @@ if ( $dbh and $rv ) {
       my $alert = "$tAlertVariable+, $tAlertFixed+" ;
 
       if ($currentTimeslot - $tEpochtime > $outOffDate) {
-        $alert .= " - Data is out off date!";
-        $alert .= " - From: " .scalar(localtime($tEpochtime)). " - Now: " .scalar(localtime($currentTimeslot)) if ( $debug >= 2 );
+        $alert .= ' - Data is out of date!';
+        $alert .= ' - From: ' .scalar(localtime($tEpochtime)). ' - Now: ' .scalar(localtime($currentTimeslot)) if ( $debug >= 2 );
         $objectPlugins->pluginValues ( { stateValue => ($tSeverity == 0 ? $ERRORS{UNKNOWN} : $tSeverity), alert => $alert }, $TYPE{APPEND} );
       } else {
         $objectPlugins->pluginValues ( { stateError => $STATE{$tSeverity}, alert => $alert }, $TYPE{APPEND} );
@@ -377,4 +391,3 @@ sub errorTrapDBI {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

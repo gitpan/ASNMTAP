@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <error>
    <authentification>
-      <message>It appears as though you do not have permission to view the log file...</message>
+      <message>It appears as though you do not have permission to view the log file ...</message>
          <description>
             <line1>If you believe this is an error, check the HTTP server authentication requirements for accessing this site</line1>
             <line2>and check the authorization options in your configuration file.</line2>

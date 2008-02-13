@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2008/02/13, v3.000.016, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.015;
+use ASNMTAP::Asnmtap::Applications v3.000.016;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,7 +76,7 @@ if ($opt_D) {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, "generateReports.txt", $debug);
+my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, 'generateReports.txt', $debug);
 
 # Init parameters
 my ($rv, $dbh, $sth, $sql);
@@ -95,6 +95,7 @@ if ($dbh and $rv) {
 
   if ( $rv ) {
     if ( $sth->rows ) {
+      my %holidayBundleApplications;
       my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
 
       my ($daysBeforeYear, $daysBeforeMonth, $daysBeforeDay) = Add_Delta_Days ($currentYear, $currentMonth, $currentDay, $daysBefore);
@@ -153,7 +154,7 @@ if ($dbh and $rv) {
                     $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
                   }
 
-                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLENVIRONMENT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by uKey";
+                  $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as title, $SERVERTABLENVIRONMENT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by title";
                   $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
                   $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
                   $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
@@ -176,13 +177,13 @@ if ($dbh and $rv) {
                           $alert .= "\n  C - Downtime scheduled: # exist '$numberRecordExist'" if ($debug);
                         } else {
                           $alert .= "\n  P $pagedirs" if ($debug);
-                          $commentData = "'$holiday' downtime scheduling for '$title' from $holidayYear-$holidayMonth-$holidayDay 00:00:00 until $holidayYear-$holidayMonth-$holidayDay 23:59:59";
+                          $commentData = "'$holiday' for '$title' on $holidayYear-$holidayMonth-$holidayDay";
                           $alert .= "\n  C + $commentData" if ($debug);
                           my $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$uKey. '", title="' .$title. '", entryDate="' .$entryDate. '", entryTime="' .$entryTime.'", entryTimeslot="' .$entryTimeslot. '", persistent="0", downtime="1", problemSolved="0", solvedDate="", solvedTime="", solvedTimeslot="", remoteUser="' .$RMDEFAULTUSER. '", commentData="' .$commentData. '", activationDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", activationTime="00:00:00", activationTimeslot="' .$activationTimeslot. '", suspentionDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", suspentionTime="23:59:59", suspentionTimeslot="' .$suspentionTimeslot. '"';
                           $alert .= "\n  C $sql" if ($debug >= 2);
                           $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->do: $sql", $debug);
 
-                          my ($sendEmailTo, $TremoteUser, $Temail, $Tpagedir);
+                          my ($TremoteUser, $Temail, $Tpagedir);
                           $sql = "select remoteUser, email, pagedir from $SERVERTABLUSERS where activated = 1 and downtimeScheduling = 1 and userType > 0";
                           $alert .= "\n  E $sql" if ($debug >= 2);
                           $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
@@ -199,22 +200,19 @@ if ($dbh and $rv) {
                               foreach my $Tpagedirs (@pagedirs) {
                                 if ($pagedirs =~ /\/$Tpagedirs\//) {
                                   $alert .= "\n  E + send email to: $TremoteUser, $Temail for $Tpagedirs" if ($debug);
-                                  $sendEmailTo .= "$Temail,";
+
+                                  if ( defined $holidayBundleApplications {$Temail}{$holidayBundleName} ) {
+                                    $holidayBundleApplications {$Temail}{$holidayBundleName} = $holidayBundleApplications {$Temail}{$holidayBundleName} . $commentData . "\n";
+                                  } else {
+                                    $holidayBundleApplications {$Temail}{$holidayBundleName} = $commentData . "\n";
+                                  }
+
                                   last;
                                 }
                               }
                             }
 
                             $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
-
-                            if (defined $sendEmailTo) {
-                              $alert .= "\n  E = $sendEmailTo" if ($debug >= 2);
-                              my $header = $commentData;
-                              my $subject = "$BUSINESS / $DEPARTMENT / $APPLICATION / $header";
-                              my $message = "Geachte, Cher,\n\n$header\n\n-- Administrator\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
-                              my $returnCode = sending_mail ( $SERVERLISTSMTP, $sendEmailTo, $SENDMAILFROM, $subject, $message, $debug );
-                              print "Problem sending email to the '$APPLICATION' members\n" unless ( $returnCode );
-                            }
                           }
                         }
 
@@ -232,6 +230,21 @@ if ($dbh and $rv) {
               print " -> $holidayBundleID, $holidayBundleName, $holidayYear/$holidayMonth/$holidayDay\n$alert" if (defined $alert and $debug);
             }
           }
+        }
+      }
+
+      foreach my $sendEmailTo ( keys %holidayBundleApplications ) {
+        my $holidayBundles;
+
+        foreach my $holidayBundleName ( sort keys %{ $holidayBundleApplications{$sendEmailTo} } ) {
+          $holidayBundles .= "\nHoliday Bundle: " .$holidayBundleName. "\n" .$holidayBundleApplications{$sendEmailTo}{$holidayBundleName}. "\n";
+        }
+
+        if ( defined $holidayBundles ) {
+          my $subject = "$BUSINESS / $DEPARTMENT / $APPLICATION / Holiday Downtime Scheduling";
+          my $message = "Geachte, Cher,\n\n$holidayBundles\n-- Administrator\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
+          my $returnCode = sending_mail ( $SERVERLISTSMTP, $sendEmailTo, $SENDMAILFROM, $subject, $message, $debug );
+          print "Problem sending email to the '$APPLICATION' members\n" unless ( $returnCode );
         }
       }
     }
@@ -274,4 +287,3 @@ email to $SENDEMAILTO
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

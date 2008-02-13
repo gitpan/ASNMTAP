@@ -1,15 +1,18 @@
 --- #YAML:1.0
 name:                ASNMTAP
-version:             3.000015
+version:             3.000016
 abstract:            Application System Network Monitoring Toolkit Alex Peeters
 license:             perl
-generated_by:        ExtUtils::MakeMaker version 6.32
+author:              
+    - Alex Peeters <alex.peeters@citap.com>
+generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
     Bundle::DBD::mysql:            4.005
     Bundle::DBI:                   1.53
     Bundle::LWP:                   1.11
     CGI:                           3.29
+    CGI::Session:                  4.20
     Compress::Zlib:                2.004
     Config::General:               2.33
     Config::General::Interpolated: 2.07
@@ -40,8 +43,11 @@ requires:
     MIME::Base64:                  3.07
     MIME::Tools:                   5.420
     Net::FTP:                      2.75
+    Net::Ifconfig::Wrapper:        0.09
     Net::IMAP::Simple:             1.14
     Net::SSLeay:                   1.30
+    NetAddr::IP:                   4.007
+    Proc::ProcessTable:            0.41
     SOAP::Lite:                    0.69
     Sys::Hostname::Long:           1.4
     Test::Pod::Coverage:           1.08
@@ -56,7 +62,5 @@ requires:
     XML::Parser:                   2.34
     XML::Simple:                   2.16
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Alex Peeters <alex.peeters@citap.com>
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

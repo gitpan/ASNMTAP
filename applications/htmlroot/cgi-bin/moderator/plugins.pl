@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/02/13, v3.000.016, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time v3.000.016;
 use ASNMTAP::Time qw(&get_csvfiledate);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES &sending_mail);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -182,7 +182,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $sql = "select holidayBundleID, holidayBundleName from $SERVERTABLHOLIDYSBNDL where activated = '1' order by holidayBundleName";
-      ($rv, $holidayBundleSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CholidayBundleID, 'holidayBundleID', '0', '+ No Holliday Bundle', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      ($rv, $holidayBundleSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CholidayBundleID, 'holidayBundleID', '0', '+ No Holiday Bundle', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       $generatePluginCrontabSchedulingReport = 1;
     }
@@ -267,7 +267,7 @@ HTML
           <input type="text" name="trendline" value="$Ctrendline" size="6" maxlength="6" $formDisabledAll>
         <tr><td valign="top">Help Plugin Filename: </td><td>
           <input type="text" name="helpPluginTextname" value="$ChelpPluginFilename" size="100" maxlength="100" $formDisabledAll><br>
-          <input type="file" name="helpPluginFilename" size="100" maxlength="100" accept="application/pdf" $formDisabledAll>
+          <input type="file" name="helpPluginFilename" size="100" accept="application/pdf" $formDisabledAll>
         <tr><td>Holiday Bundle: </td><td>
     	  $holidayBundleSelect
         </td></tr>

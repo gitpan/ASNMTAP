@@ -1,19 +1,78 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 21 Oktober 2007
-Version      : 3.000.015
+Latest update: 13 Februari 2007
+Version      : 3.000.016
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.015, 2007/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+Version 3.000.016, 2007/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+                               ASNMTAP
+                               - UPDATE fixRights.sh
+                               - UPDATE '#!/usr/bin perl' or '#!/usr/local/bin/perl' with '#!/bin/env perl'
+                                 to use the perl version found by the environment variable PATH
+                                 http://www.cyberciti.biz/tips/finding-bash-perl-python-portably-using-env.html
+                               ASNMTAP::Applications
+                               - archive.pl
+                                 - FIXED (1863109) createCommentsAndEventsArchiveTables at the end of the year
+                               - holidayBundleSetDowntimes.pl  
+                                 - NEW (1725445) Groeperen Mails
+                               ASNMTAP::Asnmtap::Applications.pod
+                               - FIXED MySQL GRANT configuration part
+                               ASNMTAP::Asnmtap::Applications::CGI
+                               - /applications/htmlroot/snmptraps/include/classes/class.mysqlDB.php
+                                 - UPDATE class.mysqlDB.php
+                               - generateConfig.pl
+                                 - FIX (1822759) A first time config generate/install doesn't say what actions need to be done on a server
+                               - reports.pl
+                                 - FIX (1827421) Added reportTitle
+                               ASNMTAP::Asnmtap::Plugins
+                               - /plugins/nagios/check_network_interface_traffic.pl
+                                 - UPDATE making Solaris 10 compatible
+		                       - /plugins/jUnit/
+                                 - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+		                       - /plugins/snmptt/
+                                 - UPDATE check_snmptt_traps.pl
+                                 - NEW check_snmptt_traps.plN
+		                       - /plugins/templates/
+                                 - UPDATE check_template-WebTransact.pl
+		                       - /plugins/templates/jUnit/
+                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql.SQL
+                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql-v5.0.x.SQL
+		                       - /plugins/templates/snmptt/
+                                 - NEW check_SNMPTT_probe.pl
+                                 - UPDATE check_SNMPTT_weblogic.pl
+                                 - NEW snmptt-3.000.016-v5.0.x.sql
+                                 - UPDATE TABLE `snmmptt` for MySQL' version 5.x
+                                   - ALTER TABLE `snmptt` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_archive` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_unknown` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_unknown_archive` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                 - UPDATE TABLE `wls_snmptt_CONFIG`
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapMBeanType` `trapMBeanType` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapAttributeName` `trapAttributeName` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapMonitorType` `trapMonitorType` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` ADD COLUMN `trapLogSeverity` varchar(128) NOT NULL default '' AFTER `trapMonitorType_MATCH`, ADD COLUMN `trapLogSeverity_MATCH` char(2) default NULL AFTER `trapLogSeverity`, ADD COLUMN `trapLogMessage` varchar(128) NOT NULL default '' AFTER `trapLogSeverity_MATCH`, ADD COLUMN `trapLogMessage_MATCH` char(3) default NULL AFTER `trapLogMessage`;
+                                   - ALTER TABLE `wls_snmptt_CONFIG` DROP PRIMARY KEY, ADD PRIMARY KEY  (`trapMBeanType`,`trapAttributeName`,`trapMonitorType`, `trapLogSeverity`, `trapLogMessage`, `event_name`,`category`,`sources_list`,`mode`);
+                                 - UPDATE snmptt-bea-weblogic.conf
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
+                               ASNMTAP::Asnmtap::Plugins::Mail.pm
+                               - FIX regarding MIME-Encoding 'quoted-printable' into MIME-tools-5.425
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW Makefile.PL Net::Ifconfig::Wrapper
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - UPDATE POD with 'Qs_var => [..., submain => RET_SUBMAIN, title1 => RET_TITLE1]'
+
+
+Version 3.000.015, 2007/10/21, by Alex Peeters with contributions from Yves Van den Hove.
                                Makefile.PL
                                - version update CPAN 1.9102
                                - version update CGI 3.29
@@ -302,7 +361,7 @@ Version 3.000.013, 2007/02/25, ASNMTAP
                                /plugins/templates/
                                - UPDATE check_MySQL-database-replication.pl
                                ASNMTAP::Asnmtap
-                               - replace '#!/usr/bin/perl' with '#!/usr/local/bin/perl'
+                               - replace '#!/usr/bin perl' with '#!/usr/local/bin/perl'
                                ASNMTAP::Asnmtap::Applications
                                - FIX <\\/embed> added
                                - FIX verify empty cgisess file at get_session_param () used by archive.pl
@@ -375,8 +434,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

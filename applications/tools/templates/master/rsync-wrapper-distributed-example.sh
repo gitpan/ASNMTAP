@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-wrapper for asnmtap, v2.002.xxx - wrapper script for rsync
 #   execution via ssh key for use with rsync-mirror & rsync-mirror.conf

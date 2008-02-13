@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, check_sendAndReceiveMail.pl
+# 2008/02/13, v3.000.016, check_sendAndReceiveMail.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_sendAndReceiveMail.pl',
   _programDescription => 'Send and Receive Mail',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'interval|i=i', 'environment|e:s', 'timeout|t:i', 'trendline|T=i'],
   _timeout            => 30,
   _debug              => 0);
@@ -38,7 +38,7 @@ my $environment = $objectPlugins->getOptionsArgv ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.015;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.016;
 
 my $body = "
 

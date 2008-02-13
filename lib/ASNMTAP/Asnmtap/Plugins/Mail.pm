@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -480,8 +480,13 @@ sub receiving_fingerprint_mails {
             next;
           }
 
-          my $decoder = new MIME::Decoder $head->mime_encoding;
-          $decoder->decode($msgbuffer, $msgbuffer);
+          # http://search.cpan.org/src/DONEILL/MIME-tools-5.425/README
+          if ( $head->mime_encoding eq 'quoted-printable' ) {
+            $msgbuffer = MIME::QuotedPrint::decode($msgbuffer);
+          } else {
+            my $decoder = new MIME::Decoder $head->mime_encoding;
+            $decoder->decode($msgbuffer, $msgbuffer);
+          }
 
           if ( $parms{checkFingerprint} ) {
             foreach my $msgline ( split (/[\n\r]/, $msgbuffer) ) {

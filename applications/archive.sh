@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, archive.sh
+# 2008/02/13, v3.000.016, archive.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -20,10 +20,10 @@ if [ "$ASNMTAP_PATH" ]; then
 fi
 
 # Central Server ASNMTAP
-# cd $AMPATH/applications; /usr/local/bin/perl archive.pl -A ArchiveCT -c F -r T -d T
+# cd $AMPATH/applications; /usr/bin/env perl archive.pl -A ArchiveCT -c F -r T -d T
 
 # Central Server Apache
-# cd $AMPATH/applications; /usr/local/bin/perl archive.pl -c T -r F -d F
+# cd $AMPATH/applications; /usr/bin/env perl archive.pl -c T -r F -d F
 
 # Distributed Server ASNMTAP
-# cd $AMPATH/applications; /usr/local/bin/perl archive.pl -A ArchiveCT -c T -r T -d F
+# cd $AMPATH/applications; /usr/bin/env perl archive.pl -A ArchiveCT -c T -r T -d F

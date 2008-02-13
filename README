@@ -1,226 +1,73 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 21 Oktober 2007
-Version      : 3.000.015
+Latest update: 13 Februari 2007
+Version      : 3.000.016
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.015, 2007/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
-                               Makefile.PL
-                               - version update CPAN 1.9102
-                               - version update CGI 3.29
-                               - version update Compress::Zlib 2.004
-                               - version update Config::General 2.33
-                               - version update Crypt::OpenSSL::RSA 0.25
-                               - version update Crypt::OpenSSL::X509 0.5
-                               - version update Crypt::SSLeay 0.56
-                               - version update Cwd 3.25
-                               - version update Bundle::DBD::mysql 4.005
-                               - version update IO::Socket::SSL 1.07
-                               - version update NetAddr::IP 4.007
-                               - version update WSRF::Lite 0.8.2.2
-                               - version update XML::LibXML 1.63
-                               ASNMTAP CPAN module perl 5.8.0, 5.8.5 and 5.8.6 compatible
-                               - Making perl 5.8.8 compatible
-                               ASNMTAP::Asnmtap
-                               - NEW environment variable ASNMTAP_PATH used into the bash scripts
-                               - NEW making MySQL 5.0.x compatible
-                                 - NEW asnmtap-3.000.015_mysql-v5.0.x.sql
-                                 - NEW applications/tools/mysql/asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
-                                 - FIX OnDemand versus Display with 254 character limitation for MySQL >= v5.0.3 and yyyymmdd-test-ukey.sql-LOAD-DATA-FAILED
-                                   Values in VARCHAR columns are variable-length strings.
-                                   The length can be specified as a value from 0 to 255 before MySQL 5.0.3, and 0 to 65,535 in 5.0.3 and later versions.
-                                   TEXT A string with a maximum length of 65535 characters, from a variable length types that store large amounts of data.
-                                   Is similar to a larger version of VARCHAR. These types can store a large piece of data information, but is also processed much slower.
-                                   - OnDemand
-                                     CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...: WARNING|'ping (...:8080)'=172ms;;;; 'monitorControls (...:8080)'=29682ms;;;; 'getVersion (...:8080)'=25ms;;;; 'ping (...:9108)'=25ms;;;; 'monitorControls (...:9108)'=30022ms;;;; 'getVersion (...:9108)'=24ms;;;; 'ping (...:9110)'=24ms;;;; 'monitorControls (...:9110)'=18898ms;;;; 'getVersion (...:9110)'=23ms;;;; Status=2;1;2;0;3 Compilation=1523ms;;;0; Trendline=79.039s;;;; Execution=80579ms;;;0; 
-                                   - Display: afkapping op 254 characters
-                                     CRITICAL - WebService ... (Production): 500 read timeout - 200 OK - getVersion (...:9108): 4.20063.13 - 200 OK - ping (...:9110): OK - 200 OK - monitorControls (...:9110): OK - 200 OK - getVersion (...:9110): 4.20063.13 - ...
-                                   - v4.x   : `statusMessage` varchar(254) NOT NULL default '',
-                                   - v5.0.x : `statusMessage` varchar(1024) NOT NULL default '',
-                                               alter table events_yyyy_mm change statusMessage statusMessage varchar(1024);
-                               - IMPROVED perfparse_crontab.sh
-                               - NEW perfparse_crontab_failed.sh (Yves Van den Hove)
-                               - NEW perfparse_debug.sh by (Yves Van den Hove)
-                               ASNMTAP::Asnmtap::Applications
-                               - Applications.cnf
-                                 <COMMON>
-                                 ...
-                                 #  <CHARTDIRECTOR>
-                                 #    LIB             /opt/ChartDirector/lib/.
-                                 #  </CHARTDIRECTOR>
-                                 ...
-                                 replace
-                                 #  <HTMLTOPD>
-                                 #  </HTMLTOPD>
-                                 with
-                                 #  <HTMLTOPDF>
-                                 #  </HTMLTOPDF>
-                                 </COMMON>
-                                 add                                 
-                                 <COMMON>
-                                 ...
-                                 #  <PERFPARSE>
-                                 #    BIN             /opt/asnmtap-3.000.xxx/perfparse/bin
-                                 #    ETC             /opt/asnmtap-3.000.xxx/perfparse/etc
-                                 #    LIB             /opt/asnmtap-3.000.xxx/perfparse/lib
-                                 #    SHARE           /opt/asnmtap-3.000.xxx/perfparse/share
-                                 #    CGI             /cgi-bin/perfparse.cgi
-                                 #    ENABLED         0                      # '0' or '1'
-                                 #    DATABASE        ~ <DATABASE_ACCOUNT><READWRITE><DATABASE>
-                                 #    HOST            ~ <DATABASE_ACCOUNT><READWRITE><HOST>
-                                 #    PORT            ~ <DATABASE_ACCOUNT><READWRITE><PORT>
-                                 #    USERNAME        ~ <DATABASE_ACCOUNT><READWRITE><USERNAME>
-                                 #    PASSWORD        ~ <DATABASE_ACCOUNT><READWRITE><PASSWORD>
-                                 #  </PERFPARSE>
-                                 </COMMON>
-                                 ...
-                                 replace
-                                 #<TABLES>
-                                 ...
-                                 #    REPORTS          reports
-                                 ...
-                                 #</TABLES>
-                                 with
-                                 #<TABLES>
-                                 ...
-                                 #    REPORTS          reports
-                                 #    REPORTSPERFDATA  reports_perfdata
-                                 ...
-                                 #</TABLES>
-                                - NEW $SERVERTABLREPORTSPRFDT into CGI.pm
-                                - NEW $CHARTDIRECTORLIB and $SERVERTABLREPORTSPRFDT into Applications.pm
-                                - NEW $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED into CGI.pm & Applications.pm
-                               ASNMTAP::Asnmtap::Applications::Collector
-                               - NEW $CHARTDIRECTORLIB into collector.pl
+Version 3.000.016, 2007/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+                               ASNMTAP
+                               - UPDATE fixRights.sh
+                               - UPDATE '#!/usr/bin perl' or '#!/usr/local/bin/perl' with '#!/bin/env perl'
+                                 to use the perl version found by the environment variable PATH
+                                 http://www.cyberciti.biz/tips/finding-bash-perl-python-portably-using-env.html
+                               ASNMTAP::Applications
+                               - archive.pl
+                                 - FIXED (1863109) createCommentsAndEventsArchiveTables at the end of the year
+                               - holidayBundleSetDowntimes.pl  
+                                 - NEW (1725445) Groeperen Mails
+                               ASNMTAP::Asnmtap::Applications.pod
+                               - FIXED MySQL GRANT configuration part
                                ASNMTAP::Asnmtap::Applications::CGI
-                               - NEW $CHARTDIRECTORLIB into generateChart.pl , generateCollectorCrontabSchedulingReport.pl, generateCollectorDaemonSchedulingReport.pl & generatePluginCrontabSchedulingReport.pl
+                               - /applications/htmlroot/snmptraps/include/classes/class.mysqlDB.php
+                                 - UPDATE class.mysqlDB.php
+                               - generateConfig.pl
+                                 - FIX (1822759) A first time config generate/install doesn't say what actions need to be done on a server
+                               - reports.pl
+                                 - FIX (1827421) Added reportTitle
                                ASNMTAP::Asnmtap::Plugins
-                               - NEW check_template-SNMPTT.pl
-                               ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_network_interface_traffic.pl
-                               display.pl
-                               - IMPROVED Status Message Error Displaying
-                               /bin/generateReports.pl
-                               - ADD show comments
-                               /sbin/purge_table.pl
-                               - FIX regarding: Can't create emailReport
-                               - FIX snmptt-3.000.015.sql: Cannot dbh->do: DELETE FROM `snmptt_unknown_archive` WHERE archivetime < "1161727200"
-                               /detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
-                               - ADD show comments
-                               - ADD short description
-                               - FIX Use of uninitialized value in concatenation (.) or string at line 333
-                               /moderator/collectorDaemonSchedulingReports.pl
-                               - FIX Use of uninitialized value in split at line 79.
-                               /moderator/plugins.pl
-                               - NEW Plugins (to edit short description, trendline, holiday bundle and uploading plugindoc)
-                               /moderator/trendlineCorrectionReports.pl
-                               - FIX Use of uninitialized value in split at line 93.
-                               - FIX Possible precedence problem on bitwise & operator at line 117.
-                               - FIX switch startdate with enddate
-                               /admin/reports.pl
-                               - ADD show comments
-                               - NEW Select 'Reports Perfdata'
-                               /admin/reports_perfdata.pl
-                               - NEW Reports Perfdata (to define the 'Performance Times' that are used by the automatically generated Reports)
-                               /sadmin/crontabs.pl
-                               - FIX 'select SQL_NO_CACHE count(id) from crontabs' with 'select SQL_NO_CACHE count(lineNumber) from crontabs'
-                               /sadmin/plugins.pl
-                               - ADD short desription
-                               - FIX $notActivated = ($Cactivated) ? '' : ' not'; with $notActivated = ($CTactivated) ? '' : ' not';
-                               integration with jUnit
-		                       - NEW /plugins/jUnit/
-                                 - NEW check_jUnit.pl
-                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit.pl
-                               integration with SNMPTT
-                               - NEW /plugins/snmptt/
-                                 - NEW check_SNMPTT_weblogic.pl
-                                 - NEW create_ASNMTAP_weblogic_configuration_for_SNMP.pl
-                                 - NEW create_weblogic_configuration_for_SNMPTT.pl
-                                 - FIX snmptt_traps_remove_pending_and_duplicated.pl
-		                       - NEW /plugins/templates/snmptt/
-                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
-                                 - NEW create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
-                                 - NEW snmptt-bea-weblogic.conf
-                                 - NEW snmptt-3.000.015.sql
-                                 - NEW snmptt.ini
-                               integration with NagTrap
-                               - NEW /applications/htmlroot/snmptraps
-                               table plugins
-                               - ADD `shortDesription` text,
-                               table reports
-                               - ADD `showComments` tinyint(1) NOT NULL default '0',
-                               - ADD `showPerfdata` tinyint(1) NOT NULL default '0',
-                               table reports_perfdata
-                               - NEW table reports_perfdata
-
-
-Version 3.000.014, 2007/06/10, Makefile.PL
-                               - version update CPAN 1.9101
-                               - version update CPANPLUS 0.78
-                               - version update Config::General 2.32
-                               - version update DateTime 0.37
-                               - version update Email::Simple 1.999
-                               - version update ExtUtils::MakeMaker 6.32
-                               - version update IO::Socket::SSL 1.04
-                               - version update Net::LDAP 0.34
-                               - version update Time::HiRes 1.9705
-                               - version update WSRF::Lite 0.8.2.1
-                               MANIFEST
-                               - NEW check_template-WebTransact-XML-Monitoring.pl
-                               - NEW check_template-WebTransact-XML-Monitoring.t
-                               - NEW check_template-WebTransact-with-client-authorization.pl
-                               - NEW check_template-WebTransact-with-client-authorization.t
-                               README
-                               - updated INSTALLATION procedure
-                               Applications.cnf
-                                 #<DATABASE_ACCOUNT>
-                                 #  <SERVER>
-                                 #    VERSION         4.x                    # '4.x' or '5.0.x'
-                                 #    MERGE           0                      # '0' or '1'
-                                 #  </SERVER>
-                               ASNMTAP::Asnmtap::*
-                               - optimalisation for MySQL queries
-                               ASNMTAP::Asnmtap::Applications.pm & display.pl
-                               - FIX sound sanity .innerHTML bug with FireFox
-                               - UPDATE sound default set to 'off' when FireFox, otherwise default set to 'on'
-                               - UPDATE $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
-                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
-                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
-                               - NEW $SERVERMYSQLVERSION = '4.x'           # '4.x' or '5.0.x'
-                               - NEW $SERVERMYSQLMERGE   = '0'               # '0' or '1'
-                               - UPDATE create_sql_query_events_from_range_year_month with MERGE when $SERVERMYSQLMERGE = 1 for much faster year and quarter statistics
-                               ASNMTAP::Asnmtap::Plugins
-                               - NEW check_SNMPTT_weblogic.pl
-                               - NEW create_NCPL_weblogic_configuration_for_SNMP.pl
-                               - NEW create_weblogic_configuration_database_with_SNMP.pl
-                               - NEW create_weblogic_configuration_database_with_SNMP.SQL
+                               - /plugins/nagios/check_network_interface_traffic.pl
+                                 - UPDATE making Solaris 10 compatible
+		                       - /plugins/jUnit/
+                                 - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+		                       - /plugins/snmptt/
+                                 - UPDATE check_snmptt_traps.pl
+                                 - NEW check_snmptt_traps.plN
+		                       - /plugins/templates/
+                                 - UPDATE check_template-WebTransact.pl
+		                       - /plugins/templates/jUnit/
+                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql.SQL
+                                 - NEW create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql-v5.0.x.SQL
+		                       - /plugins/templates/snmptt/
+                                 - NEW check_SNMPTT_probe.pl
+                                 - UPDATE check_SNMPTT_weblogic.pl
+                                 - NEW snmptt-3.000.016-v5.0.x.sql
+                                 - UPDATE TABLE `snmmptt` for MySQL' version 5.x
+                                   - ALTER TABLE `snmptt` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_archive` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_unknown` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                   - ALTER TABLE `snmptt_unknown_archive` CHANGE COLUMN `formatline` `formatline` varchar(1024) default NULL;
+                                 - UPDATE TABLE `wls_snmptt_CONFIG`
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapMBeanType` `trapMBeanType` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapAttributeName` `trapAttributeName` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` CHANGE COLUMN `trapMonitorType` `trapMonitorType` varchar(128) NOT NULL default '';
+                                   - ALTER TABLE `wls_snmptt_CONFIG` ADD COLUMN `trapLogSeverity` varchar(128) NOT NULL default '' AFTER `trapMonitorType_MATCH`, ADD COLUMN `trapLogSeverity_MATCH` char(2) default NULL AFTER `trapLogSeverity`, ADD COLUMN `trapLogMessage` varchar(128) NOT NULL default '' AFTER `trapLogSeverity_MATCH`, ADD COLUMN `trapLogMessage_MATCH` char(3) default NULL AFTER `trapLogMessage`;
+                                   - ALTER TABLE `wls_snmptt_CONFIG` DROP PRIMARY KEY, ADD PRIMARY KEY  (`trapMBeanType`,`trapAttributeName`,`trapMonitorType`, `trapLogSeverity`, `trapLogMessage`, `event_name`,`category`,`sources_list`,`mode`);
+                                 - UPDATE snmptt-bea-weblogic.conf
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
                                ASNMTAP::Asnmtap::Plugins::Mail.pm
-                               - FIX regarding MIME-Encoding '7bit' and code optimalisation
-                               - NEW MIME-Encoding: '8bit', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
-                               - overview MIME-Encoding: '7bit', '8bit', 'quoted-printable', 'base64', 'binhex', 'binary', 'x-gzip64', 'x-uu' & 'x-uuencode'
+                               - FIX regarding MIME-Encoding 'quoted-printable' into MIME-tools-5.425
                                ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_network_interface_status.pl
-                               - NEW snmptt_traps_remove_pending_and_duplicated.pl
-                               ASNMTAP::Asnmtap::SOAP.pm
-                               - NEW added basic authentication and credentials
-                               - NEW added soapaction and readable
-                               ASNMTAP::Asnmtap::Plugins::WebTransact.pm
-                               - NEW Inherited LWP user agent object: $objectWebTransact->ua = LWP::UserAgent->new;
-                               check_template-WebTransact-XML-Monitoring.pl & check_template-WebTransact-XML-Monitoring.t
-                               - NEW WebTransact plugin template for XML Monitoring
-                               check_template-WebTransact-with-client-authorization.pl & check_template-WebTransact-with-client-authorization.t
-                               - NEW WebTransact plugin template with client authorization
-                               detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
-                               - add corresponding comments to the report
-                               generateReports.pl & getArchivedReport.pl
-                               - add support for timeperiod
+                               - NEW Makefile.PL Net::Ifconfig::Wrapper
+                               ASNMTAP::Asnmtap::Plugins::WebTransact
+                               - UPDATE POD with 'Qs_var => [..., submain => RET_SUBMAIN, title1 => RET_TITLE1]'
 
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -524,7 +371,7 @@ Purpose: CronTab (CT, sysdCT),
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+© Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
 

@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, purge_table.pl for ASNMTAP
+# 2008/02/13, v3.000.016, purge_table.pl for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time v3.000.016;
 use ASNMTAP::Time qw(&get_epoch &get_year &get_month &get_day);
 
-use ASNMTAP::Asnmtap::Applications v3.000.015;
+use ASNMTAP::Asnmtap::Applications v3.000.016;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_email_report);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_ema
 my $objectASNMTAP = ASNMTAP::Asnmtap::Applications->new (
   _programName        => 'purge_table.pl',
   _programDescription => 'Purge table',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '-H|--host <HOST> [-P|--port <PORT>] -D|--database=<database> -T|--table=<table> [-A|--ago=<ago by STRING>] -u|--username|--loginname
  <USERNAME> -p|--password|--passwd <PASSWORD>',
   _programHelpPrefix  => "-H, --host=<HOST>

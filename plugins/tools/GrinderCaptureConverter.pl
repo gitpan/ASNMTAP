@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl -w
+#!/bin/env perl -w
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be] & Yves Van den Hove [yvdhove@users.sourceforge.net]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be] & Yves Van den Hove [yvdhove@users.sourceforge.net]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, GrinderCaptureConverter.pl
+# 2008/02/13, v3.000.016, GrinderCaptureConverter.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;

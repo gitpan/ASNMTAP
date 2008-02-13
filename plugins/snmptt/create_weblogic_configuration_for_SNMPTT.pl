@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, create_weblogic_configuration_for_SNMPTT.pl
+# 2008/02/13, v3.000.016, create_weblogic_configuration_for_SNMPTT.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time v3.000.016
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_for_SNMPTT.pl',
   _programDescription => 'Create weblogic configuration for SNMPTT',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogicConfig)",
@@ -65,13 +65,13 @@ if ( $dbh ) {
   my $rv = open(SNMPTT, ">$filename");
 
   if ($rv) {
-    my ( $trapMBeanType, $trapMBeanType_MATCH, $trapAttributeName, $trapAttributeName_MATCH, $trapMonitorType, $trapMonitorType_MATCH, $snmpgetOID, $destination, $event_name, $category, $severity, $event_OID, $format_string, $command_string, $regular_expression, $sources_list, $mode, $description, $activated );
-    my $sqlSTRING = "SELECT trapMBeanType, trapMBeanType_MATCH, trapAttributeName, trapAttributeName_MATCH, trapMonitorType, trapMonitorType_MATCH, snmpgetOID, destination, wls_snmptt_CONFIG.event_name, category, severity, event_OID, format_string, command_string, regular_expression, sources_list, mode, description, activated FROM `wls_snmptt_CONFIG`, `wls_snmp_CONFIG` WHERE activated='1' and wls_snmptt_CONFIG.event_name = wls_snmp_CONFIG.event_name order by event_OID, trapMBeanType, trapAttributeName, trapMonitorType";
+    my ( $trapMBeanType, $trapMBeanType_MATCH, $trapAttributeName, $trapAttributeName_MATCH, $trapMonitorType, $trapMonitorType_MATCH, $trapLogSeverity, $trapLogSeverity_MATCH, $trapLogMessage, $trapLogMessage_MATCH, $snmpgetOID, $destination, $event_name, $category, $severity, $event_OID, $format_string, $command_string, $regular_expression, $sources_list, $mode, $description, $activated );
+    my $sqlSTRING = "SELECT trapMBeanType, trapMBeanType_MATCH, trapAttributeName, trapAttributeName_MATCH, trapMonitorType, trapMonitorType_MATCH, trapLogSeverity, trapLogSeverity_MATCH, trapLogMessage, trapLogMessage_MATCH, snmpgetOID, destination, wls_snmptt_CONFIG.event_name, category, severity, event_OID, format_string, command_string, regular_expression, sources_list, mode, description, activated FROM `wls_snmptt_CONFIG`, `wls_snmp_CONFIG` WHERE activated='1' and wls_snmptt_CONFIG.event_name = wls_snmp_CONFIG.event_name order by event_OID, trapMBeanType, trapAttributeName, trapMonitorType";
     print "    $sqlSTRING\n" if ( $debug );
 
     $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
     $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-    $sth->bind_columns( \$trapMBeanType, \$trapMBeanType_MATCH, \$trapAttributeName, \$trapAttributeName_MATCH, \$trapMonitorType, \$trapMonitorType_MATCH, \$snmpgetOID, \$destination, \$event_name, \$category, \$severity, \$event_OID, \$format_string, \$command_string, \$regular_expression, \$sources_list, \$mode, \$description, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+    $sth->bind_columns( \$trapMBeanType, \$trapMBeanType_MATCH, \$trapAttributeName, \$trapAttributeName_MATCH, \$trapMonitorType, \$trapMonitorType_MATCH, \$trapLogSeverity, \$trapLogSeverity_MATCH, \$trapLogMessage, \$trapLogMessage_MATCH, \$snmpgetOID, \$destination, \$event_name, \$category, \$severity, \$event_OID, \$format_string, \$command_string, \$regular_expression, \$sources_list, \$mode, \$description, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
     my $EVENTBLOK = "#\n# MIB: BEA-WEBLOGIC-MIB generated on ". get_datetimeSignal() ."\n#\n";
     my $prev_event_name = '';
@@ -96,6 +96,16 @@ if ( $dbh ) {
 
         if ( defined $trapAttributeName_MATCH and defined $trapAttributeName and $trapAttributeName_MATCH and $trapAttributeName ) {
           $MATCH .= "MATCH $trapAttributeName_MATCH: ($trapAttributeName)\n";
+          $AND++;
+        }
+
+        if ( defined $trapLogSeverity_MATCH and defined $trapLogSeverity and $trapLogSeverity_MATCH and $trapLogSeverity ) {
+          $MATCH .= "MATCH $trapLogSeverity_MATCH: ($trapLogSeverity)\n";
+          $AND++;
+        }
+
+        if ( defined $trapLogMessage_MATCH and defined $trapLogMessage and $trapLogMessage_MATCH and $trapLogMessage ) {
+          $MATCH .= "MATCH $trapLogMessage_MATCH: ($trapLogMessage)\n";
           $AND++;
         }
 

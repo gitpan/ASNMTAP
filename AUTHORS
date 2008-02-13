@@ -1,12 +1,12 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 21 Oktober 2007
-Version      : 3.000.015
+Latest update: 13 Februari 2007
+Version      : 3.000.016
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,10 +32,21 @@ Yves Van den Hove <yvdhove@users.sourceforge.net>
   * GrinderCaptureConverter.pl
 
 
+# BUGS REPORTED - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Yves Van den Hove <yvdhove@users.sourceforge.net>
+  * 1863109 createCommentsAndEventsArchiveTables at the end of the year (FIX)
+  * 1827421 reports.pl - reportTitle (FIX)
+  * 1822759 A first time config generate/install doesn't say what actions need to be done on a server (FIX)
+
+
 # FEATURE REQUEST - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Yves Van den Hove <yvdhove@users.sourceforge.net>
+  * 1725445 Groeperen Mails
+  * 1768193 PDF issues with Adobe Acrobat 8
   * 1768190 Please filter out the passwords from the HTML dump files for J2EE based Applications
   * 1724056 Timeout for Webtransact
   * 1706596 Collapse error summary

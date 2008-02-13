@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.016;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -243,6 +243,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_network_interface_status.pl
   check_network_interface_traffic.pl
   check_snmptt_traps.pl
+  check_snmptt_traps.plN
   check_swap.pl
   check_swap-allocated.pl
   snmptt_traps_remove_pending_and_duplicated.pl

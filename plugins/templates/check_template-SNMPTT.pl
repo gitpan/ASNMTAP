@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, check_template-SNMPTT.pl
+# 2008/02/13, v3.000.016, check_template-SNMPTT.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-SNMPTT.pl',
   _programDescription => "SNMPTT plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '[--uKey|-K=<uKey>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>',
   _programGetOptions  => ['uKey|K:s', 'community|C=s', 'host|H:s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
@@ -95,9 +95,9 @@ if ( $dbh and $rv ) {
   my $tSeverity  = $ERRORS{OK};
 
   $query = "SELECT SQL_NO_CACHE id, eventname, eventid, trapoid, enterprise, agentip, severity, uptime, traptime, formatline, system_running_SNMPTT, trapread FROM `$serverTact` WHERE community='$community' $tHostname and category='$category' order by id desc";
-  $sth = $dbh->prepare($query) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $query ) if ( $rv );
-  $rv  = $sth->execute() or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot sth->execute: '. $query ) if ( $rv );
-  $sth->bind_columns( \$id, \$eventname, \$eventid, \$trapoid, \$enterprise, \$agentip, \$severity, \$uptime, \$traptime, \$formatline, \$system_running_SNMPTT, \$trapread ) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot sth->bind_columns: '. $query ) if ( $rv );
+  $sth = $dbh->prepare($query) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $query ) if ( $rv );
+  $rv  = $sth->execute() or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot sth->execute: '. $query ) if ( $rv );
+  $sth->bind_columns( \$id, \$eventname, \$eventid, \$trapoid, \$enterprise, \$agentip, \$severity, \$uptime, \$traptime, \$formatline, \$system_running_SNMPTT, \$trapread ) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot sth->bind_columns: '. $query ) if ( $rv );
 
   if ( $rv ) {
     my ($debugfileMessage, %tableVirtualServers, %tableVirtualServersDetail, %tableVirtualServersUniqueProblemSeverity);
@@ -165,28 +165,28 @@ if ( $dbh and $rv ) {
           unless ( $onDemand ) {
             my $sqlUPDATE = "UPDATE `$serverTact` SET uniqueProblem='$uniqueProblem' WHERE id='$id'";
             print "             = $sqlUPDATE\n" if ( $debug );
-            $dbh->do ($sqlUPDATE) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlUPDATE );
+            $dbh->do ($sqlUPDATE) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlUPDATE );
 
             if ( $rv ) {
               my $sqlSTRING = "SELECT count(*) FROM `$serverTarc` WHERE id='$id'";
               print "             ? $sqlSTRING\n" if ( $debug );
-              $sthDO = $dbh->prepare( $sqlSTRING ) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-              $sthDO->execute() or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+              $sthDO = $dbh->prepare( $sqlSTRING ) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+              $sthDO->execute() or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
 
               if ( $rv ) {
                 my $updateRecord = $sthDO->fetchrow_array();
-                $sthDO->finish() or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
+                $sthDO->finish() or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->finish: '. $sqlSTRING );
 
                 unless ( $updateRecord ) {
                   my $sqlINSERT = "INSERT INTO `$serverTarc` SELECT * FROM `$serverTact` WHERE id='$id'";
                   print "             + $sqlINSERT\n" if ( $debug );
-                  $dbh->do ( $sqlINSERT ) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlINSERT );
+                  $dbh->do ( $sqlINSERT ) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlINSERT );
                 }
 
                 if ( $rv ) {
                   my $sqlUPDATE = "UPDATE `$serverTact` SET trapread='2' WHERE id='$id'";
                   print "             = $sqlUPDATE\n" if ( $debug );
-                  $dbh->do ($sqlUPDATE) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlUPDATE );
+                  $dbh->do ($sqlUPDATE) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlUPDATE );
                 }
               }
             }
@@ -226,7 +226,7 @@ if ( $dbh and $rv ) {
             print "             - $sqlDELETE\n";
             $debugfileMessage .= "<TABLE WIDTH=\"100%\" cellspacing=\"1\" cellpadding=\"1\"><TR style=\"font: normal 68% verdana,arial,helvetica; background:$backgroundColor;\"><TD colspan=\"2\">$sqlDELETE</TD></TR></TABLE>"; 
           } else {
-            $dbh->do( $sqlDELETE ) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlDELETE );
+            $dbh->do( $sqlDELETE ) or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlDELETE );
           }
         }
       } else {
@@ -320,8 +320,8 @@ if ( $dbh and $rv ) {
       my $alert = "$tAlertVariable+, $tAlertFixed+" ;
 
       if ($currentTimeslot - $tEpochtime > $outOffDate) {
-        $alert .= " - Data is out off date!";
-        $alert .= " - From: " .scalar(localtime($tEpochtime)). " - Now: " .scalar(localtime($currentTimeslot)) if ( $debug >= 2 );
+        $alert .= ' - Data is out of date!';
+        $alert .= ' - From: ' .scalar(localtime($tEpochtime)). ' - Now: ' .scalar(localtime($currentTimeslot)) if ( $debug >= 2 );
         $objectPlugins->pluginValues ( { stateValue => ($tSeverity == 0 ? $ERRORS{UNKNOWN} : $tSeverity), alert => $alert }, $TYPE{APPEND} );
       } else {
         $objectPlugins->pluginValues ( { stateError => $STATE{$tSeverity}, alert => $alert }, $TYPE{APPEND} );
@@ -330,7 +330,7 @@ if ( $dbh and $rv ) {
       $objectPlugins->pluginValues ( { stateError => $STATE{$tSeverity}, alert => 'No new problems available.' }, $TYPE{APPEND} );
     }
 
-    $sth->finish() or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot sth->finish: '. $query );
+    $sth->finish() or $rv = errorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $query );
   } 
 
   $dbh->disconnect() or $rv = errorTrapDBI ( \$objectPlugins,  'The database $serverDb was unable to read your entry.' );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,7 +76,7 @@ if ( -e $_configfile or ( exists $ENV{ASNMTAP_PATH} ) ) {
     $_configfile = "$PREFIXPATH/Asnmtap.cnf";
   }
 
-  die "ASNMTAP::Asnmtap: Config '$_configfile' don't exists." unless (-e $_configfile);
+  die "ASNMTAP::Asnmtap: Config '$_configfile' doesn't exist." unless (-e $_configfile);
 
   use Config::General qw(ParseConfig);
   %_config = ParseConfig ( -ConfigFile => $_configfile, -InterPolateVars => 0 ) ;
@@ -119,7 +119,7 @@ our $CAPTUREOUTPUT   = ( exists $_config{IO}{CAPTUREOUTPUT} )   ? $_config{IO}{C
 
 our $CHATCOMMAND     = '/usr/sbin/chat';
 our $KILLALLCOMMAND  = '/usr/bin/killall';
-our $PERLCOMMAND     = '/usr/bin/perl';
+our $PERLCOMMAND     = '/usr/bin/env perl';
 our $PPPDCOMMAND     = '/usr/sbin/pppd';
 our $ROUTECOMMAND    = '/sbin/route';
 our $RSYNCCOMMAND    = '/usr/bin/rsync';

@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2007/06/10 15:19:36, ASNMTAP v3.000.015 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2007/10/21 15:19:36, ASNMTAP v3.000.016 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -680,7 +680,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
  ftp_proxy=http://proxy.citap.be:8080
 
  alias su=/usr/bin/su
- alias perl=/usr/local/bin/perl
+ alias perl=/usr/bin/env perl
 
  if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
    PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
@@ -699,7 +699,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
  export ftp_proxy=http://proxy.citap.be:8080
 
  alias su=/usr/bin/su
- alias perl=/usr/local/bin/perl
+ alias perl=/usr/bin/env perl
 
  if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
    PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
@@ -845,35 +845,35 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015-distributed.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.015-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
  mysql -u root -p
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE, CREATE TEMPORARY TABLES, DROP ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd'; 
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE, CREATE TEMPORARY TABLES, DROP ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd'; 
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-master-server' IDENTIFIED BY 'passwd-ro';
  mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-slave-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
@@ -952,8 +952,8 @@ MySQL 5.0.x
    copy and untar mysql-snapshot.tar created earlier
 
  mysql -u root -p
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd';
- mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TABLE, CREATE TEMPORARY TABLES ON asnmtap.* TO 'asnmtap'@'hostname-slave-server' IDENTIFIED BY 'passwd';
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE, CREATE TEMPORARY TABLES, DROP ON asnmtap.* TO 'asnmtap'@'localhost' IDENTIFIED BY 'passwd'; 
+ mysql> GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE, CREATE TEMPORARY TABLES, DROP ON asnmtap.* TO 'asnmtap'@'hostname-master-server' IDENTIFIED BY 'passwd'; 
  mysql> GRANT SELECT ON asnmtap.* TO 'asnmtapro'@'hostname-slave-server' IDENTIFIED BY 'passwd-ro';
  mysql> GRANT SELECT, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD ON asnmtap.* TO 'replication'@'hostname-master-server' IDENTIFIED BY 'passwd-replication';
  mysql> FLUSH TABLES WITH READ LOCK;
@@ -1157,19 +1157,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.016.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.016.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.015.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.016-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.015.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.015_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.016-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1207,6 +1207,10 @@ Install net-snmp 5.4.x
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
+ plugins/snmptt/check_SNMPTT_probe.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
  plugins/snmptt/check_SNMPTT_weblogic.pl
 
  ... TODO ... NO PART OF NORMAL SETUP ...
@@ -1222,6 +1226,10 @@ Install net-snmp 5.4.x
  ... TODO ... NO PART OF NORMAL SETUP ...
 
  plugins/nagios/check_snmptt_traps.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/nagios/check_snmptt_traps.plN
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1400,7 +1408,7 @@ Click on the Update License button to add a license to your system
 
  /etc/init.d/httpd restart
 
- /usr/local/bin/perl /usr/local/awstats/awstats_updateall.pl now -awstatsprog=/usr/local/awstats/wwwroot/cgi-bin/awstats.pl -configdir=/usr/local/awstats/etc/
+ /usr/bin/env perl /usr/local/awstats/awstats_updateall.pl now -awstatsprog=/usr/local/awstats/wwwroot/cgi-bin/awstats.pl -configdir=/usr/local/awstats/etc/
 
 
  vi /var/spool/cron/crontabs/root

@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, check_template-ldap.pl
+# 2008/02/13, v3.000.016, check_template-ldap.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.015;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.016;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_template-ldap.pl',
   _programDescription => 'LDAP Nagios Template',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programGetOptions  => ['host|H=s', 'port|P=i', 'dn=s', 'dnPass=s', 'base=s', 'scope=s', 'filter=s', 'username|u|loginname:s', 'password|p|passwd=s', 'environment|e:s'],
   _programUsagePrefix => '-0|--dn <dn> -1|--dnPass <dn pass> -b|--base <base> -s|--scope <scope> -f|--filter <filter>',
   _programHelpPrefix  => "-0, --dn=<DN>

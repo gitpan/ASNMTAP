@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/02/13, v3.000.016, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports.pl";
 my $prgtext     = "Reports";
-my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,6 +46,7 @@ my $orderBy                = (defined $cgi->param('orderBy'))               ? $c
 my $action                 = (defined $cgi->param('action'))                ? $cgi->param('action')                : 'listView';
 my $Cid                    = (defined $cgi->param('id'))                    ? $cgi->param('id')                    : 'new';
 my $CuKey                  = (defined $cgi->param('uKey'))                  ? $cgi->param('uKey')                  : 'none';
+my $CreportTitle           = (defined $cgi->param('reportTitle'))           ? $cgi->param('reportTitle')           : '';
 my $Cperiode               = (defined $cgi->param('periode'))               ? $cgi->param('periode')               : 'none';
 my $CtimeperiodID          = (defined $cgi->param('timeperiodID'))          ? $cgi->param('timeperiodID')          : 'none';
 my $Cstatus                = (defined $cgi->param('status'))                ? $cgi->param('status')                : 'off';
@@ -73,10 +74,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&id=$Cid&uKey=$CuKey&periode=$Cperiode&timeperiodID=$CtimeperiodID&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showComments=$CshowComments&showPerfdata=$CshowPerfdata&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&userPassword=$CuserPassword&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&id=$Cid&uKey=$CuKey&reportTitle=$CreportTitle&periode=$Cperiode&timeperiodID=$CtimeperiodID&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showComments=$CshowComments&showPerfdata=$CshowPerfdata&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&userPassword=$CuserPassword&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>periode       : $Cperiode<br>SLA window    : $CtimeperiodID<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>show comments : $CshowComments<br>show perfdata : $CshowPerfdata<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output : $CformatOutput<br>user password : $CuserPassword<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>report title  : $CreportTitle<br>periode       : $Cperiode<br>SLA window    : $CtimeperiodID<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>show comments : $CshowComments<br>show perfdata : $CshowPerfdata<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output : $CformatOutput<br>user password : $CuserPassword<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingReports, $navigationBar);
@@ -116,7 +117,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq 'on') ? 1 : 0;
         my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq 'on') ? 1 : 0;
         my $dummyActivated             = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle=' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -126,10 +127,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $matchingReports = "<h1>Reports Perfdata:</h1><table><th>ID</th><th>METRIC ID</th></tr></table>\n";
-
-      $sql = "select id, metric_id from $SERVERTABLREPORTSPRFDT where id = '$Cid' order by id";
-      ($rv, $matchingReports) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'METRIC ID', $matchingReports, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select id, $SERVERTABLREPORTS.uKey from $SERVERTABLREPORTS, $SERVERTABLREPORTSPRFDT where id = '$Cid' and $SERVERTABLREPORTS.uKey = $SERVERTABLREPORTSPRFDT.uKey order by id";
+      ($rv, $matchingReports) = check_record_exist ($rv, $dbh, $sql, 'Reports', 'ID', 'uKey', $matchingReports, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ($matchingReports eq '') {
         $sql = 'DELETE FROM ' .$SERVERTABLREPORTS. ' WHERE id="' .$Cid. '"';
@@ -160,7 +159,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq 'on') ? 1 : 0;
       my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq 'on') ? 1 : 0;
       my $dummyActivated             = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword.'", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
+      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle=' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword.'", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -176,12 +175,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select id, uKey, periode, timeperiodID, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showComments, showPerfdata, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, activated from $SERVERTABLREPORTS where id = '$Cid'";
+      $sql = "select id, uKey, reportTitle, periode, timeperiodID, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showComments, showPerfdata, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, activated from $SERVERTABLREPORTS where id = '$Cid'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($Cid, $CuKey, $Cperiode, $CtimeperiodID, $Cstatus, $CerrorDetails, $Cbar, $ChourlyAverage, $CdailyAverage, $CshowDetails, $CshowComments, $CshowPerfdata, $CshowTop20SlowTests, $CprinterFriendlyOutput, $CformatOutput, $CuserPassword, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($Cid, $CuKey, $CreportTitle, $Cperiode, $CtimeperiodID, $Cstatus, $CerrorDetails, $Cbar, $ChourlyAverage, $CdailyAverage, $CshowDetails, $CshowComments, $CshowPerfdata, $CshowTop20SlowTests, $CprinterFriendlyOutput, $CformatOutput, $CuserPassword, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
         $Cid                    = 'new' if ($action eq 'duplicateView');
         $Cstatus                = ($Cstatus == 1) ? 'on' : 'off';
         $CerrorDetails          = ($CerrorDetails == 1) ? 'on' : 'off';
@@ -343,6 +342,9 @@ HTML
         </td></tr>
 		<tr><td><b>Application: </b></td><td>
           $uKeySelect
+        </td></tr>
+		<tr><td><b>Report title: </b></td><td>
+          <input type="text" name="reportTitle" value="$CreportTitle" size="100" maxlength="100" $formDisabledAll>
         </td></tr>
 		<tr><td><b>When: </b></td><td>
           $formatPeriodeSelect

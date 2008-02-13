@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, generateReports.sh
+# 2008/02/13, v3.000.016, generateReports.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -19,4 +19,4 @@ if [ "$ASNMTAP_PATH" ]; then
   AMPATH=$ASNMTAP_PATH
 fi
 
-cd $AMPATH/applications/bin; /usr/local/bin/perl generateReports.pl
+cd $AMPATH/applications/bin; /usr/bin/env perl generateReports.pl

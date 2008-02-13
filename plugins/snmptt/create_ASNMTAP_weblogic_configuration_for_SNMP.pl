@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+# 2008/02/13, v3.000.016, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time v3.000.016;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.015;
+use ASNMTAP::Asnmtap::Applications v3.000.016;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create ASNMTAP weblogic configuration for SNMP',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '[--update] [--hostname] [--domain=<domain>] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--update
 --hostname
@@ -83,7 +83,7 @@ my $pluginTitle              = 'Weblogic - ';
 my $pluginHelpPluginFilename = 'Supervision File SNMP Monitoring Weblogic.pdf'; # default '<NIHIL>'
 
 # plugins: statically
-my $pluginTest               = 'check_SNMPTT_weblogic.pl';
+my $pluginTest               = 'create_ASNMTAP_weblogic_configuration_for_SNMP.pl';
 my $pluginDatabaseArguments  = "--server=$_serverDB --port=$_port --database=snmptt --username=$_username --passwd=$_password";
 my $pluginOndemand           = 1;
 my $pluginProduction         = 1;
@@ -129,9 +129,9 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
   $sqlSTRING = 'SELECT ADMIN_NAME, HOST, PORT, COMMUNITY, VERSION, ENV, ACTIVATED, uKey, holidayBundleID, step, minute, hour, dayOfTheMonth, monthOfTheYear, dayOfTheWeek, adminConsoleCheck FROM `ADMIN_CONFIG`';
 
   $actions .= "WEBLOGIC: $sqlSTRING\n" if ( $debug );
-  $sthWEBLOGIC = $dbhWEBLOGIC->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-  $sthWEBLOGIC->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-  $sthWEBLOGIC->bind_columns( \$adminName, \$host, \$port, \$community, \$version, \$environment, \$activated, \$uKey, \$holidayBundleID, \$step, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$adminConsoleCheck ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+  $sthWEBLOGIC = $dbhWEBLOGIC->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+  $sthWEBLOGIC->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+  $sthWEBLOGIC->bind_columns( \$adminName, \$host, \$port, \$community, \$version, \$environment, \$activated, \$uKey, \$holidayBundleID, \$step, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$adminConsoleCheck ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
   if ( $rv ) {
     while( $sthWEBLOGIC->fetch() ) {
@@ -142,9 +142,9 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
       my ($_uKey, $_title, $_environment, $_step, $_helpPluginFilename, $_holidayBundleID, $_activated);
       $sqlSTRING = "SELECT uKey, title, environment, step, helpPluginFilename, holidayBundleID, activated FROM `plugins` WHERE uKey='$uKey' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
-      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-      $sthASNMTAP->bind_columns( \$_uKey, \$_title, \$_environment, \$_step, \$_helpPluginFilename, \$_holidayBundleID, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP->bind_columns( \$_uKey, \$_title, \$_environment, \$_step, \$_helpPluginFilename, \$_holidayBundleID, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
         my $adminConsole = $adminConsoleCheck ? '--adminConsole=' . $adminConsoleHTTP . $host .'.'. $adminConsoleDomainURL .':'. ( $port + $adminConsolePortOffset ) . $adminConsoleApplication : '' ;
@@ -195,16 +195,16 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
         }
 
-        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot sth->finish: '. $sqlSTRING );
+        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
       }
 
       # views
       my ($_displayDaemon, $_displayGroupID);
       $sqlSTRING = "SELECT uKey, displayDaemon, displayGroupID, activated FROM `views` WHERE uKey='$uKey' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
-      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-      $sthASNMTAP->bind_columns( \$_uKey, \$_displayDaemon, \$_displayGroupID, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP->bind_columns( \$_uKey, \$_displayDaemon, \$_displayGroupID, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
         if ( $sthASNMTAP->fetch() ) {
@@ -238,16 +238,16 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
         }
 
-        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot sth->finish: '. $sqlSTRING );
+        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
       }
 
       # crontabs
       my ($_lineNumber, $_collectorDaemon, $_arguments, $_minute, $_hour, $_dayOfTheMonth, $_monthOfTheYear, $_dayOfTheWeek, $_noOffline);
       $sqlSTRING = "SELECT uKey, lineNumber, collectorDaemon, arguments, minute, hour, dayOfTheMonth, monthOfTheYear, dayOfTheWeek, noOffline, activated FROM `crontabs` WHERE uKey='$uKey' and lineNumber='00' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
-      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-      $sthASNMTAP->bind_columns( \$_uKey, \$_lineNumber, \$_collectorDaemon, \$_arguments, \$_minute, \$_hour, \$_dayOfTheMonth, \$_monthOfTheYear, \$_dayOfTheWeek, \$_noOffline, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+      $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+      $sthASNMTAP->bind_columns( \$_uKey, \$_lineNumber, \$_collectorDaemon, \$_arguments, \$_minute, \$_hour, \$_dayOfTheMonth, \$_monthOfTheYear, \$_dayOfTheWeek, \$_noOffline, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
         if ( $sthASNMTAP->fetch() ) {
@@ -291,11 +291,11 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
         }
 
-        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot sth->finish: '. $sqlSTRING );
+        $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
       }
     }
 
-    $sthWEBLOGIC->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot sth->finish: '. $sqlSTRING );
+    $sthWEBLOGIC->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
   }
 }
 

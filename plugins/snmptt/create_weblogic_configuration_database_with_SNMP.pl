@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, create_weblogic_configuration_database_with_SNMP.pl
+# 2008/02/13, v3.000.016, create_weblogic_configuration_database_with_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.015;
+use ASNMTAP::Asnmtap::Plugins v3.000.016;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_database_with_SNMP.pl',
   _programDescription => 'Create Weblogic Configuration Database with SNMP',
-  _programVersion     => '3.000.015',
+  _programVersion     => '3.000.016',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogic)",
@@ -82,9 +82,9 @@ if ( $dbh ) {
 
   my $sqlSTRING = 'SELECT ADMIN_NAME, HOST, PORT, COMMUNITY, VERSION, ENV, ACTIVATED FROM `ADMIN_CONFIG`';
   print "    $sqlSTRING\n" if ( $debug );
-  $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-  $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-  $sth->bind_columns( \$adminName, \$host, \$port, \$community, \$version, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+  $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+  $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+  $sth->bind_columns( \$adminName, \$host, \$port, \$community, \$version, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
   if ( $rv ) {
     while( $sth->fetch() ) {
@@ -96,7 +96,7 @@ if ( $dbh ) {
       $adminServers{"$adminName"}->{activated}   = $activated;
     }
 
-    $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
+    $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->finish: '. $sqlSTRING );
   }
 
   while ( my ($domain, $hash) = each( %adminServers ) ) {
@@ -120,12 +120,12 @@ if ( $dbh ) {
       my $domain_name = ( defined $server->{serverParent} ? $server->{serverParent} : 'DOMAIN:'. $domain );
       my $sqlSTRING = 'SELECT count(SERVER_NAME) FROM `SERVERS` WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
       print "    $sqlSTRING\n" if ( $debug );
-      $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-      $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+      $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+      $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
         my $updateRecord = $sth->fetchrow_array();
-        $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
+        $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->finish: '. $sqlSTRING );
 
         if ( $updateRecord ) {
           $sqlSTRING = 'UPDATE `SERVERS` SET SERVER_NAME="'. $server->{serverName} .'", DOMAIN_NAME="'. $domain_name .'", MACHINE="'. $server->{serverMachine} .'", LISTEN_PORT="'. $server->{serverListenPort} .'", CLUSTER_NAME="'. $server->{serverCluster} .'", EXPECTED_TO_RUN="'. $server->{serverExpectedToRun} .'", ENV="'. $server->{environment} .'", LISTEN_ADDRESS="'. $server->{serverListenAddress} .'" WHERE SERVER_NAME="'. $server->{serverName} .'" AND DOMAIN_NAME="'. $domain_name .'"';
@@ -134,7 +134,7 @@ if ( $dbh ) {
         }
 
         print "    $sqlSTRING\n" if ( $debug );
-        $dbh->do ( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlSTRING );
+        $dbh->do ( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlSTRING );
       }
 
     }
@@ -152,12 +152,12 @@ if ( $dbh ) {
 
       my $sqlSTRING = 'SELECT count(CLUSTER_NAME) FROM `CLUSTERS` WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
       print "    $sqlSTRING\n" if ( $debug );
-      $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $sqlSTRING );
-      $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
+      $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
+      $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
         my $updateRecord = $sth->fetchrow_array();
-        $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->finish: '. $sqlSTRING );
+        $sth->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->finish: '. $sqlSTRING );
 
         if ( $updateRecord ) {
           $sqlSTRING = 'UPDATE `CLUSTERS` SET CLUSTER_NAME="'. $cluster->{clusterName} .'", CLUSTER_SERVERS="'. $cluster->{clusterServers} .'", ENV="'. $cluster->{environment} .'" WHERE CLUSTER_NAME="'. $cluster->{clusterName} .'"';
@@ -166,7 +166,7 @@ if ( $dbh ) {
         }
 
         print "    $sqlSTRING\n" if ( $debug );
-        $dbh->do ( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlSTRING );
+        $dbh->do ( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlSTRING );
       }
     }
   }

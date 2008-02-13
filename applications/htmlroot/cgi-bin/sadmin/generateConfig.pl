@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/02/13, v3.000.016, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.015;
+use ASNMTAP::Time v3.000.016;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.015;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -852,6 +852,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $initializeGenerateView .= system_call ("rm -rf", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated", $debug);
         $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated", $debug);
 
+        unless (-d "$APPLICATIONPATH/tmp/$CONFIGDIR/installed") {
+          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
+        }
+
         if ( defined $numberCentralServers and $numberCentralServers == 1) {
           $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN", $debug);
           $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN/etc", $debug);
@@ -1313,7 +1317,7 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
 
     } else {
       $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Under construction:</td></tr>";
-      $installView .= "\n        <tr><td>The generated configuration don't exists.</td></tr>";
+      $installView .= "\n        <tr><td>The generated configuration doesn't exist.</td></tr>";
     }
 	
     $installView .= "\n      </table>";
@@ -1328,7 +1332,7 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
       $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>We moved $APPLICATIONPATH/tmp/$CONFIGDIR/generated to $APPLICATIONPATH/tmp/$CONFIGDIR/installed</td></tr>";
     } else {
       $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Under construction:</td></tr>";
-      $installView .= "\n        <tr><td>The generated configuration don't exists.</td></tr>";
+      $installView .= "\n        <tr><td>The generated configuration doesn't exist.</td></tr>";
     }
 
     $installView .= "\n      </table>";
@@ -1733,7 +1737,7 @@ sub createRsyncMirrorScriptsFailover {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1875,7 +1879,7 @@ sub createRsyncMirrorScriptsDistributed {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1928,7 +1932,7 @@ RSYNCMIRRORFILE
 
         if ($rvOpen) {
           print RsyncMirror <<RSYNCMIRRORFILE;
-#!/usr/local/bin/perl
+#!/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -2289,7 +2293,7 @@ sub do_compare_view {
         } else {
           my (undef, $servername, $filename) = split (/\//, $generated, 3);
           ($type, $server) = split (/-/, $servername, 2);
-	  
+
           # Replace 'distributed.citap.be:/opt/asnmtap-3.000.xxx/applications/slave/asnmtap-display.sh' with '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DS-distributed.citap.be/slave/asnmtap-display.sh'
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
           $compareText = "Replace '$server:$APPLICATIONPATH/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
@@ -2310,11 +2314,11 @@ sub do_compare_view {
           }
         }
       } elsif ( $compareView =~ /^diff: installed: No such file or directory/ ) {
-        $compareText = "The installed configuration don't exists.";
+        $compareText = 'The installed configuration doesn't exist.';
       } elsif ( $compareView =~ /^diff: generated: No such file or directory/ ) {
-        $compareText = "The generated configuration don't exists.";
+        $compareText = 'The generated configuration doesn't exist.';
       } else {
-        $compareText = "Under construction < $compareView >";
+        $compareText = 'Under construction < $compareView >';
       }
 
       unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or $type eq 'CM' or $type eq 'DM'); $compareText .= '<HR>'; }

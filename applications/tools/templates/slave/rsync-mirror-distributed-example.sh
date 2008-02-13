@@ -1,6 +1,6 @@
 #!/bin/bash
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-mirror-failover.sh for asnmtap, v2.001.xxx, mirror script for rsync
 #   execution via ssh key for use with rsync-wrapper-distributed.sh
@@ -87,7 +87,7 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.015'
+RMVersion='3.000.016'
 echo "rsync-mirror-distributed version $RMVersion"
 
 PidPath=/opt/asnmtap-3.000.xxx/pid/asnmtap

@@ -1,8 +1,8 @@
 #!/bin/sh
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2007 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2007/10/21, v3.000.015, htmldoc.sh for ASNMTAP
+# 2008/02/13, v3.000.016, htmldoc.sh for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 #
@@ -15,11 +15,14 @@ options='--bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/body
 
 HTMLDOC_NOCGI=1; export HTMLDOC_NOCGI
 
-# Tell the browser to expect a PDF file...
+# Tell the browser to expect a PDF file ...
 echo "Content-Type: application/pdf"
 echo ""
+# echo "Content-Disposition: attachment; filename=$filename";
+# echo ""
+# echo ""
 
-# Run HTMLDOC to generate the PDF file...
+# Run HTMLDOC to generate the PDF file ...
 htmldoc -t pdf $options http://${SERVER_NAME}:${SERVER_PORT}${PATH_INFO}?$QUERY_STRING
 
 # ----------------------------------------------------------------------------------------------------------

@@ -80,11 +80,16 @@ class database {
 	         }
           }
 	      if ($_REQUEST['hostname'] != "") {
-             if ($_REQUEST['FQDN'] == "T") {
-	            $dbQuerySet[] = "hostname = '".$_REQUEST['hostname']."'"; 
-             } else {
-	            $dbQuerySet[] = "hostname like '".$_REQUEST['hostname'].".%'";
-   	         }
+            $a = 0;
+            $hostnames = split ( '\,', $_REQUEST['hostname'] );
+            foreach ( $hostnames as $hostname ) {
+              if ($_REQUEST['FQDN'] == "T") {
+	            $hostnames[$a++] = "hostname = '$hostname'"; 
+              } else {
+	            $hostnames[$a++] = "hostname like '$hostname.%'";
+   	          }
+            }
+            $dbQuerySet[] = '('. join (' or ', $hostnames ) .')';
 	      }
 	      if ($_REQUEST['trapOID'] != "") {
              $teller = 0;

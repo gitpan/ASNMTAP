@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w -I ..
+#!/bin/env perl -w -I ..
 #
 # ... Tests via check_template-mail-xml-fingerprint-xml.pl
 #

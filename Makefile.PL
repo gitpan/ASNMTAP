@@ -1,24 +1,24 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.15 2007/xx/xx 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.16 2007/xx/xx 18:27:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
 
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
-# - replace 'Latest update: xx xxx 2007' with ...
-# - replace 'Version      : 3.000.xxx' with ...
+# replace 'Latest update: dd month 2007' with ...
+# replace 'Version      : 3.000.xxx' with ...
 
-# - replace `# 2007/xx/xx, v` with `# 2007/10/21, v`
-# - replace 'Gecko/2007yyyymmdd' with 'Gecko/20071021'
+# replace `# 2007/10/21, v` with `# 2007/xx/xx, v`
+# replace 'Gecko/20071021' with 'Gecko/2007yyyymmdd'
 
-# - replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
-# - replace `v3.000.015` with `v3.000.yyy`
-# - replace `'3.000.xxx'` with `'3.000.yyy'`
-# - replace `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
-# - rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
+# replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
+# replace `v3.000.016;` with `v3.000.yyy;`
+# replace `'3.000.016'` with `'3.000.yyy'`
+# replace `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
+# rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
 
-# - rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
+# rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,7 +45,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.000.015$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -237,7 +237,7 @@ my @prerequisites = (
 
     [ 'plugins/templates/dtd/*.dtd',     'r' ],
 
-    [ 'plugins/templates/xml/*.xml',     'r' ],
+    [ 'plugins/templates/jUnit/*.*',     'r' ],
 
     [ 'plugins/templates/snmptt/*.*',    'r' ],
 
@@ -245,12 +245,14 @@ my @prerequisites = (
 
     [ 'plugins/templates/ssl/key/*.key', 'r' ],
 
+    [ 'plugins/templates/xml/*.xml',     'r' ],
+
     [ 'plugins/tools/*.pl',              'x' ],
 
     [ 'plugins/tmp',                     'd' ]
    ]
   ],
-  [ '*001100', 'Subclass Nagios', 'ASNMTAP::Asnmtap::Plugins::Nagios', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Time::Local' => '1.17' }, 1,
+  [ '*001100', 'Subclass Nagios', 'ASNMTAP::Asnmtap::Plugins::Nagios', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Time::Local' => '1.17', 'Net::Ifconfig::Wrapper' => '0.09' }, 1,
    [
     [ 'plugins/nagios/*.pl',                  'x' ],
 

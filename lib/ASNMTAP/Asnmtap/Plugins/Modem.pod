@@ -8,7 +8,7 @@ ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions 
 
 =item modem
 
- use ASNMTAP::Asnmtap::Plugins::Modem v3.000.015;
+ use ASNMTAP::Asnmtap::Plugins::Modem v3.000.016;
  use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
  my $returnCode = get_modem_request (
@@ -22,7 +22,7 @@ ASNMTAP::Asnmtap::Plugins::Modem is a Perl module that provides Modem functions 
 
 =item RAS
 
- use ASNMTAP::Asnmtap::Plugins::Modem v3.000.015;
+ use ASNMTAP::Asnmtap::Plugins::Modem v3.000.016;
  use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
  my $returnCode = get_modem_request (
