@@ -2314,11 +2314,11 @@ sub do_compare_view {
           }
         }
       } elsif ( $compareView =~ /^diff: installed: No such file or directory/ ) {
-        $compareText = 'The installed configuration doesn't exist.';
+        $compareText = "The installed configuration doesn't exist.";
       } elsif ( $compareView =~ /^diff: generated: No such file or directory/ ) {
-        $compareText = 'The generated configuration doesn't exist.';
+        $compareText = "The generated configuration doesn't exist.";
       } else {
-        $compareText = 'Under construction < $compareView >';
+        $compareText = "Under construction < $compareView >";
       }
 
       unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or $type eq 'CM' or $type eq 'DM'); $compareText .= '<HR>'; }

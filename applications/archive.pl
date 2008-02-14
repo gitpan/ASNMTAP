@@ -170,7 +170,6 @@ if ( $rvOpen ) {
   if ($doDatabase) {
     my $month = get_month ('today');
     my $day   = get_day   ('today');
-    my $year  = get_year ('today');
     createCommentsAndEventsArchiveTables ( '+1 year' ) if ($month == 12 and $day >= 24);
     archiveCommentsAndEventsTables ( '-14 days', '-1 year' );
   }

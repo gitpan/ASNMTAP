@@ -12,7 +12,6 @@ requires:
     Bundle::DBI:                   1.53
     Bundle::LWP:                   1.11
     CGI:                           3.29
-    CGI::Session:                  4.20
     Compress::Zlib:                2.004
     Config::General:               2.33
     Config::General::Interpolated: 2.07
@@ -46,8 +45,6 @@ requires:
     Net::Ifconfig::Wrapper:        0.09
     Net::IMAP::Simple:             1.14
     Net::SSLeay:                   1.30
-    NetAddr::IP:                   4.007
-    Proc::ProcessTable:            0.41
     SOAP::Lite:                    0.69
     Sys::Hostname::Long:           1.4
     Test::Pod::Coverage:           1.08
