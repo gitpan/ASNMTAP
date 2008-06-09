@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, check_sendAndReceiveMail.pl
+# 2008/mm/dd, v3.000.017, check_sendAndReceiveMail.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.016;
+use ASNMTAP::Asnmtap::Plugins v3.000.017;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_sendAndReceiveMail.pl',
   _programDescription => 'Send and Receive Mail',
-  _programVersion     => '3.000.016',
+  _programVersion     => '3.000.017',
   _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'interval|i=i', 'environment|e:s', 'timeout|t:i', 'trendline|T=i'],
   _timeout            => 30,
   _debug              => 0);
@@ -38,7 +38,7 @@ my $environment = $objectPlugins->getOptionsArgv ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.016;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.017;
 
 my $body = "
 
@@ -67,7 +67,8 @@ $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
                        }
   );
 
-no warnings 'deprecated'; $objectMAIL->{_subject_} = 'DELIVERY FAILURE: 550 Mailbox unavailable <unknown.mailbox@citap.com>';
+no warnings 'deprecated';
+$objectMAIL->{_subject_} = 'DELIVERY FAILURE: 550 Mailbox unavailable <unknown.mailbox@citap.com>';
 ($returnCode, $number1OfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, checkFingerprint => 0, receivedState => 0, outOfDate => $interval, perfdataLabel => 'email(s) received from citap.com' );
 undef $objectMAIL;
 
@@ -84,7 +85,8 @@ $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
                        }
   );
 
-no warnings 'deprecated'; $objectMAIL->{_subject_} = 'DELIVERY FAILURE: 553 User does not exist';
+no warnings 'deprecated';
+$objectMAIL->{_subject_} = 'DELIVERY FAILURE: 553 User does not exist';
 ($returnCode, $number2OfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, checkFingerprint => 0, receivedState => 0, outOfDate => $interval, perfdataLabel => 'email(s) received from citap.be' );
 undef $objectMAIL;
 

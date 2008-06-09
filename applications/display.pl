@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2008/mm/dd, v3.000.017, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.016;
+use ASNMTAP::Time v3.000.017;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.016;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.017;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -128,9 +128,9 @@ if ($opt_l) {
 
 my ($dchecklist, $dtest, $dfetch, $tinterval, $tgroep, $resultsdir, $ttest, $firstTimeslot, $lastTimeslot, $rvOpen);
 my (@fetch, $dstart, $tstart, $start, $step, $names, $data, $rows, $columns, $line, $val, @vals);
-my ($command, $tstatus, $tduration, $timeValue, $prevGroep, @multiarrayFullCondensedView);
+my ($command, $tstatus, $tduration, $timeValue, $prevGroep, @multiarrayFullCondensedView, @multiarrayMinimalCondensedView);
 my ($rv, $dbh, $sth, $lockString, $findString, $unlockString, $doChecklist, $timeCorrectie, $timeslot);
-my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $itemFullCondensedView);
+my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $itemFullCondensedView);
 my ($checkOk, $checkSkip, $configNumber, $printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
 my ($playSoundInProgress, $playSoundPreviousStatus, $playSoundStatus, %tableSoundStatusCache);
 
@@ -283,6 +283,7 @@ sub do_crontab {
   my $directory = $HTTPSPATH .'/nav/'. $pagedir;
   create_dir ($directory) unless ( -e "$directory" );
   $htmlOutput = $directory .'/'. $pageset;
+
   $rvOpen = open(HTML, ">$htmlOutput.tmp");
 
   unless ( $rvOpen ) {
@@ -294,6 +295,13 @@ sub do_crontab {
 
   unless ( $rvOpen ) {
     print "Cannot open $htmlOutput-cv.tmp to create the html information\n";
+    exit 0;
+  }
+
+  $rvOpen = open(HTMLMCV, ">$htmlOutput-mcv.tmp");
+
+  unless ( $rvOpen ) {
+    print "Cannot open $htmlOutput-mcv.tmp to create the html information\n";
     exit 0;
   }
 
@@ -325,10 +333,9 @@ sub do_crontab {
 
   $configNumber = $playSoundStatus = 0;
   $doChecklist = ($dbh and $rv) ? 1 : 0;
-  $emptyFullView = $emptyCondencedView = 1;
+  $emptyFullView = $emptyCondencedView = $emptyMinimalCondencedView = 1;
 
   if ($doChecklist) {
-	@multiarrayFullCondensedView = [];
     $groupFullView = $groupCondensedView = 0;
 
     foreach $dchecklist (@checklisttable) {
@@ -418,7 +425,6 @@ sub do_crontab {
 
                 $TcommentData =~ s/'/`/g;
                 $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
-              # $TcommentData =~ s/[\n\r]+(?:Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (?:\d{4}-\d\d-\d\d) (?:\d\d:\d\d:\d\d)//g;
                 $TcommentData =~ s/[\n\r]/<br>/g;
                 $TcommentData =~ s/(?:<br>)+/<br>/g;
                 $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
@@ -543,14 +549,41 @@ sub do_crontab {
   }
 
   printGroepFooter('', 0);
-  printStatusHeader('', $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus);
 
-  printStatusFooter('', $emptyFullView, $emptyCondencedView, $playSoundStatus);
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  $emptyMinimalCondencedView = ( scalar ( @multiarrayMinimalCondensedView ) ? 0 : 1 );
+
+  unless ( $emptyMinimalCondencedView ) {
+    @multiarrayMinimalCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayMinimalCondensedView );
+    @multiarrayMinimalCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayMinimalCondensedView );
+    @multiarrayMinimalCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayMinimalCondensedView );
+    @multiarrayMinimalCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayMinimalCondensedView );
+
+    foreach my $arrayFullCondensedView ( @multiarrayMinimalCondensedView ) {
+      print HTMLMCV @$arrayFullCondensedView[4];
+    }
+
+    print HTMLMCV '<tr style="{height: 4;}"><TD></TD></TR>', "\n";
+ 	delete @multiarrayMinimalCondensedView[0..@multiarrayMinimalCondensedView];
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  printStatusHeader('', $configNumber, $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $playSoundStatus);
+
+  printStatusFooter('', $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $playSoundStatus);
+
   printHtmlFooter('');
+
   close(HTML);
-  close(HTMLCV);
   rename("$htmlOutput.tmp", "$htmlOutput.html") if (-e "$htmlOutput.tmp");
+
+  close(HTMLCV);
   rename("$htmlOutput-cv.tmp", "$htmlOutput-cv.html") if (-e "$htmlOutput-cv.tmp");
+
+  close(HTMLMCV);
+  rename("$htmlOutput-mcv.tmp", "$htmlOutput-mcv.html") if (-e "$htmlOutput-mcv.tmp");
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -647,8 +680,11 @@ sub printHtmlHeader {
   print_header (*HTML, $pagedir, "$pageset-cv", $htmlTitle, "Full View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
   print HTML '<TABLE WIDTH="100%">', "\n";
 
-  print_header (*HTMLCV, $pagedir, "$pageset", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
+  print_header (*HTMLCV, $pagedir, "$pageset-mcv", $htmlTitle, "Condenced View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
   print HTMLCV '<TABLE WIDTH="100%">', "\n";
+
+  print_header (*HTMLMCV, $pagedir, "$pageset", $htmlTitle, "Minimal Condenced View", 60, "ONLOAD=\"startRefresh(); initSound();\"", 'T', "<script type=\"text/javascript\" src=\"$HTTPSURL/overlib.js\"><!-- overLIB (c) Erik Bosrup --></script>", undef);
+  print HTMLMCV '<TABLE WIDTH="100%">', "\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -665,25 +701,26 @@ sub printGroepHeader {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printStatusHeader {
-  my ($title, $configNumber, $emptyFullView, $emptyCondencedView, $playSoundStatus) = @_;
+  my ($title, $configNumber, $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $playSoundStatus) = @_;
 
-  my ($emptyFullViewMessage, $emptyCondencedViewMessage);
+  my ($emptyFullViewMessage, $emptyCondencedViewMessage, $emptyMinimalCondencedViewMessage);
 
   if ( $configNumber ) {                         # Monitored Applications
-    if ( $emptyCondencedView ) {
-      if ( $emptyFullView ) {
-        $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably collector/config problems!';
-      } elsif ( $emptyCondencedView ) {
-        $emptyCondencedViewMessage = 'All Monitored Applications are OK';
-      }
-    }
-  } elsif ( $emptyFullView and $emptyCondencedView ) {
-    if ( $doChecklist ) {
-      $emptyFullViewMessage = $emptyCondencedViewMessage = 'No Monitored Applications';
+    if ( $emptyFullView ) {
+      $emptyMinimalCondencedViewMessage = $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably collector/config problems!';
     } else {
-      $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!';
+      $emptyCondencedViewMessage        = 'All Monitored Applications are OK' if ( $emptyCondencedView );
+      $emptyMinimalCondencedViewMessage = 'All Monitored Applications are OK' if ( $emptyMinimalCondencedView );
+    }
+  } elsif ( $emptyFullView and $emptyCondencedView and $emptyMinimalCondencedView ) {
+    if ( $doChecklist ) {
+      $emptyMinimalCondencedViewMessage = $emptyCondencedViewMessage = $emptyFullViewMessage = 'No Monitored Applications';
+    } else {
+      $emptyMinimalCondencedViewMessage = $emptyCondencedViewMessage = $emptyFullViewMessage = 'Contact ASAP the server administrators, probably database problems!';
     }
   }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   if (defined $emptyFullViewMessage) {
     print HTML   '<TR><TD class="StatusHeader" COLSPAN="', $colspanDisplayTime, '"><BR><H1>', $emptyFullViewMessage, '</H1></TD></TR>', "\n", '</TABLE>', "\n";
@@ -694,6 +731,8 @@ sub printStatusHeader {
   print_legend (*HTML);
   print HTML   '<TABLE WIDTH="100%">', "\n";
 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   if (defined $emptyCondencedViewMessage) {
     print HTMLCV '<TR><TD class="StatusHeader" COLSPAN="', $colspanDisplayTime, '"><BR><H1>', $emptyCondencedViewMessage, '</H1></TD></TR>', "\n", '</TABLE>', "\n";
   } else {
@@ -702,6 +741,17 @@ sub printStatusHeader {
 
   print_legend (*HTMLCV);
   print HTMLCV '<TABLE WIDTH="100%">', "\n";
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  if (defined $emptyMinimalCondencedViewMessage) {
+    print HTMLMCV '<TR><TD class="StatusHeader" COLSPAN="', $colspanDisplayTime, '"><BR><H1>', $emptyMinimalCondencedViewMessage, '</H1></TD></TR>', "\n", '</TABLE>', "\n";
+  } else {
+    print HTMLMCV '</TABLE>', "\n";
+  }
+
+  print_legend (*HTMLMCV);
+  print HTMLMCV '<TABLE WIDTH="100%">', "\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -766,9 +816,9 @@ EOM
   my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
 
   my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
-  my $comments = '<a href="/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
+  my $comments = '<a href="'. $HTTPSURL .'/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
 
-  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
+  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="'. $HTTPSURL .'/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
 
   $checkOk = $checkSkip = $printCondensedView = $problemSolved = $verifyNumber = 0;
   $inProgressNumber = -1;
@@ -789,31 +839,35 @@ sub printGroepCV {
 
   if ($showGroup and $title ne '') {
     if ($groupFullView) {
-      print HTML '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
-      my $teller = @multiarrayFullCondensedView;
+	  $emptyFullView = ( scalar ( @multiarrayFullCondensedView ) ? 0 : 1 );
 
-      foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
-        print HTML @$arrayFullCondensedView[4];
+      unless ( $emptyFullView ) {
+        print HTML '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
+
+        foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
+          print HTML @$arrayFullCondensedView[4];
+        }
       }
 
-	  $emptyFullView = ($teller == 0) ? $emptyFullView : 0;
       print HTML '<tr style="{height: 4;}"><TD></TD></TR>', "\n", if $showFooter;
     }
 
     if ($groupCondensedView) {
-      @multiarrayFullCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayFullCondensedView );
-      @multiarrayFullCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayFullCondensedView );
-      @multiarrayFullCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayFullCondensedView );
-      @multiarrayFullCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayFullCondensedView );
+	  $emptyCondencedView = ( scalar ( @multiarrayFullCondensedView ) ? 0 : 1 );
 
-      print HTMLCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
-      my $teller = @multiarrayFullCondensedView;
+      unless ( $emptyCondencedView ) {
+        @multiarrayFullCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayFullCondensedView );
+        @multiarrayFullCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayFullCondensedView );
+        @multiarrayFullCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayFullCondensedView );
+        @multiarrayFullCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayFullCondensedView );
 
-      foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
-        print HTMLCV @$arrayFullCondensedView[4] if ( @$arrayFullCondensedView[5] );
+        print HTMLCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', encode_html_entities('T', $title), '</TD></TR>', "\n";
+
+        foreach my $arrayFullCondensedView ( @multiarrayFullCondensedView ) {
+          print HTMLCV @$arrayFullCondensedView[4] if ( @$arrayFullCondensedView[5] );
+        }
       }
 
-	  $emptyCondencedView = ($teller == 0) ? $emptyCondencedView : 0;
       print HTMLCV '<tr style="{height: 4;}"><TD></TD></TR>', "\n", if $showFooter;
     }
   }
@@ -1078,8 +1132,9 @@ sub printStatusMessage {
 sub printHtmlFooter {
   my $title = @_;
 
-  print HTML   "</BODY>\n</HTML>";
-  print HTMLCV "</BODY>\n</HTML>";
+  print HTML    "</BODY>\n</HTML>";
+  print HTMLCV  "</BODY>\n</HTML>";
+  print HTMLMCV "</BODY>\n</HTML>";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1106,13 +1161,14 @@ sub printItemFooter {
   $groupCondensedView += $printCondensedView;
 
   my $groep = ( $title =~ /^\[(\d+)\]/ ? $1 : 0);
-  push (@multiarrayFullCondensedView, [ $ERRORS{"$status"}, $groep, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView ] );
+  push ( @multiarrayFullCondensedView, [ $ERRORS{"$status"}, $groep, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView ] );
+  push ( @multiarrayMinimalCondensedView, [ $ERRORS{"$status"}, '-MCV-', $timeslot, $statusIcon, $itemFullCondensedView ] ) unless ( $statusIcon or $status =~ /(?:OK|DEPENDENT|OFFLINE|NO TEST|TRENDLINE)/ or ! $printCondensedView );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printStatusFooter {
-  my ($title, $emptyFullView, $emptyCondencedView, $playSoundStatus) = @_;
+  my ($title, $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $playSoundStatus) = @_;
 
   print HTML   '</TABLE>', "\n";
 
@@ -1143,6 +1199,8 @@ EOH
 EOH
   }
 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   print HTMLCV '</TABLE>', "\n";
 
   print HTMLCV <<EOH;
@@ -1161,6 +1219,37 @@ EOH
 
   if ($playSoundStatus) {
     print HTMLCV <<EOH;
+<script language="JavaScript" type="text/javascript">
+  var soundState = getSoundCookie( 'soundState' );
+
+  if ( soundState != null && soundState == 'on' ) {
+    playSound = '<embed src="$HTTPSURL/sound/$SOUND{$playSoundStatus}" width="" height="" alt="" hidden="true" autostart="true" loop="false"><\\/embed>';
+    dynamicContentNS4NS6FF ('SoundStatus', playSound, 1);
+  }
+</script>
+EOH
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  print HTMLMCV '</TABLE>', "\n";
+
+  print HTMLMCV <<EOH;
+<script language="JavaScript" type="text/javascript">
+  function toggleDiv (div_id){
+    if (document.getElementById(div_id)) {
+      if (document.getElementById(div_id).style.display == 'none') {
+        document.getElementById(div_id).style.display = 'block';
+      } else {
+        document.getElementById(div_id).style.display = 'none';
+      }
+    }
+  }
+</script>
+EOH
+
+  if ($playSoundStatus) {
+    print HTMLMCV <<EOH;
 <script language="JavaScript" type="text/javascript">
   var soundState = getSoundCookie( 'soundState' );
 

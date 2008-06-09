@@ -371,10 +371,10 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.016.sql
-applications/tools/mysql/asnmtap-3.000.016_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.000.016-distributed.sql
-applications/tools/mysql/asnmtap-3.000.016-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.017.sql
+applications/tools/mysql/asnmtap-3.000.017_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.017-distributed.sql
+applications/tools/mysql/asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -402,6 +402,7 @@ plugins/nagios/check_iowait.pl
 plugins/nagios/check_memory-free.pl
 plugins/nagios/check_memory-top.pl
 plugins/nagios/check_nagios-comments-cleanup.pl
+plugins/nagios/check_nagiosv3-comments-cleanup.pl
 plugins/nagios/check_network_interface_status.pl
 plugins/nagios/check_network_interface_traffic.pl
 plugins/nagios/check_snmptt_traps.pl
@@ -465,14 +466,14 @@ plugins/templates/dtd/email-upgrade-1.0.dtd
 plugins/templates/dtd/FingerprintEmail-1.0.dtd
 plugins/templates/dtd/Monitoring-1.0.dtd
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.016_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.017_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.017_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
-plugins/templates/snmptt/snmptt-3.000.016.sql
-plugins/templates/snmptt/snmptt-3.000.016-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.000.017.sql
+plugins/templates/snmptt/snmptt-3.000.017-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

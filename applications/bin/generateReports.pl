@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, generateReports.pl for ASNMTAP::Applications
+# 2008/mm/dd, v3.000.017, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.016;
+use ASNMTAP::Asnmtap::Applications v3.000.017;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -44,7 +44,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -282,7 +282,7 @@ for (my $dayAfter = ($daysAfter ? 1 : 0); $dayAfter <= $daysAfter; $dayAfter++) 
             my $pdfFilename = "$RESULTSPATH/$resultsdir/$REPORTDIR/$dayReportYear$dayReportMonthPdf$dayReportDayPdf-$test-$uKey-$periodeMessage-id_$id.pdf";
             my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters);
             my $user_password = (defined $userPassword and $userPassword ne '' ? '--user-password '. $userPassword : '');
-            my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $user_password $HTMLTOPDFOPTNS 'http://$REMOTE_HOST/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$encodedUrlAccessParameters'";
+            my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $user_password $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$HTTPSURL/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$encodedUrlAccessParameters'";
 
             if ( -e "$pdfFilename" ) {
               $emailMessage .= "  > $pdfFilename already generated\n";

@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.000.016',
+   _programVersion     => '3.000.017',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -147,6 +147,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
  $PIDPATH           $PREFIXPATH/pid
 
  $CHATCOMMAND       /usr/sbin/chat
+ $DIFFCOMMAND       /usr/bin/diff
  $KILLALLCOMMAND    /usr/bin/killall
  $PERLCOMMAND       /usr/bin/env perl
  $PPPDCOMMAND       /usr/sbin/pppd
@@ -219,6 +220,7 @@ With the environment variable ASNMTAP_PATH you can change the default location f
 
  <COMMAND>
      CHAT               /usr/sbin/chat
+     DIFF               /usr/bin/diff
      KILLALL            /usr/bin/killall
      PPPD               /usr/sbin/pppd
      PERL               /usr/bin/env perl
@@ -582,7 +584,7 @@ ALL
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
   $CAPTUREOUTPUT
   $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   %ERRORS %STATE %TYPE
 
 =item *
@@ -598,7 +600,7 @@ ASNMTAP
  
 COMMANDS
 
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
 =item *
 
@@ -642,7 +644,7 @@ ASNMTAP::Asnmtap::Plugins::IO, ASNMTAP::Asnmtap::Plugins::Mail, ASNMTAP::Asnmtap
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, generateCollectorDaemonSchedulingReports.pl
+# 2008/mm/dd, v3.000.017, generateCollectorDaemonSchedulingReports.pl
 # ---------------------------------------------------------------------------------------------------------
 #  http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-FQDN-Daily.pdf
 # ---------------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.016;
+use ASNMTAP::Asnmtap::Applications v3.000.017;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReports.pl";
 my $prgtext     = "Generate Collector Daemon Scheduling Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -132,7 +132,7 @@ my $hostname = hostname();
 $hostname =~ s/\./_/g;
 my $pdfFilename = "$RESULTSPATH/_ASNMTAP/$REPORTDIR/$currentYear$currentMonth$currentDay-collectorDaemonSchedulingReports.pl-_ASNMTAP-$hostname-Daily.pdf";
 my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters);
-my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $HTMLTOPDFOPTNS 'http://$REMOTE_HOST/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?$encodedUrlAccessParameters'";
+my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$HTTPSURL/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?$encodedUrlAccessParameters'";
 
 if ( -e "$pdfFilename" ) {
   $emailMessage .= "  > $pdfFilename already generated\n";

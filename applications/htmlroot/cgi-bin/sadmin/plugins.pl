@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -577,7 +577,7 @@ HTML
 
     if (defined $matchingViewsCrontabs) {
       print "<table align=\"center\">\n<tr><td>\n$matchingViewsCrontabs</td></tr></table><br>\n";
-      print "<table align=\"center\">\n<tr><td>\n<img src=\"/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl?uKey=$CuKey&amp;".encode_html_entities('U', "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID")."\"></td></tr></table><br>\n" if (defined $generatePluginCrontabSchedulingReport);
+      print "<table align=\"center\">\n<tr><td>\n<img src=\"$HTTPSURL/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl?uKey=$CuKey&amp;".encode_html_entities('U', "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID")."\"></td></tr></table><br>\n" if (defined $generatePluginCrontabSchedulingReport);
     }
   }
 }

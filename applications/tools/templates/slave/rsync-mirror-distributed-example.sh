@@ -87,7 +87,7 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.016'
+RMVersion='3.000.017'
 echo "rsync-mirror-distributed version $RMVersion"
 
 PidPath=/opt/asnmtap-3.000.xxx/pid/asnmtap
@@ -179,11 +179,11 @@ Lock='yes'
   case "$Source" in
     */)
       echo Mirroring directory "$Source" to "$Target"
-      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync --rsync-path=$Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     *)
       echo Mirroring "$Source" to "$Target"
-      $Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync --rsync-path=$Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     esac
 done

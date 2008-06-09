@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -129,8 +129,7 @@ sub new {
     }
   }
 
-  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, ua => undef, newAgent => 1, number_of_images_downloaded => 0, _unknownErrors => 0, _KnownError => undef }, $classname;
-
+  bless { asnmtapInherited => $asnmtapInherited, urls => $urls_ar, matches => [], returns => {}, ua => undef, newAgent => 1, number_of_images_downloaded => 0, _unknownErrors => 0, _KnownError => undef, _timing_tries => 0 }, $classname;
   # The field urls contains a ref to a list of (hashes) records representing the web transaction.
 
   # self->_my_match() will update $self->{matches};
@@ -152,6 +151,8 @@ sub check {
                    perfdataLabel    => undef,
                    newAgent         => undef,
                    timeout          => undef,
+                   triesTiming      => '1,3,15',
+                   triesCodes       => '408,500,502,503,504',
                    openAppend       => TRUE,
                    cookies          => TRUE,
                    protocol         => TRUE,
@@ -161,8 +162,11 @@ sub check {
   my %parms = (%defaults, @_);
 
   my $debug         = ${$self->{asnmtapInherited}}->getOptionsValue ( 'debug' );
+  my $onDemand      = ${$self->{asnmtapInherited}}->getOptionsValue ( 'onDemand' );
   my $debugfile     = ${$self->{asnmtapInherited}}->getOptionsArgv ( 'debugfile' );
   my $openAppend    = $parms{openAppend};
+  my $triesTiming   = $parms{triesTiming};
+  my %triesCodesToDeterminate = map { $_ => 1 } ( $parms{triesCodes} =~ m<(\d+(?:\.\d+)*)>g );
 
   my $proxyServer   = ${$self->{asnmtapInherited}}->proxy ( 'server' );
   my $proxyUsername = ${$self->{asnmtapInherited}}->proxy ( 'username' );
@@ -243,7 +247,37 @@ sub check {
     my $request_as_string = $request->as_string;
     print "\n", ref ($self), '::send_request: ', $request_as_string, "\n" if ( $debug );
 
-    $response = $ua->request ($request);
+    if ( defined $triesTiming and $triesTiming ) {
+      my (@timing_tries) = ( $triesTiming =~ m<(\d+(?:\.\d+)*)>g );
+      LWP::Debug::debug ('My retrial code policy is ['. join(' ', sort keys %triesCodesToDeterminate) .'].');
+      LWP::Debug::debug ('My retrial timing policy is ['. $triesTiming .'].');
+      my $timing_tries = 0;
+
+      foreach my $pause_if_unsuccessful ( @timing_tries, undef ) {
+        $response = $ua->request ($request);
+        my $code = $response->code;
+        my $message = $response->message;
+        $message =~ s/\s+$//s;
+        $timing_tries++;
+
+        unless( $triesCodesToDeterminate{$code} ) { # normal case: all is well (or 404, etc)
+          LWP::Debug::debug ("It returned a code ($code $message) blocking a retry");
+          last;
+        }
+
+        if ( defined $pause_if_unsuccessful ) {
+          LWP::Debug::debug ("It returned a code ($code $message) that'll make me retry, after $pause_if_unsuccessful seconds.");
+          sleep $pause_if_unsuccessful if ( $pause_if_unsuccessful );
+          $self->{_timing_tries}++;
+        } else {
+          LWP::Debug::debug ("I give up.  I'm returning this '$code $message' response.");
+        }
+      }
+
+      print ref ($self), '::timing_tries: ', $timing_tries, " - $url\n" if ( $onDemand );
+    } else {
+      $response = $ua->request ($request);
+    }
 
     if ( defined $response->content_encoding and $response->content_encoding =~ /^gzip$/i ) {
       use Compress::Zlib;
@@ -259,7 +293,7 @@ sub check {
     }
 
     my $responseTime = ${$self->{asnmtapInherited}}->setEndTime_and_getResponsTime ( ${$self->{asnmtapInherited}}->pluginValue ('endTime') );
-    print ref ($self), '::response_time: ', $responseTime, " - $url\n" if ( $debug );
+    print ref ($self), '::response_time: ', $responseTime, " - $url\n" if ( $onDemand );
     ${$self->{asnmtapInherited}}->appendPerformanceData ( "'". $url_r->{Perfdata_Label} ."'=". $responseTime .'ms;;;;' ) if ( defined $url_r->{Perfdata_Label} );
 
     $self->_write_debugfile ( $request_as_string, $response_as_content, $debugfile, $openAppend ) if ( defined $debugfile );
@@ -657,6 +691,7 @@ sub _next_url {
 sub DESTROY { 
   print (ref ($_[0]), "::DESTROY: ()\n") if ( ${$_[0]->{asnmtapInherited}}->getOptionsValue ( 'debug' ) );
   rename ( $_[0]->{_KnownError}, $_[0]->{_KnownError} .'-KnownError' ) if ( defined $_[0]->{_KnownError} and ! $_[0]->{_unknownErrors} );
+  ${$_[0]->{asnmtapInherited}}->appendPerformanceData ( "'url timing retries'=". $_[0]->{_timing_tries} .';;;;' );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

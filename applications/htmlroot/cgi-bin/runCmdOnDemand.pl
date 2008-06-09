@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -135,7 +135,7 @@ EndOfHtml
     if ($uKey ne '<NIHIL>') {
       my $commandMaskedPassword = maskPassword ($command);
       print "<P class=\"RunCmdOnDemandHtmlTitle\">$htmlTitle: <font class=\"RunCmdOnDemandCommand\">$commandMaskedPassword --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F'</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\">";
-      my ($capture_long, $capture_html, $capture_text, $capture_debug, $capture_array, @WebTransactResponstime);
+      my ($capture_long, $capture_html, $capture_text, $capture_debug, $capture_array, @WebTransactResponses);
       $capture_long = $capture_html = $capture_text = $capture_debug = $capture_array = 0;
       my @capture_array = `cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1`;
 
@@ -161,14 +161,11 @@ EndOfHtml
           print "</td></tr><tr><td class=\"RunCmdOnDemandCaptureTrue\"><pre>$capture\n";
         } elsif ( ! $capture_debug and $capture =~ /^Start time   :|^Status       :/ ) {
           $capture_debug = 1;
-
-          foreach my $WebTransactResponstime (@WebTransactResponstime) {
-            print "</td></tr><tr><td class=\"RunCmdOnDemandCaptureTime\">$WebTransactResponstime\n";
-          }
-
           print "</td></tr><tr><td class=\"RunCmdOnDemandCaptureDebug\"><pre>$capture\n";
         } elsif ($capture =~ /WebTransact::response_time: /) {
-          push (@WebTransactResponstime, $capture);
+          push (@WebTransactResponses, $capture);
+        } elsif ($capture =~ /WebTransact::timing_tries: /) {
+          push (@WebTransactResponses, $capture);
         } elsif ($capture ne '') {
           if ($capture_debug) {
             print "$capture\n";
@@ -195,6 +192,10 @@ EndOfHtml
             print "<tr><td class=\"RunCmdOnDemandCaptureTrue\">$capture</td></tr>\n";
 	      }
   	    }
+      }
+
+      foreach my $WebTransactResponses (@WebTransactResponses) {
+        print "</td></tr><tr><td class=\"RunCmdOnDemandCaptureTime\">$WebTransactResponses\n";
       }
 
       print "<tr><td>&nbsp;</td></tr>\n" if ($capture_array == 0);

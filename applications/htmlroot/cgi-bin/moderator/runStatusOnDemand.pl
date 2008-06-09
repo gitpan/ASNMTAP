@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -111,6 +111,17 @@ EndOfHtml
 
       $command = "asnmtap-$status.sh status";
       print "<P class=\"RunStatusOnDemandHtmlTitle\">$htmlTitle: <font class=\"RunStatusOnDemandCommand\">$APPLICATIONPATH/$masterOrSlave/$command</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\" bgcolor=\"#333344\" border=0>";
+
+      my $_ppid = 1;
+
+      if (-e '/usr/bin/zonename') { # Solaris 10 root into an non global zone where pid != 1 & pid == ppid 
+        my $zonename = `/usr/bin/zonename`;
+
+        if ( $zonename ne 'global' ) {
+          $_ppid = `ps -e -o 'pid ppid zone fname' | grep zsched | awk '{print \$1}'`;
+        }
+      }
+
       my @capture_array = `cd $APPLICATIONPATH/$masterOrSlave; $PERLCOMMAND $command 2>&1`;
 
       use Proc::ProcessTable;
@@ -154,7 +165,7 @@ EndOfHtml
         } elsif ($capture =~ /\.\/$daemonCaptureStatus(?:-test)?\.pl/) {
           my (undef, $pid, $ppid, undef) = split (/\s+/, $capture, 4);
 
-          if ($ppid == 1 and $daemonCaptureParent) {
+          if ($ppid == $_ppid and $daemonCaptureParent) {
             $daemonCaptureArrayName {$daemonCaptureParent} += 2;
             $daemonCaptureArrayPid {$daemonCaptureParent} = $pid;
             $daemonCaptureArrayParent {$pid} = 1;
@@ -165,7 +176,7 @@ EndOfHtml
       if (defined $daemonCaptureHeader) {
         # pass 1 for the Parents
         foreach my $process ( @{$tProcessTable->table} ) {
-          if ($process->ppid == 1 and $process->cmndline =~ /\.\/$daemonCaptureStatus(?:-test)?\.pl/) {
+          if ($process->ppid == $_ppid and $process->cmndline =~ /\.\/$daemonCaptureStatus(?:-test)?\.pl/) {
             $daemonProcessTableParent   {$process->pid} = (defined $daemonCaptureArrayParent {$process->pid}) ? 1 : 0;
             $daemonProcessTablePctmem   {$process->pid} = $process->pctmem;
             $daemonProcessTableSize     {$process->pid} = $process->size;

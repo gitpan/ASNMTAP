@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, info.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, info.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI $ASNMTAPMANUAL);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +30,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "info.pl";
 my $prgtext     = "$APPLICATION Info";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,9 +62,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   <br>
   <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr align="center"><td>
 	<table border="0" cellspacing="0" cellpadding="0">
-	  <tr><td class="StatusItem"><a href="/cgi-bin/users.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Change your account settings</a></td></tr>
+	  <tr><td class="StatusItem"><a href="$HTTPSURL/cgi-bin/users.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Change your account settings</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
-	  <tr><td class="StatusItem"><a href="/cgi-bin/contact.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Contact server administrators</a></td></tr>
+	  <tr><td class="StatusItem"><a href="$HTTPSURL/cgi-bin/contact.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Contact server administrators</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="$PDPHELPURL/$ASNMTAPMANUAL" target="_blank">'$APPLICATION' manual</a></td></tr>
 	</table>

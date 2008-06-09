@@ -21,7 +21,7 @@ This module that provides a nice object oriented interface for building ASNMTAP 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template.pl',
    _programDescription => "General plugin template for the '$APPLICATION'",
-   _programVersion     => '3.000.016',
+   _programVersion     => '3.000.017',
    _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
    _programHelpPrefix  => "-H, --hostname=HOST
     Name or IP address of host to check
@@ -419,7 +419,7 @@ when performanceData defined
 
 specifies the name that your application should use when it presents itself on the network.
 
-scalar, default 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.016 postfix; nl-BE; rv:3.000.016) Gecko/20071021 libwww-perl/5.805'
+scalar, default 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.017 postfix; nl-BE; rv:3.000.017) Gecko/20080213 libwww-perl/5.805'
 
 =item _SSLversion
 
@@ -1096,7 +1096,7 @@ ALL
   $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
   $CAPTUREOUTPUT
   $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   %ERRORS %STATE %TYPE
 
 =item *
@@ -1112,7 +1112,7 @@ PLUGINS
 
 COMMANDS
 
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
 =item *
 
@@ -1161,7 +1161,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins::Nagios
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

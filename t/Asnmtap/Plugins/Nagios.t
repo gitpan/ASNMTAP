@@ -11,9 +11,9 @@ TODO: {
   $ENV{ASNMTAP_PROXY} = "username:password\@server";
 
   my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
-    _programName        => 'Plugins.t',
+    _programName        => 'Nagios.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::Nagios',
-    _programVersion     => '3.000.016',
+    _programVersion     => '3.000.017',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => '--commandLineOption ...',
     _programGetOptions  => ['commandLineOption=s', 'host|H:s', 'url|U:s', 'port|P:i', 'password|p|passwd:s', 'username|u|loginname:s', 'community|C:s', 'timeout|t:i', 'trendline|T:i', 'environment|e:s', 'proxy:s'],
@@ -33,7 +33,7 @@ TODO: {
 
   my ($returnCode, $errorStatus, $status, $stdout, $stderr);
 
-  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.016 postfix; nl-BE; rv:3.000.016) Gecko/20071021 libwww-perl/5.805' ? 1 : 0;
+  $returnCode = $objectNagios->browseragent () eq 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.017 postfix; nl-BE; rv:3.000.017) Gecko/20080213 libwww-perl/5.805' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::browseragent(): get');
 
   $returnCode = $objectNagios->browseragent ( 'Mozilla/4.7' ) eq 'Mozilla/4.7' ? 1 : 0;
@@ -93,7 +93,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::clientCertificate(): set pkcs12Password');
 
 
-  $returnCode = $objectNagios->programName () eq  'Plugins.t' ? 1 : 0;
+  $returnCode = $objectNagios->programName () eq  'Nagios.t' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programName(): get');
 
   $returnCode = $objectNagios->programName ('-Change programName-') eq '-Change programName-' ? 1 : 0;
@@ -107,7 +107,7 @@ TODO: {
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programDescription(): set');
 
 
-  $returnCode = $objectNagios->programVersion () eq '3.000.016' ? 1 : 0;
+  $returnCode = $objectNagios->programVersion () eq '3.000.017' ? 1 : 0;
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::Nagios::programVersion(): get');
 
   $returnCode = $objectNagios->programVersion ('x.xxx.xxx') eq 'x.xxx.xxx' ? 1 : 0;
@@ -390,4 +390,10 @@ TODO: {
   
   $returnCode = $objectNagios->call_system("ASNMTAP 'ASNMTAP'");
   ok ( $returnCode == $ERRORS{UNKNOWN}, 'ASNMTAP::Asnmtap::Plugins::Nagios::call_system("ASNMTAP \'ASNMTAP\'")' );
+
+
+  no warnings 'deprecated';
+  $objectNagios->{_pluginValues}->{stateValue} = $ERRORS{OK};
+  $objectNagios->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+  $objectNagios->exit (0);
 }

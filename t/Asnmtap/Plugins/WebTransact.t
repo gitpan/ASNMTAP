@@ -4,13 +4,13 @@ BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.016;
+use ASNMTAP::Asnmtap::Plugins v3.000.017;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
-  _programName        => 'check_template-WebTransact.t',
-  _programDescription => "WebTransact plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.016',
+  _programName        => 'WebTransact.t',
+  _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::WebTransact',
+  _programVersion     => '3.000.017',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -101,6 +101,12 @@ SKIP: {
   $returnCode = 0;
   foreach ( @{ $objectWebTransact->get_urls() } ) { $returnCode = 1; last; };
   ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::WebTransact::get_urls():');
+
+
+  no warnings 'deprecated';
+  $objectPlugins->{_pluginValues}->{stateValue} = $ERRORS{OK};
+  $objectPlugins->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+  $objectPlugins->exit (0);
 
 
   sub customWebTransact {

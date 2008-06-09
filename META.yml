@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                ASNMTAP
-version:             3.000016
+version:             3.000017
 abstract:            Application System Network Monitoring Toolkit Alex Peeters
 license:             perl
 author:              
@@ -8,15 +8,15 @@ author:
 generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
-    Bundle::DBD::mysql:            4.005
-    Bundle::DBI:                   1.53
+    Bundle::DBD::mysql:            4.004
+    Bundle::DBI:                   1.604
     Bundle::LWP:                   1.11
-    CGI:                           3.29
-    Compress::Zlib:                2.004
-    Config::General:               2.33
+    CGI:                           3.37
+    Compress::Zlib:                2.010
+    Config::General:               2.38
     Config::General::Interpolated: 2.07
-    CPAN:                          1.9102
-    CPANPLUS:                      0.078
+    CPAN:                          1.9205
+    CPANPLUS:                      0.84
     Crypt::OpenSSL::RSA:           0.25
     Crypt::OpenSSL::X509:          0.5
     Crypt::SSLeay:                 0.56
@@ -29,35 +29,36 @@ requires:
     Digest::MD5:                   2.36
     Digest::SHA1:                  2.11
     Dumpvalue:                     1.11
-    Email::Simple:                 1.999
+    Email::Simple:                 2.003
     File::Basename:                2.73
-    Getopt::Long:                  2.36
+    Getopt::Long:                  2.37
     HTML::Entities:                1.35
-    HTTP::Daemon::SSL:             1.02
+    HTTP::Daemon::SSL:             1.04
     IO:                            1.23
-    IO::CaptureOutput:             1.03
-    IO::Socket::SSL:               1.07
-    Mail::POP3Client:              2.17
+    IO::CaptureOutput:             1.0801
+    IO::Socket::SSL:               1.13
+    IO::String:                    1.08
+    Mail::POP3Client:              2.18
     Mail::Sendmail:                0.79
     MIME::Base64:                  3.07
     MIME::Tools:                   5.420
     Net::FTP:                      2.75
     Net::Ifconfig::Wrapper:        0.09
-    Net::IMAP::Simple:             1.14
-    Net::SSLeay:                   1.30
-    SOAP::Lite:                    0.69
+    Net::IMAP::Simple:             1.17
+    Net::SSLeay:                   1.32
+    SOAP::Lite:                    0.710.05
     Sys::Hostname::Long:           1.4
     Test::Pod::Coverage:           1.08
-    Test::Simple:                  0.65
+    Test::Simple:                  0.80
     Time::HiRes:                   1.9705
     Time::Local:                   1.17
-    URI:                           1.35
+    URI:                           1.36
     WSRF::Lite:                    0.8.2.2
     XML::CanonicalizeXML:          0.03
     XML::DOM:                      1.44
-    XML::LibXML:                   1.63
-    XML::Parser:                   2.34
-    XML::Simple:                   2.16
+    XML::LibXML:                   1.66
+    XML::Parser:                   2.36
+    XML::Simple:                   2.18
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3

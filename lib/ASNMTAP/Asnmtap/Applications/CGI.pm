@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -37,7 +37,7 @@ BEGIN {
 
                                                                            &call_system &sending_mail
 
-                                                                           $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                                           $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
                                                                            &_checkAccObjRef
                                                                            &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -48,6 +48,7 @@ BEGIN {
 																		   
                                                                            $ASNMTAPMANUAL
                                                                            $DATABASE
+                                                                           $AWSTATSENABLED
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                            $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $SSHKEYPATH $WWWKEYPATH
                                                                            $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
@@ -81,7 +82,7 @@ BEGIN {
 
                                                                            &sending_mail) ],
 
-                                                      COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                                      COMMANDS     => [ qw($CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
 
                                                      _HIDDEN       => [ qw(&_checkAccObjRef
                                                                            &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -91,6 +92,7 @@ BEGIN {
                                                       CGI          => [ qw($APPLICATIONPATH
 
                                                                            $DATABASE
+                                                                           $AWSTATSENABLED
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                            $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
                                                                            $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
@@ -137,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -229,7 +231,7 @@ sub user_session_and_access_control {
 
   if ( $level eq 'guest' or $level eq 'member' ) {
     my $cookieID = ( defined $sessionID ) ? $sessionID : '1';
-    my $cgiCookieOutRootCgisess = $cgi->cookie(-name=>'asnmtap-root-cgisess', -value=>"$cookieID", -expires=>'+10h', -path=>'/cgi-bin', -domain=>"$HTTPSSERVER", -secure=>'0');
+    my $cgiCookieOutRootCgisess = $cgi->cookie(-name=>'asnmtap-root-cgisess', -value=>"$cookieID", -expires=>'+10h', -path=>"$HTTPSURL/cgi-bin", -domain=>"$HTTPSSERVER", -secure=>'0');
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
     print $cgi->header(-cookie=>$cgiCookieOutRootCgisess);
     $| = $cfhOld; select ($cfhNew);

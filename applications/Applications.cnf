@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.016
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.017
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,6 +31,10 @@
 #    FIRSTSTARTDATE  2004-10-31
 #    STRICTDATE      0
 #    STATUSHEADER01  De resultaten worden weergegeven binnen timeslots van vastgestelde duur per groep. De testen binnen éénzelfde groep worden sequentieel uitgevoerd.
+
+#  <AWSTATS>
+#    ENABLED         1                      # '0' or '1'
+#  </AWSTATS>
 
 #  <CHARTDIRECTOR>
 #    LIB             /opt/ChartDirector/lib/.
@@ -62,8 +66,8 @@
 #    IMAGES           /opt/asnmtap-3.000.xxx/applications/htmlroot/img
 #    PDPHELP          /opt/asnmtap-3.000.xxx/applications/htmlroot/pdf
 #    RESULTS          /opt/asnmtap-3.000.xxx/results
-    SSHKEY           /home
-    WWWKEY           /var/www
+#    SSHKEY           /home
+#    WWWKEY           /var/www
 </PATH>
 
 #<DATABASE_ACCOUNT>

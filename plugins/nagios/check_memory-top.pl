@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, check_memory-free.pl
+# 2008/mm/dd, v3.000.017, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Solaris 8, 9 & 10 and TRU64: memory
 # ----------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.016;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.017;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.016',
+  _programVersion     => '3.000.017',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent> -n|--numberProcesses <number of processes> -s|--sortingOrder [cpu|size|res|time] -M|--memory [F|U]',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn
@@ -115,7 +115,7 @@ if (defined $memory_line) {
   if ($osType eq 'TRU64') {
     $memory_line =~ s/^Memory:\s+Real:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+act\/tot\s+Virtual:\s+([0-9.]+)([kMG])\/([0-9.]+)([kMG])\s+use\/tot\s+Free:\s+([0-9.]+)([kMG])\s*/$7;$8;$9;$10/gi;
   } elsif ($osType eq 'Solaris10') {
-    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+phys\s+mem,\s+([0-9.]+)([kKMG])\s+free\s+mem,\s+([0-9.]+)([kKMG])\s+total\s+swap,\s+([0-9.]+)([kKMG])\s+free\s+swap$/$1;$2;$3;$4/gi;
+    $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+phys\s+mem,\s+([0-9.]+)([kKMG])\s+free\s+mem,\s+([0-9.]+)([kKMG])\s+(total\s+){0,1}swap,\s+([0-9.]+)([kKMG])\s+free\s+swap$/$1;$2;$3;$4/gi;
   } else {
     $memory_line =~ s/^Memory:\s+([0-9.]+)([kKMG])\s+real,\s+([0-9.]+)([kKMG])\s+free,\s+([0-9.]+)([kKMG])\s+swap\s+in\s+use,\s+([0-9.]+)([kKMG])\s+swap\s+free$/$1;$2;$3;$4/gi;
   }

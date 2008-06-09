@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -88,7 +88,7 @@ print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $d
 
 unless ( defined $errorUserAccessControl ) {
   if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
-    my $url = "/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=". $ENV{SCRIPT_NAME} ."&amp;". encode_html_entities('U', $urlAccessParameters);
+    my $url = "$HTTPSURL/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=". $ENV{SCRIPT_NAME} ."&amp;". encode_html_entities('U', $urlAccessParameters);
 
     print <<EndOfHtml;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">  
@@ -252,7 +252,7 @@ EndOfHtml
         if ($statuspie eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Status&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
+          $images .= "<br><center><img src=$HTTPSURL/cgi-bin/generateChart.pl?chart=Status&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
           $dummy = '';
         }
@@ -262,7 +262,7 @@ EndOfHtml
         if ($errorpie eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=ErrorDetails&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
+          $images .= "<br><center><img src=$HTTPSURL/cgi-bin/generateChart.pl?chart=ErrorDetails&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
           $dummy = '';
         }
@@ -272,7 +272,7 @@ EndOfHtml
         if ($bar eq 'on') {
           $dummy = " checked";
           $chartOrTableChecked = 1;
-          $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=Bar&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
+          $images .= "<br><center><img src=$HTTPSURL/cgi-bin/generateChart.pl?chart=Bar&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
         } else {
           $dummy = '';
         }
@@ -283,7 +283,7 @@ EndOfHtml
       if ($hourlyAvg eq 'on') {
         $dummy = " checked";
         $chartOrTableChecked = 1;
-        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=HourlyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
+        $images .= "<br><center><img src=$HTTPSURL/cgi-bin/generateChart.pl?chart=HourlyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
       } else {
         $dummy = '';
       }
@@ -293,7 +293,7 @@ EndOfHtml
       if ($dailyAvg eq 'on') {
         $dummy = " checked";
         $chartOrTableChecked = 1;
-        $images .= "<br><center><img src=/cgi-bin/generateChart.pl?chart=DailyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
+        $images .= "<br><center><img src=$HTTPSURL/cgi-bin/generateChart.pl?chart=DailyAverage&amp;".encode_html_entities('U', $urlAccessParameters)."></center>\n" if ($uKey1 ne 'none');
       } else {
         $dummy = '';
       }
@@ -474,17 +474,10 @@ EndOfHtml
           unless ( $PERFPARSEENABLED ) {
             $perfdataDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><td width=\"400\">Performance Data not enabled!</td></tr></table>";
           } else {
-            my ($dbhPERFPARSE, $dbiPERFPARSE, $sthPERFPARSE, $metric_id, $metric, $times, $percentiles, $unit, $Unit, $periodePERFPARSE, $countPERFPARSE, $valuePERFPARSE);
-
-            if ( $DATABASE eq $PERFPARSEDATABASE and $SERVERNAMEREADONLY eq $PERFPARSEHOST and $SERVERPORTREADONLY eq $PERFPARSEPORT and $SERVERUSERREADONLY eq $PERFPARSEUSERNAME and $SERVERPASSREADONLY eq $PERFPARSEPASSWORD ) {
-              $dbhPERFPARSE = $dbh;
-            } else {
-              $dbiPERFPARSE = 1;
-              $dbhPERFPARSE = DBI->connect("dbi:mysql:$PERFPARSEDATABASE:$PERFPARSEHOST:$PERFPARSEPORT", "$PERFPARSEUSERNAME", "$PERFPARSEPASSWORD" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-            }
+            my ($sthPERFPARSE, $metric_id, $metric, $times, $percentiles, $unit, $Unit, $periodePERFPARSE, $countPERFPARSE, $valuePERFPARSE) = ( $dbh );
 
             my $toggle = 0;
-            $sqlQuery = "select $SERVERTABLREPORTSPRFDT.metric_id, perfdata_service_metric.metric, $SERVERTABLREPORTSPRFDT.times, $SERVERTABLREPORTSPRFDT.percentiles, $SERVERTABLREPORTSPRFDT.unit, perfdata_service_metric.unit from $SERVERTABLREPORTSPRFDT, perfdata_service_metric WHERE $SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $SERVERTABLREPORTSPRFDT.activated='1' and $SERVERTABLREPORTSPRFDT.metric_id = perfdata_service_metric.metric_id";
+            $sqlQuery = "select $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $PERFPARSEDATABASE.perfdata_service_metric.unit from $DATABASE.$SERVERTABLREPORTSPRFDT, $PERFPARSEDATABASE.perfdata_service_metric WHERE $DATABASE.$SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $DATABASE.$SERVERTABLREPORTSPRFDT.activated='1' and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id"; 
             $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
             $sth->bind_columns( \$metric_id, \$metric, \$times, \$percentiles, \$unit, \$Unit ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -526,7 +519,7 @@ EndOfHtml
                       }
 
                       my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), count(ctime) FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA $sqlValuePERFDATA group by $groupPERFDATA(ctime)";
-                      $sthPERFPARSE = $dbhPERFPARSE->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
+                      $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                       $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                       $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$countPERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
@@ -568,7 +561,7 @@ EndOfHtml
                         $FR = sprintf "0.%d", $FR;
 
                         my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), value FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA order by value limit $offset, $limit";
-                        $sthPERFPARSE = $dbhPERFPARSE->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
+                        $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                         $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                         $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$valuePERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
@@ -621,8 +614,6 @@ EndOfHtml
 
               $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
             }
-
-            $dbhPERFPARSE->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ( defined $dbiPERFPARSE and $dbiPERFPARSE );
           }
         }
 
@@ -962,7 +953,7 @@ HTML
       print $perfdataDetailList, "<br><br>\n" if (defined $perfdataDetailList);
       print $errorDetailList, "<br><br>\n" if (defined $errorDetailList);
       print $responseTable if (defined $responseTable);
-      print "<br><center><a href=\"/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));
+      print "<br><center><a href=\"$HTTPSURL/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));
     }
   }
 

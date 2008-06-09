@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 13 Februari 2007
-Version      : 3.000.016
+Latest update: dd month 2008
+Version      : 3.000.017
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,11 +45,13 @@ Yves Van den Hove <yvdhove@users.sourceforge.net>
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Yves Van den Hove <yvdhove@users.sourceforge.net>
+  * 1727568 Bij wisselen omgeving op dezelfde pagina blijven.
   * 1725445 Groeperen Mails
   * 1768193 PDF issues with Adobe Acrobat 8
   * 1768190 Please filter out the passwords from the HTML dump files for J2EE based Applications
   * 1724056 Timeout for Webtransact
   * 1706596 Collapse error summary
+
 
 Tom De Clercq <tomsworld@users.sourceforge.net> 
   * 1507255 Detailed Statistics and Report Generation - output
@@ -59,9 +61,11 @@ Tom De Clercq <tomsworld@users.sourceforge.net>
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Yves Van den Hove <yvdhove@users.sourceforge.net>
+  * htmlToPdf.pl
+    FIX for 1768193 PDF issues with Adobe Acrobat 8
   * detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
     FIX Use of uninitialized value in concatenation (.) or string at line 333
-
+ 
 
 # TESTERS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

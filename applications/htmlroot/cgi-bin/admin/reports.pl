@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports.pl";
 my $prgtext     = "Reports";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -117,7 +117,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq 'on') ? 1 : 0;
         my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq 'on') ? 1 : 0;
         my $dummyActivated             = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle=' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle="' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -159,7 +159,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyShowTop20SlowTests    = ($CshowTop20SlowTests eq 'on') ? 1 : 0;
       my $dummyPrinterFriendlyOutput = ($CprinterFriendlyOutput eq 'on') ? 1 : 0;
       my $dummyActivated             = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle=' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword.'", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
+      $sql = 'UPDATE ' .$SERVERTABLREPORTS. ' SET uKey="' .$CuKey. '", reportTitle="' .$CreportTitle. '", periode="' .$Cperiode. '", timeperiodID="' .$CtimeperiodID. '", status="' .$dummyStatus. '", errorDetails="' .$dummyErrorDetails. '", bar="' .$dummyBar. '", hourlyAverage="' .$dummyHourlyAverage. '", dailyAverage="' .$dummyDailyAverage. '", showDetails="' .$dummyShowDetails. '", showComments="' .$dummyShowComments. '", showPerfdata="' .$dummyShowPerfdata. '", showTop20SlowTests="' .$dummyShowTop20SlowTests. '", printerFriendlyOutput="' .$dummyPrinterFriendlyOutput. '", formatOutput="' .$CformatOutput. '", userPassword="' .$CuserPassword.'", activated="' .$dummyActivated. '" WHERE id="' .$Cid. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {

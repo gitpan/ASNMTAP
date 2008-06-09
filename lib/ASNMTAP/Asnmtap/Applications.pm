@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap::Applications
+# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -36,7 +36,7 @@ BEGIN {
                                                                        $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
 
-                                                                       $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                                       $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
                                                                        &_checkAccObjRef
                                                                        &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -47,6 +47,7 @@ BEGIN {
  							   
                                                                        $ASNMTAPMANUAL
                                                                        $DATABASE
+                                                                       $AWSTATSENABLED
                                                                        $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                        $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $SSHKEYPATH $WWWKEYPATH
                                                                        $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
@@ -80,7 +81,7 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
 
-                                                  COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                                  COMMANDS     => [ qw($CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
 
                                                  _HIDDEN       => [ qw(&_checkAccObjRef
                                                                        &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -115,6 +116,7 @@ BEGIN {
  
                                                   DISPLAY      => [ qw($APPLICATIONPATH
 
+                                                                       $AWSTATSENABLED
                                                                        $HTTPSPATH $RESULTSPATH $PIDPATH
                                                                        $HTTPSURL $IMAGESURL $RESULTSURL
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
@@ -132,6 +134,7 @@ BEGIN {
 
                                                                        $ASNMTAPMANUAL
                                                                        $DATABASE
+                                                                       $AWSTATSENABLED
                                                                        $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                        $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
                                                                        $HTTPSSERVER $REMOTE_HOST $REMOTE_ADDR $HTTPSURL $IMAGESURL $PDPHELPURL $RESULTSURL
@@ -155,7 +158,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -254,7 +257,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -343,6 +346,8 @@ if ( exists $_config{URL} ) {
   $PDPHELPURL       = $_config{URL}{PDPHELP} if ( exists $_config{URL}{PDPHELP} );
   $RESULTSURL       = $_config{URL}{RESULTS} if ( exists $_config{URL}{RESULTS} );
 }
+
+our $AWSTATSENABLED    = ( exists $_config{COMMON}{AWSTATS}{ENABLED}    ? $_config{COMMON}{AWSTATS}{ENABLED}    : 1 );
 
 our $CHARTDIRECTORLIB  = ( exists $_config{COMMON}{CHARTDIRECTOR}{LIB}  ? $_config{COMMON}{CHARTDIRECTOR}{LIB}  : '/opt/ChartDirector/lib/.' );
 
@@ -914,16 +919,18 @@ sub print_header {
 
   my ($pageDir, $environment) = split (/\//, $pagedir, 2);
   $environment = 'P' unless (defined $environment);
-  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form action="" name="environment"><select name="environment" size="1" onChange="window.location=this.options[this.selectedIndex].value;"><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/'. $pageset .'.html"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/A/'. $pageset .'.html"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="'. $HTTPSURL .'/nav/'. $pageDir .'/S/'. $pageset .'.html"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
 
   my $sessionIdOrCookie = ( defined $sessionID ) ? "&amp;CGISESSID=$sessionID" : "&amp;CGICOOKIE=1";
-  my $showToggle   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/$pageset.html\">" : "<A HREF=\"/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
+  my $reloadOrToggle    = ( $subTitle =~ /^(?:Full View|Condenced View|Minimal Condenced View)$/ ) ? "<A HREF=\"#\" onClick=\"togglePageDirCookie('pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir')\">" : "<A HREF=\"#\" onClick=\"reloadPageDirCookie('pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir')\">";
+  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form action="" name="environment"><select name="environment" size="1" onChange="loadEnvironmentPageDirCookie(\'' .$pageDir. '\', this.options[this.selectedIndex].value);"><option value="P"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="A"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="S"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
+
+  my $showToggle   = ($pagedir ne '<NIHIL>') ? $reloadOrToggle : "<A HREF=\"$HTTPSURL/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
   $showToggle     .= "<IMG SRC=\"$IMAGESURL/toggle.gif\" title=\"Toggle\" alt=\"Toggle\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
   my $showReport   = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/nav/$pagedir/reports-$pageset.html\"><IMG SRC=\"$IMAGESURL/report.gif\" title=\"Report\" alt=\"Report\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
-  my $showOnDemand = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/runCmdOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/ondemand.gif\" title=\"On demand\" alt=\"On demand\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
-  my $showData     = ($pagedir ne '<NIHIL>') ? "<A HREF=\"/cgi-bin/getArchivedReport.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/data.gif\" title=\"Report Archive\" alt=\"Report Archive\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
-  my $showAwstats  = "<A HREF=\"/awstats/awstats.pl\" target=\"_blank\"><IMG SRC=\"$IMAGESURL/awstats.gif\" title=\"Awstats\" alt=\"Awstats\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
-  my $showInfo     = "<A HREF=\"/cgi-bin/info.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/info.gif\" title=\"Info\" alt=\"Info\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
+  my $showOnDemand = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/cgi-bin/runCmdOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/ondemand.gif\" title=\"On demand\" alt=\"On demand\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
+  my $showData     = ($pagedir ne '<NIHIL>') ? "<A HREF=\"$HTTPSURL/cgi-bin/getArchivedReport.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/data.gif\" title=\"Report Archive\" alt=\"Report Archive\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
+  my $showAwstats  = ($AWSTATSENABLED) ? "<A HREF=\"/awstats/awstats.pl\" target=\"_blank\"><IMG SRC=\"$IMAGESURL/awstats.gif\" title=\"Awstats\" alt=\"Awstats\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>" : '';
+  my $showInfo     = "<A HREF=\"$HTTPSURL/cgi-bin/info.pl?pagedir=$pagedir&amp;pageset=$pageset$sessionIdOrCookie\"><IMG SRC=\"$IMAGESURL/info.gif\" title=\"Info\" alt=\"Info\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
 
   $stylesheet = "asnmtap.css" unless ( defined $stylesheet );
 
@@ -980,6 +987,72 @@ sub print_header {
   <link rel="stylesheet" type="text/css" href="$HTTPSURL/$stylesheet">
   $headScript
   <script language="JavaScript1.2" type="text/javascript">
+    var pagedir_prefix = new Array();
+    pagedir_prefix[0] = "";
+    pagedir_prefix[1] = "-cv";
+    pagedir_prefix[2] = "-mcv";
+
+    function getPageDirCookie( name ) {
+      var prefix = name + '=';
+      var ca = document.cookie.split( ';' );
+
+      for( var i=0; i < ca.length; i++ ) {
+        var c = ca[i];
+        while ( c.charAt( 0 ) == ' ' ) c = c.substring( 1, c.length );
+        if ( c.indexOf( prefix ) == 0 ) return unescape( c.substring( prefix.length, c.length ) );
+      }
+
+      return null;
+    }
+
+    function deletePageDirCookie( name ) { setPageDirCookie( name, '', '', -1 ); }
+
+    function setPageDirCookie( name, url, value, days ) {
+      var expires = '';
+
+      if ( days ) {
+        (time = new Date()).setTime( new Date().getTime() + days * 24 * 60 * 60 * 1000);
+        expires = "; expires=" + time.toGMTString();
+      }
+
+	  document.cookie = name + "=" + escape(value) + expires + "; path=/";
+    }
+
+    function loadEnvironmentPageDirCookie ( pageDir, environment ) {
+      var name = 'pagedir_id_' + pageDir + '_' + environment;
+      var url  = '$HTTPSURL/nav/' + pageDir + '/';
+      if (environment != 'P') { url += environment + '/'; }
+      reloadPageDirCookie( name, url );
+    }
+
+    function reloadPageDirCookie( name, url ) {
+      var pagedir_id = getPageDirCookie( name );
+
+      if (pagedir_id == null || pagedir_id == "" || pagedir_id < 0 || pagedir_id > 2) {
+        pagedir_id = 0;
+        setPageDirCookie ( name, url, pagedir_id, 365 );
+      }
+
+      window.location = url + "/index" + pagedir_prefix[pagedir_id] + ".html";
+    }
+
+    function togglePageDirCookie( name, url ) {
+      var pagedir_id = getPageDirCookie( name );
+
+      if (pagedir_id != null && pagedir_id != "" && pagedir_id > 0 && pagedir_id <= 2) {
+        if (pagedir_id < 2) {
+          pagedir_id++;
+        } else {
+          pagedir_id = 0;
+        }
+      } else {
+        pagedir_id = 1;
+      }
+
+      setPageDirCookie ( name, url, pagedir_id, 365 );
+      window.location = url + "/index" + pagedir_prefix[pagedir_id] + ".html";
+    }
+
     function setSoundCookie( name, value, days ) {
       var expires = '';
 
@@ -1058,18 +1131,23 @@ EndOfHtml
 EndOfHtml
   }
 
-  print $HTML "    }\n  </script>\n";
+  print $HTML "    }\n";
 
   if ( $onload =~ /^\QONLOAD="startRefresh();\E/ ) {
     $showRefresh = "<span id=\"refreshID\" class=\"LegendLastUpdate\"></span>";
 
-    my ($pagesetName, $pagesetExtention) = split (/-/, $pageset);
-    my $pagesetNameExtention = (defined $pagesetExtention) ? "$pagesetName" : "$pagesetName-cv";
     my $startRefresh = $refresh * 1000;
 
-    print $HTML "  <script language=\"JavaScript1.2\" type=\"text/javascript\">
+    print $HTML <<EndOfHtml;
     function startRefresh() {
-      timerID = setTimeout(\"location.href='$HTTPSURL/nav/$pagedir/$pagesetNameExtention.html'\", $startRefresh);
+      var pagedir_id = getPageDirCookie( 'pagedir_id_${pageDir}_${environment}' );
+
+      if (pagedir_id == null || pagedir_id == "" || pagedir_id < 0 || pagedir_id > 2) {
+        pagedir_id = 0;
+        setPageDirCookie ( 'pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir', pagedir_id, 365 );
+      }
+
+      timerID = setTimeout("location.href='$HTTPSURL/nav/$pagedir/index" + pagedir_prefix[pagedir_id] + ".html'", $startRefresh);
       document.body.style.backgroundImage = 'url($IMAGESURL/startRefresh.gif)';
       document.getElementById('refreshID').innerHTML='<A HREF=\"javascript:stopRefresh();\" title=\"Stop Refresh\" alt=\"Stop Refresh\"><img src=\"$IMAGESURL/stop.gif\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0><\\/A>'
     }
@@ -1079,8 +1157,10 @@ EndOfHtml
       document.body.style.backgroundImage = 'url($IMAGESURL/stopRefresh.gif)';
       document.getElementById('refreshID').innerHTML='<A HREF=\"javascript:startRefresh();\" title=\"Start Refresh\" alt=\"Start Refresh\"><img src=\"$IMAGESURL/start.gif\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0<\\/A>'
     }
-  </script>\n";
+EndOfHtml
   }
+
+  print $HTML "  </script>\n";
 
   if ( $openPngImage eq 'T' ) {
     print $HTML <<EndOfHtml;
@@ -1145,9 +1225,12 @@ EndOfHtml
 EndOfHtml
 
   if ( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) {
+    my $showToggle   = "<A HREF=\"#\" onClick=\"reloadPageDirCookie('pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir')\">";
+    $showToggle     .= "<IMG SRC=\"$IMAGESURL/toggle.gif\" title=\"Toggle\" alt=\"Toggle\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
+
     my $directory = $HTTPSPATH ."/nav/". $pagedir;
     next unless (-e "$directory");
-    my $reportFilename = $directory . "/reports-" . $pageset . ".html";
+    my $reportFilename = $directory . '/reports-' . $pageset . '.html';
 
     unless ( -e "$reportFilename" ) { # create $reportFilename
       my $rvOpen = open(REPORTS, ">$reportFilename");
@@ -1164,6 +1247,73 @@ EndOfHtml
   <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
   <META HTTP-EQUIV="Refresh" CONTENT="$refresh">
   <link rel="stylesheet" type="text/css" href="$HTTPSURL/asnmtap.css">
+  <script language="JavaScript1.2" type="text/javascript">
+    var pagedir_prefix = new Array();
+    pagedir_prefix[0] = "";
+    pagedir_prefix[1] = "-cv";
+    pagedir_prefix[2] = "-mcv";
+
+    function getPageDirCookie( name ) {
+      var prefix = name + '=';
+      var ca = document.cookie.split( ';' );
+
+      for( var i=0; i < ca.length; i++ ) {
+        var c = ca[i];
+        while ( c.charAt( 0 ) == ' ' ) c = c.substring( 1, c.length );
+        if ( c.indexOf( prefix ) == 0 ) return unescape( c.substring( prefix.length, c.length ) );
+      }
+
+      return null;
+    }
+
+    function deletePageDirCookie( name ) { setPageDirCookie( name, '', '', -1 ); }
+
+    function setPageDirCookie( name, url, value, days ) {
+      var expires = '';
+
+      if ( days ) {
+        (time = new Date()).setTime( new Date().getTime() + days * 24 * 60 * 60 * 1000);
+        expires = "; expires=" + time.toGMTString();
+      }
+
+	  document.cookie = name + "=" + escape(value) + expires + "; path=/";
+    }
+
+    function loadEnvironmentPageDirCookie ( pageDir, environment ) {
+      var name = 'pagedir_id_' + pageDir + '_' + environment;
+      var url  = '$HTTPSURL/nav/' + pageDir + '/';
+      if (environment != 'P') { url += environment + '/'; }
+      reloadPageDirCookie( name, url );
+    }
+
+    function reloadPageDirCookie( name, url ) {
+      var pagedir_id = getPageDirCookie( name );
+
+      if (pagedir_id == null || pagedir_id == "" || pagedir_id < 0 || pagedir_id > 2) {
+        pagedir_id = 0;
+        setPageDirCookie ( name, url, pagedir_id, 365 );
+      }
+
+      window.location = url + "/index" + pagedir_prefix[pagedir_id] + ".html";
+    }
+
+    function togglePageDirCookie( name, url ) {
+      var pagedir_id = getPageDirCookie( name );
+
+      if (pagedir_id != null && pagedir_id != "" && pagedir_id > 0 && pagedir_id <= 2) {
+        if (pagedir_id < 2) {
+          pagedir_id++;
+        } else {
+          pagedir_id = 0;
+        }
+      } else {
+        pagedir_id = 1;
+      }
+
+      setPageDirCookie ( name, url, pagedir_id, 365 );
+      window.location = url + "/index" + pagedir_prefix[pagedir_id] + ".html";
+    }
+  </script>
 </head>
 <BODY $onload>
   <TABLE WIDTH="100%"><TR>
@@ -1181,13 +1331,13 @@ EndOfHtml
 
   <br>
   <table border="0" cellpadding="0" cellspacing="0" summary="menu" width="100%">
-    <tr><td class="ReportItem"><a href="/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1&amp;detailed=on">Detailed Statistics &amp; Report Generation</a></td></tr>
+    <tr><td class="ReportItem"><a href="$HTTPSURL/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1&amp;detailed=on">Detailed Statistics &amp; Report Generation</a></td></tr>
     <tr><td>&nbsp;</td></tr>
-    <tr><td class="ReportItem"><a href="/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1&amp;detailed=off">Compare Response Time Trends</a></td></tr>
+    <tr><td class="ReportItem"><a href="$HTTPSURL/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1&amp;detailed=off">Compare Response Time Trends</a></td></tr>
     <tr><td>&nbsp;</td></tr>
 EndOfHtml
 
-        print REPORTS '    <tr><td>&nbsp;</td></tr>', "\n", '    <tr><td>&nbsp;</td></tr>', "\n", "    <tr><td class=\"ReportItem\"><a href=\"/cgi-bin/perfparse.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1\">PerfParse facilities for the performance data produced by the $APPLICATION</a></td></tr>", "\n" if (-e "${HTTPSPATH}${PERFPARSECGI}");
+        print REPORTS '    <tr><td>&nbsp;</td></tr>', "\n", '    <tr><td>&nbsp;</td></tr>', "\n", "    <tr><td class=\"ReportItem\"><a href=\"$HTTPSURL/cgi-bin/perfparse.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;CGICOOKIE=1\">PerfParse facilities for the performance data produced by the $APPLICATION</a></td></tr>", "\n" if (-e "${HTTPSPATH}${PERFPARSECGI}");
         print REPORTS '  </table>', "\n", '  <br>', "\n";
         print_legend (*REPORTS);
         print REPORTS '</body>', "\n", '</html>', "\n";
@@ -1345,7 +1495,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

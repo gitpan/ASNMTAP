@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, check_template-modem.pl
+# 2008/mm/dd, v3.000.017, check_template-modem.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.016;
+use ASNMTAP::Asnmtap::Plugins v3.000.017;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-modem.pl',
   _programDescription => "Modem plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.016',
+  _programVersion     => '3.000.017',
   _programUsagePrefix => '--phonenumber=<phonenumber> [--port=<port>] [--baud=<baud rate>]',
   _programHelpPrefix  => '--phonenumber<phonenumber>
 --port=<port>
@@ -50,7 +50,7 @@ $objectPlugins->printUsage ('Missing command line argument Baud') unless (define
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Modem v3.000.016;
+use ASNMTAP::Asnmtap::Plugins::Modem v3.000.017;
 use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -138,7 +138,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

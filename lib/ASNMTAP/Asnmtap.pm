@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -31,7 +31,7 @@ BEGIN {
                                                          $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                          %ERRORS %STATE %TYPE
 
-                                                         $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                         $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
                                                          &_checkAccObjRef
                                                          &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -47,7 +47,7 @@ BEGIN {
                                                          $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                          %ERRORS %STATE %TYPE) ],
 
-                                    COMMANDS     => [ qw($CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
+                                    COMMANDS     => [ qw($CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND) ],
 
                                    _HIDDEN       => [ qw(&_checkAccObjRef
                                                          &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,7 +86,7 @@ if ( -e $_configfile or ( exists $ENV{ASNMTAP_PATH} ) ) {
 
 # SET ENVIRONMENT VARIABLES = = = = = = = = = = = = = = = = = = = = = =
 
-$ENV{PATH}           = ( exists $_config{ENV}{PATH} )     ? $_config{ENV}{PATH}     : '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin';
+$ENV{PATH}           = ( exists $_config{ENV}{PATH} )     ? $_config{ENV}{PATH}     : '/opt/csw/bin:/usr/local/bin:/usr/bin:/bin:/opt/csw/sbin:/usr/local/sbin:/usr/sbin:/sbin';
 $ENV{BASH_ENV}       = ( exists $_config{ENV}{BASH_ENV} ) ? $_config{ENV}{BASH_ENV} : '';
 $ENV{ENV}            = ( exists $_config{ENV}{ENV} )      ? $_config{ENV}{ENV}      : '';
 
@@ -118,6 +118,7 @@ our $TYPEMONITORING  = ( exists $_config{COMMON}{TYPEMONITORING} ) ? $_config{CO
 our $CAPTUREOUTPUT   = ( exists $_config{IO}{CAPTUREOUTPUT} )   ? $_config{IO}{CAPTUREOUTPUT}   : 1;
 
 our $CHATCOMMAND     = '/usr/sbin/chat';
+our $DIFFCOMMAND     = '/usr/bin/diff';
 our $KILLALLCOMMAND  = '/usr/bin/killall';
 our $PERLCOMMAND     = '/usr/bin/env perl';
 our $PPPDCOMMAND     = '/usr/sbin/pppd';
@@ -128,6 +129,7 @@ our $SSHCOMMAND      = '/usr/bin/ssh';
 
 if ( exists $_config{COMMAND} ) {
   $CHATCOMMAND       = $_config{COMMAND}{CHAT}    if ( exists $_config{COMMAND}{CHAT} );
+  $DIFFCOMMAND       = $_config{COMMAND}{DIFF}    if ( exists $_config{COMMAND}{DIFF} );
   $KILLALLCOMMAND    = $_config{COMMAND}{KILLALL} if ( exists $_config{COMMAND}{KILLALL} );
   $PERLCOMMAND       = $_config{COMMAND}{PERL}    if ( exists $_config{COMMAND}{PERL} );
   $PPPDCOMMAND       = $_config{COMMAND}{PPPD}    if ( exists $_config{COMMAND}{PPPD} );
@@ -396,7 +398,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

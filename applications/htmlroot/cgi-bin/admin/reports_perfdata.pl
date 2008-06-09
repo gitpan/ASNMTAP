@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBPERFPARSE :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports_perfdata.pl";
 my $prgtext     = "Reports Perfdata";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -57,7 +57,7 @@ my $Cactivated             = (defined $cgi->param('activated'))             ? $c
 my $htmlTitle = $APPLICATION;
 
 # Init parameters
-my ($rv, $dbh, $dbhPERFPARSE, $dbiPERFPARSE, $sth, $sthPERFPARSE, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledNoMetricID, $formDisabledPrimaryKey, $submitButton, $uKeySelect, $metric_idSelect);
+my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledNoMetricID, $formDisabledPrimaryKey, $submitButton, $uKeySelect, $metric_idSelect);
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports Perfdata", undef);
@@ -77,15 +77,6 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   $rv  = 1;
 
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-
-  if ( $PERFPARSEENABLED ) {
-    if ( $DATABASE eq $PERFPARSEDATABASE and $SERVERNAMEREADWRITE eq $PERFPARSEHOST and $SERVERPORTREADWRITE eq $PERFPARSEPORT and $SERVERUSERREADWRITE eq $PERFPARSEUSERNAME and $SERVERPASSREADWRITE eq $PERFPARSEPASSWORD ) {
-      $dbhPERFPARSE = $dbh;
-    } else {
-      $dbiPERFPARSE = 1;
-      $dbhPERFPARSE = DBI->connect("dbi:mysql:$PERFPARSEDATABASE:$PERFPARSEHOST:$PERFPARSEPORT", "$PERFPARSEUSERNAME", "$PERFPARSEPASSWORD" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-    }
-  }
 
   if ($dbh and $rv) {
     $formDisabledAll = $formDisabledNoMetricID = $formDisabledPrimaryKey = '';
@@ -152,7 +143,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select $SERVERTABLREPORTSPRFDT.uKey, $SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), perfdata_service_metric.metric, $SERVERTABLREPORTSPRFDT.times, $SERVERTABLREPORTSPRFDT.percentiles, $SERVERTABLREPORTSPRFDT.unit, $SERVERTABLREPORTSPRFDT.activated from $SERVERTABLREPORTSPRFDT, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, perfdata_service_metric where $SERVERTABLREPORTSPRFDT.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLREPORTSPRFDT.metric_id = perfdata_service_metric.metric_id and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Metric <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Times <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Percentiles <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unit <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'uKey|metric_id', '0|1', '0|1', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
@@ -179,8 +170,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $CuKey, 'uKey', 'none', '-Select-', $formDisabledPrimaryKey, 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ( $CuKey ne 'none' ) {
-        $sql = "select metric_id, metric from perfdata_service_metric where service_description = '$CuKey' and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
-        ($rv, $metric_idSelect, undef) = create_combobox_from_DBI ($rv, $dbhPERFPARSE, $sql, 1, $nextAction, $Cmetric_id, 'metric_id', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+        $sql = "select metric_id, metric from $PERFPARSEDATABASE.perfdata_service_metric where service_description = '$CuKey' and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
+        ($rv, $metric_idSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $Cmetric_id, 'metric_id', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
         $formDisabledNoMetricID = '';
       } else {
@@ -190,7 +181,6 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-    $dbhPERFPARSE->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ( $PERFPARSEENABLED and defined $dbiPERFPARSE and $dbiPERFPARSE );
   }
 
   if ( $rv ) {

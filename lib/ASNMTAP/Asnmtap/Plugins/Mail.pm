@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -333,14 +333,16 @@ sub receiving_fingerprint_mails {
     }
  
     unless ( $email->login( $self->{_IMAP4}->{username}, $self->{_IMAP4}->{password} ) ){
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot login to IMAP4 server: $self->{_IMAP4}->{imap4}, ". $email->errstr }, $TYPE{APPEND} );
+      my $errstr = $email->errstr; $errstr =~ s/[\n\r]/ /g; $errstr =~ s/ +$//g; 
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot login to IMAP4 server: $self->{_IMAP4}->{imap4}, $errstr" }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
     }
 
     $numberOfMails = $email->select ( 'INBOX' );
 
     unless ( defined $numberOfMails ) {
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot select my INBOX on IMAP4 server: $self->{_IMAP4}->{imap4}, ". $email->errstr }, $TYPE{APPEND} );
+      my $errstr = $email->errstr; $errstr =~ s/[\n\r]/ /g; $errstr =~ s/ +$//g; 
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Cannot select my INBOX on IMAP4 server: $self->{_IMAP4}->{imap4}, $errstr" }, $TYPE{APPEND} );
       return ( $ERRORS{UNKNOWN} );
     }
   } elsif ( defined $self->{_POP3}->{pop3} ) {
@@ -376,6 +378,7 @@ sub receiving_fingerprint_mails {
       use MIME::Parser;
       my $parser = new MIME::Parser;
       $parser->output_to_core(1);
+      $parser->decode_bodies(1);
 
       use constant HEADER => '<?xml version="1.0" encoding="UTF-8"?>';
       use constant SYSTEM => 'dtd/FingerprintEmail-1.0.dtd';
@@ -480,12 +483,19 @@ sub receiving_fingerprint_mails {
             next;
           }
 
-          # http://search.cpan.org/src/DONEILL/MIME-tools-5.425/README
-          if ( $head->mime_encoding eq 'quoted-printable' ) {
-            $msgbuffer = MIME::QuotedPrint::decode($msgbuffer);
-          } else {
-            my $decoder = new MIME::Decoder $head->mime_encoding;
-            $decoder->decode($msgbuffer, $msgbuffer);
+        # if ( $head->mime_encoding eq 'quoted-printable' or $head->mime_encoding eq '7bit' or $head->mime_encoding eq '8bit' ) { 
+          if ( $head->mime_encoding eq '7bit' ) { 
+             $msgbuffer = MIME::QuotedPrint::decode($msgbuffer); 
+          } else { 
+            use IO::String; 
+            my $ioIN  = IO::String->new($msgbuffer); 
+            my $ioOUT = IO::String->new($msgbuffer); 
+
+            my $decoder = new MIME::Decoder $head->mime_encoding; 
+            $decoder->decode($ioIN, $ioOUT); 
+
+            $ioIN->close; 
+            $ioOUT->close; 
           }
 
           if ( $parms{checkFingerprint} ) {
@@ -544,12 +554,20 @@ sub receiving_fingerprint_mails {
                       unless ( $statusNotFound ) { $fingerprintFound--; last; }
                     } else {
                       if ( $debug ) {
-                        print "  (match) : From ". $xml->{Fingerprint}{From} ."\n" if ($xml->{Fingerprint}{From} =~ /^$self->{_mail}->{from}/);
-                        print "  (match) : To ". $xml->{Fingerprint}{To} ."\n" if ($xml->{Fingerprint}{To} =~ /^$self->{_mail}->{to}/);
-                        print "  (match) : Destination ". $xml->{Fingerprint}{Destination} ."\n" if ($xml->{Fingerprint}{Destination} eq 'ASNMTAP');
-                        print "  (match) : Plugin ". $xml->{Fingerprint}{Plugin} ."\n" if ($xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName});
-                        print "  (match) : Description ". $xml->{Fingerprint}{Description} ."\n" if ($xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription});
-                        print "  (match) : Environment ". $xml->{Fingerprint}{Environment} ."\n" if ($xml->{Fingerprint}{Environment} =~ /^$self->{_environment_}/i);
+                        my $label = ( $xml->{Fingerprint}{From} =~ /^$self->{_mail}->{from}/ ? '(match)' : '    (?)' );
+                        print "  $label : $self->{_text}->{status} < $self->{_mail}->{status} >\n";
+                        $label = ( $xml->{Fingerprint}{From} =~ /^$self->{_mail}->{from}/ ? '(match)' : '    (?)' );
+                        print "  $label : From ". $xml->{Fingerprint}{From} ."\n";
+                        $label = ( $xml->{Fingerprint}{To} =~ /^$self->{_mail}->{to}/ ? '(match)' : '    (?)' );
+                        print "  $label : To ". $xml->{Fingerprint}{To} ."\n";
+                        $label = ( $xml->{Fingerprint}{Destination} eq 'ASNMTAP' ? '(match)' : '    (?)' );
+                        print "  $label : Destination ". $xml->{Fingerprint}{Destination} ."\n";
+                        $label = ( $xml->{Fingerprint}{Plugin} eq $$asnmtapInherited->{_programName} ? '(match)' : '    (?)' );
+                        print "  $label : Plugin ". $xml->{Fingerprint}{Plugin} ."\n";
+                        $label = ( $xml->{Fingerprint}{Description} eq $$asnmtapInherited->{_programDescription} ? '(match)' : '    (?)' );
+                        print "  $label : Description ". $xml->{Fingerprint}{Description} ."\n";
+                        $label = ( $xml->{Fingerprint}{Environment} =~ /^$self->{_environment_}/i ? '(match)' : '    (?)' );
+                        print "  $label : Environment ". $xml->{Fingerprint}{Environment} ."\n";
                       }
 
                       last;
@@ -667,8 +685,7 @@ sub receiving_fingerprint_mails {
     }
 
     if ( defined $self->{defaultArguments}->{numberOfMatches} and $self->{defaultArguments}->{numberOfMatches} ) {
-      $returnCode = $parms{receivedState} ? $ERRORS{CRITICAL} : $ERRORS{OK};
-      $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => $self->{defaultArguments}->{numberOfMatches} .' '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
+      $$asnmtapInherited->pluginValues ( { alert => $self->{defaultArguments}->{numberOfMatches} .' '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
     } else {
       $returnCode = $parms{receivedState} ? $ERRORS{OK} : $ERRORS{CRITICAL};
       $$asnmtapInherited->pluginValues ( { stateValue => $returnCode, alert => 'No '. ( defined $parms{perfdataLabel} ? $parms{perfdataLabel} : 'email(s) received' ) }, $TYPE{APPEND} );
@@ -711,7 +728,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

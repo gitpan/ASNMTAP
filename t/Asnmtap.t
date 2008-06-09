@@ -15,7 +15,7 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap', qw(
   $CAPTUREOUTPUT
   $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
   %ERRORS %STATE %TYPE
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   &_checkAccObjRef
   &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
   &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
@@ -26,7 +26,7 @@ TODO: {
   my $objectAsnmtap = ASNMTAP::Asnmtap->new (
     _programName        => 'Asnmtap.t',
     _programDescription => 'Test ASNMTAP::Asnmtap',
-    _programVersion     => '3.000.016',
+    _programVersion     => '3.000.017',
     _programUsagePrefix => '[--commandLineOption]',
     _programHelpPrefix  => "--commandLineOption ...",
     _programGetOptions  => ['commandLineOption=s'],
@@ -42,7 +42,7 @@ TODO: {
   is ( $objectAsnmtap->programDescription(), 'Test ASNMTAP::Asnmtap', 'ASNMTAP::Asnmtap::programDescription()' );
   is ( $objectAsnmtap->programDescription('-change programDescription-'), '-change programDescription-', 'ASNMTAP::Asnmtap::programDescription(\'-change programDescription-\')' );
 
-  is ( $objectAsnmtap->programVersion(), '3.000.016', 'ASNMTAP::Asnmtap::programVersion()' );
+  is ( $objectAsnmtap->programVersion(), '3.000.017', 'ASNMTAP::Asnmtap::programVersion()' );
   is ( $objectAsnmtap->programVersion('-change programVersion-'), '-change programVersion-', 'ASNMTAP::Asnmtap::programVersion(\'-change programVersion-\')' );
 
   is ( $objectAsnmtap->getOptionsArgv('commandLineOption'), undef, 'ASNMTAP::Asnmtap::getOptionsArgv(\'commandLineOption\')' );

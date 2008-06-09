@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,10 +15,10 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.016;
+use ASNMTAP::Time v3.000.017;
 use ASNMTAP::Time qw(&get_epoch);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "trendlineCorrectionReports.pl";
 my $prgtext     = "Trendline Correction Reports (for the Collector)";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -125,10 +125,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           if ( $ActionItem or ! $shortlist ) {
             $test =~ s/\.pl//g;
             $ActionItem  = "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('/results/$resultsdir/$test-$uKey-sql.html',912,576,null,null,'Trendline',10,false,'Trendline');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline MRTG Chart\" alt=\"Trendline MRTG Chart\" border=\"0\"></A>&nbsp;";
-            $ActionItem .= "<A HREF=\"#\" onclick=\"openPngImage('/cgi-bin/generateChart.pl?$urlAccessParameters&detailed=on&uKey1=$uKey&uKey2=none&uKey3=none&startDate=$startDate&endDate=$yesterday&inputType=fromto&chart=Bar',1016,400,null,null,'Bar',10,false,'Bar');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline Bar Chart\" alt=\"Trendline Bar Chart\" border=\"0\"></A>&nbsp;";
+            $ActionItem .= "<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/generateChart.pl?$urlAccessParameters&detailed=on&uKey1=$uKey&uKey2=none&uKey3=none&startDate=$startDate&endDate=$yesterday&inputType=fromto&chart=Bar',1016,400,null,null,'Bar',10,false,'Bar');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline Bar Chart\" alt=\"Trendline Bar Chart\" border=\"0\"></A>&nbsp;";
 
             if ( $userType >= 4 ) {
-              $ActionItem .= "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('/cgi-bin/sadmin/plugins.pl?$urlAccessParameters&action=editView&uKey=$uKey&orderBy=uKey',1016,760,null,null,'Edit',10,false,'Edit');\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Trendline\" alt=\"Edit Trendline\" border=\"0\"></A>&nbsp;";
+              $ActionItem .= "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/sadmin/plugins.pl?$urlAccessParameters&action=editView&uKey=$uKey&orderBy=uKey',1016,760,null,null,'Edit',10,false,'Edit');\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Trendline\" alt=\"Edit Trendline\" border=\"0\"></A>&nbsp;";
 
               if ( $calculatedNEW ) {
                 $ActionItem .= "<A HREF=\"#\">";

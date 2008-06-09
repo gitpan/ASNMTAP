@@ -1,12 +1,13 @@
+# ----------------------------------------------------------------------------------------------------------
 #!/bin/sh
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, htmldoc.sh for ASNMTAP
+# 2008/mm/dd, v3.000.017, htmldoc.sh for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 #
-# http://${SERVER_NAME}/cgi-bin/htmldoc.sh/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$QUERY_STRING
+# http://${SERVER_NAME}/asnmtap/cgi-bin/htmldoc.sh/asnmtap/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$QUERY_STRING
 #                      <--------------------------------------- ${PATH_INFO} -------------------------------------->
 # ----------------------------------------------------------------------------------------------------------
 
@@ -18,9 +19,9 @@ HTMLDOC_NOCGI=1; export HTMLDOC_NOCGI
 # Tell the browser to expect a PDF file ...
 echo "Content-Type: application/pdf"
 echo ""
-# echo "Content-Disposition: attachment; filename=$filename";
-# echo ""
-# echo ""
+echo "Content-disposition: attachment; filename=GeneratedReport.pdf"
+echo ""
+echo ""
 
 # Run HTMLDOC to generate the PDF file ...
 htmldoc -t pdf $options http://${SERVER_NAME}:${SERVER_PORT}${PATH_INFO}?$QUERY_STRING

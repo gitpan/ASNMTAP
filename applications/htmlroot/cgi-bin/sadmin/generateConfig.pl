@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,11 +21,11 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.016;
+use ASNMTAP::Time v3.000.017;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
-use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $RSYNCCOMMAND);
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
+use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -954,19 +954,6 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
 
-        # SET - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-        my $SET = '# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -';
-
-        $SET .= "\n
-if [ -d $PERL5LIB ]; then
-  PERL5LIB=\${PERL5LIB:+\$PERL5LIB:}$PERL5LIB
-  MANPATH=\${MANPATH:+\$MANPATH:}$MANPATH
-  export MANPATH PERL5LIB
-fi" if (defined $PERL5LIB and defined $MANPATH);
-
-        $SET .= "\n\nexport LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\${LD_LIBRARY_PATH}" if (defined $LD_LIBRARY_PATH);
-
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
         $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
@@ -998,12 +985,12 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
-                $matchingDisplayCT .= createDisplayCTscript ($SET, $typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
                 if ( $typeServers ) {
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($SET, $typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
                 }
 
                 $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon");
@@ -1123,12 +1110,12 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave", $debug) if ($typeMonitoring);
-                $matchingCollectorCT .= createCollectorCTscript ($SET, $typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
 
                 if ( $typeServers ) {                          # Failover
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingCollectorCT .= createCollectorCTscript ($SET, $typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
                 }
 
                 $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon");
@@ -1251,11 +1238,11 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
                 $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>" unless ($sameServerID);
               }
 
-              $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$RESULTSPATH/$resultsdir/ $RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt\n" if ($typeServers);
+              $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$RESULTSPATH/$resultsdir/ $RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n" if ($typeServers);
 
               if ($typeMonitoring) {
-                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt\n";
-                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt\n";
+                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
               }
 
               $prevServerID        = $serverID;
@@ -1288,7 +1275,7 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
     $compareView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
     $compareView .= "\n        <tr><th>Compare Configurations</th></tr>";
 
-    my $compareDiff = system_call ("diff -braq -I 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated $APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
+    my $compareDiff = system_call ("$DIFFCOMMAND -braq -I 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated $APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
 
     if ($compareDiff eq '') {
       $compareView .= "\n		   <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>The generated and installed configurations are identical.</td></tr>";
@@ -1302,7 +1289,7 @@ fi" if (defined $PERL5LIB and defined $MANPATH);
     $installView .= "\n        <tr><th>Install Configuration</th></tr>";
 
     if ( -e "$APPLICATIONPATH/tmp/$CONFIGDIR/generated" ) {
-      my $compareDiff = system_call ("diff -braq -E 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated $APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
+      my $compareDiff = system_call ("$DIFFCOMMAND -braq -E 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated $APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
 
       if ($compareDiff eq '') {
         $installView .= "\n		   <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>The generated and installed configurations are identical.</td></tr>";
@@ -1445,7 +1432,7 @@ print '</BODY>', "\n", '</HTML>', "\n";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createCollectorCTscript {
-  my ($SET, $typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
   
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/CollectorCT-template.sh >> $filename";
@@ -1467,11 +1454,17 @@ AMPARA=\"--hostname=$databaseFQDN --mode=$mode --collectorlist=CollectorCT-$coll
 PIDPATH=$PIDPATH
 PIDNAME=CollectorCT-$collectorDaemon.pid
 
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
 if [ -f "\$AMPATH/sbin/bash_stop_root.sh" ]; then
   source "\$AMPATH/sbin/bash_stop_root.sh"
 fi
-
-$SET
 
 STARTUPFILE
 
@@ -1582,7 +1575,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createDisplayCTscript {
-  my ($SET, $typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
 
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/DisplayCT-template.sh >> $filename";
@@ -1605,11 +1598,17 @@ PIDPATH=$PIDPATH
 PIDNAME=DisplayCT-$displayDaemon.pid
 SOUNDCACHENAME=DisplayCT-$displayDaemon-sound-status.cache
 
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
 if [ -f "\$AMPATH/sbin/bash_stop_root.sh" ]; then
   source "\$AMPATH/sbin/bash_stop_root.sh"
 fi
-
-$SET
 
 STARTUPFILE
 
@@ -2166,7 +2165,7 @@ sub do_compare_view {
       $compareDiff = "$generated and $installed differ<BR>" if ( $debug eq 'T' );
 
       if ($details) {
-        my $command = "diff -bra -I 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]' $APPLICATIONPATH/tmp/$CONFIGDIR/$generated $APPLICATIONPATH/tmp/$CONFIGDIR/$installed";
+        my $command = "$DIFFCOMMAND -bra -I 'generated on 20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]' $APPLICATIONPATH/tmp/$CONFIGDIR/$generated $APPLICATIONPATH/tmp/$CONFIGDIR/$installed";
         my @compareDiff = `$command 2>&1`;
         foreach my $compareLine (@compareDiff) { $compareDiff .= "$compareLine<BR>"; };
       }
@@ -2377,10 +2376,10 @@ sub system_call {
     if ($parameters =~ /^$APPLICATIONPATH\/tmp\/$CONFIGDIR/) { $doSystemCall = 1; }
   } elsif ( $command eq "mv" ) {
     if ($parameters =~ /^$APPLICATIONPATH\/tmp\/$CONFIGDIR/) { $doSystemCall = 1; }
-  } elsif ( $command =~ /^diff -braq -I/ ) {
+  } elsif ( $command =~ /diff -braq -I/ ) {
     if ($parameters =~ /^$APPLICATIONPATH\/tmp\/$CONFIGDIR\/generated $APPLICATIONPATH\/tmp\/$CONFIGDIR\/installed/) { $statusMessage = do_compare_view("$command $parameters", 1, $debug); }
-  } elsif ( $command =~ /^diff -braq -E/ ) {
-    $command =~ s/^diff -braq -E/diff -braq -I/g;
+  } elsif ( $command =~ /diff -braq -E/ ) {
+    $command =~ s/diff -braq -E/diff -braq -I/g;
     if ($parameters =~ /^$APPLICATIONPATH\/tmp\/$CONFIGDIR\/generated $APPLICATIONPATH\/tmp\/$CONFIGDIR\/installed/) { $statusMessage = do_compare_view("$command $parameters", 0, $debug); }
   }
 

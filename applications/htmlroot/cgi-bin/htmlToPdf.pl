@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2008/mm/dd, v3.000.017, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 # ----------------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.016;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.017;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "htmlToPdf.pl";
 my $prgtext     = "HTML to PDF";
-my $version     = do { my @r = (q$Revision: 3.000.016$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -72,36 +72,40 @@ if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $end
 
 my $htmlTitle = "Convert HTML to PDF";
 my $subTitle = "HTML to PDF";
+my $message;
 
-# Write the content type to the client...
-print "Content-Type: Text/HTML\n\n";
-
-if ((!defined $scriptname) or (!defined $sessionID)) {
-  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
-  print "<h1 align=\"center\">Scriptname and/or CGISESSID missing</h1>\n";
+if ( ( ! defined $scriptname ) or ( ! defined $sessionID ) ) {
+  $message = "Scriptname and/or CGISESSID missing";
 } else {
   # Serialize the URL Access Parameters into a string
   my $urlAccessParameters = "pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;detailed=$selDetailed&amp;uKey1=$uKey1&amp;uKey2=$uKey2&amp;uKey3=$uKey3&amp;startDate=$startDate&amp;endDate=$endDate&amp;inputType=$inputType&amp;year=$selYear&amp;week=$selWeek&amp;month=$selMonth&amp;quarter=$selQuarter&amp;timeperiodID=$timeperiodID&amp;statuspie=$statuspie&amp;errorpie=$errorpie&amp;bar=$bar&amp;hourlyAvg=$hourlyAvg&amp;dailyAvg=$dailyAvg&amp;details=$details&amp;topx=$topx&amp;pf=$pf&amp;htmlToPdf=1";
 
-  my $refresh = '';
-
   if ($HTMLtoPDFprg eq 'htmldoc') {
-    my $extension = ($HTMLtoPDFhow eq 'cgi') ? 'cgi' : 'sh';
-    $refresh = "1; url=/cgi-bin/$HTMLtoPDFprg.$extension$scriptname?$urlAccessParameters";
-  }
+    my $command = "$HTMLtoPDFprg -t pdf $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$scriptname?$urlAccessParameters'";
 
-  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, $refresh, '', 'F', '', $sessionID);
+    if ( $debug eq 'T' ) {
+      $message = $command;
+    } else {
+      $ENV{HTMLDOC_NOCGI} = 1;
+      select(STDOUT);  $| = 1;
 
-  if ($HTMLtoPDFhow eq 'cgi' or $HTMLtoPDFhow eq "shell") {
-    print "<h1 align=\"center\">Wait, i make a PDF for you ... ($HTMLtoPDFhow)</h1>\n";
+      print "Content-Type: application/pdf\n";
+      print "Content-disposition: attachment; filename=GeneratedReport.pdf\n\n";
+
+      my ($status, $stdout, $stderr) = call_system ("$command", $debug);
+      print $stdout;
+    }
   } else {
-    print "<h1 align=\"center\">It's not a bug, it's a missing feature!</h1>\n";
+    $message = "$HTMLtoPDFprg not supported";
   }
 }
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-print_legend (*STDOUT);
-print '</BODY>', "\n", '</HTML>', "\n";
+if ( defined $message ) {
+  print "Content-Type: Text/HTML\n\n";
+  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
+  print "<h1 align=\"center\">$message</h1>\n";
+  print_legend (*STDOUT);
+  print '</BODY>', "\n", '</HTML>', "\n";
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

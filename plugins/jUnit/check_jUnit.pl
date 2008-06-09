@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, check_jUnit.pl
+# 2008/mm/dd, v3.000.017, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.016;
+use ASNMTAP::Asnmtap::Plugins v3.000.017;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.000.016;
+use ASNMTAP::Asnmtap::Plugins::XML v3.000.017;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.000.016',
+  _programVersion     => '3.000.017',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -236,7 +236,7 @@ if ($dbh and $rv) {
             }
           }
 		  
-          if ( $xml->{Test_success} =~ /^True$/i ) {
+          if ( defined $xml->{Test_success} and $xml->{Test_success} =~ /^True$/i ) {
             if ( defined $xml->{testClass}->{name} ) {
               $performanceDataTests    += $xml->{testClass}->{tests};
               $performanceDataFailures += $xml->{testClass}->{failures};
@@ -311,7 +311,7 @@ if ($dbh and $rv) {
               }
             }
 
-            if ( $xml->{Test_success} !~ /^True$/i ) {
+            if ( defined $xml->{Test_success} and $xml->{Test_success} !~ /^True$/i ) {
               $performanceDataTests    += $xml->{testClass}->{tests};
               $performanceDataFailures += $xml->{testClass}->{failures};
               $performanceDataErrors   += $xml->{testClass}->{errors};

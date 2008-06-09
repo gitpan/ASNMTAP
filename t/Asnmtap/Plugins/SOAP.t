@@ -6,13 +6,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(&get_soap_request) ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.016;
+use ASNMTAP::Asnmtap::Plugins v3.000.017;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'SOAP.t ',
   _programDescription => "Testing ASNMTAP::Asnmtap::Plugins::SOAP",
-  _programVersion     => '3.000.016',
+  _programVersion     => '3.000.017',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -298,7 +298,12 @@ TODO: {
 
   $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QSOAP parameter TYPE_ERROR_RETURN must be [REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT]\E/);
   ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request(): SOAP parameter TYPE_ERROR_RETURN must be [REPLACE|APPEND|INSERT|COMMA_APPEND|COMMA_INSERT]');
- }
+}
+
+no warnings 'deprecated';
+$objectPlugins->{_pluginValues}->{stateValue} = $ERRORS{OK};
+$objectPlugins->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+$objectPlugins->exit (0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

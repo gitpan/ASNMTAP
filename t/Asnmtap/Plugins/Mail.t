@@ -4,16 +4,19 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail', qw(:ALL) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.016;
+  use ASNMTAP::Asnmtap::Plugins v3.000.017;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
-  $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
-    _programName        => 'check_template.pl',
-    _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.016',
+  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
+    _programName        => 'Mail.t',
+    _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::MAIL',
+    _programVersion     => '3.000.017',
     _programGetOptions  => ['environment|e:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
+
+  no warnings 'deprecated';
+  $objectPlugins->{_getOptionsArgv}->{environment} = 'P';
 
   isa_ok( $objectPlugins, 'ASNMTAP::Asnmtap::Plugins' );
   can_ok( $objectPlugins, qw(programName programDescription programVersion getOptionsArgv getOptionsValue debug dumpData printRevision printRevision printUsage printHelp) );
@@ -21,9 +24,9 @@ TODO: {
 
   my $body = "\nThis is the body of the email !!! ...\n";
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.016;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.017;
 
-  $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
+  my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
     _SMTP             => { smtp => [ qw(smtp.citap.be) ], mime => 0 },
     _mailType         => 0,
@@ -38,6 +41,8 @@ TODO: {
   isa_ok( $objectMAIL, 'ASNMTAP::Asnmtap::Plugins::Mail' );
   can_ok( $objectMAIL, qw(sending_fingerprint_mail) );
 
-  undef $objectMAIL;
-  undef $objectPlugins;
+  no warnings 'deprecated';
+  $objectPlugins->{_pluginValues}->{stateValue} = $ERRORS{OK};
+  $objectPlugins->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+  $objectPlugins->exit (0);
 }

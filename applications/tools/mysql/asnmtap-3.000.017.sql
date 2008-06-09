@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, asnmtap-3.000.016.sql
+# 2008/mm/dd, v3.000.017, asnmtap-3.000.017.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -784,11 +784,11 @@ CREATE TABLE `plugins` (
 # Data for the table plugins
 #
 
-insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1',0,25,5,2,'1','1','T','/test/','test-01',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2',1,25,5,2,'1','1','T','/test/','test-02',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3',2,25,5,2,'1','1','T','/test/','test-03',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4',3,25,5,2,'1','1','T','/test/','test-04',NULL,'CheckDummy.pdf',1);
-insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test',5,25,5,2,'1','1','T','/test/','test-05',NULL,'<NIHIL>',1);
+insert into `plugins` values ('DUMMY-T1','check_dummy.pl','-r 0','','DUMMY-T1','',0,25,5,2,'1','1','T','/test/','test-01',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T2','check_dummy.pl','','-r 1','DUMMY-T2','',1,25,5,2,'1','1','T','/test/','test-02',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T3','check_dummy.pl','','-r 2','DUMMY-T3','',2,25,5,2,'1','1','T','/test/','test-03',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T4','check_dummy.pl','','-r 3','DUMMY-T4','',3,25,5,2,'1','1','T','/test/','test-04',NULL,'CheckDummy.pdf',1);
+insert into `plugins` values ('DUMMY-T5','check_dummy.pl','','-r 0','Condenced View test','',5,25,5,2,'1','1','T','/test/','test-05',NULL,'<NIHIL>',1);
 
 #
 # Table structure for table reports
@@ -799,6 +799,7 @@ DROP TABLE IF EXISTS `reports`;
 CREATE TABLE `reports` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `reportTitle` varchar(100) NOT NULL default '',
   `periode` char(1) NOT NULL default 'F',
   `timeperiodID` int(11) NOT NULL default '1',
   `status` tinyint(1) NOT NULL default '0',
@@ -807,8 +808,8 @@ CREATE TABLE `reports` (
   `hourlyAverage` tinyint(1) NOT NULL default '0',
   `dailyAverage` tinyint(1) NOT NULL default '0',
   `showDetails` tinyint(1) NOT NULL default '0',
-  `showPerfdata` tinyint(1) NOT NULL default '0',
   `showComments` tinyint(1) NOT NULL default '0',
+  `showPerfdata` tinyint(1) NOT NULL default '0',
   `showTop20SlowTests` tinyint(1) NOT NULL default '0',
   `printerFriendlyOutput` tinyint(1) NOT NULL default '0',
   `formatOutput` varchar(4) NOT NULL default 'pdf',
@@ -826,7 +827,7 @@ CREATE TABLE `reports` (
 # Data for the table reports
 #
 
-insert into `reports` values (1,'DUMMY-T2','M',0,1,1,1,0,0,1,1,1,'pdf','',1);
+insert into `reports` values (1,'DUMMY-T2','','M',1,0,1,1,1,0,0,1,1,1,1,'pdf','',1);
 
 #
 # Table structure for table reports_perfdata
@@ -844,7 +845,6 @@ CREATE TABLE `reports_perfdata` (
   PRIMARY KEY  (`uKey`,`metric_id`),
   KEY `uKey` (`uKey`)  
 ) ENGINE=InnoDB;
-
 
 #
 # Table structure for table resultsdir

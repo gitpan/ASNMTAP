@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, asnmtap-3.000.016-distributed.sql
+# 2008/mm/dd, v3.000.017, asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -460,7 +460,7 @@ CREATE TABLE `events` (
   `endDate` date NOT NULL default '0000-00-00',
   `endTime` time NOT NULL default '00:00:00',
   `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(254) NOT NULL default '',
+  `statusMessage` varchar(1024) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
   `persistent` tinyint(1) NOT NULL default '9',
@@ -756,6 +756,7 @@ DROP TABLE IF EXISTS `reports`;
 CREATE TABLE `reports` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `reportTitle` varchar(100) NOT NULL default '',
   `periode` char(1) NOT NULL default 'F',
   `timeperiodID` int(11) NOT NULL default '1',
   `status` tinyint(1) NOT NULL default '0',

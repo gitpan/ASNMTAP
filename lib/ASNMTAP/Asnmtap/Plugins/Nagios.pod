@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.016;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.017;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -206,7 +206,7 @@ ALL
   $CAPTUREOUTPUT
   $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
   %ERRORS %STATE %TYPE
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
   &convert_to_KB &convert_from_KB_to_metric
 
 =item *
@@ -223,7 +223,7 @@ NAGIOS
 
 COMMANDS
 
-  $CHATCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
 =back
 
@@ -240,6 +240,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_memory-free.pl
   check_memory-top.pl
   check_nagios-comments-cleanup.pl
+  check_nagiosv3-comments-cleanup.pl
   check_network_interface_status.pl
   check_network_interface_traffic.pl
   check_snmptt_traps.pl
@@ -273,7 +274,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

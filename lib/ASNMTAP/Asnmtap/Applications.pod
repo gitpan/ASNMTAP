@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2007/10/21 15:19:36, ASNMTAP v3.000.016 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2008/02/13 17:58:36, ASNMTAP v3.000.017 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -114,7 +114,7 @@ when the Application CGI module and CGI applications are installed, this config 
    ... Access Denied! Sorry
    Connection to probe closed.
 
- rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap-3.000.xxx/results/test/ asnmtap@probe.citap.be:/opt/asnmtap-3.000.xxx/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt
+ rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap-3.000.xxx/results/test/ asnmtap@probe.citap.be:/opt/asnmtap-3.000.xxx/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp
    building file list ... done
    ./
    yyyymmdd-check_dummy-PROBE-01-T1-csv.txt
@@ -810,7 +810,7 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
      Allow from all
    </Directory>
 
-   ScriptAlias /cgi-bin/ "/opt/asnmtap/applications/htmlroot/cgi-bin/"
+   ScriptAlias /asnmtap/cgi-bin/ "/opt/asnmtap/applications/htmlroot/cgi-bin/"
 
    <Directory "/opt/asnmtap/applications/htmlroot/cgi-bin">
      AllowOverride AuthConfig
@@ -845,29 +845,29 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.017.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.017.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.017_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.017_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.017-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016-distributed.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.017-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.016-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.016-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1036,7 +1036,7 @@ MySQL 5.0.x
 
  vi /opt/asnmtap-3.000.xxx/applications/custom/Applications.cnf
 
- URL: http://asnmtap.citap.be/cgi-bin/sadmin/index.pl
+ URL: http://asnmtap.citap.be/asnmtap/cgi-bin/sadmin/index.pl
 
  regarding the server administrator, the default username: `sadmin` and password: `a1A`
 
@@ -1109,7 +1109,7 @@ We use the 'Pipe to Perfparse' methode
 
 =item Testing configuration
 
- http://asnmtap.citap.be/cgi-bin/perfparse.cgi
+ http://asnmtap.citap.be/asnmtap/cgi-bin/perfparse.cgi
  > An error occured with the SQL:
  >   "Could not connect to MySQL using:  Database  = 'asnmtap',  Host  = '127.0.0.1',  Username =  'asnmtap', Password  = 'asnmtap'"
  >
@@ -1157,19 +1157,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.016.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.017.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.017.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.016.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.017.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.016-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.017-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.017_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.016-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.016_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.017-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1324,7 +1324,7 @@ Click on the Update License button to add a license to your system
 
 =item Testing the Software
 
- htmldoc -f '/opt/asnmtap/results/_ASNMTAP/reports/yyyydmmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-probe02-Daily.pdf' --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 21mm --bottom 10mm --left 26mm --right 10mm --fontsize 8.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 8.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage 'http://localhost/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?htmlToPdf=1&amp;sqlPeriode=3600&amp;width=1000&amp;xOffset=300&amp;yOffset=42&amp;labelOffset=32&amp;AreaBOffset=78&amp;hightMin=195'
+ htmldoc -f '/opt/asnmtap/results/_ASNMTAP/reports/yyyydmmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-probe02-Daily.pdf' --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 21mm --bottom 10mm --left 26mm --right 10mm --fontsize 8.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 8.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage 'http://localhost/asnmtap/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?htmlToPdf=1&amp;sqlPeriode=3600&amp;width=1000&amp;xOffset=300&amp;yOffset=42&amp;labelOffset=32&amp;AreaBOffset=78&amp;hightMin=195'
  cd /opt/asnmtap/applications/bin
  ./generateCollectorDaemonSchedulingReports.pl -D L
  ls /opt/asnmtap/results/_ASNMTAP/reports/
@@ -1368,6 +1368,16 @@ Click on the Update License button to add a license to your system
 =back
 
 =item Install Awstats
+
+ Applications.cnf
+
+ <COMMON>
+ ...
+   <AWSTATS>
+     ENABLED         1                      # '0' or '1'
+   </AWSTATS>
+ ...
+ </COMMON>
 
  vi /usr/local/apache2/conf/httpd.conf
  CustomLog logs/access_log combined
@@ -1552,7 +1562,7 @@ perl -MCPAN -e 'CPAN::Shell->install(CPAN::Shell->r)'
  ...
  export PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/etc:/usr/ccs/bin:/usr/bin:/opt/csw/bin:/usr/ucb:/usr/local/mysql/bin:${PATH}
 
- if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then 
+ if [ -d /opt/asnmtap/cpan-shared/lib/perl5 ]; then
    PERL5LIB=${PERL5LIB:+$PERL5LIB:}/opt/asnmtap/cpan-shared/lib/perl5
    MANPATH=${MANPATH:+$MANPATH:}/opt/asnmtap/cpan-shared/share/man
    export MANPATH PERL5LIB
@@ -1980,7 +1990,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

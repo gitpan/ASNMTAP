@@ -7,13 +7,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(&extract_XML) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.016;
+  use ASNMTAP::Asnmtap::Plugins v3.000.017;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'XML.t',
     _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::XML',
-    _programVersion     => '3.000.016',
+    _programVersion     => '3.000.017',
     _timeout            => 30,
     _debug              => 0);
 
@@ -104,6 +104,12 @@ EOT
   ($returnCode, $xml) = extract_XML ( asnmtapInherited => \$objectPlugins, filenameXML => "../plugins/templates/xml/Monitoring-1.0-doNotValidate.xml", headerXML => HEADER, footerXML => FOOTER, validateDTD => 1, filenameDTD => "../plugins/templates/dtd/Monitoring-$schema.dtd" );
   $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QThe XML doesn't validate\E/);
   ok ($errorStatus, 'ASNMTAP::Asnmtap::Plugins::XML::extract_XML(): The XML doesn\'t validate');
+
+
+  no warnings 'deprecated';
+  $objectPlugins->{_pluginValues}->{stateValue} = $ERRORS{OK};
+  $objectPlugins->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+  $objectPlugins->exit (0);
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

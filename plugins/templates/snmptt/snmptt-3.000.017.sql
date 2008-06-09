@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/02/13, v3.000.016, snmptt-3.000.016-v5.0.x.sql
+# 2008/mm/dd, v3.000.017, snmptt-3.000.017.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `snmptt`;
@@ -27,7 +27,7 @@ CREATE TABLE `snmptt` (
   `severity` varchar(20) default NULL,
   `uptime` varchar(20) default NULL,
   `traptime` varchar(30) default NULL,
-  `formatline` varchar(1024) default NULL,
+  `formatline` varchar(255) default NULL,
   `system_running_SNMPTT` varchar(100) default NULL,
   `trapread` int(1) default '0',
   `uniqueProblem` varchar(255) default NULL,
@@ -62,7 +62,7 @@ CREATE TABLE `snmptt_archive` (
   `severity` varchar(20) default NULL,
   `uptime` varchar(20) default NULL,
   `traptime` varchar(30) default NULL,
-  `formatline` varchar(1024) default NULL,
+  `formatline` varchar(255) default NULL,
   `system_running_SNMPTT` varchar(100) default NULL,
   `trapread` int(1) default '0',
   `uniqueProblem` varchar(255) default NULL,
@@ -107,7 +107,7 @@ CREATE TABLE `snmptt_unknown` (
   `agentip` varchar(16) default NULL,
   `uptime` varchar(20) default NULL,
   `traptime` varchar(30) default NULL,
-  `formatline` varchar(1024) default NULL,
+  `formatline` varchar(255) default NULL,
   `system_running_SNMPTT` varchar(100) default NULL,
   `trapread` int(11) default '0',
   `archivetime` timestamp(14) NOT NULL,
@@ -129,7 +129,7 @@ CREATE TABLE `snmptt_unknown_archive` (
   `agentip` varchar(16) default NULL,
   `uptime` varchar(20) default NULL,
   `traptime` varchar(30) default NULL,
-  `formatline` varchar(1024) default NULL,
+  `formatline` varchar(255) default NULL,
   `system_running_SNMPTT` varchar(100) default NULL,
   `trapread` int(11) default '0',
   `archivetime` timestamp(14) NOT NULL,

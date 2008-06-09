@@ -7,12 +7,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::IO', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::IO', qw(:SOCKET) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins;
+  use ASNMTAP::Asnmtap::Plugins v3.000.017;
+  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'IO.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::IO',
-    _programVersion     => '3.000.016',
+    _programVersion     => '3.000.017',
     _timeout            => 30,
     _debug              => 0);
 
@@ -168,4 +169,9 @@ TODO: {
   
   $errorStatus = ($returnCode == 3 && $objectPlugins->pluginValue ('error') =~ /\QWrong value for attribute socketTimeout: timeout\E/);
   ok ( $errorStatus, 'ASNMTAP::Asnmtap::Plugins::IO::scan_socket_info::socketTimeout: Wrong value for attribute socketTimeout: timeout' );
+
+  no warnings 'deprecated';
+  $objectPlugins->{_pluginValues}->{stateValue} = $ERRORS{OK};
+  $objectPlugins->{_pluginValues}->{stateError} = $STATE{$ERRORS{OK}};
+  $objectPlugins->exit (0);
 }
