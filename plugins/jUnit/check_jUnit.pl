@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, check_jUnit.pl
+# 2008/mm/dd, v3.000.018, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.017;
+use ASNMTAP::Asnmtap::Plugins v3.000.018;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.000.017;
+use ASNMTAP::Asnmtap::Plugins::XML v3.000.018;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.000.017',
+  _programVersion     => '3.000.018',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -84,18 +84,18 @@ use constant HEADER    => '<?xml version="1.0" encoding="UTF-8"?>';
 use constant FOOTER    => '</testresult>';
 
 # crinaea MySQL connection parameters
-my $asnmtapServerName   = "crinaea.smals-mvm.be";
+my $asnmtapServerName   = "<server>";
 my $asnmtapServerPort   = "3306";
 my $asnmtapServerUser   = "asnmtap";
-my $asnmtapServerPass   = "asnmtap";
+my $asnmtapServerPass   = "<password>";
 my $asnmtapServerDb     = "odbc";
 my $asnmtapServerTabl   = "jUnit";
 
 # jUnit Server MySQL connection parameters
-my $jUnitServerName     = (defined $jUnitServer) ? $jUnitServer : 'modi.smals-mvm.be';
+my $jUnitServerName     = (defined $jUnitServer) ? $jUnitServer : '<server>';
 my $jUnitServerPort     = (defined $port)        ? $port        : '3306';
 my $jUnitServerUser     = (defined $username)    ? $username    : 'jUnit';
-my $jUnitServerPass     = (defined $password)    ? $password    : 'jUnit';
+my $jUnitServerPass     = (defined $password)    ? $password    : '<password>';
 my $jUnitServerDbC      = (defined $config)      ? $config      : 'jUnitConfig';
 my $jUnitServerDbDR     = (defined $result)      ? $result      : 'jUnitData';
 my $jUnitServerTablS    = 'SERVER';
@@ -131,8 +131,8 @@ my $xmlCleanUpLineFeeds = 1;
 # $testcaseWlsusername: - wrong username => <error message="javax.naming.AuthenticationException [Root exception is java.lang.SecurityException: User: username00, failed to be authenticated.]" type="java.util.MissingResourceException">
 # $testcaseWlspassword: - wrong password => <error message="javax.naming.AuthenticationException [Root exception is java.lang.SecurityException: User: username00, failed to be authenticated.]" type="java.util.MissingResourceException">
 
-# $testcaseAppname    : - don't exist => be.smals.common.systemservices.junitserver.core.exception.TestCaseFinderException: no file found in application directory
-# $testcaseAppname    : - wrong name  => be.smals.common.systemservices.junitserver.core.exception.TestCaseFinderException: no file found in application directory
+# $testcaseAppname    : - don't exist => be.citap.common.systemservices.junitserver.core.exception.TestCaseFinderException: no file found in application directory
+# $testcaseAppname    : - wrong name  => be.citap.common.systemservices.junitserver.core.exception.TestCaseFinderException: no file found in application directory
 
 # $testcaseEejbname   : - don't exist => <error message="javax.naming.CommunicationException [Root exception is java.net.ConnectException: <protocol>://<servername>:<port number>: Destination unreachable; nested exception is:
 # $testcaseEejbname   : - wrong name  => <error message="javax.naming.CommunicationException [Root exception is java.net.ConnectException: <protocol>://<servername>:<port number>: Destination unreachable; nested exception is:

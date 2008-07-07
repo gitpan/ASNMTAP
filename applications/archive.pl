@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, archive.pl for ASNMTAP::Applications
+# 2008/mm/dd, v3.000.018, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.017;
+use ASNMTAP::Time v3.000.018;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.017;
+use ASNMTAP::Asnmtap::Applications v3.000.018;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -870,7 +870,7 @@ sub removeCgisessFiles {
               print "CS <$cgisessPathFilename><" .$session{_SESSION_CTIME}. ">\n";
             } else {
               print EMAILREPORT "CS unlink <$cgisessPathFilename><" .$session{_SESSION_CTIME}. ">\n";
-              unlink ($cgisessPathFilename);
+              my ($status, $stdout, $stderr) = call_system ('rm -f '.$cgisessPathFilename, $debug); # unlink ($cgisessPathFilename);
             }
           } else {
             print "CS-<$cgisessPathFilename><$removeCgisessEpoch><" .$session{_SESSION_CTIME}. ">\n" if ($debug >= 2);

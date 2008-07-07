@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, create_weblogic_configuration_database_with_SNMP-3.000.017_mysql-v5.0.x.SQL
+# 2008/mm/dd, v3.000.018, create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `weblogicConfig`;

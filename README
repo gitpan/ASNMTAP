@@ -6,79 +6,13 @@
 
 Author       : Alex Peeters [alex.peeters@citap.be]
 Latest update: dd month 2008
-Version      : 3.000.017
+Version      : 3.000.018
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.017, 2008/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
-                               Makefile.PL
-                               - version update Bundle::DBI:                   1.604
-                               - version update CGI:                           3.37
-                               - version update CGI::Session:                  4.30
-                               - version update CPAN:                          1.9205
-                               - version update CPANPLUS:                      0.84
-                               - version update Compress::Zlib:                2.010
-                               - version update Config::General:               2.38
-                               - version update Crypt::OpenSSL::X509:          0.6
-                               - version update Crypt::SSLeay:                 0.57
-                               - version update Cwd:                           3.2701
-                               - version update DateTime:                      0.42
-                               - version update DateTime::Format::Epoch:       0.11
-                               - version update Email::Simple:                 2.003
-                               - version update Getopt::Long:                  2.37
-                               - version update HTTP::Daemon::SSL:             1.04
-                               - version update IO::CaptureOutput:             1.0801
-                               - version update IO::Socket::SSL:               1.13
-                               - version added  IO::String                     1.08
-                               - version update Mail::POP3Client:              2.18
-                               - version update Net::IMAP::Simple:             1.17
-                               - version update Net::SSLeay:                   1.32
-                               - version update Proc::ProcessTable:            0.42
-                               - version update SOAP::Lite:                    0.710.05
-                               - version update Test::Builder::Tester:         1.13
-                               - version update Test::Simple:                  0.80
-                               - version update URI:                           1.36
-                               - version update XML::LibXML:                   1.66
-                               - version update XML::Parser:                   2.36
-                               - version update XML::Simple:                   2.18
-                               ASNMTAP::Asnmtap
-                               - Making Solaris 10 zone compatible
-                               - UPDATE: all *.t test files
-                               - UPDATE: replace '/cgi-bin' with '/asnmtap/cgi-bin'
-                               - UPDATE: added <COMMAND> variable DIFF to Asnmtap.cnf
-                               - UPDATE: replace '$Rsync ...' with '$Rsync --rsync-path=$Rsync ...'
-                               - UPDATE: rsync --exclude=*-KnownError --exclude=*.tmp
-                               ASNMTAP::Asnmtap::Applications
-                               - Applications.cnf
-                                 <COMMON>
-                                 ...
-                                 #  <AWSTATS>
-                                 #    ENABLED         1                      # '0' or '1'
-                                 #  </AWSTATS>
-                               - archiver.pl: making MySQL 5.0.51 compatible
-                               - display.pl: 
-                                 - NEW 'Minimal Condenced View', index-mcv.html
-                                 - FIX for 1727568 Bij wisselen omgeving op dezelfde pagina blijven.
-                               ASNMTAP::Asnmtap::Applications::CGI
-                               - htmlToPdf.pl: FIX for 1768193 PDF issues with Adobe Acrobat 8
-                               - reports.pl: replace `reportTitle='` with `reportTitle="'`
-                               ASNMTAP::Asnmtap::Plugins
-                               - check_jUnit.pl
-                                 - UPDATE: xml layout optimalisation
-                               - check_memory-free.pl
-                                 - UPDATE: making Blastwave compatible
-                               ASNMTAP::Asnmtap::Plugins::Mail.pm
-                               - FIX regarding MIME-Encoding '7bit' into MIME-tools-5.425
-                               ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_nagiosv3-comments-cleanup.pl
-                               ASNMTAP::Asnmtap::Plugins::Webtransact.pm
-                               - NEW triesTiming & triesCodes
-             ATTENTION   -->   asnmtap-3.000.017.sql, asnmtap-3.000.017-distributed.sql, 
-                               asnmtap-3.000.017_mysql-v5.0.x.sql & asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
-                               - add `reportTitle` varchar(100) NOT NULL default '' to table reports
-                               apache config
-                               - UPDATE: replace 'ScriptAlias /cgi-bin/ ...' with 'ScriptAlias /asnmtap/cgi-bin/ ...'
+Version 3.000.018, 2008/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, check_file-counter.pl
+# 2008/mm/dd, v3.000.018, check_file-counter.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.017;
+use ASNMTAP::Asnmtap::Plugins v3.000.018;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use constant DAY => 86400;
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_file-counter.pl',
   _programDescription => 'File Counter',
-  _programVersion     => '3.000.017',
+  _programVersion     => '3.000.018',
   _programUsagePrefix => '-p|--parameters <directory> -m|--message <plugin massage> -w|--wNumber INTEGER -c|--cNumber INTEGER [-W|--wDays INTEGER] [-C|--cDays INTEGER]',
   _programHelpPrefix  => '-p, --parameters=<directory>
    <directory> for which the number of files need to be counted  

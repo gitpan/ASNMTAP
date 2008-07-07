@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, check_template-IO.pl
+# 2008/mm/dd, v3.000.018, check_template-IO.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.017;
+use ASNMTAP::Asnmtap::Plugins v3.000.018;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-IO.pl',
   _programDescription => "IO plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.017',
+  _programVersion     => '3.000.018',
   _programUsagePrefix => '--service <service> --protocol <protocol> --request <request>',
   _programHelpPrefix  => '--service=<service>
 --protocol=<protocol>
@@ -42,7 +42,7 @@ my $password = $objectPlugins->getOptionsArgv ('password');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::IO v3.000.017;
+use ASNMTAP::Asnmtap::Plugins::IO v3.000.018;
 use ASNMTAP::Asnmtap::Plugins::IO qw(:SOCKET);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

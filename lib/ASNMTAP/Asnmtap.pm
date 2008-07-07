@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2008/mm/dd, v3.000.018, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -

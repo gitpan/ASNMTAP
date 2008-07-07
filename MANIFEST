@@ -371,10 +371,10 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.017.sql
-applications/tools/mysql/asnmtap-3.000.017_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.000.017-distributed.sql
-applications/tools/mysql/asnmtap-3.000.017-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.018.sql
+applications/tools/mysql/asnmtap-3.000.018_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.018-distributed.sql
+applications/tools/mysql/asnmtap-3.000.018-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -466,14 +466,14 @@ plugins/templates/dtd/email-upgrade-1.0.dtd
 plugins/templates/dtd/FingerprintEmail-1.0.dtd
 plugins/templates/dtd/Monitoring-1.0.dtd
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.017_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.017_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.018_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.018_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.017_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
-plugins/templates/snmptt/snmptt-3.000.017.sql
-plugins/templates/snmptt/snmptt-3.000.017-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.000.018.sql
+plugins/templates/snmptt/snmptt-3.000.018-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

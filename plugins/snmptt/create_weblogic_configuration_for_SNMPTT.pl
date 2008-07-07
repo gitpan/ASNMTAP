@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, create_weblogic_configuration_for_SNMPTT.pl
+# 2008/mm/dd, v3.000.018, create_weblogic_configuration_for_SNMPTT.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.017
+use ASNMTAP::Time v3.000.018;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.017
+use ASNMTAP::Asnmtap::Plugins v3.000.018;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_for_SNMPTT.pl',
   _programDescription => 'Create weblogic configuration for SNMPTT',
-  _programVersion     => '3.000.017',
+  _programVersion     => '3.000.018',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogicConfig)",

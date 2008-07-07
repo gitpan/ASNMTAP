@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, check_template-mail-without-fingerprint.pl
+# 2008/mm/dd, v3.000.018, check_template-mail-without-fingerprint.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.017;
+use ASNMTAP::Asnmtap::Plugins v3.000.018;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-without-fingerprint.pl',
   _programDescription => "Mail without fingerprint plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.017',
+  _programVersion     => '3.000.018',
   _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -36,7 +36,7 @@ my $environment = $objectPlugins->getOptionsArgv ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.017;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.018;
 
 my $body = "
 

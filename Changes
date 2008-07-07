@@ -6,14 +6,18 @@
 
 Author       : Alex Peeters [alex.peeters@citap.be]
 Latest update: dd month 2008
-Version      : 3.000.017
+Version      : 3.000.018
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.017, 2008/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+Version 3.000.018, 2008/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+                               -
+
+
+Version 3.000.017, 2008/06/09, by Alex Peeters with contributions from Yves Van den Hove.
                                Makefile.PL
                                - version update Bundle::DBI:                   1.604
                                - version update CGI:                           3.37
@@ -503,8 +507,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

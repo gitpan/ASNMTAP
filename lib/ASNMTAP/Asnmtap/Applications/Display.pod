@@ -81,7 +81,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-test
 
- # DisplayCT-test - CTP-CENTRAL, generated on 2008/02/13 17:58:16, ASNMTAP v3.000.017 or higher
+ # DisplayCT-test - CTP-CENTRAL, generated on 2008/mm/dd 17:58:16, ASNMTAP v3.000.018 or higher
  #
  # <interval>#<groep title>#<resultsdir>#<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
  #

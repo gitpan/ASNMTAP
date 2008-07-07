@@ -22,7 +22,7 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Applications::CGI', qw(:REPORTS) ) };
 #   my $objectCGI = ASNMTAP::Asnmtap::Applications::CGI->new (
 #     _programName        => 'CGI.t',
 #     _programDescription => 'Test ASNMTAP::Asnmtap::Applications::CGI',
-#     _programVersion     => '3.000.017',
+#     _programVersion     => '3.000.018',
 #     _debug              => 0);
 # 
 #   isa_ok( $objectCGI, 'ASNMTAP::Asnmtap::Applications::CGI' );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.017, package ASNMTAP::Asnmtap::Applications
+# 2008/mm/dd, v3.000.018, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -158,7 +158,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,7 +257,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.017$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -649,16 +649,16 @@ sub get_session_param {
 
       close(CGISESSION);
     } else {
-      print "\nCannot open cgisess '$cgipath$filename'!\n" if ($Tdebug);
+      print "\nCannot open cgisess '$cgipathFilename'!\n" if ($Tdebug);
       return (0, ());
     }
   } else {
-    print "\ncgisess '$cgipath$filename' doesn't exist!\n" if ($Tdebug);
+    print "\ncgisess '$cgipathFilename' doesn't exist!\n" if ($Tdebug);
     return (0, ());
   }
 
   unless ( defined $cgisession ) {
-    print "\nEmpty cgisess file '$cgipath$filename'!\n" if ($Tdebug);
+    print "\nEmpty cgisess file '$cgipathFilename'!\n" if ($Tdebug);
     return (0, ());
   }
 
@@ -700,10 +700,10 @@ sub get_session_param {
   }
 
   if (defined $session{_SESSION_ID} and $session{_SESSION_ID} eq $sessionID) {
-    print "\n-> cgisess '$cgipath/$filename' correct sessionID: $sessionID!\n" if ($Tdebug);
+    print "\n-> cgisess '$cgipathFilename' correct sessionID: $sessionID!\n" if ($Tdebug);
     return (1, %session);
   } else {
-    print "\n-> cgisess '$cgipath/$filename' wrong sessionID: $sessionID!\n" if ($Tdebug);
+    print "\n-> cgisess '$cgipathFilename' wrong sessionID: $sessionID!\n" if ($Tdebug);
     return (0, ());
   }
 }

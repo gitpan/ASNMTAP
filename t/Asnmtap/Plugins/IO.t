@@ -7,13 +7,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::IO', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::IO', qw(:SOCKET) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.000.017;
+  use ASNMTAP::Asnmtap::Plugins v3.000.018;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'IO.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::IO',
-    _programVersion     => '3.000.017',
+    _programVersion     => '3.000.018',
     _timeout            => 30,
     _debug              => 0);
 
