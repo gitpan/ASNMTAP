@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_template-WebTransact-with-client-certificate.pl
+# 2009/mm/dd, v3.000.019, check_template-WebTransact-with-client-certificate.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-with-client-certificate.pl',
   _programDescription => "WebTransact plugin template for testing the '$APPLICATION' with client certificate",
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _clientCertificate  => { certFile => 'ssl/crt/alex-peeters.crt', keyFile => 'ssl/key/alex-peeters-nopass.key'},
   _timeout            => 30,
@@ -82,7 +82,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

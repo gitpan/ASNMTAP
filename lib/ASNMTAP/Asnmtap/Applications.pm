@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, package ASNMTAP::Asnmtap::Applications
+# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -158,7 +158,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,7 +257,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -353,7 +353,7 @@ our $CHARTDIRECTORLIB  = ( exists $_config{COMMON}{CHARTDIRECTOR}{LIB}  ? $_conf
 
 our $HTMLTOPDFPRG      = ( exists $_config{COMMON}{HTMLTOPDF}{PRG}      ? $_config{COMMON}{HTMLTOPDF}{PRG}      : 'htmldoc' );
 our $HTMLTOPDFHOW      = ( exists $_config{COMMON}{HTMLTOPDF}{HOW}      ? $_config{COMMON}{HTMLTOPDF}{HOW}      : 'shell' );
-our $HTMLTOPDFOPTNS    = ( exists $_config{COMMON}{HTMLTOPDF}{OPTIONS}  ? $_config{COMMON}{HTMLTOPDF}{OPTIONS}  : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ..." );
+our $HTMLTOPDFOPTNS    = ( exists $_config{COMMON}{HTMLTOPDF}{OPTIONS}  ? $_config{COMMON}{HTMLTOPDF}{OPTIONS}  : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage" );
 
 our $DATABASE          = ( exists $_config{DATABASE}{ASNMTAP}           ? $_config{DATABASE}{ASNMTAP}           : 'asnmtap' );
 
@@ -1495,7 +1495,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_nagiosv3-comments-cleanup.pl
+# 2009/mm/dd, v3.000.019, check_nagiosv3-comments-cleanup.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,19 +18,19 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 my $echo        = 1;
 my $cleanupChar = '\*';   # we don't cleanup comments that start with ...
 
-my $nagiosPath  = '/opt/nagios';
+my $nagiosPath  = '/opt/monitoring/nagios';
 my $statusFile  = $nagiosPath .'/var/status.dat';
 my $commandFile = $nagiosPath .'/var/rw/nagios.cmd';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.018;
+use ASNMTAP::Asnmtap::Applications v3.000.019;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,7 +47,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 my $objectAsnmtap = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_nagiosv3-comments-cleanup.pl',
   _programDescription => 'Nagios v3.x Comments Cleanup',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '[-E|--email <boolean>]',
   _programHelpPrefix  => "-E, --email=<boolean>
     BOOLEAN: 0 = FALSE and 1 = TRUE",

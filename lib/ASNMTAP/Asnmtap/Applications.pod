@@ -32,7 +32,7 @@ You can lateron copy your wanted bodyimage picture to /opt/asnmtap-3.000.xxx/app
 
  <COMMON>
    <HTMLTOPDF>
-     OPTIONS --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
+     OPTIONS --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
    </HTMLTOPDF>
  </COMMON>
 
@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2008/dd/mm 17:58:36, ASNMTAP v3.000.018 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.000.019 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -845,29 +845,29 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.018.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.018_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.018-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018-distributed.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.018-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1157,19 +1157,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.018.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.018.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.018-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.018-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1990,7 +1990,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedDisplay.pl";
 my $prgtext     = "Get Archived Display";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -229,7 +229,7 @@ EndOfHtml
     }
 
     if ( defined $creationTime and defined $displayDaemon ) {
-      my $command = "archive cd $APPLICATIONPATH; ./display.pl --loop=F --creationTime=\"$creationTime\" --displayTime=T --lockMySQL=F --debug=F --hostname=$SERVERNAMEREADONLY --checklist=DisplayCT-$displayDaemon --pagedir=_loop_${remoteUser}_${pageDir}";
+      my $command = "archive cd $APPLICATIONPATH; $PERLCOMMAND ./display.pl --loop=F --creationTime=\"$creationTime\" --displayTime=T --lockMySQL=F --debug=F --hostname=$SERVERNAMEREADONLY --checklist=DisplayCT-$displayDaemon --pagedir=_loop_${remoteUser}_${pageDir}";
       print "<P class=\"RunStatusOnDemandHtmlTitle\">$htmlTitle: <font class=\"RunStatusOnDemandCommand\">$command</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\" bgcolor=\"#333344\" border=0>";
 
       my ($rStatus, $rStdout, $rStderr) = call_system ("$SSHCOMMAND -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=$WWWKEYPATH/.ssh/known_hosts' -i '$WWWKEYPATH/.ssh/ssh' $SSHLOGONNAME\@localhost '$command'", ($debug eq 'T') ? 1 : 0);

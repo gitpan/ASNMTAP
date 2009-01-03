@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, perfparse_crontab.sh
+# 2009/mm/dd, v3.000.019, perfparse_crontab.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -18,6 +18,8 @@ AMPATH=/opt/asnmtap-3.000.xxx
 if [ "$ASNMTAP_PATH" ]; then
   AMPATH=$ASNMTAP_PATH
 fi
+
+PERFPARSEPATH=/opt/asnmtap-3.000.xxx/perfparse
 
 logFilename="$AMPATH/log/perfdata-asnmtap.log"
 
@@ -37,7 +39,7 @@ if [ -e "$logFilename" ]; then
 
   echo "Filenames: '$logFilename', '$epochFilename', '$epochFilenameFailed'"
   mv $logFilename $epochFilename
-  cat $epochFilename | $AMPATH/perfparse/bin/perfparse-log2mysql
+  cat $epochFilename | $PERFPARSEPATH/bin/perfparse-log2mysql
   rv="$?"
 
   if [ "$rv" = "0" ]; then

@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, sshWrapperASNMTAP.pl for ASNMTAP::Applications
+# 2009/mm/dd, v3.000.019, sshWrapperASNMTAP.pl for ASNMTAP::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,8 +19,8 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.018;
-use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS $APPLICATIONPATH $PIDPATH);
+use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS $APPLICATIONPATH $PIDPATH $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ use vars qw($opt_C $PROGNAME);
 
 $PROGNAME       = 'sshWrapperASNMTAP.pl';
 my $prgtext     = "ASNMTAP SSH Wrapper for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,7 +49,7 @@ my $sshCmdKill  = 'killall';
 my $sshCmdSRSR  = 'script ';
 my $sshCmdSRDA  = 'archive ';
 
-my $regex       = '^((?:'. $sshCmdKill .' \d+)|(?:'. $sshCmdRm .' '. $PIDPATH .'\/(?:Collector|Display)CT-(?:[\w-]+)\.pid)|(?:'. $sshCmdSRSR . $APPLICATIONPATH .'\/(?:master|slave)\/(?:Collector|Display)CT-(?:[\w-]+)\.sh (?:start|stop|restart|reload|status))|(?:'. $sshCmdSRDA .'cd '. $APPLICATIONPATH .'; \.\/display.pl --loop=F --creationTime=\"20\d\d-\d\d-\d\d \d\d:\d\d:\d\d\" --displayTime=T --lockMySQL=F --debug=F --hostname=(?:[\w.-]+) --checklist=DisplayCT-(?:[\w-]+) --pagedir=_loop_(?:[\w]+)_(?:[\w]+)))*';
+my $regex       = '^((?:'. $sshCmdKill .' \d+)|(?:'. $sshCmdRm .' '. $PIDPATH .'\/(?:Collector|Display)CT-(?:[\w-]+)\.pid)|(?:'. $sshCmdSRSR . $APPLICATIONPATH .'\/(?:master|slave)\/(?:Collector|Display)CT-(?:[\w-]+)\.sh (?:start|stop|restart|reload|status))|(?:'. $sshCmdSRDA .'cd '. $APPLICATIONPATH .'; '. $PERLCOMMAND .' \.\/display.pl --loop=F --creationTime=\"20\d\d-\d\d-\d\d \d\d:\d\d:\d\d\" --displayTime=T --lockMySQL=F --debug=F --hostname=(?:[\w.-]+) --checklist=DisplayCT-(?:[\w-]+) --pagedir=_loop_(?:[\w]+)_(?:[\w]+)))*';
 
 my $commandRm   = '/bin/rm';
 my $commandKill = '/bin/kill -9';

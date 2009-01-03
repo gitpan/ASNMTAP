@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2009/mm/dd, v3.000.019, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.018;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.019;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -482,6 +482,22 @@ sub do_crontab {
                   $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
                 } else {
                   $ref->{filename} = '<NIHIL>';
+                }
+
+                if ( -e $RESULTSPATH .'/'. $ref->{filename} ) {
+                  $ref->{filename} = $RESULTSURL .'/'. $ref->{filename};
+                } else {
+                  if ( -e $ref->{filename} ) {
+                    $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
+                  } else { # work arround for when switching from ASNMTAP_PATH in mixed environment
+                    $ref->{filename} =~ s*^/opt/asnmtap(-3.000.xxx)+/results/*$RESULTSPATH/*g;
+
+                    if ( -e $ref->{filename} ) {
+                      $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
+                    } else {
+                      $ref->{filename} = '<NIHIL>';
+                    }
+                  }
                 }
 
                 my $tstatusMessage = ($ref->{filename} eq '<NIHIL>') ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>';

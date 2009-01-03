@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_SNMPTT_weblogic.pl
+# 2009/mm/dd, v3.000.019, check_SNMPTT_weblogic.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,12 +28,13 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_weblogic.pl',
   _programDescription => 'Check SNMP Trap Translator Database for Weblogic SNMP traps',
-  _programVersion     => '3.000.018',
-  _programUsagePrefix => '[--adminConsole=<adminConsole>] [--uKey|-K=<uKey>] [-s|--server=<hostname>] [--database=<database>]',
-  _programHelpPrefix  => '--adminConsole=<adminConsole>
+  _programVersion     => '3.000.019',
+  _programUsagePrefix => '[--weblogicConfig=<weblogicConfig>] [--adminConsole=<adminConsole>] [--uKey|-K=<uKey>] [-s|--server=<hostname>] [--database=<database>]',
+  _programHelpPrefix  => '--weblogicConfig=<weblogicConfig>
+--adminConsole=<adminConsole>
 -K, --uKey=<uKey>
 -s, --server=<hostname> (default: localhost)',
-  _programGetOptions  => ['adminConsole:s', 'uKey|K:s', 'community|C=s', 'host|H:s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e=s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['weblogicConfig:s', 'adminConsole:s', 'uKey|K:s', 'community|C=s', 'host|H:s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e=s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -41,17 +42,18 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $adminConsole = $objectPlugins->getOptionsArgv ('adminConsole');
-my $uKey         = $objectPlugins->getOptionsArgv ('uKey');
+my $weblogicConfig = $objectPlugins->getOptionsArgv ('weblogicConfig');
+my $adminConsole   = $objectPlugins->getOptionsArgv ('adminConsole');
+my $uKey           = $objectPlugins->getOptionsArgv ('uKey');
 
-my $community    = $objectPlugins->getOptionsArgv ('community');
-my $hostname     = $objectPlugins->getOptionsArgv ('host');
-my $category     = 'ASNMTAP';
+my $community      = $objectPlugins->getOptionsArgv ('community');
+my $hostname       = $objectPlugins->getOptionsArgv ('host');
+my $category       = 'ASNMTAP';
 
-my $environment  = $objectPlugins->getOptionsArgv ('environment');
+my $environment    = $objectPlugins->getOptionsArgv ('environment');
 
-my $debug        = $objectPlugins->getOptionsValue ('debug');
-my $onDemand     = $objectPlugins->getOptionsValue ('onDemand');
+my $debug          = $objectPlugins->getOptionsValue ('debug');
+my $onDemand       = $objectPlugins->getOptionsValue ('onDemand');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -69,8 +71,10 @@ my $outOffDate   = 1800;                                        # seconds
 
 my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
-my ($prefix, $suffix) = split ( /snmp_/, $community );
+my ($prefix, $suffix) = split ( /(snmp|v10)_/, $community );
 my $domainname = ( defined $suffix ? $suffix : $prefix );
+my $versionWeblogic = ( $prefix eq 'v10_' ? '>= v10.x' : '< v10.x');
+my ($agentLocation, $hosts) = split ( /\|/, $weblogicConfig ) if ( defined $weblogicConfig );
 
 if ( defined $uKey ) {
   my $message = $objectPlugins->pluginValue ('message') .' for uKey '. $uKey;
@@ -84,7 +88,13 @@ $hostname = 'undef' unless ( defined $hostname ) ;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $debugfileMessage = "\n<HTML><HEAD><TITLE>$tMessage \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$tMessage \@ $APPLICATION</H1><HR>\n";
+my $debugfileMessage = "\n<HTML><HEAD><TITLE>$tMessage \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$tMessage \@ $APPLICATION</H1><HR>\n<TABLE><TR style=\"font: normal 100% verdana,arial,helvetica\">\n<TD>Weblogic Version:</TD><TD><B>$versionWeblogic</B></TD><TD>,&nbsp;&nbsp;Environment:</TD><TD><B>$environmentText</B></TD>";
+
+if ( defined $agentLocation and defined $hosts ) {
+  $debugfileMessage .= "<TD>,&nbsp;&nbsp;Agent Location:</TD><TD><B>$agentLocation</B></TD><TD>,&nbsp;&nbsp;Hosts:</TD><TD><B>$hosts</B></TD>";
+}
+
+$debugfileMessage .= "</TR></TABLE><BR>";
 
 if ( defined $adminConsole ) {
   my (undef, undef, $tAdminConsole, undef) = split ( /\//, $adminConsole, 4 );
@@ -95,11 +105,11 @@ if ( defined $adminConsole ) {
   my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
 
   @URLS = (
-    { Method => 'GET',  Url => $adminConsole, Qs_var => [], Qs_fixed => [], Exp => ["WebLogic Server Administration Console", "Sign in to work with the WebLogic Server"], Exp_Fault => ">>>NIHIL<<<", Msg => "Admin Console: $adminConsole", Msg_Fault => "Admin Console: $adminConsole", Perfdata_Label => "Admin Console: $tAdminConsole" },
+    { Method => 'GET',  Url => $adminConsole, Qs_var => [], Qs_fixed => [], Exp => ["WebLogic Server Administration Console", "(?:Sign in to work with the WebLogic Server|Log in to work with the WebLogic Server domain)"], Exp_Fault => ">>>NIHIL<<<", Msg => "Admin Console: $adminConsole", Msg_Fault => "Admin Console: $adminConsole", Perfdata_Label => "Admin Console: $tAdminConsole" },
   );
 
   my $returnCode = $objectWebTransact->check ( { } );
-  $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR><TD>\n<H2 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Admin Console '$domainname': $adminConsole ($environmentText)</H2></TD></TR></TABLE>";
+  $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR><TD>\n<H2 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Admin Console: $adminConsole</H2></TD></TR></TABLE>";
   $debugfileMessage .= "<TABLE WIDTH=\"100%\" BORDER=\"1\"><TR style=\"font: normal verdana,arial,helvetica;\"><TD ALIGN=\"CENTER\" CLASS=\"status". $STATE{$returnCode}. "\"><B>". $STATE{$returnCode}. "</B></TD></TR></TABLE><BR>";
   $objectPlugins->appendPerformanceData ( "'Admin Console: Status'=$returnCode;1;2;0;2" );
   undef $objectWebTransact;
@@ -127,7 +137,7 @@ if ( $dbh and $rv ) {
 
   if ( $rv ) {
     my (%tableVirtualServers, %tableVirtualServersDetail, %tableVirtualServersUniqueProblemSeverity);
-    $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR><TD>\n<H2 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Domain: $domainname ($environmentText), BOLD: are the new traps</H2></TD></TR></TABLE>";
+    $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR><TD>\n<H2 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Domain: $domainname, BOLD: are the new traps</H2></TD></TR></TABLE>";
 
     if ( $sth->rows() ) {
       my ( $uniqueProblem, $codeBefore, $codeAfter );
@@ -140,7 +150,9 @@ if ( $dbh and $rv ) {
             my (undef, $variables, ) = split ( /: /, $formatline, 2 );
             ($trapServerName, $trapMachineName, $trapLogThreadId, $trapLogTransactionId, $trapLogUserId, $trapLogSubsystem, $trapLogMsgId, $trapLogSeverity, $trapLogMessage) = split ( /, /, $variables, 9 );
 
-            if ( ( $trapLogSeverity eq 'Error' and $trapLogMessage =~ /which is more than the configured time \(StuckThreadMaxTime\) of/ ) 
+            if ( $trapLogMessage =~ /Exception: Too many open files/ ) {
+              $_eventname = 'wlsLogNotification: Too many open files';
+            } elsif ( ( $trapLogSeverity eq 'Error' and $trapLogMessage =~ /which is more than the configured time \(StuckThreadMaxTime\) of/ ) 
 			  or ( $trapLogSeverity eq 'Info'  and $trapLogMessage =~ /^ExecuteThread: \\*'\d+\\*' for queue: \\*'[\w.]+\\*' has become \\*\"unstuck\\*\".$/ ) ) {
               $_eventname = 'wlsLogNotification: StuckThreadMaxTime';
               ( $uniqueTrap ) = ( $trapLogMessage =~ /^(ExecuteThread: \\'\d+\\' for queue: \\'[\w.]+\\') has / );

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, asnmtap-3.000.018_mysql-v5.0.x.sql
+# 2009/mm/dd, v3.000.019, asnmtap-3.000.019.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -51,6 +51,7 @@ CREATE TABLE `comments` (
   `uKey` varchar(11) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `remoteUser` varchar(11) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '0',
   `persistent` tinyint(1) NOT NULL default '0',
   `downtime` tinyint(1) NOT NULL default '0',
   `entryDate` date NOT NULL default '0000-00-00',
@@ -478,9 +479,10 @@ CREATE TABLE `events` (
   `endDate` date NOT NULL default '0000-00-00',
   `endTime` time NOT NULL default '00:00:00',
   `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(1024) NOT NULL default '',
+  `statusMessage` varchar(254) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '9'
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -759,8 +761,8 @@ CREATE TABLE `plugins` (
   `arguments` varchar(254) default '',
   `argumentsOndemand` varchar(254) default '',
   `title` varchar(75) NOT NULL default '',
-  `shortDescription` text,
   `trendline` smallint(6) NOT NULL default '0',
+  `shortDescription` text,
   `percentage` tinyint(1) NOT NULL default '25',
   `tolerance` tinyint(1) NOT NULL default '5',
   `step` smallint(6) NOT NULL default '0',
@@ -801,7 +803,7 @@ CREATE TABLE `reports` (
   `uKey` varchar(11) NOT NULL default '',
   `reportTitle` varchar(100) NOT NULL default '',
   `periode` char(1) NOT NULL default 'F',
-  `timeperiodID` int(11) NOT NULL default '1',
+  `timeperiodID` int(11) NOT NULL default '1',
   `status` tinyint(1) NOT NULL default '0',
   `errorDetails` tinyint(1) NOT NULL default '0',
   `bar` tinyint(1) NOT NULL default '0',
@@ -880,11 +882,17 @@ CREATE TABLE `servers` (
   `serverID` varchar(11) NOT NULL default '',
   `serverTitle` varchar(64) default NULL,
   `masterFQDN` varchar(64) default NULL,
+  `masterASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx',
+  `masterRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/binc',
+  `masterSSH_PATH` varchar(64) NOT NULL default '/usr/bin',
   `masterSSHlogon` varchar(15) default NULL,
   `masterSSHpasswd` varchar(32) default NULL,
   `masterDatabaseFQDN` varchar(64) NOT NULL default 'chablis.dvkhosting.com',
   `masterDatabasePort` varchar(4) NOT NULL default '3306',
   `slaveFQDN` varchar(64) default NULL,
+  `slaveASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx',
+  `slaveRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/bin',
+  `slaveSSH_PATH` varchar(64) NOT NULL default '/usr/bin',
   `slaveSSHlogon` varchar(15) default NULL,
   `slaveSSHpasswd` varchar(32) default NULL,
   `slaveDatabaseFQDN` varchar(64) NOT NULL default 'chablis.dvkhosting.com',

@@ -58,7 +58,7 @@ if ( $rsync_version_2_6_7_or_higher ) {
 }
 
 # ARG[0] Complain if the command is not 'rsync'.
-unless ($rsync_argv[0] eq 'rsync') {
+unless ($rsync_argv[0] =~ 'rsync') {
   print SSHOUT ("ssh authorized_key account restricted: only rsync allowed\n");
   $ok = $FALSE;
 }

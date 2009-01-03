@@ -1,17 +1,107 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: dd month 2008
-Version      : 3.000.018
+Latest update: dd month 2009
+Version      : 3.000.019
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.018, 2008/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+Version 3.000.019, 2009/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+                               - ASNMTAP
+                                 UPDATE '#!/bin/env perl' with '#!/usr/bin/env perl'
+                                 replace '[a-z|A-Z|0-9|-]' with '[a-zA-Z0-9-]'
+                               - plugins/templates
+                                 NEW /dtd/Monitoring-1.1.dtd
+                                 NEW /dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
+                                 NEW /dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
+                                 NEW /xml/Monitoring-1.1.xml
+                                 NEW /xml/Monitoring-1.1-doNotValidate.xml
+                                 NEW /xml/Monitoring-1.1-errorParsing.xml
+                               - /cgi-bin/runCmdOnDemand.pl
+                                 On Demand test now launched on the same probe as the collector that runs the test
+                               - check_MySQL-database-replication.pl
+                                 - Added Slave IO detection
+                               - /plugins/junit, making weblogic 10 compatible
+                                 - UPDATE check_jUnit.pl
+                                 - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+                                 - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql.SQL
+                                 - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql-v5.0.x.SQL
+                                 - UPDATE TABLE `BASE_SERVICES` for 'MySQL'
+                                   - ALTER TABLE `BASE_SERVICES` CHANGE COLUMN `STATUS` `STATUS` enum('ASNMTAP','NEW','MAINTENANCE','EOL') NOT NULL default 'NEW';
+                                 - UPDATE TABLE `SERVER` for 'MySQL'
+                                   - ALTER TABLE `SERVER` ADD COLUMN `WEBLOGIC_VERSION` enum('8','10') default '10' AFTER `ENV`;
+                               - /plugins/snmptt
+                                 - UPDATE snmptt-3.000.019.sql
+                                 - UPDATE snmptt-3.000.019-v5.0.x.sql
+                                 - UPDATE TABLE `snmptt` for MySQL'
+                                   - ALTER TABLE `snmptt` ADD COLUMN `archivetime` timestamp(14) NOT NULL AFTER `uniqueProblem`;
+                                 - UPDATE TABLE `snmptt_unknown` for MySQL'
+                                   - ALTER TABLE `snmptt_unknown` ADD COLUMN `archivetime` timestamp(14) NOT NULL AFTER `trapread`;
+                                 - UPDATE TABLE `snmptt_unknown_archive` for MySQL'
+                                   - ALTER TABLE `snmptt_unknown_archive` ADD COLUMN `archivetime` timestamp(14) NOT NULL AFTER `trapread`;
+                                 - UPDATE TABLE `snmptt_archive` for MySQL'
+                                   - ALTER TABLE `snmptt_archive` ADD COLUMN `archivetime` timestamp(14) NOT NULL AFTER `uniqueProblem`;
+                               - added comment type 'masterASNMTAP_PATH' & 'slaveASNMTAP_PATH' to servers.pl
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019-distributed.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+                                 - UPDATE TABLE `servers` for MySQL'
+                                   - ALTER TABLE `servers` ADD COLUMN `masterASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx' AFTER `masterFQDN`, ADD COLUMN `slaveASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx' AFTER `slaveFQDN`;
+                                   - ALTER TABLE `servers` ADD COLUMN `masterSSH_PATH` varchar(64) NOT NULL default '/usr/bin' AFTER `masterASNMTAP_PATH`, ADD COLUMN `slaveSSH_PATH` varchar(64) NOT NULL default '/usr/bin' AFTER `slaveASNMTAP_PATH`;
+                                   - ALTER TABLE `servers` ADD COLUMN `masterRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/bin' AFTER `masterASNMTAP_PATH`, ADD COLUMN `slaveRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/bin' AFTER `slaveASNMTAP_PATH`;
+                               - added comment type 'instability' to archiver.pl, display.pl, collector.pl, comments.pl & detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019-distributed.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+                                 - UPDATE TABLE `events`, `events_yyyy_mm` & `events_Qx`  for MySQL'
+                                   - ALTER TABLE `events` ADD COLUMN `instability` tinyint(1) NOT NULL default '9' AFTER `timeslot`;
+                                   - ALTER TABLE `events_2008_01` ADD COLUMN `instability` tinyint(1) NOT NULL default '9' AFTER `timeslot`;
+                                     ...
+                                   - ALTER TABLE `events_2008_12` ADD COLUMN `instability` tinyint(1) NOT NULL default '9' AFTER `timeslot`;
+
+                                   - DROP TABLE `events_2008`;
+                                   - CREATE TABLE IF NOT EXISTS `events_2008` LIKE `events_2008_01`;
+                                   - ALTER TABLE `events_2008` ENGINE=MERGE UNION=(`events_2008_01`, `events_2008_02`, `events_2008_03`, `events_2008_04`, `events_2008_05`, `events_2008_06`, `events_2008_07`, `events_2008_08`, `events_2008_09`, `events_2008_10`, `events_2008_11`, `events_2008_12`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_2008_Q1`;
+                                   - CREATE TABLE IF NOT EXISTS `events_2008_Q1` LIKE `events_2008_01`;
+                                   - ALTER TABLE `events_2008_Q1` ENGINE=MERGE UNION=(`events_2008_01`, `events_2008_02`, `events_2008_03`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_2008_Q2`;
+                                   - CREATE TABLE IF NOT EXISTS `events_2008_Q2` LIKE `events_2008_04`;
+                                   - ALTER TABLE `events_2008_Q2` ENGINE=MERGE UNION=(`events_2008_04`, `events_2008_05`, `events_2008_06`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_2008_Q3`;
+                                   - CREATE TABLE IF NOT EXISTS `events_2008_Q3` LIKE `events_2008_07`;
+                                   - ALTER TABLE `events_2008_Q3` ENGINE=MERGE UNION=(`events_2008_07`, `events_2008_08`, `events_2008_09`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_2008_Q4`;
+                                   - CREATE TABLE IF NOT EXISTS `events_2008_Q4` LIKE `events_2008_10`;
+                                   - ALTER TABLE `events_2008_Q4` ENGINE=MERGE UNION=(`events_2008_10`, `events_2008_11`, `events_2008_12`) INSERT_METHOD=LAST;
+
+                                   - ALTER TABLE `comments` ADD COLUMN `instability` tinyint(1) NOT NULL default '0' AFTER `remoteUser`; 
+                                   - ALTER TABLE `comments_2008` ADD COLUMN `instability` tinyint(1) NOT NULL default '0' AFTER `remoteUser`; 
+                               - SNMPTT making Weblogic 10 compatible: 
+							     - /plugins/snmptt/
+                                   - FIX create_ASNMTAP_weblogic_configuration_for_SNMP.pl: my $pluginTest = 'check_SNMPTT_weblogic.pl';
+                                   - UPDATE create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+                                   - UPDATE create_NCPL_weblogic_configuration_for_SNMP.pl
+                                   - UPDATE create_weblogic_configuration_database_with_SNMP.pl
+                                   - UPDATE create_weblogic_configuration_for_SNMPTT.pl
+							     - /plugins/templates/snmptt/
+                                   - UPDATE check_SNMPTT_weblogic.pl
+                                   - UPDATE snmptt-bea-weblogic.conf
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
+                                   - PRIMARY KEY + `trapMBeanType_MATCH`
+                                 - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
+                                   - PRIMARY KEY + `trapMBeanType_MATCH`
 
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -315,7 +405,7 @@ Purpose: CronTab (CT, sysdCT),
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+© Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
 

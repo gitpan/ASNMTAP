@@ -51,7 +51,7 @@ print SSHOUT ("ARG4 = $rsync_argv[4]\n") if ($debug);
 print SSHOUT ("ARG5 = $rsync_argv[5]\n") if ($debug && $rsync_argv[2] eq '--sender');
 
 # ARG[0] Complain if the command is not 'rsync'.
-unless ($rsync_argv[0] eq 'rsync') {
+unless ($rsync_argv[0] =~ 'rsync') {
   print SSHOUT ("ssh authorized_key account restricted: only rsync allowed\n");
   $ok = $FALSE;
 }

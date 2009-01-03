@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_jUnit.pl
+# 2009/mm/dd, v3.000.019, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.000.018;
+use ASNMTAP::Asnmtap::Plugins::XML v3.000.019;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -454,13 +454,13 @@ if ($dbh and $rv) {
 }
 
 # Launch new test - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-my $ACTIVATED;
+my ($_ACTIVATED, $_STATUS);
 
 $rv  = 1;
 $dbh = DBI->connect("DBI:mysql:$jUnitServerDbC:$jUnitServerName:$jUnitServerPort", "$jUnitServerUser", "$jUnitServerPass") or $rv = errorTrapDBI (\$objectPlugins, "Sorry, cannot connect to the database: $jUnitServerDbC:$jUnitServerName:$jUnitServerPort");
 
 if ($dbh and $rv) {
-  $sql = "select ACTIVATED, NAME, WLSUSERNAME, WLSPASSWORD, APPNAME, EJBNAME, VERSION, PARAMETERS, TESTCLASS, TIMEWAIT from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID";
+  $sql = "select ACTIVATED, STATUS, NAME, WLSUSERNAME, WLSPASSWORD, APPNAME, EJBNAME, VERSION, PARAMETERS, TESTCLASS, TIMEWAIT from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID";
   print "$sql\n" if ( $debug );
 
   $sth = $dbh->prepare($sql) or $rv = errorTrapDBI (\$objectPlugins, "dbh->prepare: $sql");
@@ -470,9 +470,10 @@ if ($dbh and $rv) {
     my $testcases;
 
     while (my $ref = $sth->fetchrow_hashref()) {
-      $ACTIVATED = (defined $ref->{ACTIVATED}) ? $ref->{ACTIVATED} : 0;
+      $_ACTIVATED = (defined $ref->{ACTIVATED}) ? $ref->{ACTIVATED} : 0;
+      $_STATUS = (defined $ref->{STATUS}) ? $ref->{STATUS} : undef;
 
-      if ( $ACTIVATED ) {
+      if ( $_ACTIVATED and $_STATUS = 'ASNMTAP' ) {
         $testcaseServer      = (defined $ref->{NAME})        ? $ref->{NAME}        : '';
         $testcaseWlsusername = (defined $ref->{WLSUSERNAME}) ? $ref->{WLSUSERNAME} : '';
         $testcaseWlspassword = (defined $ref->{WLSPASSWORD}) ? $ref->{WLSPASSWORD} : '';
@@ -500,7 +501,7 @@ if ($dbh and $rv) {
       }
     }
 
-    if ($ACTIVATED and defined $testcases) {
+    if ($_ACTIVATED and defined $testcases) {
       $xml = "<?xml version=\"1.0\" ?>
 <junit>
   <username>$jUnitUsername</username>
@@ -522,8 +523,10 @@ if ($dbh and $rv) {
 if (defined $xml) {
   print "$xml\n" if ($debug == 4);
   ($returnCode) = scan_socket_info_jUnit (\$objectPlugins, 'tcp', $jUnitServer, $jUnitPort, $jUnitService, $jUnitRequest, 10, $xml, $debug);
-} elsif ( defined $ACTIVATED and ! $ACTIVATED ) {
-  $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => "Test has been deactivated onto the jUnit server. PLEASE contact Monitoring Office" }, $TYPE{REPLACE} );
+} elsif ( defined $_ACTIVATED and ! $_ACTIVATED ) {
+  $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => "Test has been deactivated with status '$_STATUS' onto the jUnit server. PLEASE contact Monitoring Office" }, $TYPE{REPLACE} );
+} elsif ( defined $_ACTIVATED and $_STATUS ne 'ASNMTAP' ) {
+  $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => "Test has been activated with status '$_STATUS' onto the jUnit server. PLEASE contact Monitoring Office" }, $TYPE{REPLACE} );
 } else {
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => "No base service defined into the table $jUnitServerTablDR from database $jUnitServerDbDR" }, $TYPE{APPEND} );
 }

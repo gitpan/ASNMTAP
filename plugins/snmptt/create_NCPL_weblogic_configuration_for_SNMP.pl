@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, create_NCPL_weblogic_configuration_for_SNMP.pl
+# 2009/mm/dd, v3.000.019, create_NCPL_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.018;
+use ASNMTAP::Asnmtap::Applications v3.000.019;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_NCPL_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create NCPL weblogic configuration for SNMP',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogicConfig)
@@ -98,14 +98,14 @@ if ( $dbhWEBLOGIC and $dbhNCPL ) {
   print "    $sqlDELETE\n" if ( $debug );
   $dbhNCPL->do( $sqlDELETE ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlDELETE ) if $rv;
 
-  my ( $domainname, $virtual_servername, $hostname, $community, $environment, $activated );
+  my ( $domainname, $virtual_servername, $hosts, $community, $environment, $activated );
 
-  my $sqlSTRING = "SELECT distinct ADMIN_CONFIG.ADMIN_NAME AS domainname, SERVERS.SERVER_NAME AS virtual_servername, ADMIN_CONFIG.HOST AS hostname, ADMIN_CONFIG.community AS community, ADMIN_CONFIG.ENV AS environment, ADMIN_CONFIG.activated FROM `ADMIN_CONFIG`, `SERVERS`, `CLUSTERS` WHERE ( SERVERS.DOMAIN_NAME = concat('Domain\:', ADMIN_CONFIG.ADMIN_NAME) or SERVERS.DOMAIN_NAME = concat('DOMAIN\:', ADMIN_CONFIG.ADMIN_NAME) ) AND ADMIN_CONFIG.ENV = SERVERS.ENV AND SERVERS.ENV = CLUSTERS.ENV ORDER BY domainname, virtual_servername, hostname";
+  my $sqlSTRING = "SELECT distinct ADMIN_CONFIG.ADMIN_NAME AS domainname, SERVERS.SERVER_NAME AS virtual_servername, ADMIN_CONFIG.HOSTS AS hosts, ADMIN_CONFIG.community AS community, ADMIN_CONFIG.ENV AS environment, ADMIN_CONFIG.activated FROM `ADMIN_CONFIG`, `SERVERS`, `CLUSTERS` WHERE ( SERVERS.DOMAIN_NAME = concat('Domain\:', ADMIN_CONFIG.ADMIN_NAME) or SERVERS.DOMAIN_NAME = concat('DOMAIN\:', ADMIN_CONFIG.ADMIN_NAME) ) AND ADMIN_CONFIG.ENV = SERVERS.ENV AND SERVERS.ENV = CLUSTERS.ENV ORDER BY domainname, virtual_servername, hosts";
   print "    $sqlSTRING\n" if ( $debug );
 
   $sthWEBLOGIC = $dbhWEBLOGIC->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
   $sthWEBLOGIC->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-  $sthWEBLOGIC->bind_columns( \$domainname, \$virtual_servername, \$hostname, \$community, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+  $sthWEBLOGIC->bind_columns( \$domainname, \$virtual_servername, \$hosts, \$community, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
   if ( $rv ) {
     while( $sthWEBLOGIC->fetch() ) {
@@ -123,7 +123,7 @@ if ( $dbhWEBLOGIC and $dbhNCPL ) {
           $sthNCPL->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlCOUNT );
 
           unless ( $existingHost ) {
-            my $sqlINSERT = "INSERT INTO nagios_hosts SET server_name='$server_name', category='$category', environments='$environment', nslookup=0, synchronize=0, virtual=1, host_name='$host_name', alias='$domainname - $environment', `use`='$use_hosts', address='$hostname', check_command='$check_command', contact_groups='$contact_groups', check_period = '$timeperiod', notification_period = '$timeperiod', register=1, enabled=1";
+            my $sqlINSERT = "INSERT INTO nagios_hosts SET server_name='$server_name', category='$category', environments='$environment', nslookup=0, synchronize=0, virtual=1, host_name='$host_name', alias='$domainname - $environment', `use`='$use_hosts', address='$hosts', check_command='$check_command', contact_groups='$contact_groups', check_period = '$timeperiod', notification_period = '$timeperiod', register=1, enabled=1";
             print "    $sqlINSERT\n" if ( $debug );
             $dbhNCPL->do( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlINSERT ) if $rv;
             $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => "'$host_name' doesn't EXIST" }, $TYPE{APPEND} ) unless $rv;

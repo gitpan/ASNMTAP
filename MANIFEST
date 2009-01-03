@@ -174,14 +174,19 @@ applications/htmlroot/cgi-bin/runCmdOnDemand.pl
 applications/htmlroot/cgi-bin/users.pl
 
 applications/htmlroot/cgi-bin/admin/countries.pl
+applications/htmlroot/cgi-bin/admin/crontabs.pl
+applications/htmlroot/cgi-bin/admin/generateConfig.pl
 applications/htmlroot/cgi-bin/admin/holidays.pl
 applications/htmlroot/cgi-bin/admin/holidaysBundle.pl
 applications/htmlroot/cgi-bin/admin/index.pl
 applications/htmlroot/cgi-bin/admin/languages.pl
+applications/htmlroot/cgi-bin/admin/plugins.pl
 applications/htmlroot/cgi-bin/admin/reports.pl
 applications/htmlroot/cgi-bin/admin/reports_perfdata.pl
+applications/htmlroot/cgi-bin/admin/resultsdirs.pl
 applications/htmlroot/cgi-bin/admin/timeperiods.pl
 applications/htmlroot/cgi-bin/admin/users.pl
+applications/htmlroot/cgi-bin/admin/views.pl
 
 applications/htmlroot/cgi-bin/moderator/collectorCrontabSchedulingReports.pl
 applications/htmlroot/cgi-bin/moderator/collectorDaemonSchedulingReports.pl
@@ -196,16 +201,11 @@ applications/htmlroot/cgi-bin/moderator/sessions.pl
 applications/htmlroot/cgi-bin/moderator/trendlineCorrectionReports.pl
 
 applications/htmlroot/cgi-bin/sadmin/collectorDaemons.pl
-applications/htmlroot/cgi-bin/sadmin/crontabs.pl
 applications/htmlroot/cgi-bin/sadmin/displayDaemons.pl
 applications/htmlroot/cgi-bin/sadmin/displayGroups.pl
-applications/htmlroot/cgi-bin/sadmin/generateConfig.pl
 applications/htmlroot/cgi-bin/sadmin/index.pl
 applications/htmlroot/cgi-bin/sadmin/pagedirs.pl
-applications/htmlroot/cgi-bin/sadmin/plugins.pl
-applications/htmlroot/cgi-bin/sadmin/resultsdirs.pl
 applications/htmlroot/cgi-bin/sadmin/servers.pl
-applications/htmlroot/cgi-bin/sadmin/views.pl
 
 applications/htmlroot/img/P.gif
 applications/htmlroot/img/S.gif
@@ -307,7 +307,6 @@ applications/htmlroot/snmptraps/index.php
 
 applications/htmlroot/snmptraps/etc/config.ini.php
 
-applications/htmlroot/snmptraps/images/kde3/Thumbs.db
 applications/htmlroot/snmptraps/images/kde3/arrow.png
 applications/htmlroot/snmptraps/images/kde3/comment.png
 applications/htmlroot/snmptraps/images/kde3/delete.png
@@ -315,7 +314,6 @@ applications/htmlroot/snmptraps/images/kde3/mark.png
 applications/htmlroot/snmptraps/images/kde3/next.png
 applications/htmlroot/snmptraps/images/kde3/previous.png
 
-applications/htmlroot/snmptraps/images/nuovo/Thumbs.db
 applications/htmlroot/snmptraps/images/nuovo/arrow.png
 applications/htmlroot/snmptraps/images/nuovo/comment.png
 applications/htmlroot/snmptraps/images/nuovo/delete.png
@@ -323,7 +321,6 @@ applications/htmlroot/snmptraps/images/nuovo/mark.png
 applications/htmlroot/snmptraps/images/nuovo/next.png
 applications/htmlroot/snmptraps/images/nuovo/previous.png
 
-applications/htmlroot/snmptraps/images/nuvola_1/Thumbs.db
 applications/htmlroot/snmptraps/images/nuvola_1/arrow.png
 applications/htmlroot/snmptraps/images/nuvola_1/comment.png
 applications/htmlroot/snmptraps/images/nuvola_1/delete.png
@@ -331,7 +328,6 @@ applications/htmlroot/snmptraps/images/nuvola_1/mark.png
 applications/htmlroot/snmptraps/images/nuvola_1/next.png
 applications/htmlroot/snmptraps/images/nuvola_1/previous.png
 
-applications/htmlroot/snmptraps/images/nuvola_2/Thumbs.db
 applications/htmlroot/snmptraps/images/nuvola_2/arrow.png
 applications/htmlroot/snmptraps/images/nuvola_2/comment.png
 applications/htmlroot/snmptraps/images/nuvola_2/delete.png
@@ -371,10 +367,10 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.018.sql
-applications/tools/mysql/asnmtap-3.000.018_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.000.018-distributed.sql
-applications/tools/mysql/asnmtap-3.000.018-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.019.sql
+applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.019-distributed.sql
+applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -417,11 +413,15 @@ plugins/nagios/templates/check_xml-monitoring.pl
 plugins/nagios/templates/check_xml.pl
 
 plugins/nagios/templates/dtd/Monitoring-1.0.dtd
+plugins/nagios/templates/dtd/Monitoring-1.1.dtd
 plugins/nagios/templates/dtd/nagios-1.0.dtd
 
 plugins/nagios/templates/xml/Monitoring-1.0.xml
 plugins/nagios/templates/xml/Monitoring-1.0-doNotValidate.xml
 plugins/nagios/templates/xml/Monitoring-1.0-errorParsing.xml
+plugins/nagios/templates/xml/Monitoring-1.1.xml
+plugins/nagios/templates/xml/Monitoring-1.1-doNotValidate.xml
+plugins/nagios/templates/xml/Monitoring-1.1-errorParsing.xml
 plugins/nagios/templates/xml/nagios-1.0.xml
 plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
@@ -465,15 +465,18 @@ plugins/templates/check_template-XML.pl
 plugins/templates/dtd/email-upgrade-1.0.dtd
 plugins/templates/dtd/FingerprintEmail-1.0.dtd
 plugins/templates/dtd/Monitoring-1.0.dtd
+plugins/templates/dtd/Monitoring-1.1.dtd
+plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
+plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.018_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.018_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
-plugins/templates/snmptt/snmptt-3.000.018.sql
-plugins/templates/snmptt/snmptt-3.000.018-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.000.019.sql
+plugins/templates/snmptt/snmptt-3.000.019-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml
@@ -481,6 +484,9 @@ plugins/templates/xml/FingerprintEmail-1.0.xml
 plugins/templates/xml/Monitoring-1.0.xml
 plugins/templates/xml/Monitoring-1.0-doNotValidate.xml
 plugins/templates/xml/Monitoring-1.0-errorParsing.xml
+plugins/templates/xml/Monitoring-1.1.xml
+plugins/templates/xml/Monitoring-1.1-doNotValidate.xml
+plugins/templates/xml/Monitoring-1.1-errorParsing.xml
 plugins/templates/xml/ServletTestRunner-FailureError.xml
 plugins/templates/xml/ServletTestRunner.xml
 

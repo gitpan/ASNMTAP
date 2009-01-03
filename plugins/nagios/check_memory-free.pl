@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_memory-free.pl
+# 2009/mm/dd, v3.000.019, check_memory-free.pl
 # ----------------------------------------------------------------------------------------------------------
 # Linux: memory
 # ----------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.018;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.019;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_memory-free.pl',
   _programDescription => 'MEMORY',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent>',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

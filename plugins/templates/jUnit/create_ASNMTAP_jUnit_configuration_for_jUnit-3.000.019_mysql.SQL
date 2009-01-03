@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.018_mysql.SQL
+# 2009/mm/dd, v3.000.019, create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql.SQL
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `jUnitConfig`;
@@ -31,6 +31,7 @@ CREATE TABLE `BASE_SERVICES` (
   `TIMEWAIT` int(11) default NULL,
   `MAXTIME` int(11) default '0',
   `ACTIVATED` tinyint(1) unsigned default '1',
+  `STATUS` enum('ASNMTAP','NEW','MAINTENANCE','EOL') NOT NULL default 'NEW',
   PRIMARY KEY  (`BASE_ID`),
   KEY `UKEY` (`UKEY`),
   KEY `FK_BASE_SERVICES_1` (`SERV_ID`)
@@ -48,6 +49,7 @@ CREATE TABLE `SERVER` (
   `IP` varchar(16) default NULL,
   `CLUSTERNAME` varchar(64) character set latin1 collate latin1_general_ci default NULL,
   `ENV` varchar(4) default NULL,
+  `WEBLOGIC_VERSION` enum('8','10') default '10',
   PRIMARY KEY  (`SERV_ID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

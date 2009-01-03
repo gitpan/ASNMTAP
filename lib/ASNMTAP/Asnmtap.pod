@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.000.018',
+   _programVersion     => '3.000.019',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -134,7 +134,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
  $APPLICATION       Application Monitoring
  $BUSINESS          CITAP
  $DEPARTMENT        Development
- $COPYRIGHT         2003-2008
+ $COPYRIGHT         2003-2009
  $SENDEMAILTO       alex.peeters@citap.be
  $TYPEMONITORING    central # central or distributed
  
@@ -213,7 +213,7 @@ With the environment variable ASNMTAP_PATH you can change the default location f
      APPLICATION        Application Monitoring
      BUSINESS           CITAP
      DEPARTMENT         Development
-     COPYRIGHT          2003-2008
+     COPYRIGHT          2003-2009
      SENDEMAILTO        alex.peeters@citap.be
      TYPEMONITORING     1
  </COMMON>
@@ -644,7 +644,7 @@ ASNMTAP::Asnmtap::Plugins::IO, ASNMTAP::Asnmtap::Plugins::Mail, ASNMTAP::Asnmtap
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

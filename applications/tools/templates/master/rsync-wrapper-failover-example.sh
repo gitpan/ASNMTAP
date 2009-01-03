@@ -1,6 +1,6 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-wrapper-failover.sh for asnmtap, v2.002.xxx - wrapper script for rsync
 #   execution via ssh key for use with rsync-mirror-failover.sh
@@ -28,7 +28,7 @@ use strict;
 my $chrootDir = '/opt/asnmtap-3.000.xxx/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my $filename = '/opt/asnmtap-3.000.xxx/log/asnmtap/rsync-wrapper-failover.log';
+my $filename = '/opt/asnmtap-3.000.xxx/asnmtap/log/rsync-wrapper-failover.log';
 
 # What you want sent if access is denied.
 my $denyString = 'Access Denied! Sorry';
@@ -102,7 +102,7 @@ if ( $rsync_version_2_6_7_or_higher ) {
 }
 
 # ARG[0] Complain if the command is not 'rsync'.
-unless ($rsync_argv[0] eq 'rsync') {
+unless ($rsync_argv[0] =~ 'rsync') {
   print SSHOUT ("ssh authorized_key account restricted: only rsync allowed\n");
   $ok = $FALSE;
 }

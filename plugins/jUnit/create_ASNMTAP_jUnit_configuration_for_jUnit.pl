@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+# 2009/mm/dd, v3.000.019, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.018;
+use ASNMTAP::Asnmtap::Applications v3.000.019;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_jUnit_configuration_for_jUnit.pl',
   _programDescription => 'Create ASNMTAP jUnit configuration for jUnit',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '[--force] [--update] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--force
 --update
@@ -75,6 +75,32 @@ my $alert      = 'OK';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# jUnitServer: statically
+my ( %jUnitServer, %jUnitPort );
+$jUnitServer{P}{8}           = 'modi';
+$jUnitPort  {P}{8}           = '4444';
+
+$jUnitServer{S}{8}           = $jUnitServer{P}{8};
+$jUnitPort  {S}{8}           = $jUnitPort  {P}{8};
+
+$jUnitServer{A}{8}           = 'magni';
+$jUnitPort  {A}{8}           = '4443';
+
+$jUnitServer{T}{8}           = $jUnitServer{A}{8};
+$jUnitPort  {T}{8}           = $jUnitPort{A}{8};
+
+$jUnitServer{P}{10}          = 'modi';
+$jUnitPort  {P}{10}          = '10200';
+
+$jUnitServer{S}{10}          = $jUnitServer{P}{10};
+$jUnitPort  {S}{10}          = $jUnitPort{P}{10};
+
+$jUnitServer{A}{10}          = 'magni';
+$jUnitPort  {A}{10}          = '10100';
+
+$jUnitServer{T}{10}          = $jUnitServer{A}{10};
+$jUnitPort  {T}{10}          = $jUnitPort{A}{10};
+
 # plugins: statically
 my $pluginTest               = 'check_jUnit.pl';
 my $pluginArgumentsOndemand  = '--svParam=ONDEMAND --interval=900';
@@ -93,6 +119,7 @@ my %hour;
 $hour{P}                     = '*';
 $hour{S}                     = $hour{P};
 $hour{A}                     = '8-16';
+$hour{P}                     = $hour{A};
 
 my %dayOfTheWeek;
 $dayOfTheWeek{P}             = '*';
@@ -116,7 +143,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
 
   my %ENVIRONMENT = ('P'=>'Production', 'S'=>'Simulation', 'A'=>'Acceptation', 'T'=>'Test');
 
-  my ($errorCode, $rv, $sqlSTRING, $BASE_ID, $uKey, $TITLE, $APPNAME, $VERSION, $MAXTIME, $activated, $CLUSTERNAME, $ENV, $TYPE_NAME, $displayGroupID, $groupTitlePos, $collectorDaemons, $minutes ) = (0, 1);
+  my ($errorCode, $rv, $sqlSTRING, $BASE_ID, $uKey, $TITLE, $APPNAME, $VERSION, $MAXTIME, $activated, $STATUS, $CLUSTERNAME, $ENV, $WEBLOGIC_VERSION, $TYPE_NAME, $displayGroupID, $groupTitlePos, $collectorDaemons, $minutes ) = (0, 1);
 
   # displayGroups: jUnit
   my ($_TYPE_NAME, $_CLUSTERNAME, $_displayGroupID, $_groupTitle, $_groupTitlePos, $_activated, %displayGroups, @groupTitles);
@@ -169,6 +196,10 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
         $errorCode = 1;
         $actions .= "- $_groupTitle: $_displayGroupID doesn't exists\n" if ( $debug );
         $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => $actions }, $TYPE{APPEND} );
+
+        unless ( sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, 'ASNMTAP ~ jUnit: UNKNOWN, '. get_datetimeSignal(), $actions, $debug ) ) {
+          $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Problem sending email to the System Administrators" }, $TYPE{APPEND} );
+        }
       }
 
       $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
@@ -210,12 +241,12 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
   }
 
   # jUnit -> ASNMTAP
-  $sqlSTRING = 'SELECT BASE_SERVICES.BASE_ID, BASE_SERVICES.UKEY, BASE_SERVICES.TITLE, BASE_SERVICES.APPNAME, BASE_SERVICES.VERSION, BASE_SERVICES.MAXTIME, BASE_SERVICES.ACTIVATED, SERVER.CLUSTERNAME, SERVER.ENV, TYPE.TYPE_NAME, TYPE.displayGroupID, TYPE.groupTitlePos, TYPE.collectorDaemons, TYPE.minutes FROM `BASE_SERVICES`, `SERVER`, `TYPE` WHERE BASE_SERVICES.SERV_ID = SERVER.SERV_ID AND BASE_SERVICES.TYPE_ID = TYPE.TYPE_ID ORDER BY UKEY, BASE_ID';
+  $sqlSTRING = 'SELECT BASE_SERVICES.BASE_ID, BASE_SERVICES.UKEY, BASE_SERVICES.TITLE, BASE_SERVICES.APPNAME, BASE_SERVICES.VERSION, BASE_SERVICES.MAXTIME, BASE_SERVICES.ACTIVATED, BASE_SERVICES.STATUS, SERVER.CLUSTERNAME, SERVER.ENV, SERVER.WEBLOGIC_VERSION, TYPE.TYPE_NAME, TYPE.displayGroupID, TYPE.groupTitlePos, TYPE.collectorDaemons, TYPE.minutes FROM `BASE_SERVICES`, `SERVER`, `TYPE` WHERE BASE_SERVICES.SERV_ID = SERVER.SERV_ID AND BASE_SERVICES.TYPE_ID = TYPE.TYPE_ID ORDER BY UKEY, BASE_ID';
   $actions .= "\nJUNIT: $sqlSTRING\n" if ( $debug );
 
   $sthJUNIT = $dbhJUNIT->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
   $sthJUNIT->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-  $sthJUNIT->bind_columns( \$BASE_ID, \$uKey, \$TITLE, \$APPNAME, \$VERSION, \$MAXTIME, \$activated, \$CLUSTERNAME, \$ENV, \$TYPE_NAME, \$displayGroupID, \$groupTitlePos, \$collectorDaemons, \$minutes ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+  $sthJUNIT->bind_columns( \$BASE_ID, \$uKey, \$TITLE, \$APPNAME, \$VERSION, \$MAXTIME, \$activated, \$STATUS, \$CLUSTERNAME, \$ENV, \$WEBLOGIC_VERSION, \$TYPE_NAME, \$displayGroupID, \$groupTitlePos, \$collectorDaemons, \$minutes ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
   if ( $rv ) {
     while( $sthJUNIT->fetch() ) {
@@ -226,7 +257,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
 
       my $environment = substr($ENV, 0, 1);
 
-      my $arguments = '-K '. $uKey .' '. ( ( $environment =~ /^[PS]$/ ) ? '--jUnitServer=modi --jUnitPort=4444' : '--jUnitServer=magni --jUnitPort=4443' );
+      my $arguments = '-K '. $uKey .' --jUnitServer='. $jUnitServer{$environment}{$WEBLOGIC_VERSION} .' --jUnitPort=' .$jUnitPort{$environment}{$WEBLOGIC_VERSION};
       $arguments .= ' --maxtime=' .$MAXTIME if ( defined $MAXTIME and $MAXTIME );
 
       my ($appname, undef) = ( defined $TITLE and $TITLE ) ? $TITLE : split (/\@/, ( ( $APPNAME =~ /^test/ ) ? substr($APPNAME, 4) : $APPNAME ), 2);
@@ -245,7 +276,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
       (my @minutes, undef) = split ( /\|/, $minutes, 2 );
       my (undef, $step) = split ( /\//, $minutes[0] );
 
-      $actions .= "\n+ $BASE_ID, $uKey, $APPNAME, $version, $activated, $CLUSTERNAME, $ENV, $TYPE_NAME, $displayGroupID, $groupTitlePos, $groupTitle, $collectorDaemons, $minutes\n" if ( $debug );
+      $actions .= "\n+ $BASE_ID, $uKey, $APPNAME, $version, $activated, $STATUS, $CLUSTERNAME, $ENV, $WEBLOGIC_VERSION, $TYPE_NAME, $displayGroupID, $groupTitlePos, $groupTitle, $collectorDaemons, $minutes\n" if ( $debug );
 
       # plugins
       my ($_arguments, $_title, $_environment, $_holidayBundleID, $_resultsdir, $_activated);
@@ -257,6 +288,8 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
       $sthASNMTAP->bind_columns( \$_arguments, \$_title, \$_environment, \$_holidayBundleID, \$_resultsdir, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
+        my $_Activated = ( $activated and $STATUS eq 'ASNMTAP' ? 1 : 0 );
+
         if ( $sthASNMTAP->fetch() ) {
           my $sqlUPDATE = ( defined $update ? 1 : 0 );
           $actions .= "  + $uKey, $_arguments, $_title, $_environment, $_holidayBundleID, $_resultsdir, $_activated\n" if ( $debug );
@@ -296,19 +329,19 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
             }
           }
 
-          if ( $activated ne $_activated ) {
+          if ( $_Activated ne $_activated ) {
             $sqlUPDATE++;
-            $actions .= "  - plugin ". ($activated ? '' : 'de') ."activated\n" if ( $debug );
+            $actions .= "  - plugin ". ($_Activated ? '' : 'de') ."activated\n" if ( $debug );
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `plugins` SET title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', activated='$activated', $pluginTemplate WHERE uKey='$uKey'";
+            $sqlUPDATE = "UPDATE `plugins` SET title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', activated='$_Activated', $pluginTemplate WHERE uKey='$uKey'";
             $actions .= "$returnChar  ASNMTAP: ukey '$uKey' exists\n  ASNMTAP: $sqlUPDATE\n";
 
             if ( defined $force ) {
               $actions .= "--force, is informational, doesn't UPDATE the database\n";
             } else {
-              $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE");
+              unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
             }
           } else {
             $actions .= "$returnChar  ASNMTAP: ukey '$uKey' exists and up-to-date\n";
@@ -316,9 +349,9 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
         } else {
           resultsdir ( $dbhASNMTAP, $sthASNMTAP, $resultsdir, $groupName, $rv, \$actions );
 
-          my $sqlINSERT = "INSERT INTO `plugins` SET uKey='$uKey', title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', step='$step', activated='$activated', $pluginTemplate";
+          my $sqlINSERT = "INSERT INTO `plugins` SET uKey='$uKey', title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', step='$step', activated='$_Activated', $pluginTemplate";
           $actions .= "$returnChar  ASNMTAP: ukey '$uKey' doesn't exist\n  ASNMTAP: $sqlINSERT\n";
-          $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
+          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
 
         $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
@@ -345,7 +378,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
               if ( defined $force ) {
                 $actions .= "    --force, is informational, doesn't UPDATE the database\n";
               } else {
-                $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE");
+                unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
               }
             } else {
               $actions .= "  = views: uKey='$uKey' and displayDaemon='$displayDaemon' exist and up-to-date\n";
@@ -353,7 +386,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
           } else {
              my $sqlINSERT = "INSERT INTO `views` SET uKey='$uKey', displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated=1";
              $actions .= "  - views: uKey='$uKey' and displayDaemon='$displayDaemon' doesn't exist\n  - views: $sqlINSERT\n";
-             $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
+             unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
           }
 
           $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
@@ -432,7 +465,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
             if ( defined $force ) {
               $actions .= "    --force, is informational, doesn't UPDATE the database\n";
             } else {
-              $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE");
+              unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
             }
           } else {
             $actions .= "  = crontabs: ukey '$uKey', lineNumber='00' exist and up-to-date\n";
@@ -441,7 +474,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
           my $sqlINSERT = "INSERT INTO `crontabs` SET uKey='$uKey', lineNumber='00', collectorDaemon='$collectorDaemon', arguments='--svParam=ASNMTAP -i ". ($step * 90) ."', minute='". $minutes[$selectedElement] ."', hour='". $hour{$environment} ."', dayOfTheMonth='$dayOfTheMonth', monthOfTheYear='$monthOfTheYear', dayOfTheWeek='". $dayOfTheWeek{$environment} ."', noOffline='$noOffline', activated=1";
 
           $actions .= "  - crontabs: ukey '$uKey', lineNumber='00' doesn't exist\n  - crontabs: $sqlINSERT\n";
-          $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
+          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
           $collectorDaemonCount {$collectorDaemon}++;
         }
 
@@ -461,7 +494,7 @@ $dbhJUNIT->disconnect or _ErrorTrapDBI ( 'Could not disconnect from MySQL server
 $objectPlugins->pluginValues ( { stateValue => $returnCode, alert => $alert }, $TYPE{APPEND} );
 
 if ( defined $actions ) {
-  unless ( sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, 'ASNMTAP ~ jUnit: '. get_datetimeSignal(), $actions, $debug ) ) {
+  unless ( sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, 'ASNMTAP ~ jUnit: OK, '. get_datetimeSignal(), $actions, $debug ) ) {
     $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Problem sending email to the System Administrators" }, $TYPE{APPEND} );
   }
 }
@@ -484,7 +517,7 @@ sub resultsdir {
     unless ( $sthASNMTAP->fetch() ) {
       my $sqlINSERT = "INSERT INTO `resultsdir` SET resultsdir='$resultsdir', groupName='$groupName', activated='1'";
       $$actions .= "    - resultsdir '$resultsdir' doesn't exist\n    - $sqlINSERT\n";
-      $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT");
+      unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
     } elsif ( $debug ) {
       $$actions .= "    - resultsdir '$resultsdir' exists and up-to-date\n";
     }

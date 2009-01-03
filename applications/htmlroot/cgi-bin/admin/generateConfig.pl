@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,14 +35,14 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
 my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : '<NIHIL>'; $pagedir =~ s/\+/ /g;
-my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : 'sadmin';  $pageset =~ s/\+/ /g;
+my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : 'admin';   $pageset =~ s/\+/ /g;
 my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : 'F';
 my $action  = (defined $cgi->param('action'))  ? $cgi->param('action')  : 'menuView';
 
@@ -60,7 +60,7 @@ my $htmlTitle = $APPLICATION;
 
 # Init parameters
 my ($rv, $dbh, $sth, $sql, $numberCentralServers, $nextAction, $formDisabledAll, $formDisabledPrimaryKey, $submitButton);
-my (@matchingAsnmtapCollectorCTscript, @matchingAsnmtapDisplayCTscript);
+my (@matchingAsnmtapCollectorCTscript, @matchingAsnmtapDisplayCTscript, %ASNMTAP_PATH);
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Generate Config", undef);
@@ -72,7 +72,7 @@ my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISES
 print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>action            : $action<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?debug=$debug&amp;CGISESSID=$sessionID";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
 
   my ($compareView, $installView, $initializeGenerateView, $matchingWarnings, $countWarnings, $matchingErrors, $countErrors, $matchingArchiveCT, $matchingCollectorCT, $matchingAsnmtapCollectorCTscript, $matchingDisplayCT, $matchingAsnmtapDisplayCTscript, $matchingRsyncMirror);
   $compareView = $installView = $initializeGenerateView = $matchingWarnings = $matchingErrors = $matchingArchiveCT = $matchingCollectorCT = $matchingAsnmtapCollectorCTscript = $matchingDisplayCT = $matchingAsnmtapDisplayCTscript = $matchingRsyncMirror = '';
@@ -105,8 +105,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($dbh and $rv) {
       my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $uKey, $test, $interval, $title, $helpPluginFilename, $environment, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
-      my ($prevServerID, $prevTypeServers, $prevTypeMonitoring, $prevMasterFQDN, $prevSlaveFQDN, $prevDisplayDaemon, $prevCollectorDaemon, $prevResultsdir, $prevGroupTitle, $prevPagedir, $prevUniqueKey);
-      my ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveDatabaseFQDN);
+      my ($prevServerID, $prevTypeServers, $prevTypeMonitoring, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevDisplayDaemon, $prevCollectorDaemon, $prevResultsdir, $prevGroupTitle, $prevPagedir, $prevUniqueKey);
+      my ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN);
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -685,12 +685,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $countErrors++;
         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td><td>&nbsp;</td></tr>";
       } else {
-        $sql = "SELECT serverID, typeMonitoring, typeServers, masterFQDN, masterDatabaseFQDN, slaveFQDN, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1";
+        $sql = "SELECT serverID, typeMonitoring, typeServers, masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, masterDatabaseFQDN, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
-        if ($rv) { 
-          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID); }
+        if ($rv) {
+          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID); }
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
         }
 
@@ -716,7 +716,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             my $teller = 0;
 
             foreach my $plugin (@plugins) {
-              if ( $plugin eq "$PLUGINPATH/$test" ) {
+              if ( defined $plugin and defined $test and $plugin eq "$PLUGINPATH/$test" ) {
                 $plugins[$teller] = undef;
                 last;
               }
@@ -843,7 +843,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       if ($action eq 'generateView') {
-        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $mode, $dumphttp, $status, $loop, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
+        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $mode, $dumphttp, $status, $loop, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
 
         $initializeGenerateView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><th>Initialize Generate Configs</th></tr>";
 
@@ -874,15 +874,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $rvOpen = 0;
 
         # ArchiveCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$resultsdir, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevResultsdir = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevResultsdir = '';
             $matchingArchiveCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
@@ -926,12 +926,18 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 print ArchiveCT "$resultsdir#$uKey#$test\n";
               }
 
-              $prevServerID       = $serverID;
-              $prevTypeMonitoring = $typeMonitoring;
-              $prevTypeServers    = $typeServers;
-              $prevMasterFQDN     = $masterFQDN;
-			  $prevSlaveFQDN      = $slaveFQDN;
-              $prevResultsdir     = $resultsdir;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
+              $prevResultsdir         = $resultsdir;
             }
 
             if ($rvOpen) {
@@ -955,15 +961,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevDisplayDaemon = $prevGroupTitle = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevDisplayDaemon = $prevGroupTitle = '';
             $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
@@ -985,12 +991,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
-                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
                 if ( $typeServers ) {
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
                 }
 
                 $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon");
@@ -1009,13 +1015,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 print DisplayCT "\n";
               }
 
-              $prevServerID       = $serverID;
-              $prevTypeMonitoring = $typeMonitoring;
-              $prevTypeServers    = $typeServers;
-              $prevMasterFQDN     = $masterFQDN;
-			  $prevSlaveFQDN      = $slaveFQDN;
-              $prevDisplayDaemon  = $displayDaemon;
-              $prevGroupTitle     = $groupTitle;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
+              $prevDisplayDaemon      = $displayDaemon;
+              $prevGroupTitle         = $groupTitle;
             }
 
             if ($rvOpen) {
@@ -1036,22 +1048,22 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Display Start/Stop scripts
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLDISPLAYDMNS.displayDaemon from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLDISPLAYDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLDISPLAYDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = '';
             $matchingAsnmtapDisplayCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID ) {
                 if ( $prevServerID ne '' ) {
-                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, "master", $debug);
-                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, "slave", $debug) if ( $prevTypeServers );
+                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
+                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
                   $matchingAsnmtapDisplayCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Display Start/Stop scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   delete @matchingAsnmtapDisplayCTscript[0..@matchingAsnmtapDisplayCTscript];
                 }
@@ -1060,15 +1072,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
 
               push (@matchingAsnmtapDisplayCTscript, "DisplayCT-$displayDaemon.sh");
-              $prevServerID       = $serverID;
-              $prevTypeMonitoring = $typeMonitoring;
-              $prevTypeServers    = $typeServers;
-              $prevMasterFQDN     = $masterFQDN;
-              $prevSlaveFQDN      = $slaveFQDN;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
             }
 
-            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'M', $masterFQDN, "master", $debug);
-            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'S', $slaveFQDN, "slave", $debug) if ( $typeServers );
+            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
+            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
             $matchingAsnmtapDisplayCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Display Start/Stop scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
             $matchingAsnmtapDisplayCTscript .= "        <tr><td>No records found for any DisplayCT</td></tr>\n";
@@ -1079,15 +1097,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # CollectorCT - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevCollectorDaemon = $prevUniqueKey = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevCollectorDaemon = $prevUniqueKey = '';
             $matchingCollectorCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
@@ -1110,12 +1128,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave", $debug) if ($typeMonitoring);
-                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
 
                 if ( $typeServers ) {                          # Failover
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
                 }
 
                 $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon");
@@ -1138,13 +1156,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 print CollectorCT "\n";
               }
 
-              $prevServerID        = $serverID;
-              $prevTypeMonitoring  = $typeMonitoring;
-              $prevTypeServers     = $typeServers;
-              $prevMasterFQDN      = $masterFQDN;
-			  $prevSlaveFQDN       = $slaveFQDN;
-              $prevCollectorDaemon = $collectorDaemon;
-              $prevUniqueKey       = $uKey;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
+              $prevCollectorDaemon    = $collectorDaemon;
+              $prevUniqueKey          = $uKey;
             }
 
             if ($rvOpen) {
@@ -1165,22 +1189,22 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Collector Start/Stop scripts
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
             $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = '';
             $matchingAsnmtapCollectorCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID ) {
                 if ( $prevServerID ne '' ) {
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, "master", $debug);
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, "slave", $debug) if ( $prevTypeServers );
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
                   $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   delete @matchingAsnmtapCollectorCTscript[0..@matchingAsnmtapCollectorCTscript];
                 }
@@ -1189,15 +1213,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
 
               push (@matchingAsnmtapCollectorCTscript, "CollectorCT-$collectorDaemon.sh");
-              $prevServerID        = $serverID;
-              $prevTypeMonitoring  = $typeMonitoring;
-              $prevTypeServers     = $typeServers;
-              $prevMasterFQDN      = $masterFQDN;
-			  $prevSlaveFQDN       = $slaveFQDN;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
             }
 
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $masterFQDN, "master", $debug);
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $slaveFQDN, "slave", $debug) if ( $typeServers );
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
             $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
             $matchingAsnmtapCollectorCTscript .= "        <tr><td>No records found for any CollectorCT</td></tr>\n";
@@ -1208,10 +1238,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # rsync-mirror  - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$slaveFQDN, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
           if ( $sth->rows ) {
@@ -1220,7 +1250,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
             my ($sameServerID, $firstCollectorDaemon) = (0, 0);
             $prevTypeMonitoring = $prevTypeServers = 0;
-            $prevServerID = $prevMasterFQDN = $prevSlaveFQDN = $prevCollectorDaemon = $prevResultsdir = '';
+            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevCollectorDaemon = $prevResultsdir = '';
             $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
@@ -1229,8 +1259,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
               if ((! $sameServerID) or $firstCollectorDaemon) {
                 if ($prevServerID ne '' and $prevCollectorDaemon ne '') {
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $prevCollectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevSlaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $prevCollectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
                   $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>" unless ($sameServerID);
                   $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributed = '';
                 }
@@ -1238,24 +1268,30 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>" unless ($sameServerID);
               }
 
-              $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$RESULTSPATH/$resultsdir/ $RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n" if ($typeServers);
+              $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n" if ($typeServers);
 
               if ($typeMonitoring) {
-                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
-                $matchingRsyncMirrorConfigDistributed .= "$RESULTSPATH/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$RESULTSPATH/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributed .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributed .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
               }
 
-              $prevServerID        = $serverID;
-              $prevTypeMonitoring  = $typeMonitoring;
-              $prevTypeServers     = $typeServers;
-              $prevMasterFQDN      = $masterFQDN;
-              $prevSlaveFQDN       = $slaveFQDN;
-              $prevCollectorDaemon = $collectorDaemon;
-              $prevResultsdir      = $resultsdir;
+              $prevServerID           = $serverID;
+              $prevTypeMonitoring     = $typeMonitoring;
+              $prevTypeServers        = $typeServers;
+              $prevMasterFQDN         = $masterFQDN;
+              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
+              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
+              $prevMasterSSH_PATH     = $masterSSH_PATH;
+              $prevSlaveFQDN          = $slaveFQDN;
+              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
+              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
+              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
+              $prevCollectorDaemon    = $collectorDaemon;
+              $prevResultsdir         = $resultsdir;
             }
 
-            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
-            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
 
             $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
@@ -1272,6 +1308,30 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     }
   } elsif ($action eq 'compareView') {
+    # open connection to database and query data
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+
+    if ($dbh and $rv) {
+      my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
+      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where activated = 1";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+
+      if ($rv) {
+        if ( $sth->rows ) {
+          while( $sth->fetch() ) {
+            $ASNMTAP_PATH { 'master' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
+            $ASNMTAP_PATH { 'slave'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      }
+
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    }
+
     $compareView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
     $compareView .= "\n        <tr><th>Compare Configurations</th></tr>";
 
@@ -1285,6 +1345,30 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     $compareView .= "\n      </table>";
   } elsif ($action eq 'installView') {
+    # open connection to database and query data
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+
+    if ($dbh and $rv) {
+      my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
+      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where activated = 1";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+
+      if ($rv) {
+        if ( $sth->rows ) {
+          while( $sth->fetch() ) {
+            $ASNMTAP_PATH { 'master' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
+            $ASNMTAP_PATH { 'slave'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
+          }
+        }
+
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      }
+
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    }
+
     $installView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
     $installView .= "\n        <tr><th>Install Configuration</th></tr>";
 
@@ -1432,7 +1516,7 @@ print '</BODY>', "\n", '</HTML>', "\n";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createCollectorCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
   
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/CollectorCT-template.sh >> $filename";
@@ -1448,10 +1532,10 @@ sub createCollectorCTscript {
 # This shell script takes care of starting and stopping
 
 AMNAME=\"Collector ASNMTAP $collectorDaemon\"
-AMPATH=$APPLICATIONPATH
+AMPATH=$serverASNMTAP_PATH/applications
 AMCMD=collector.pl
 AMPARA=\"--hostname=$databaseFQDN --mode=$mode --collectorlist=CollectorCT-$collectorDaemon --dumphttp=$dumphttp --status=$status --debug=$debugDaemon --screenDebug=$debugAllScreen --allDebug=$debugAllFile --nokDebug=$debugNokFile\"
-PIDPATH=$PIDPATH
+PIDPATH=$serverASNMTAP_PATH/pid
 PIDNAME=CollectorCT-$collectorDaemon.pid
 
 if [ -f ~/.profile ]; then
@@ -1479,7 +1563,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createAsnmtapCollectorCTscript {
-  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $subdir, $debug) = @_;
+  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
@@ -1490,7 +1574,7 @@ sub createAsnmtapCollectorCTscript {
     print AsnmtapCollectorCTscript <<STARTUPFILE;
 #!/bin/sh
 
-su - $SSHLOGONNAME -c "cd $APPLICATIONPATH/$subdir; ./asnmtap-collector.sh \$1"
+su - $SSHLOGONNAME -c "cd $serverASNMTAP_PATH/applications/$subdir; ./asnmtap-collector.sh \$1"
 exit 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1498,7 +1582,7 @@ STARTUPFILE
 
     close (AsnmtapCollectorCTscript);
   }
-  
+
   my $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/root-collector.sh\" target=\"_blank\">root-collector.sh ($subdir)</a></td></tr>";
 
   $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/asnmtap-collector.sh";
@@ -1513,7 +1597,7 @@ STARTUPFILE
 # This shell script takes care of starting and stopping
 
 AMNAME=\"All ASNMTAP Collectors\"
-AMPATH=$APPLICATIONPATH/$subdir
+AMPATH=$serverASNMTAP_PATH/applications/$subdir
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1575,7 +1659,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createDisplayCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
 
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/DisplayCT-template.sh >> $filename";
@@ -1591,10 +1675,10 @@ sub createDisplayCTscript {
 # This shell script takes care of starting and stopping
 
 AMNAME=\"Display ASNMTAP $displayDaemon\"
-AMPATH=$APPLICATIONPATH
+AMPATH=$serverASNMTAP_PATH/applications
 AMCMD=display.pl
 AMPARA=\"--hostname=$databaseFQDN --checklist=DisplayCT-$displayDaemon --pagedir=$pagedirs --loop=$loop --displayTime=$displayTime --lockMySQL=$lockMySQL --debug=$debugDaemon\"
-PIDPATH=$PIDPATH
+PIDPATH=$serverASNMTAP_PATH/pid
 PIDNAME=DisplayCT-$displayDaemon.pid
 SOUNDCACHENAME=DisplayCT-$displayDaemon-sound-status.cache
 
@@ -1623,7 +1707,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createAsnmtapDisplayCTscript {
-  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $subdir, $debug) = @_;
+  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
@@ -1634,7 +1718,8 @@ sub createAsnmtapDisplayCTscript {
     print AsnmtapDisplayCTscript <<STARTUPFILE;
 #!/bin/sh
 
-su - $SSHLOGONNAME -c "cd $APPLICATIONPATH/$subdir; ./asnmtap-display.sh \$1"
+su - $SSHLOGONNAME -c "cd $serverASNMTAP_PATH/applications/$subdir; ./asnmtap-display.sh \$1"
+
 exit 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1657,7 +1742,7 @@ STARTUPFILE
 # This shell script takes care of starting and stopping
 
 AMNAME=\"All ASNMTAP Displays\"
-AMPATH=$APPLICATIONPATH/$subdir
+AMPATH=$serverASNMTAP_PATH/applications/$subdir
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1719,7 +1804,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsFailover {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
   my ($filename, $command, $rvOpen);
@@ -1736,7 +1821,7 @@ sub createRsyncMirrorScriptsFailover {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/bin/env perl
+#!/usr/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
@@ -1744,24 +1829,24 @@ sub createRsyncMirrorScriptsFailover {
 #   execution via ssh key for use with rsync-mirror-failover.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.conf
+#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-failover-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.conf
 # ------------------------------------------------------------------------------
 
 use strict;
 
 # Chroot Dir
-my \$chrootDir = '$RESULTSPATH/';
+my \$chrootDir = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$masterASNMTAP_PATH' ) . '/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my \$filename = "$LOGPATH/rsync-wrapper-failover-$masterFQDN.log";
+my \$filename = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$masterASNMTAP_PATH' ) . '/log/rsync-wrapper-failover-$masterFQDN.log';
 
 # What you want sent if access is denied.
 my \$denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
-my \$rsyncPath = '$RSYNCCOMMAND';
+my \$rsyncPath = '$masterRSYNC_PATH/rsync'; # master
 
 # 1 = rsync version 2.6.7 or higher or 0 = otherwise
 my \$rsync_version_2_6_7_or_higher = 1;
@@ -1795,19 +1880,31 @@ RSYNCMIRRORFILE
 #   execution via ssh key for use with rsync-wrapper-failover.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-failover-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.conf
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
 echo "rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh version \$RMVersion"
 
-PidPath=$PIDPATH
-Rsync=$RSYNCCOMMAND
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
+if [ ! "\$ASNMTAP_PATH" ]; then
+  ASNMTAP_PATH=$slaveASNMTAP_PATH
+fi
+
+PidPath="\$ASNMTAP_PATH/pid"
+Rsync=$slaveRSYNC_PATH/rsync                     # slave
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf
-ConfPath=$APPLICATIONPATH/slave
+ConfPath="\$ASNMTAP_PATH/applications/slave"
 Delete=' --delete --delete-after '
 # AdditionalParams=''                            # --numeric-ids, -H, -v and -R
 Reverse=no                                       # 'yes' -> from slave to master
@@ -1831,9 +1928,9 @@ RSYNCMIRRORFILE
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-failover-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-failover-example.conf
 # ------------------------------------------------------------------------------
 
 $matchingRsyncMirrorConfigFailover
@@ -1843,7 +1940,7 @@ RSYNCMIRRORFILE
         print RsyncMirror <<RSYNCMIRRORFILE;
 # ------------------------------------------------------------------------------
 
-$SSHLOGONNAME\@$masterFQDN:$PLUGINPATH/ $PLUGINPATH/ -v -c -z
+$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/plugins/ $slaveASNMTAP_PATH/plugins/ -v -c -z
 
 # ------------------------------------------------------------------------------
 RSYNCMIRRORFILE
@@ -1861,9 +1958,10 @@ RSYNCMIRRORFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsDistributed {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $slaveFQDN, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralSlaveFQDN, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
+
   my ($filename, $command, $rvOpen);
   my $statusMessage = '';
 
@@ -1878,32 +1976,32 @@ sub createRsyncMirrorScriptsDistributed {
 
       if ($rvOpen) {
         print RsyncMirror <<RSYNCMIRRORFILE;
-#!/bin/env perl
+#!/usr/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
-# rsync-wrapper-failover.sh for asnmtap, v$version, wrapper script for rsync
-#   execution via ssh key for use with rsync-mirror-failover.sh
+# rsync-wrapper-distributed.sh for asnmtap, v$version, wrapper script for rsync
+#   execution via ssh key for use with rsync-mirror-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 use strict;
 
 # Chroot Dir
-my \$chrootDir = '$RESULTSPATH/';
+my \$chrootDir = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$centralMasterASNMTAP_PATH' ) . '/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my \$filename = "$LOGPATH/rsync-wrapper-distributed-$centralMasterFQDN.log";
+my \$filename = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$centralMasterASNMTAP_PATH' ) . '/log/rsync-wrapper-distributed-$centralMasterFQDN.log';
 
 # What you want sent if access is denied.
 my \$denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
-my \$rsyncPath = '$RSYNCCOMMAND';
+my \$rsyncPath = '$centralMasterRSYNC_PATH/rsync'; # central master
 
 # 1 = rsync version 2.6.7 or higher or 0 = otherwise
 my \$rsync_version_2_6_7_or_higher = 1;
@@ -1931,32 +2029,32 @@ RSYNCMIRRORFILE
 
         if ($rvOpen) {
           print RsyncMirror <<RSYNCMIRRORFILE;
-#!/bin/env perl
+#!/usr/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
-# rsync-wrapper-failover.sh for asnmtap, v$version, wrapper script for rsync
-#   execution via ssh key for use with rsync-mirror-failover.sh
+# rsync-wrapper-distributed.sh for asnmtap, v$version, wrapper script for rsync
+#   execution via ssh key for use with rsync-mirror-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 use strict;
 
 # Chroot Dir
-my \$chrootDir = '$RESULTSPATH/';
+my \$chrootDir = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$centralSlaveASNMTAP_PATH' ) . '/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my \$filename = "$LOGPATH/rsync-wrapper-distributed-$centralSlaveFQDN.log";
+my \$filename = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$centralSlaveASNMTAP_PATH' ) . '/log/rsync-wrapper-distributed-$centralSlaveFQDN.log';
 
 # What you want sent if access is denied.
 my \$denyString = 'Access Denied! Sorry';
 
 # The real path of rsync.
-my \$rsyncPath = '$RSYNCCOMMAND';
+my \$rsyncPath = '$centralSlaveRSYNC_PATH/rsync'; # central slave
 
 # 1 = rsync version 2.6.7 or higher or 0 = otherwise
 my \$rsync_version_2_6_7_or_higher = 1;
@@ -1985,23 +2083,35 @@ RSYNCMIRRORFILE
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
-# rsync-mirror-failover.sh for asnmtap, v$version, mirror script for rsync
-#   execution via ssh key for use with rsync-wrapper-failover.sh
+# rsync-mirror-distributed.sh for asnmtap, v$version, mirror script for rsync
+#   execution via ssh key for use with rsync-wrapper-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
 echo "rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh version \$RMVersion"
 
-PidPath=$PIDPATH
-Rsync=$RSYNCCOMMAND
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
+if [ ! "\$ASNMTAP_PATH" ]; then
+  ASNMTAP_PATH=$masterASNMTAP_PATH
+fi
+
+PidPath="\$ASNMTAP_PATH/pid"
+Rsync=$masterRSYNC_PATH/rsync                    # master
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf
-ConfPath=$APPLICATIONPATH/slave
+ConfPath="\$ASNMTAP_PATH/applications/slave"
 Delete=''
 # AdditionalParams=''                            # --numeric-ids, -H, -v and -R
 Reverse=no                                       # 'yes' -> from slave to master
@@ -2027,9 +2137,9 @@ RSYNCMIRRORFILE
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 $matchingRsyncMirrorConfigDistributed
@@ -2054,23 +2164,35 @@ RSYNCMIRRORFILE
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
-# rsync-mirror-failover.sh for asnmtap, v$version, mirror script for rsync
-#   execution via ssh key for use with rsync-wrapper-failover.sh
+# rsync-mirror-distributed.sh for asnmtap, v$version, mirror script for rsync
+#   execution via ssh key for use with rsync-wrapper-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
 echo "rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh version \$RMVersion"
 
-PidPath=$PIDPATH
-Rsync=$RSYNCCOMMAND
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
+if [ ! "\$ASNMTAP_PATH" ]; then
+  ASNMTAP_PATH=$slaveASNMTAP_PATH
+fi
+
+PidPath="\$ASNMTAP_PATH/pid"
+Rsync=$slaveRSYNC_PATH/rsync                     # slave
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf
-ConfPath=$APPLICATIONPATH/slave
+ConfPath="\$ASNMTAP_PATH/applications/slave"
 Delete=''
 # AdditionalParams=''                            # --numeric-ids, -H, -v and -R
 Reverse=no                                       # 'yes' -> from slave to master
@@ -2094,9 +2216,9 @@ RSYNCMIRRORFILE
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 $matchingRsyncMirrorConfigDistributed
@@ -2201,13 +2323,13 @@ sub do_compare_view {
           # or
           # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/CM-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-index.sh'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<----------------- $generated ---------------->      <------ $server ----->:$APPLICATIONPATH/$subpath/<------------ $generated ----------->
-          $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:$APPLICATIONPATH/$subpath$generated'";
+          $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated'";
 
 		  if (($generated =~ /^DisplayCT-[\w-]+.sh$/) or ($generated =~ /^CollectorCT-[\w-]+.sh$/)) {
             $compareText .= '<br>';
-            $compareText .= "chmod 755 $server:$APPLICATIONPATH/$subpath$generated";
+            $compareText .= "chmod 755 $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated";
             $compareText .= '<br>';
-            $compareText .= "$server:$APPLICATIONPATH/$subpath$generated start";
+            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated start";
           } elsif (($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
             $todo = 1;
           } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)) {
@@ -2222,7 +2344,7 @@ sub do_compare_view {
         } else {
           my (undef, $servername) = split (/: /, $compareView, 2);
           ($type, $server) = split (/-/, $servername, 2);
-          $compareText  = "Copy $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername to $server:$APPLICATIONPATH<br>";
+          $compareText  = "Copy $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername to $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications<br>";
           $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername", '', '', '<br>', $debug);
 
 		  if ($type eq 'CM' or $type eq 'DM') {
@@ -2243,18 +2365,18 @@ sub do_compare_view {
           ($type, $server) = split (/-/, $servername, 2);
   
 		  if (($installed =~ /^DisplayCT-[\w-]+.sh$/) or ($installed =~ /^CollectorCT-[\w-]+.sh$/)) {
-            $compareText  = "$server:$APPLICATIONPATH";
+            $compareText  = "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installed stop";
             $compareText .= '<br>';
           } elsif ((($type eq 'CS' or $type eq 'DS') and ($installed =~ /^rsync-mirror-failover-[\w\-.]+.sh$/))
                 or (($type eq 'DM' or $type eq 'DS') and ($installed =~ /^rsync-mirror-distributed-[\w\-.]+.sh$/))) {
-            $compareText  = "Remove $server:$APPLICATIONPATH";
+            $compareText  = "Remove $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installed from crontab";
             $compareText .= '<br>';
             my ($installedConf, undef) = split (/.sh/, $installed);
-            $compareText .= "Remove also $server:$APPLICATIONPATH";
+            $compareText .= "Remove also $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installedConf.conf";
             $compareText .= '<br>';
@@ -2269,7 +2391,7 @@ sub do_compare_view {
 
           # Remove 'distributed.citap.com:/opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-distributed-magweg'
           #         <----- $server ----->:$APPLICATIONPATH/<------- $installed ------->
-          $compareText .= "Remove '$server:$APPLICATIONPATH";
+          $compareText .= "Remove '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
           $compareText .= "/$directory" if (defined $directory);
           $compareText .= "/$installed'";
         }
@@ -2281,7 +2403,7 @@ sub do_compare_view {
           ($type, $server) = split (/-/, $servername, 2);
           $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated", '', '', '<br>', $debug);
           $compareText .= "First 'DisplayCT-*.sh stop', 'CollectorCT-*.sh stop' and remove 'rsync-mirror-*.sh' from crontab!!!<br>";
-          $compareText .= "Remove $server:$APPLICATIONPATH/master and/or $server:$APPLICATIONPATH/slave";
+          $compareText .= "Remove $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/master and/or $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/slave";
           $todo = 1;
         }
       } elsif ( $compareView =~ /^Files generated\// ) {
@@ -2295,19 +2417,19 @@ sub do_compare_view {
 
           # Replace 'distributed.citap.be:/opt/asnmtap-3.000.xxx/applications/slave/asnmtap-display.sh' with '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DS-distributed.citap.be/slave/asnmtap-display.sh'
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
-          $compareText = "Replace '$server:$APPLICATIONPATH/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
+          $compareText = "Replace '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
 
 		  if (($filename =~ /^etc\/DisplayCT-[\w-]+$/) or ($filename =~ /^etc\/CollectorCT-[\w-]+$/)) {
             $filename =~ s/etc\///g;
             $compareText .= '<br>';
-            $compareText .= "$server:$APPLICATIONPATH/";
+            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/";
             $compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';
             $compareText .= "/$filename.sh reload";
 #		  } elsif (($filename =~ /^(slave|master)\/asnmtap-display.sh$/)   or ($filename =~ /^(slave|master)\/asnmtap-collector.sh$/)
 #              or ($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
 		  } elsif (($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
             $compareText .= '<br>';
-            $compareText .= "$server:$APPLICATIONPATH/$filename restart";
+            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$filename restart";
           } elsif ( $filename =~ /^master\/rsync-mirror-failover-[\w\-.]+.conf$/ or $filename =~ /^slave\/rsync-mirror-failover-[\w\-.]+.conf$/) {
             $todo = 1;
           }

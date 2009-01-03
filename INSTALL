@@ -1,12 +1,12 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: dd month 2008
-Version      : 3.000.018
+Latest update: dd month 2009
+Version      : 3.000.019
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -52,7 +52,7 @@ Information about the ASNMTAP/Nagios Plugins can be found at:
     APPLICATION     Application Monitoring
     BUSINESS        CITAP
     DEPARTMENT      Development
-    COPYRIGHT       2003-2008
+    COPYRIGHT       2003-2009
     SENDEMAILTO     alex.peeters@citap.be
   # TYPEMONITORING  central                      # central or distributed
   </COMMON>
@@ -104,7 +104,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
      REMOTE_HOST     localhost
      REMOTE_ADDR     127.0.0.1
 
-     OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
+     OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
   </COMMON>
   ...
   <DATABASE_ACCOUNT>
@@ -212,14 +212,14 @@ Information about the configuration for ASNMTAP Applications can be found at:
   -----------------------------------------
 
   MySQL version 4.x
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018-distributed.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019-distributed.sql
 
   MySQL version 5.0.x
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018_mysql-v5.0.x.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.018_mysql-v5.0.x-distributed.sql
+    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x-distributed.sql
 
   
   ASNMTAP Web Access is now possible
@@ -329,19 +329,19 @@ Information about the configuration for ASNMTAP Applications can be found at:
 
     MySQL 4.x
 
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.018.sql
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
      or
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.018.sql
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018.SQL
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019.sql
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
 
     MySQL 5.0.x
 
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.018-v5.0.x.sql
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019-v5.0.x.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
      or
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.018-v5.0.x.sql
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.018_mysql-v5.0.x.SQL
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019-v5.0.x.sql
+     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
 
     ... TODO ... NO PART OF NORMAL SETUP ...
 

@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_MySQL-database-replication.pl
+# 2009/mm/dd, v3.000.019, check_MySQL-database-replication.pl
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -31,7 +31,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,7 +39,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [-1|--database=<database>] [-2|--binlog=<binlog>] [-3|--table=<table>] [-4|--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
@@ -97,7 +97,7 @@ my ( $returnCode, $alert, $dbh, $sth, $ref, @tables, $dtable, $exist, $prepareSt
 
 $dbh = DBI->connect ("DBI:mysql:$database:$hostname:$port", "$username", "$password") or _ErrorTrapDBI ( 'Could not connect to MySQL server '. $hostname, "$DBI::err ($DBI::errstr)" );
 @tables = $dbh->tables() or _ErrorTrapDBI ( 'No tables found for database '. $database .' on server '. $hostname, '');
-foreach $dtable (@tables) { if ( $dtable eq "`$table`" ) { $exist = 1; last; } else { $exist = 0;} }
+foreach $dtable (@tables) { if ( $dtable =~ /(`$database`.){0,1}`$table`/ ) { $exist = 1; last; } else { $exist = 0;} }
 
 if ( $exist ) {
   $returnCode = $ERRORS{OK};
@@ -133,7 +133,7 @@ if ( $exist ) {
         $ref = $sth->fetchrow_arrayref;
 
         if ( $ref ) {
-	      print "S) Slave_IO_State '$$ref[0]'\nS) Master_Host '$$ref[1]' Master_User '$$ref[2]'\nS) Master_Port '$$ref[3]' Connect_retry '$$ref[4]'\nS) Master_Log_File '$$ref[5]' Read_Master_Log_Pos '$$ref[6]'\nS) Relay_Log_File '$$ref[7]' Relay_Log_Pos '$$ref[8]'\nS) Relay_Master_Log_File '$$ref[9]' Slave_IO_Running '$$ref[10]'\nS) Slave_SQL_Running '$$ref[11]' Replicate_do_db '$$ref[12]'\nS) Replicate_ignore_db '$$ref[13]' Replicate_Do_Table '$$ref[14]'\nS) Replicate_Ignore_Table '$$ref[15]' Replicate_Wild_Do_Table '$$ref[16]'\nS) Replicate_Wild_Ignore_Table '$$ref[17]' Last_errno '$$ref[18]'\nS) Last_error '$$ref[19]' Skip_counter '$$ref[20]'\nS) Exec_master_log_pos '$$ref[21]' Relay_log_space '$$ref[22]'\n" if ( $debug );
+	      print "S) Slave_IO_State '$$ref[0]'\nS) Master_Host '$$ref[1]' Master_User '$$ref[2]'\nS) Master_Port '$$ref[3]' Connect_retry '$$ref[4]'\nS) Master_Log_File '$$ref[5]' Read_Master_Log_Pos '$$ref[6]'\nS) Relay_Log_File '$$ref[7]' Relay_Log_Pos '$$ref[8]'\nS) Relay_Master_Log_File '$$ref[9]' Slave_IO_Running '$$ref[10]'\nS) Slave_SQL_Running '$$ref[11]' Replicate_do_db '$$ref[12]'\nS) Replicate_ignore_db '$$ref[13]' Replicate_Do_Table '$$ref[14]'\nS) Replicate_Ignore_Table '$$ref[15]' Replicate_Wild_Do_Table '$$ref[16]'\nS) Replicate_Wild_Ignore_Table '$$ref[17]' Last_errno '$$ref[18]'\nS) Last_error '$$ref[19]' Skip_counter '$$ref[20]'\nS) Exec_master_log_pos '$$ref[21]' Relay_log_space '$$ref[22]'\nS) Seconds_Behind_Master '$$ref[32]'\n" if ( $debug );
 
           if ( (index $$ref[12], $binlog) ne -1 ) {
             if ( $cluster eq 'M' ) {
@@ -141,7 +141,11 @@ if ( $exist ) {
               print "S)-$alert\n" if ( $debug ); 
               $returnCode = $ERRORS{WARNING};
             } else {
-              if ( $$ref[11] eq 'No' ) {
+              if ( $$ref[10] eq 'No' ) {
+                $alert = "Replication ERROR: NO Slave IO Running";
+                print "S)-$alert\n" if ( $debug ); 
+                $returnCode = $ERRORS{CRITICAL};
+              } elsif ( $$ref[11] eq 'No' ) {
                 $alert = "Replication ERROR: NO Slave SQL Running";
                 print "S)-$alert\n" if ( $debug ); 
                 $returnCode = $ERRORS{CRITICAL};

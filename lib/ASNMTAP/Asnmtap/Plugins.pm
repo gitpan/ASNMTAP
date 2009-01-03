@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -139,7 +139,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.018 postfix; nl-BE; rv:3.000.018) Gecko/20080609 libwww-perl/5.813';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.000.019 postfix; nl-BE; rv:3.000.019) Gecko/yyyymmdd libwww-perl/5.813';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -786,7 +786,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2008 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

@@ -1,4 +1,4 @@
-#!/bin/env perl -w -I ..
+#!/usr/bin/env perl -w -I ..
 #
 # ... Tests via check_template-ldap.pl
 #

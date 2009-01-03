@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -206,7 +206,7 @@ function validateForm() {
   // x\@y.z minimal
   var objectRegularExpressionEmailFormat     = /\^[\\w-_\\.]\+\\@[\\w-_]\+(\\.[\\w-_]\+)\+\$/;
 
-  var objectRegularExpressionRemoteUserValue = /\^[a-z|A-Z|0-9|-]\+\$/;
+  var objectRegularExpressionRemoteUserValue = /\^[a-zA-Z0-9-]\+\$/;
 
   // The password must contain at least 1 number, at least 1 lower case letter, and at least 1 upper case letter.
   var objectRegularExpressionPasswordFormat  = /\^[\\w|\\W]*(?=[\\w|\\W]*\\d)(?=[\\w|\\W]*[a-z])(?=[\\w|\\W]\*[A-Z])[\\w|\\W]*\$/;

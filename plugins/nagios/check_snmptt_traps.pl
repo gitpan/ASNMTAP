@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2009/mm/dd, v3.000.019, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.018;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.019;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -F, --FQDN=<F(alse)|T(rue)>

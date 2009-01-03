@@ -1,6 +1,6 @@
 #!/bin/bash
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-mirror-failover.sh for asnmtap, v2.001.xxx, mirror script for rsync
 #   execution via ssh key for use with rsync-wrapper-failover.sh
@@ -87,15 +87,27 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.018'
+RMVersion='3.000.019'
 echo "rsync-mirror-failover version $RMVersion"
 
-PidPath=/opt/asnmtap-3.000.xxx/pid/asnmtap
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
+if [ ! "$ASNMTAP_PATH" ]; then
+  ASNMTAP_PATH=/opt/asnmtap-3.000.xxx
+fi
+
+PidPath="$ASNMTAP_PATH/pid"
 
 Rsync=/usr/local/bin/rsync
 KeyRsync=/home/asnmtap/.ssh/rsync
 ConfFile=rsync-mirror-failover.conf
-ConfPath=/opt/asnmtap-3.000.xxx/applications/slave
+ConfPath="$ASNMTAP_PATH/applications/slave"
 Delete=' --delete --delete-after '
 # AdditionalParams=''                             # --numeric-ids, -H, -v and -R
 Reverse=no                                        # 'yes' -> from slave to master

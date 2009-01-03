@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, perfparse_crontab_failed.sh
+# 2009/mm/dd, v3.000.019, perfparse_crontab_failed.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -19,10 +19,12 @@ if [ "$ASNMTAP_PATH" ]; then
   AMPATH=$ASNMTAP_PATH
 fi
 
+PERFPARSEPATH=/opt/asnmtap-3.000.xxx/perfparse
+
 for file in $( find $AMPATH/log/ -name 'perfdata-asnmtap.log-*-failed' ) 
 do
   echo "Filename failed: '$file'";
-  cat $file | $AMPATH/perfparse/bin/perfparse-log2mysql
+  cat $file | $PERFPARSEPATH/bin/perfparse-log2mysql
   rv="$?"
 
   if [ ! "$rv" = "0" ]; then
@@ -31,7 +33,12 @@ do
 
     while read line
     do
-      echo $line | $AMPATH/perfparse/bin/perfparse-log2mysql
+      echo $line | $PERFPARSEPATH/bin/perfparse-log2mysql
+        rv="$?"
+
+        if [ ! "$rv" = "0" ]; then
+          echo "$line" >> "$file-manual-action-needed"
+        fi
     done
 
     exec 0<&3
@@ -41,4 +48,3 @@ do
 done
 
 exit 0
-

@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, perfparse_debug.sh
+# 2009/mm/dd, v3.000.019, perfparse_debug.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then 
@@ -18,6 +18,8 @@ AMPATH=/opt/asnmtap-3.000.xxx
 if [ "$ASNMTAP_PATH" ]; then
   AMPATH=$ASNMTAP_PATH
 fi
+
+PERFPARSEPATH=/opt/asnmtap-3.000.xxx/perfparse
 
 # Store file name 
 FILE=$1 
@@ -41,7 +43,7 @@ exec 0<$FILE
 
 while read line 
 do 
-  echo $line | $AMPATH/perfparse/bin/perfparse-log2mysql
+  echo $line | $PERFPARSEPATH/bin/perfparse-log2mysql
 done
 
 exec 0<&3

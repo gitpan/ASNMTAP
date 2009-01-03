@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -437,17 +437,17 @@ EndOfHtml
 
         if ($comments eq 'on' and ! defined $errorMessage) {
           # Comment Detail  - - - - - - - - - - - - - - - - - - - - - - -
-          my ($activationDate, $suspentionDate, $solvedDate, $activationTime, $suspentionTime, $solvedTime, $commentData, $persistent, $downtime, $problemSolved);
+          my ($activationDate, $suspentionDate, $solvedDate, $activationTime, $suspentionTime, $solvedTime, $commentData, $instability, $persistent, $downtime, $problemSolved);
           $commentDetailList = "<H1>Comment Details</H1>\n";
 
-          $sqlQuery = "select SQL_NO_CACHE activationDate, suspentionDate, solvedDate, activationTime, suspentionTime, solvedTime, commentData, persistent, downtime, problemSolved from $SERVERTABLCOMMENTS where uKey = '". $uKey1 ."' and activationDate <= '". $sqlEndDate ."' and ( ( problemSolved = '1' and '". $sqlStartDate ."' <= solvedDate ) or problemSolved = '0' )";
+          $sqlQuery = "select SQL_NO_CACHE activationDate, suspentionDate, solvedDate, activationTime, suspentionTime, solvedTime, commentData, instability, persistent, downtime, problemSolved from $SERVERTABLCOMMENTS where uKey = '". $uKey1 ."' and activationDate <= '". $sqlEndDate ."' and ( ( problemSolved = '1' and '". $sqlStartDate ."' <= solvedDate ) or problemSolved = '0' )";
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
-          $sth->bind_columns( \$activationDate, \$suspentionDate, \$solvedDate, \$activationTime, \$suspentionTime, \$solvedTime, \$commentData, \$persistent, \$downtime, \$problemSolved ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$activationDate, \$suspentionDate, \$solvedDate, \$activationTime, \$suspentionTime, \$solvedTime, \$commentData, \$instability, \$persistent, \$downtime, \$problemSolved ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             if ($sth->rows) {
-  	          $commentDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th></th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Solved Date/Time</th><th>Persistent</th><th>Downtime</th><th>Problem Solved</th></tr>\n";
+  	          $commentDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\"><tr><th></th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Solved Date/Time</th><th>Instability</th><th>Persistent</th><th>Downtime</th><th>Problem Solved</th></tr>\n";
 
               while( $sth->fetch() ) {
                 $commentData =~ s/'/`/g;
@@ -455,7 +455,7 @@ EndOfHtml
                 $commentData =~ s/[\n\r]/<br>/g;
                 $commentData =~ s/(?:<br>)+/<br>/g;
                 $commentData = encode_html_entities('C', $commentData);
-	            $commentDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">&nbsp;</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$solvedDate \@ $solvedTime</td><td>$persistent</td><td>$downtime</td><td>$problemSolved</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
+	            $commentDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">&nbsp;</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$solvedDate \@ $solvedTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td><td>$problemSolved</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
               }
 
               $commentDetailList .= "</table>\n";
@@ -1016,4 +1016,3 @@ sub setPreviousValues {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

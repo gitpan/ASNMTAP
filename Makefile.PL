@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.17 2008/xx/xx 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.19 2009/xx/xx 18:27:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,24 +7,25 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# replace 'Latest update: .. ... 2008' with 'Latest update: dd month 2008'
+# replace 'Latest update: .. ... 2009' with 'Latest update: dd month 2009'
 # replace 'Version      : 3.000.xxx' with ...
 
-# replace `# 2008/../.., v` with `# 2008/mm/dd, v`
-# replace 'Gecko/2008....' with 'Gecko/yyyymmdd'
+# replace `# 2009/../.., v` with `# 2009/mm/dd, v`
+# replace 'Gecko/2009....' with 'Gecko/yyyymmdd'
 # rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
 
 # rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
 # replace `asnmtap-3.000.xxx` with `asnmtap-3.000.yyy`
+# replace `ASNMTAP 3.000.xxx postfix; nl-BE; rv:3.000.xxx` with `ASNMTAP 3.000.yyy postfix; nl-BE; rv:3.000.yyy`
 
 # replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
 # replace `v3.000.xxx;` with `v3.000.yyy;`
 # replace `'3.000.xxx'` with `'3.000.yyy'`
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: dd month 2008' with 'Latest update: .. ... 2008'
-# replace `# 2008/mm/dd, v` with `# 2008/../.., v`
-# replace 'Gecko/yyyymmdd' with 'Gecko/2008....'
+# replace 'Latest update: dd month 2009' with 'Latest update: .. ... 2009'
+# replace `# 2009/mm/dd, v` with `# 2009/../.., v`
+# replace 'Gecko/yyyymmdd' with 'Gecko/2009....'
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,7 +52,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;

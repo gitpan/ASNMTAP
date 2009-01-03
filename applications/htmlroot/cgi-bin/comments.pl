@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -57,6 +57,7 @@ my $action          = (defined $cgi->param('action'))         ? $cgi->param('act
 my $Cid             = (defined $cgi->param('id'))             ? $cgi->param('id')             : '';
 my $CuKey           = (defined $cgi->param('uKey'))           ? $cgi->param('uKey')           : 'none';
 my $Ctitle          = (defined $cgi->param('title'))          ? $cgi->param('title')          : '';
+my $Cinstability    = (defined $cgi->param('instability'))    ? $cgi->param('instability')    : 'off';
 my $Cpersistent     = (defined $cgi->param('persistent'))     ? $cgi->param('persistent')     : 'off';
 my $Cdowntime       = (defined $cgi->param('downtime'))       ? $cgi->param('downtime')       : 'off';
 my $CactivationDate = (defined $cgi->param('activationDate')) ? $cgi->param('activationDate') : '';
@@ -152,10 +153,10 @@ unless ( defined $errorUserAccessControl ) {
     $nextAction = '';
 
     # Serialize the URL Access Parameters into a string
-    my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&action=$action&id=$Cid&uKey=$CuKey&title=$Ctitle&entryDate=$CentryDate&entryTime=$CentryTime&entryTimeslot=$CentryTimeslot&activationDate=$CactivationDate&activationTime=$CactivationTime&suspentionDate=$CsuspentionDate&suspentionTime=$CsuspentionTime&persistent=$Cpersistent&downtime=$Cdowntime&problemSolved=$CproblemSolved&solvedDate=$CsolvedDate&solvedTime=$CsolvedTime&solvedTimeslot=$CsolvedTimeslot&remoteUser=$CremoteUser&commentData=$CcommentData";
+    my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&action=$action&id=$Cid&uKey=$CuKey&title=$Ctitle&entryDate=$CentryDate&entryTime=$CentryTime&entryTimeslot=$CentryTimeslot&activationDate=$CactivationDate&activationTime=$CactivationTime&suspentionDate=$CsuspentionDate&suspentionTime=$CsuspentionTime&instability=$Cinstability&persistent=$Cpersistent&downtime=$Cdowntime&problemSolved=$CproblemSolved&solvedDate=$CsolvedDate&solvedTime=$CsolvedTime&solvedTimeslot=$CsolvedTimeslot&remoteUser=$CremoteUser&commentData=$CcommentData";
 
     # Debug information
-    print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>title         : $Ctitle<br>entryDate     : $CentryDate<br>entryTime     : $CentryTime<br>entryTimeslot : $CentryTimeslot<br>activationDate: $CactivationDate<br>activationTime: $CactivationTime<br>suspentionDate: $CsuspentionDate<br>suspentionTime: $CsuspentionTime<br>persistent    : $Cpersistent<br>downtime      : $Cdowntime<br>problemSolved : $CproblemSolved<br>solvedDate    : $CsolvedDate<br>solvedTime    : $CsolvedTime<br>solvedTimeslot: $CsolvedTimeslot<br>remoteUser    : $CremoteUser<br>commentData   : $CcommentData<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+    print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>title         : $Ctitle<br>entryDate     : $CentryDate<br>entryTime     : $CentryTime<br>entryTimeslot : $CentryTimeslot<br>activationDate: $CactivationDate<br>activationTime: $CactivationTime<br>suspentionDate: $CsuspentionDate<br>suspentionTime: $CsuspentionTime<br>instability   : $Cinstability<br>persistent    : $Cpersistent<br>downtime      : $Cdowntime<br>problemSolved : $CproblemSolved<br>solvedDate    : $CsolvedDate<br>solvedTime    : $CsolvedTime<br>solvedTimeslot: $CsolvedTimeslot<br>remoteUser    : $CremoteUser<br>commentData   : $CcommentData<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
     # open connection to database and query data
     $rv  = 1;
@@ -257,12 +258,13 @@ unless ( defined $errorUserAccessControl ) {
               $CsuspentionTimeslot = "9999999999";
             }
 
-            my $dummyPersistent = ($Cpersistent eq 'on') ? 1 : 0;
-            my $dummydowntime   = ($Cdowntime   eq 'on') ? 1 : 0;
-            $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$CuKey. '", title="' .$Ctitle. '", entryDate="' .$CentryDate. '", entryTime="' .$CentryTime.'", entryTimeslot="' .$CentryTimeslot. '", persistent="' .$dummyPersistent. '", downtime="' .$dummydowntime. '", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", remoteUser="' .$CremoteUser. '", commentData="' .$CcommentData. '", activationDate="' .$CactivationDate. '", activationTime="' .$CactivationTime. '", activationTimeslot="' .$CactivationTimeslot. '", suspentionDate="' .$CsuspentionDate. '", suspentionTime="' .$CsuspentionTime. '", suspentionTimeslot="' .$CsuspentionTimeslot. '"';
+            my $dummyInstability = ($Cinstability eq 'on') ? 1 : 0;
+            my $dummyPersistent  = ($Cpersistent  eq 'on') ? 1 : 0;
+            my $dummyDowntime    = ($Cdowntime    eq 'on') ? 1 : 0;
+            $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$CuKey. '", title="' .$Ctitle. '", entryDate="' .$CentryDate. '", entryTime="' .$CentryTime.'", entryTimeslot="' .$CentryTimeslot. '", instability="' .$dummyInstability. '", persistent="' .$dummyPersistent. '", downtime="' .$dummyDowntime. '", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", remoteUser="' .$CremoteUser. '", commentData="' .$CcommentData. '", activationDate="' .$CactivationDate. '", activationTime="' .$CactivationTime. '", activationTimeslot="' .$CactivationTimeslot. '", suspentionDate="' .$CsuspentionDate. '", suspentionTime="' .$CsuspentionTime. '", suspentionTimeslot="' .$CsuspentionTimeslot. '"';
             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
-            if ( $dummydowntime ) {
+            if ( $dummyDowntime ) {
               my $tDebug = ($debug eq 'T') ? 2 : 0;
 
               my ($Tpagedirs, $Temail, $Tpagedir, $sendEmailTo);
@@ -336,23 +338,23 @@ unless ( defined $errorUserAccessControl ) {
           }
 
           if ($action eq 'deleteView' or $action eq 'editView' or $action eq 'updateView') {
-            my ($id, $uKey, $title, $givenName, $familyName, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $commentData);
-            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where id = '$Cid' and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser";
+            my ($id, $uKey, $title, $givenName, $familyName, $instability, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $commentData);
+            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where id = '$Cid' and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser";
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$instability, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
-              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Persistent</th><th>Downtime</th></tr>\n";
+              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th><th>Persistent</th><th>Downtime</th></tr>\n";
 
               if ( $sth->rows ) {
                 while( $sth->fetch() ) {
                   $commentData = encode_html_entities('C', $commentData);
                   $commentData =~ s/\n/<br>/g;
-                  $matchingComments .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">$id</td><td>$title</td><td>$givenName, $familyName</td><td>$entryDate \@ $entryTime</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$persistent</td><td>$downtime</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
+                  $matchingComments .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">$id</td><td>$title</td><td>$givenName, $familyName</td><td>$entryDate \@ $entryTime</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"8\">$commentData</td></tr>\n";
                 }
               } else {
-                $matchingComments .= "        <tr><td colspan=8>No records found for id: $Cid</td></tr>\n";
+                $matchingComments .= "        <tr><td colspan=9>No records found for id: $Cid</td></tr>\n";
               }
 
               $matchingComments .= "      </table>";
@@ -395,14 +397,14 @@ unless ( defined $errorUserAccessControl ) {
             ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
             $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;action=$nextAction&amp;uKey=$CuKey");
 
-    		my ($id, $uKey, $title, $givenName, $familyName, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $solvedDate, $solvedTime, $commentData);
-            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
+    		my ($id, $uKey, $title, $givenName, $familyName, $instability, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $solvedDate, $solvedTime, $commentData);
+            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$solvedDate, \$solvedTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+            $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$instability, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$solvedDate, \$solvedTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
-              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Persistent</th><th>Downtime</th>$actionHeader</tr>\n";
+              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th<th>Persistent</th><th>Downtime</th>$actionHeader</tr>\n";
 
               if ( $sth->rows ) {
                 while( $sth->fetch() ) {
@@ -425,13 +427,13 @@ unless ( defined $errorUserAccessControl ) {
                     }
                   }
 
-                  $matchingComments .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">$id</td><td>$title</td><td>$givenName, $familyName</td><td>$entryDate \@ $entryTime</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$persistent</td><td>$downtime</td>$ActionItem</tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"". (7 + $actionColspan) ."\">$commentData</td></tr>\n";
+                  $matchingComments .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">$id</td><td>$title</td><td>$givenName, $familyName</td><td>$entryDate \@ $entryTime</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td>$ActionItem</tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"". (8 + $actionColspan) ."\">$commentData</td></tr>\n";
                 }
               } else {
-                $matchingComments .= "        <tr><td colspan=\"". (9 + $actionColspan) ."\">No records found for $sqlUKeyRows</td></tr>\n";
+                $matchingComments .= "        <tr><td colspan=\"". (10 + $actionColspan) ."\">No records found for $sqlUKeyRows</td></tr>\n";
               }
 
-              $matchingComments .= "        <tr><td colspan=\"". (9 + $actionColspan) ."\">$navigationBar</td></tr>\n" if ($navigationBar);
+              $matchingComments .= "        <tr><td colspan=\"". (10 + $actionColspan) ."\">$navigationBar</td></tr>\n" if ($navigationBar);
               $matchingComments .= "      </table>\n";
               $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             }
@@ -812,8 +814,9 @@ HTML
 HTML
 
         if ($action eq 'insertView' or $action eq 'historyView') {
-          my $persistentChecked = ($Cpersistent eq 'on') ? ' checked' : '';
-          my $downtimeChecked   = ($Cdowntime   eq 'on') ? ' checked' : '';
+          my $instabilityChecked = ($Cinstability eq 'on') ? ' checked' : '';
+          my $persistentChecked  = ($Cpersistent  eq 'on') ? ' checked' : '';
+          my $downtimeChecked    = ($Cdowntime    eq 'on') ? ' checked' : '';
 	
           print <<HTML;
     <tr><td><table border="0" cellspacing="0" cellpadding="0">
@@ -830,8 +833,14 @@ HTML
         <td valign="top"><b>Comment: </b></td>
         <td><textarea name=commentData cols=84 rows=13>$CcommentData</textarea></td>
       </tr><tr>
+        <td><b>Instability: </b></td>
+        <td><b><input type="checkbox" name="instability" $instabilityChecked></b> 'checked' means 'instability' and 'not checked' means 'not instability'</td>
+      </tr><tr>
         <td><b>Persistent: </b></td>
         <td><b><input type="checkbox" name="persistent" $persistentChecked></b> 'checked' means 'persistent' and 'not checked' means 'not persistent'</td>
+      </tr><tr><td>&nbsp;</td><td>
+          When 'Instability' and 'Persistent' are checked, this 'comment' will be not visible into the 'Minimal Condenced View'
+		</td>
       </tr><tr>
         <td><b>Downtime: </b></td>
         <td><b><input type="checkbox" name="downtime" $downtimeChecked></b> 'checked' means 'downtime scheduling' and 'not checked' means 'no downtime scheduling'</td>
@@ -853,6 +862,11 @@ HTML
         <br>
         <b>Problem automatically solved when</b> ('not persistent' has higher priority then 'persistent')<b>:</b>
         <ul type="circle">
+          <li>instability:
+            <ul type="disc">
+              <li>problem is <b>never</b> automatically solved</li>
+            </ul>
+          </li>
           <li>not persistent:
             <ul type="disc">
               <li>problem is automatically solved when 'last n results are OK' and 'current Timeslot' > 'Activation Date/time'</li>

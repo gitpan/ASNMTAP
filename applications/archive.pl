@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, archive.pl for ASNMTAP::Applications
+# 2009/mm/dd, v3.000.019, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.018;
+use ASNMTAP::Time v3.000.019;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.018;
+use ASNMTAP::Asnmtap::Applications v3.000.019;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -218,11 +218,11 @@ sub archiveCommentsAndEventsTables {
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
     if ($debug) {
-      print "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
       $sql = "select SQL_NO_CACHE id, endDate, startDate, timeslot, uKey from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
+      print "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
     } else {
-      print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
       $sql = "select SQL_NO_CACHE id, endDate from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
+      print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
     }
 
     $sth = $dbh->prepare($sql) or $rv = errorTrapDBI("dbh->prepare: $sql", $debug);
@@ -252,11 +252,11 @@ sub archiveCommentsAndEventsTables {
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
     if ($debug) {
-      print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
       $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
+      print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
     } else {
+      $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
       print EMAILREPORT "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
-      $sql = "select SQL_NO_CACHE id, solvedDate from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
     }
 
     $sth = $dbh->prepare($sql) or $rv = errorTrapDBI("dbh->prepare: $sql", $debug);
@@ -354,6 +354,7 @@ sub createCommentsAndEventsArchiveTables {
   `statusMessage` varchar(254) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '9',
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -368,7 +369,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `key_startDate` (`startDate`),
   KEY `uKey` (`uKey`),
   KEY `key_endTime` (`endTime`)
-) TYPE=InnoDB";
+) TYPE=MyISAM";
       }
 
       $rv = ! checkTableDBI ($dbh, $DATABASE, $SERVERTABLEVENTS .'_'. $year .'_'. $month, 'check', 'status', 'OK');
@@ -425,6 +426,7 @@ sub createCommentsAndEventsArchiveTables {
   `statusMessage` varchar(254) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '9',
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -439,7 +441,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `key_startDate` (`startDate`),
   KEY `uKey` (`uKey`),
   KEY `key_endTime` (`endTime`)
-) TYPE=InnoDB";
+) TYPE=MyISAM";
           }
 
           $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
@@ -479,6 +481,7 @@ sub createCommentsAndEventsArchiveTables {
   `statusMessage` varchar(254) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '9',
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -493,7 +496,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `key_startDate` (`startDate`),
   KEY `uKey` (`uKey`),
   KEY `key_endTime` (`endTime`)
-) TYPE=InnoDB";
+) TYPE=MyISAM";
             }
 
             $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
@@ -517,8 +520,9 @@ sub createCommentsAndEventsArchiveTables {
   `uKey` varchar(11) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `remoteUser` varchar(11) NOT NULL default '',
-  `persistent` tinyint(1) NOT NULL default '0',
-  `downtime` tinyint(1) NOT NULL default '0',
+  `instability` tinyint(1) NOT NULL default '9',
+  `persistent` tinyint(1) NOT NULL default '9',
+  `downtime` tinyint(1) NOT NULL default '9',
   `entryDate` date NOT NULL default '0000-00-00',
   `entryTime` time NOT NULL default '00:00:00',
   `entryTimeslot` varchar(10) NOT NULL default '0000000000',
@@ -543,7 +547,7 @@ sub createCommentsAndEventsArchiveTables {
   KEY `solvedTimeslot` (`solvedTimeslot`),
   KEY `uKey` (`uKey`),
   KEY `remoteUser` (`remoteUser`)
-) TYPE=InnoDB";
+) TYPE=MyISAM";
     }
 
     $rv = ! checkTableDBI ($dbh, $DATABASE, $SERVERTABLCOMMENTS .'_'. $year, 'check', 'status', 'OK');

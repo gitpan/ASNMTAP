@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, servers.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.000.019, servers.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.018;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "servers.pl";
 my $prgtext     = "Servers";
-my $version     = do { my @r = (q$Revision: 3.000.018$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -47,11 +47,17 @@ my $action              = (defined $cgi->param('action'))             ? $cgi->pa
 my $CserverID           = (defined $cgi->param('serverID'))           ? $cgi->param('serverID')           : '';
 my $CserverTitle        = (defined $cgi->param('serverTitle'))        ? $cgi->param('serverTitle')        : '';
 my $CmasterFQDN         = (defined $cgi->param('masterFQDN'))         ? $cgi->param('masterFQDN')         : '';
+my $CmasterASNMTAP_PATH = (defined $cgi->param('masterASNMTAP_PATH')) ? $cgi->param('masterASNMTAP_PATH') : '';
+my $CmasterRSYNC_PATH   = (defined $cgi->param('masterRSYNC_PATH'))   ? $cgi->param('masterRSYNC_PATH')   : '';
+my $CmasterSSH_PATH     = (defined $cgi->param('masterSSH_PATH'))     ? $cgi->param('masterSSH_PATH')     : '';
 my $CmasterSSHlogon     = (defined $cgi->param('masterSSHlogon'))     ? $cgi->param('masterSSHlogon')     : '';
 my $CmasterSSHpasswd    = (defined $cgi->param('masterSSHpasswd'))    ? $cgi->param('masterSSHpasswd')    : '';
 my $CmasterDatabaseFQDN = (defined $cgi->param('masterDatabaseFQDN')) ? $cgi->param('masterDatabaseFQDN') : '';
 my $CmasterDatabasePort = (defined $cgi->param('masterDatabasePort')) ? $cgi->param('masterDatabasePort') : '3306';
 my $CslaveFQDN          = (defined $cgi->param('slaveFQDN'))          ? $cgi->param('slaveFQDN')          : '';
+my $CslaveASNMTAP_PATH  = (defined $cgi->param('slaveASNMTAP_PATH'))  ? $cgi->param('slaveASNMTAP_PATH')  : '';
+my $CslaveRSYNC_PATH    = (defined $cgi->param('slaveRSYNC_PATH'))    ? $cgi->param('slaveRSYNC_PATH')    : '';
+my $CslaveSSH_PATH      = (defined $cgi->param('slaveSSH_PATH'))      ? $cgi->param('slaveSSH_PATH')      : '';
 my $CslaveSSHlogon      = (defined $cgi->param('slaveSSHlogon'))      ? $cgi->param('slaveSSHlogon')      : '';
 my $CslaveSSHpasswd     = (defined $cgi->param('slaveSSHpasswd'))     ? $cgi->param('slaveSSHpasswd')     : '';
 my $CslaveDatabaseFQDN  = (defined $cgi->param('slaveDatabaseFQDN'))  ? $cgi->param('slaveDatabaseFQDN')  : '';
@@ -71,10 +77,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Server ID", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&serverID=$CserverID&serverTitle=$CserverTitle&masterFQDN=$CmasterFQDN&masterSSHlogon=$CmasterSSHlogon&masterSSHpasswd=$CmasterSSHpasswd&masterDatabaseFQDN=$CmasterDatabaseFQDN&masterDatabasePort=$CmasterDatabasePort&slaveFQDN=$CslaveFQDN&slaveSSHlogon=$CslaveSSHlogon&slaveSSHpasswd=$CslaveSSHpasswd&slaveDatabaseFQDN=$CslaveDatabaseFQDN&slaveDatabasePort=$CslaveDatabasePort&typeServers=$CtypeServers&typeMonitoring=$CtypeMonitoring&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&serverID=$CserverID&serverTitle=$CserverTitle&masterFQDN=$CmasterFQDN&masterASNMTAP_PATH=$CmasterASNMTAP_PATH&masterRSYNC_PATH=$CmasterRSYNC_PATH&masterSSH_PATH=$CmasterSSH_PATH&masterSSHlogon=$CmasterSSHlogon&masterSSHpasswd=$CmasterSSHpasswd&masterDatabaseFQDN=$CmasterDatabaseFQDN&masterDatabasePort=$CmasterDatabasePort&slaveFQDN=$CslaveFQDN&slaveASNMTAP_PATH=$CslaveASNMTAP_PATH&slaveRSYNC_PATH=$CslaveRSYNC_PATH&slaveSSH_PATH=$CslaveSSH_PATH&slaveSSHlogon=$CslaveSSHlogon&slaveSSHpasswd=$CslaveSSHpasswd&slaveDatabaseFQDN=$CslaveDatabaseFQDN&slaveDatabasePort=$CslaveDatabasePort&typeServers=$CtypeServers&typeMonitoring=$CtypeMonitoring&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>server ID         : $CserverID<br>serverTitle       : $CserverTitle<br>masterFQDN        : $CmasterFQDN<br>masterSSHlogon    : $CmasterSSHlogon<br>masterSSHpasswd   : $CmasterSSHpasswd<br>masterDatabaseFQDN: $CmasterDatabaseFQDN<br>masterDatabasePort: $CmasterDatabasePort<br>slaveFQDN         : $CslaveFQDN<br>slaveSSHlogon     : $CslaveSSHlogon<br>slaveSSHpasswd    : $CslaveSSHpasswd<br>slaveDatabaseFQDN : $CslaveDatabaseFQDN<br>slaveDatabaseFQDN : $CslaveDatabaseFQDN<br>typeServers       : $CtypeServers<br>typeMonitoring    : $CtypeMonitoring<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>server ID         : $CserverID<br>serverTitle       : $CserverTitle<br>masterFQDN        : $CmasterFQDN<br>masterASNMTAP_PATH: $CmasterASNMTAP_PATH<br>masterRSYNC_PATH  : $CmasterRSYNC_PATH<br>masterSSH_PATH    : $CmasterSSH_PATH<br>masterSSHlogon    : $CmasterSSHlogon<br>masterSSHpasswd   : $CmasterSSHpasswd<br>masterDatabaseFQDN: $CmasterDatabaseFQDN<br>masterDatabasePort: $CmasterDatabasePort<br>slaveFQDN         : $CslaveFQDN<br>slaveASNMTAP_PATH : $CslaveASNMTAP_PATH<br>slaveRSYNC_PATH   : $CslaveRSYNC_PATH<br>slaveSSH_PATH     : $CslaveSSH_PATH<br>slaveSSHlogon     : $CslaveSSHlogon<br>slaveSSHpasswd    : $CslaveSSHpasswd<br>slaveDatabaseFQDN : $CslaveDatabaseFQDN<br>slaveDatabaseFQDN : $CslaveDatabaseFQDN<br>typeServers       : $CtypeServers<br>typeMonitoring    : $CtypeMonitoring<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingServers, $navigationBar);
@@ -105,7 +111,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       } else {
         $htmlTitle  = "Server ID $CserverID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterASNMTAP_PATH="' .$CmasterASNMTAP_PATH. '", masterRSYNC_PATH="' .$CmasterRSYNC_PATH. '", masterSSH_PATH="' .$CmasterSSH_PATH. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveASNMTAP_PATH="' .$CslaveASNMTAP_PATH. '", slaveRSYNC_PATH="' .$CslaveRSYNC_PATH. '", slaveSSH_PATH="' .$CslaveSSH_PATH. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -143,7 +149,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq 'edit') {
       $htmlTitle    = "Server ID $CserverID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '" WHERE serverID="' .$CserverID. '"';
+      $sql = 'UPDATE ' .$SERVERTABLSERVERS. ' SET serverID="' .$CserverID. '", serverTitle="' .$CserverTitle. '", masterFQDN="' .$CmasterFQDN. '", masterASNMTAP_PATH="' .$CmasterASNMTAP_PATH. '", masterRSYNC_PATH="' .$CmasterRSYNC_PATH. '", masterSSH_PATH="' .$CmasterSSH_PATH. '", masterSSHlogon="' .$CmasterSSHlogon. '", masterSSHpasswd="' .$CmasterSSHpasswd. '", masterDatabaseFQDN="' .$CmasterDatabaseFQDN. '", masterDatabasePort="' .$CmasterDatabasePort. '", slaveFQDN="' .$CslaveFQDN. '", slaveASNMTAP_PATH="' .$CslaveASNMTAP_PATH. '", slaveRSYNC_PATH="' .$CslaveRSYNC_PATH. '", slaveSSH_PATH="' .$CslaveSSH_PATH. '", slaveSSHlogon="' .$CslaveSSHlogon. '", slaveSSHpasswd="' .$CslaveSSHpasswd. '", slaveDatabaseFQDN="' .$CslaveDatabaseFQDN. '", slaveDatabasePort="' .$CslaveDatabasePort. '", typeServers="' .$CtypeServers. '", typeMonitoring="' .$CtypeMonitoring. '", activated="' .$dummyActivated. '" WHERE serverID="' .$CserverID. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -160,12 +166,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select serverID, serverTitle, masterFQDN, masterSSHlogon, masterSSHpasswd, masterDatabaseFQDN, masterDatabasePort, slaveFQDN, slaveSSHlogon, slaveSSHpasswd, slaveDatabaseFQDN, slaveDatabasePort, typeServers, typeMonitoring, activated from $SERVERTABLSERVERS where serverID='$CserverID'";
+      $sql = "select serverID, serverTitle, masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, masterSSHlogon, masterSSHpasswd, masterDatabaseFQDN, masterDatabasePort, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH, slaveSSHlogon, slaveSSHpasswd, slaveDatabaseFQDN, slaveDatabasePort, typeServers, typeMonitoring, activated from $SERVERTABLSERVERS where serverID='$CserverID'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CserverID, $CserverTitle, $CmasterFQDN, $CmasterSSHlogon, $CmasterSSHpasswd, $CmasterDatabaseFQDN, $CmasterDatabasePort, $CslaveFQDN, $CslaveSSHlogon, $CslaveSSHpasswd, $CslaveDatabaseFQDN, $CslaveDatabasePort, $CtypeServers, $CtypeMonitoring, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CserverID, $CserverTitle, $CmasterFQDN, $CmasterASNMTAP_PATH, $CmasterRSYNC_PATH , $CmasterSSH_PATH, $CmasterSSHlogon, $CmasterSSHpasswd, $CmasterDatabaseFQDN, $CmasterDatabasePort, $CslaveFQDN, $CslaveASNMTAP_PATH, $CslaveRSYNC_PATH , $CslaveSSH_PATH, $CslaveSSHlogon, $CslaveSSHpasswd, $CslaveDatabaseFQDN, $CslaveDatabasePort, $CtypeServers, $CtypeMonitoring, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -190,9 +196,12 @@ function enableOrDisableFields() {
     typeServerDisabled = true;
   }
 
-  document.servers.slaveFQDN.disabled      = typeServerDisabled;
-  document.servers.slaveSSHlogon.disabled  = typeServerDisabled;
-  document.servers.slaveSSHpasswd.disabled = typeServerDisabled;
+  document.servers.slaveFQDN.disabled         = typeServerDisabled;
+  document.servers.slaveASNMTAP_PATH.disabled = typeServerDisabled;
+  document.servers.slaveRSYNC_PATH.disabled   = typeServerDisabled;
+  document.servers.slaveSSH_PATH.disabled     = typeServerDisabled;
+  document.servers.slaveSSHlogon.disabled     = typeServerDisabled;
+  document.servers.slaveSSHpasswd.disabled    = typeServerDisabled;
 
   var typeMonitoringDisabled = false;
 
@@ -209,9 +218,11 @@ function enableOrDisableFields() {
 }
 
 function validateForm() {
-  var objectRegularExpressionFQDNValue  = /\^[a-z|A-Z|0-9|-]\+(\\.[a-z|A-Z|0-9|-]\+)\*\$/;
+  var objectRegularExpressionFQDNValue  = /\^[a-zA-Z0-9-]\+(\\.[a-zA-Z0-9-]\+)\*\$/;
 
-  var objectRegularExpressionLogonValue = /\^[a-z|A-Z|0-9|-]\+\$/;
+  var objectRegularExpressionPATHValue =  /\^(\\/[a-zA-Z0-9-\\s]\+)\*\$/;
+
+  var objectRegularExpressionLogonValue = /\^[a-zA-Z0-9-]\+\$/;
 
   // The password must contain at least 1 number, at least 1 lower case letter, and at least 1 upper case letter.
   var objectRegularExpressionPasswordFormat = /\^[\\w|\\W]*(?=[\\w|\\W]*\\d)(?=[\\w|\\W]*[a-z])(?=[\\w|\\W]\*[A-Z])[\\w|\\W]*\$/;
@@ -222,7 +233,7 @@ HTML
 
       if ($action eq 'duplicateView' or $action eq 'insertView') {
         print <<HTML;
-  var objectRegularExpressionServerIDFormat = /\^[a-z|A-Z|0-9|-]\+\$/;
+  var objectRegularExpressionServerIDFormat = /\^[a-zA-Z0-9-]\+\$/;
 
   if ( document.servers.serverID.value == null || document.servers.serverID.value == '' ) {
     document.servers.serverID.focus();
@@ -253,6 +264,42 @@ HTML
     if ( ! objectRegularExpressionFQDNValue.test(document.servers.masterFQDN.value) ) {
       document.servers.masterFQDN.focus();
       alert('Please re-enter master FQDN: Bad master FQDN value!');
+      return false;
+    }
+  }
+
+  if ( document.servers.masterASNMTAP_PATH.value == null || document.servers.masterASNMTAP_PATH.value == '' ) {
+    document.servers.masterASNMTAP_PATH.focus();
+    alert('Please enter a master ASNMTAP_PATH!');
+    return false;
+  } else {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.masterASNMTAP_PATH.value) ) {
+      document.servers.masterASNMTAP_PATH.focus();
+      alert('Please re-enter master ASNMTAP_PATH: Bad master ASNMTAP_PATH value!');
+      return false;
+    }
+  }
+
+  if ( document.servers.masterRSYNC_PATH.value == null || document.servers.masterRSYNC_PATH.value == '' ) {
+    document.servers.masterRSYNC_PATH.focus();
+    alert('Please enter a master RSYNC_PATH!');
+    return false;
+  } else {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.masterRSYNC_PATH.value) ) {
+      document.servers.masterRSYNC_PATH.focus();
+      alert('Please re-enter master RSYNC_PATH: Bad master RSYNC_PATH value!');
+      return false;
+    }
+  }
+
+  if ( document.servers.masterSSH_PATH.value == null || document.servers.masterSSH_PATH.value == '' ) {
+    document.servers.masterSSH_PATH.focus();
+    alert('Please enter a master SSH_PATH!');
+    return false;
+  } else {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.masterSSH_PATH.value) ) {
+      document.servers.masterSSH_PATH.focus();
+      alert('Please re-enter master SSH_PATH: Bad master SSH_PATH value!');
       return false;
     }
   }
@@ -306,6 +353,24 @@ HTML
       return false;
     }
 
+    if ( document.servers.slaveASNMTAP_PATH.value == null || document.servers.slaveASNMTAP_PATH.value == '' ) {
+      document.servers.slaveASNMTAP_PATH.focus();
+      alert('Please enter a slave ASNMTAP_PATH!');
+      return false;
+    }
+
+    if ( document.servers.slaveRSYNC_PATH.value == null || document.servers.slaveRSYNC_PATH.value == '' ) {
+      document.servers.slaveRSYNC_PATH.focus();
+      alert('Please enter a slave RSYNC_PATH!');
+      return false;
+    }
+
+    if ( document.servers.slaveSSH_PATH.value == null || document.servers.slaveSSH_PATH.value == '' ) {
+      document.servers.slaveSSH_PATH.focus();
+      alert('Please enter a slave SSH_PATH!');
+      return false;
+    }
+
     if ( ! document.servers.slaveDatabaseFQDN.disabled ) {
       if ( document.servers.slaveDatabaseFQDN.value == null || document.servers.slaveDatabaseFQDN.value == '' ) {
         document.servers.slaveDatabaseFQDN.focus();
@@ -325,6 +390,30 @@ HTML
     if ( ! objectRegularExpressionFQDNValue.test(document.servers.slaveFQDN.value) ) {
       document.servers.slaveFQDN.focus();
       alert('Please re-enter slave FQDN: Bad slave FQDN value!');
+      return false;
+    }
+  }
+
+  if ( ! (document.servers.slaveASNMTAP_PATH.value == null || document.servers.slaveASNMTAP_PATH.value == '' ) ) {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.slaveASNMTAP_PATH.value) ) {
+      document.servers.slaveASNMTAP_PATH.focus();
+      alert('Please re-enter slave ASNMTAP_PATH: Bad slave ASNMTAP_PATH value!');
+      return false;
+    }
+  }
+
+  if ( ! (document.servers.slaveRSYNC_PATH.value == null || document.servers.slaveRSYNC_PATH.value == '' ) ) {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.slaveRSYNC_PATH.value) ) {
+      document.servers.slaveRSYNC_PATH.focus();
+      alert('Please re-enter slave RSYNC_PATH: Bad slave RSYNC_PATH value!');
+      return false;
+    }
+  }
+
+  if ( ! (document.servers.slaveSSH_PATH.value == null || document.servers.slaveSSH_PATH.value == '' ) ) {
+    if ( ! objectRegularExpressionPATHValue.test(document.servers.slaveSSH_PATH.value) ) {
+      document.servers.slaveSSH_PATH.focus();
+      alert('Please re-enter slave SSH_PATH: Bad slave SSH_PATH value!');
       return false;
     }
   }
@@ -433,8 +522,20 @@ HTML
            $typeServersSelect
         </td></tr><tr><td><b>Master FQDN: </b></td><td>
           <input type="text" name="masterFQDN" value="$CmasterFQDN" size="64" maxlength="64" $formDisabledAll>
-        </td><td>&nbsp;&nbsp;<b>Slave FQDN:</b> </td><td>
+        </td><td>&nbsp;&nbsp;<b>Slave FQDN: </b></td><td>
           <input type="text" name="slaveFQDN" value="$CslaveFQDN" size="64" maxlength="64" $formDisabledAll>
+        </td></tr><tr><td><b>Master ASNMTAP_PATH: </b></td><td>
+          <input type="text" name="masterASNMTAP_PATH" value="$CmasterASNMTAP_PATH" size="64" maxlength="64" $formDisabledAll>
+        </td><td>&nbsp;&nbsp;<b>Slave ASNMTAP_PATH: </b></td><td>
+          <input type="text" name="slaveASNMTAP_PATH" value="$CslaveASNMTAP_PATH" size="64" maxlength="64" $formDisabledAll>
+        </td></tr><tr><td><b>Master RSYNC_PATH: </b></td><td>
+          <input type="text" name="masterRSYNC_PATH" value="$CmasterRSYNC_PATH" size="64" maxlength="64" $formDisabledAll>
+        </td><td>&nbsp;&nbsp;<b>Slave RSYNC_PATH: </b></td><td>
+          <input type="text" name="slaveRSYNC_PATH" value="$CslaveRSYNC_PATH" size="64" maxlength="64" $formDisabledAll>
+        </td></tr><tr><td><b>Master SSH_PATH: </b></td><td>
+          <input type="text" name="masterSSH_PATH" value="$CmasterSSH_PATH" size="64" maxlength="64" $formDisabledAll>
+        </td><td>&nbsp;&nbsp;<b>Slave SSH_PATH: </b></td><td>
+          <input type="text" name="slaveSSH_PATH" value="$CslaveSSH_PATH" size="64" maxlength="64" $formDisabledAll>
         </td></tr><tr><td>Master SSH logon: </td><td>
           <input type="text" name="masterSSHlogon" value="$CmasterSSHlogon" size="15" maxlength="15" $formDisabledAll>
         </td><td>&nbsp;&nbsp;Slave SSH logon: </td><td>

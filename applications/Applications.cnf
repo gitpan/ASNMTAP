@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.018
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.019
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +43,7 @@
 #  <HTMLTOPDF>
 #    PRG             htmldoc                # '<nihil>' or 'htmldoc'
 #    HOW             shell                  # '<nihil>', 'cgi' or 'shell'
-#    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage --header ... --footer ...
+#    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
 #  </HTMLTOPDF>
 
 #  <PERFPARSE>

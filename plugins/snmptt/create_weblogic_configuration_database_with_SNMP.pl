@@ -1,8 +1,8 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2008 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2008/mm/dd, v3.000.018, create_weblogic_configuration_database_with_SNMP.pl
+# 2009/mm/dd, v3.000.019, create_weblogic_configuration_database_with_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.018;
+use ASNMTAP::Asnmtap::Plugins v3.000.019;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_database_with_SNMP.pl',
   _programDescription => 'Create Weblogic Configuration Database with SNMP',
-  _programVersion     => '3.000.018',
+  _programVersion     => '3.000.019',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogic)",
@@ -78,18 +78,17 @@ $dbh = DBI->connect ("DBI:mysql:$database:$serverDB:$port", "$username", "$passw
 if ( $dbh ) {
   my $rv = 1;
   my %adminServers = ();
-  my ( $adminName, $host, $port, $community, $environment, $version, $activated );
+  my ( $adminName, $hosts, $community, $environment, $version, $activated );
 
-  my $sqlSTRING = 'SELECT ADMIN_NAME, HOST, PORT, COMMUNITY, VERSION, ENV, ACTIVATED FROM `ADMIN_CONFIG`';
+  my $sqlSTRING = 'SELECT ADMIN_NAME, HOSTS, COMMUNITY, VERSION, ENV, ACTIVATED FROM `ADMIN_CONFIG`';
   print "    $sqlSTRING\n" if ( $debug );
   $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
   $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
-  $sth->bind_columns( \$adminName, \$host, \$port, \$community, \$version, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
+  $sth->bind_columns( \$adminName, \$hosts, \$community, \$version, \$environment, \$activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
   if ( $rv ) {
     while( $sth->fetch() ) {
-      $adminServers{"$adminName"}->{host}        = $host;
-      $adminServers{"$adminName"}->{port}        = $port;
+      $adminServers{"$adminName"}->{hosts}       = $hosts;
       $adminServers{"$adminName"}->{community}   = $community;
       $adminServers{"$adminName"}->{version}     = $version;
       $adminServers{"$adminName"}->{environment} = $environment;
@@ -188,43 +187,47 @@ sub _snmpwalk {
 
   return unless ( $hash->{ activated } >= 1 );
 
-  my ($host, $port, $community, $version) = ( $hash->{host}, $hash->{port}, $hash->{community}, $hash->{version} );
-  print "$domain, $host, $port, $community, $version, $key, $oid\n" if ( $debug > 4 );
+  my ($hosts, $community, $version) = ( $hash->{hosts}, $hash->{community}, $hash->{version} );
+  print "$domain, $hosts, $community, $version, $key, $oid\n" if ( $debug > 4 );
 
-  my @lines;
-  my $command = 'snmpwalk -v '. ( $version eq 'v1' ? '1' : ( $version eq 'v2' ? '2c' : '3' ) ) ." -c $community $host:$port $oid";
+  foreach my $hostPort ( split (',', $hosts) ) {
+    my @lines;
 
-  if ( $callsystem ) {
-    @lines = split ( /\n/, $$asnmtapInherited->pluginValue ('result') ) unless ( $$asnmtapInherited->call_system ( $command ) );
-  } else {
-    @lines = `$command`;
-  }
+    my $command = 'snmpwalk -v '. ( $version eq 'v1' ? '1' : ( $version eq 'v2' ? '2c' : '3' ) );
+    $command .= ( $version eq 'v3' ) ? ' -u weblogic_snmp -l authPriv -a MD5 -A weblogic_snmp -x DES -X weblogic_snmp' : " -c $community";
+    $command .= " $hostPort $oid";
 
-  if ( ! @lines ) {
-    $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => 'call system failed', error => $command }, $TYPE{APPEND} );
-    return;
-  # $$asnmtapInherited->exit (5);
-  }
-
-  foreach my $line (@lines) {
-    my ($identifier, $integer, $string) = ( $line =~ /^$oid((?:.\d+)+) = (?:INTEGER: (\d+)|STRING: "(.+)")$/ );
-
-    if ( defined $identifier ) {
-      if ( $debug > 4 ) {
-        print $line;
-        print "$identifier" if ( defined $identifier );
-        print " - $integer\n\n" if ( defined $integer );
-        print " - $string\n\n" if ( defined $string );
-      }
-
-      $$infoHASH { $domain } { $identifier } { $key } = ( defined $integer ? $integer : ( defined $string ? $string : undef ) );
-      $$infoHASH { $domain } { $identifier } { environment } = $hash->{ environment };
-    } elsif ( $debug ) {
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "$command -> $line" }, $TYPE{APPEND} );
-      print "$line\n\n";
-      sleep 1;
+    if ( $callsystem ) {
+      @lines = split ( /\n/, $$asnmtapInherited->pluginValue ('result') ) unless ( $$asnmtapInherited->call_system ( $command ) );
     } else {
-      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "$command -> $line" }, $TYPE{APPEND} );
+      @lines = `$command`;
+    }
+
+    if ( ! @lines ) {
+      $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, alert => 'call system failed', error => $command }, $TYPE{APPEND} );
+      next;
+    }
+
+    foreach my $line (@lines) {
+      my ($identifier, $integer, $string) = ( $line =~ /^$oid((?:.\d+)+) = (?:INTEGER: (\d+)|STRING: "(.+)")$/ );
+
+      if ( defined $identifier ) {
+        if ( $debug > 4 ) {
+          print $line;
+          print "$identifier" if ( defined $identifier );
+          print " - $integer\n\n" if ( defined $integer );
+          print " - $string\n\n" if ( defined $string );
+        }
+
+        $$infoHASH { $domain } { $identifier } { $key } = ( defined $integer ? $integer : ( defined $string ? $string : undef ) );
+        $$infoHASH { $domain } { $identifier } { environment } = $hash->{ environment };
+      } elsif ( $debug ) {
+        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "$command -> $line" }, $TYPE{APPEND} );
+        print "$line\n\n";
+        sleep 1;
+      } else {
+        $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "$command -> $line" }, $TYPE{APPEND} );
+      }
     }
   }
 }

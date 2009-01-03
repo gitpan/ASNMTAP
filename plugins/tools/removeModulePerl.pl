@@ -1,4 +1,4 @@
-#!/bin/env perl -w
+#!/usr/bin/env perl -w
 
 use ExtUtils::Packlist;
 use ExtUtils::Installed;
