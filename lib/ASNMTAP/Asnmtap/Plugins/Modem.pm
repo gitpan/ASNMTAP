@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,7 +123,7 @@ sub get_modem_request {
     return ( $ERRORS{UNKNOWN} );
   }
 
-  my $modem_not_ras = ( defined $parms{phonebook} ? 0 : 1 );
+  my $modem_not_ras = ( defined $parms{phonebook} ) ? 0 : 1;
 
   unless ( $modem_not_ras ) {
     unless ( defined $parms{phonebook} and defined $parms{username} ) {
@@ -170,7 +170,7 @@ sub get_modem_request {
   sub _ppp_interface_info {
     my ($asnmtapInherited, $info, $pppInterface, $debug) = @_;
 
-    my $pppStatus = ( $info->{$pppInterface}->{status} ? 'UP' : 'DOWN' );
+    my $pppStatus = ( $info->{$pppInterface}->{status} ) ? 'UP' : 'DOWN';
     my $pppInterfaceInfo = $pppInterface .': '. $pppStatus ."\n";
 
     if ( $pppStatus eq 'UP' ) {
@@ -415,7 +415,7 @@ sub get_modem_request {
     $$asnmtapInherited->call_system ( $ROUTECOMMAND .' add default gw '. $parms{defaultGateway} .' dev '. $parms{defaultInterface} );
   }
 
-  $returnCode = ( $not_connected_guess ? $ERRORS{UNKNOWN} : $returnCode ) ;
+  $returnCode = ( $not_connected_guess ) ? $ERRORS{UNKNOWN} : $returnCode;
   $$asnmtapInherited->pluginValue ( stateValue => $returnCode );
   return ( $returnCode );
 }

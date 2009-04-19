@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -30,7 +30,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::ISA         = qw(Exporter ASNMTAP::Asnmtap::Applications);
 
-  %ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS = (ALL         => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+  %ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS = (ALL         => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                            $CAPTUREOUTPUT
                                                                            $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                            %ERRORS %STATE %TYPE
@@ -60,14 +60,14 @@ BEGIN {
                                                                            $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                            $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
-                                                                           %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
+                                                                           %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                            &get_session_param
                                                                            &set_doIt_and_doOffline
                                                                            &encode_html_entities &print_header &print_legend
 
                                                                            $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                            $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
 					  
                                                                            &user_session_and_access_control
                                                                            &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month &create_sql_query_from_range_SLA_window
@@ -75,7 +75,7 @@ BEGIN {
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI 
                                                                            &record_navigation_table &record_navigation_bar) ],
 
-                                                      APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+                                                      APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                            $CAPTUREOUTPUT
                                                                            $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                            %ERRORS %STATE %TYPE
@@ -129,7 +129,7 @@ BEGIN {
                                                       DBPERFPARSE  => [ qw($PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD ) ],
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
-                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
+                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
 													  
                                                       REPORTS      => [ qw(%COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %QUARTERS
 
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

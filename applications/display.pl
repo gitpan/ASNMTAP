@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2009/04/19, v3.000.020, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.019;
+use ASNMTAP::Asnmtap::Applications::Display v3.000.020;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -336,6 +336,23 @@ sub do_crontab {
   $emptyFullView = $emptyCondencedView = $emptyMinimalCondencedView = 1;
 
   if ($doChecklist) {
+    my %inMCV = ();
+    $inMCV{WARNING}{CRITICAL}   = 1;
+    $inMCV{WARNING}{UNKNOWN}    = 1;
+    $inMCV{WARNING}{DEPENDENT}  = 1;
+
+    $inMCV{CRITICAL}{WARNING}   = 1;
+    $inMCV{CRITICAL}{UNKNOWN}   = 1;
+    $inMCV{CRITICAL}{DEPENDENT} = 1;
+
+    $inMCV{UNKNOWN}{WARNING}    = 1;
+    $inMCV{UNKNOWN}{CRITICAL}   = 1;
+    $inMCV{UNKNOWN}{DEPENDENT}  = 1;
+
+    $inMCV{DEPENDENT}{WARNING}  = 1;
+    $inMCV{DEPENDENT}{CRITICAL} = 1;
+    $inMCV{DEPENDENT}{UNKNOWN}  = 1;
+
     $groupFullView = $groupCondensedView = 0;
 
     foreach $dchecklist (@checklisttable) {
@@ -363,13 +380,13 @@ sub do_crontab {
         my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
         print "<", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         my $number = 1;
-        my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon);
-        $itemTimeslot = $itemStatusIcon = 0;
+        my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV);
+        $itemTimeslot = $itemStatusIcon = $itemInsertInMCV = 0;
 
         my @arrayStatusMessage = ();
 
         if ($dbh and $rv) {
-          my ($acked, $sql, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
+          my ($acked, $sql, $tLastStatus, $tLastTimeslot, $tPrevStatus, $tPrevTimeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
 
           # APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes ->
           my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
@@ -384,14 +401,23 @@ sub do_crontab {
 
           # <- end
 
-          $sql = "select SQL_NO_CACHE activationTimeslot, suspentionTimeslot, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
+          $sql = "select SQL_NO_CACHE lastStatus, lastTimeslot, prevStatus, prevTimeslot from $SERVERTABLEVENTSCHNGSLGDT where uKey = '$uniqueKey'";
+          $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
+          $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
+
+          if ( $rv ) {
+            ( $tLastStatus, $tLastTimeslot, $tPrevStatus, $tPrevTimeslot ) = $sth->fetchrow_array();
+            $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $sql");
+          }
+
+          $sql = "select SQL_NO_CACHE activationTimeslot, suspentionTimeslot, instability, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
           $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
           my $statusOverlib = '<NIHIL>'; # $STATE{$ERRORS{'NO DATA'}};
-          $downtime = 0;
+          $instability = $downtime = 0;
 
           if ( $rv ) {
-            my ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime, $firstRecordPersistentTrue, $firstRecordPersistentFalse);
+            my ($TactivationTimeslot, $TsuspentionTimeslot, $Tinstability, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime, $firstRecordPersistentTrue, $firstRecordPersistentFalse);
             $acked = $sth->rows;
             $persistent = -1;
             $activationTimeslot = 9999999999;
@@ -399,8 +425,10 @@ sub do_crontab {
             $suspentionTimeslot = $suspentionTimeslotPersistentTrue = $suspentionTimeslotPersistentFalse = 0;
 
             if ( $acked ) {
-              while( ($TactivationTimeslot, $TsuspentionTimeslot, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime) = $sth->fetchrow_array() ) {
+              while( ($TactivationTimeslot, $TsuspentionTimeslot, $Tinstability, $Tpersistent, $Tdowntime, $TcommentData, $TentryDate, $TentryTime, $TactivationDate, $TactivationTime, $TsuspentionDate, $TsuspentionTime) = $sth->fetchrow_array() ) {
                 if ( int($TactivationTimeslot) <= get_timeslot ($creationDate) and get_timeslot ($creationDate) <= int($TsuspentionTimeslot) ) {
+                  $instability = ( $Tinstability ) ? 1 : $instability;
+
                   if ( $Tpersistent ) {
                     if ( $firstRecordPersistentTrue ) {
                       $persistent = 1;
@@ -418,7 +446,7 @@ sub do_crontab {
                     $suspentionTimeslotPersistentFalse = ($suspentionTimeslotPersistentFalse > int($TsuspentionTimeslot)) ? $suspentionTimeslotPersistentFalse : int($TsuspentionTimeslot);
                   }
 
-                  $downtime = ( $Tdowntime ? 1 : $downtime );
+                  $downtime = ( $Tdowntime ) ? 1 : $downtime;
                   $activationTimeslot = ($activationTimeslot < int($TactivationTimeslot)) ? $activationTimeslot : int($TactivationTimeslot);
                   $suspentionTimeslot = ($suspentionTimeslot > int($TsuspentionTimeslot)) ? $suspentionTimeslot : int($TsuspentionTimeslot);
                 }
@@ -427,7 +455,7 @@ sub do_crontab {
                 $TcommentData =~ s/[\n\r]+(Updated|Edited|Closed) by: (?:.+), (?:.+) \((?:.+)\) on (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/\n\r$1 on $2 $3/g;
                 $TcommentData =~ s/[\n\r]/<br>/g;
                 $TcommentData =~ s/(?:<br>)+/<br>/g;
-                $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
+                $comment .= "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Entry Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Activation Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Suspention Date/Time&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Instability&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Persistent&nbsp;</TD><TD BGCOLOR=#000080 ALIGN=CENTER>&nbsp;Downtime&nbsp;</TD></TR><TR><TD ALIGN=CENTER>&nbsp;$TentryDate - $TentryTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TactivationDate - $TactivationTime&nbsp;</TD><TD ALIGN=CENTER>&nbsp;$TsuspentionDate - $TsuspentionTime</TD><TD ALIGN=CENTER>&nbsp;".( $Tinstability ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSUNSTABLE{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tpersistent ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OK}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' ).'</TD><TD ALIGN=CENTER>&nbsp;'.( $Tdowntime ? '<IMG SRC='.$IMAGESURL.'/'.$ICONSACK{OFFLINE}.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0>' : '' )."</TD></TR></TABLE><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#0000FF>$TcommentData</TD></TR></TABLE>";
               }
             }
 
@@ -478,12 +506,6 @@ sub do_crontab {
                 $itemTimeslot[$timeslot]  = $ref->{timeslot};
                 ($ref->{statusMessage}, undef) = split(/\|/, $ref->{statusMessage}, 2); # remove performance data
 
-                if ( -e $ref->{filename} ) {
-                  $ref->{filename} =~ s/^$RESULTSPATH\//$RESULTSURL\//g;
-                } else {
-                  $ref->{filename} = '<NIHIL>';
-                }
-
                 if ( -e $RESULTSPATH .'/'. $ref->{filename} ) {
                   $ref->{filename} = $RESULTSURL .'/'. $ref->{filename};
                 } else {
@@ -501,7 +523,7 @@ sub do_crontab {
                 }
 
                 my $tstatusMessage = ($ref->{filename} eq '<NIHIL>') ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>';
-                $statusIcon = ($acked and ($activationTimeslot - $step < $ref->{timeslot}) and ($suspentionTimeslot > $ref->{timeslot})) ? $ICONSACK {$tstatus} : $ICONS{$tstatus};
+                $statusIcon = ($acked and ($activationTimeslot - $step < $ref->{timeslot}) and ($suspentionTimeslot > $ref->{timeslot})) ? ( $instability ? $ICONSUNSTABLE {$tstatus} : $ICONSACK {$tstatus} ) : $ICONS{$tstatus};
 
                 if ( $timeslot == 0 or $timeslot == 1 ) {
                   my ($year, $month, $day) = split (/-/, $ref->{endDate});
@@ -533,23 +555,24 @@ sub do_crontab {
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
             my $endTime = $itemStarttime[$number];
             $endTime .= '-'. $itemTimeslot[$number] if ($displayTimeslot);
-            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey);
+            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey);
           }
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
             push (@arrayStatusMessage, $tempStatusMessage[$number] ) if (defined $tempStatusMessage[$number]);
           }
 
-          $itemTitle      = $title;
-          $itemStatus     = ( $itemStatus[0] eq 'IN PROGRESS' ? $itemStatus[1] : $itemStatus[0] );
-          $itemTimeslot   = ( $itemStatus[0] eq 'IN PROGRESS' ? $itemTimelocal[1] : $itemTimelocal[0] );
-          $itemStatusIcon = ( $acked and ( $activationTimeslot - $step < $itemTimeslot ) and ( $suspentionTimeslot > $itemTimeslot ) ) ? 1 : 0;
+          $itemTitle       = $title;
+          $itemStatus      = ( $itemStatus[0] eq 'IN PROGRESS' ) ? $itemStatus[1] : $itemStatus[0];
+          $itemTimeslot    = ( $itemStatus[0] eq 'IN PROGRESS' ) ? $itemTimelocal[1] : $itemTimelocal[0];
+          $itemStatusIcon  = ( $acked and ( $activationTimeslot - $step < $itemTimeslot ) and ( $suspentionTimeslot > $itemTimeslot ) ) ? 1 : 0;
+          $itemInsertInMCV = ( $instability ) ? ( $persistent ? 0 : 1 ) : ( defined $inMCV{$tLastStatus}{$tPrevStatus} ? 1 : 0 );
         }
 
-        printItemFooter($uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
+        printItemFooter($uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
       }
 
-      print "\n" if ($debug);			
+      print "\n" if ($debug);
     }
 
     printGroepCV($prevGroep, 1, 0);
@@ -892,9 +915,9 @@ sub printGroepCV {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemStatus {
-  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey) = @_;
+  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey) = @_;
 
-  my $statusIcon = ($acked and ($activationTimeslot - $step < $timeslot) and ($suspentionTimeslot > $timeslot)) ? $ICONSACK {$status} : $ICONS{$status};
+  my $statusIcon = ($acked and ($activationTimeslot - $step < $timeslot) and ($suspentionTimeslot > $timeslot)) ? ( $instability ? $ICONSUNSTABLE {$status} : $ICONSACK {$status} ) : $ICONS{$status};
 
   my ($debugInfo, $boldStart, $boldEnd);
   $debugInfo = $boldStart = $boldEnd = '';
@@ -964,7 +987,7 @@ sub printItemStatus {
       }
 
       $printCondensedView = 0 if ($downtime and ! $persistent);
-      $debugInfo .= "$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
+      $debugInfo .= "$instability-$persistent-$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
 
       my $update = 0;
       my $sqlWhere = '';
@@ -994,7 +1017,7 @@ sub printItemStatus {
         }
       }
 
-      if ($update) {
+      if ($update and $instability == 0) {
         my $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where uKey="' .$uniqueKey. '" and problemSolved="0"' .$sqlWhere;
         $dbh->do ( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->do: $sql");
       }
@@ -1162,7 +1185,7 @@ sub printGroepFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemFooter {
-  my ($uniqueKey, $title, $status, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
+  my ($uniqueKey, $title, $status, $timeslot, $statusIcon, $insertInMCV, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
 
   $itemFullCondensedView .= "</TR>\n";
 
@@ -1178,7 +1201,7 @@ sub printItemFooter {
 
   my $groep = ( $title =~ /^\[(\d+)\]/ ? $1 : 0);
   push ( @multiarrayFullCondensedView, [ $ERRORS{"$status"}, $groep, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView ] );
-  push ( @multiarrayMinimalCondensedView, [ $ERRORS{"$status"}, '-MCV-', $timeslot, $statusIcon, $itemFullCondensedView ] ) unless ( $statusIcon or $status =~ /(?:OK|DEPENDENT|OFFLINE|NO TEST|TRENDLINE)/ or ! $printCondensedView );
+  push ( @multiarrayMinimalCondensedView, [ $ERRORS{"$status"}, '-MCV-', $timeslot, $statusIcon, $itemFullCondensedView ] ) if ( ( ! $statusIcon or ( $statusIcon and $insertInMCV ) ) and $status !~ /(?:OK|DEPENDENT|OFFLINE|NO TEST|TRENDLINE)/ and $printCondensedView );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

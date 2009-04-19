@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, generateReports.pl for ASNMTAP::Applications
+# 2009/04/19, v3.000.020, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications v3.000.020;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $REPORTDIR
@@ -44,7 +44,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -140,7 +140,7 @@ create_dir ($RESULTSPATH);
 my @arrayDays   = ('<NIHIL>', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
 my @arrayMonths = ('<NIHIL>', 'January', 'Februari', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
 
-for (my $dayAfter = ($daysAfter ? 1 : 0); $dayAfter <= $daysAfter; $dayAfter++) {
+for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++) {
   my ($urlAccessParametersDay, $urlAccessParametersWeek, $urlAccessParametersMonth, $urlAccessParametersQuarter, $urlAccessParametersYear);
   my $emailMessage = "\n";
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, check_template-mail-xml-fingerprint-xml.pl
+# 2009/04/19, v3.000.020, check_template-mail-xml-fingerprint-xml.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml.pl',
   _programDescription => "XML fingerprint Mail XML plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programGetOptions  => ['username|u|loginname=s', 'password|p|passwd=s', 'interval|i=i', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -39,7 +39,7 @@ my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.019;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.000.020;
 
 my %environment = ( P => 'PROD', A => 'ACC' , S => 'SIM', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 

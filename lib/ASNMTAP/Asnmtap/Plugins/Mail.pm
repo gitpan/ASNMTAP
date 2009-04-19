@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -645,7 +645,7 @@ sub receiving_fingerprint_mails {
           if ( $parms{checkFingerprint} ) {
             my $regexp = ( $self->{_mailType} ? "\Q$fingerprintXML\E" .'.+'. "\Q<\/FingerprintEmail>\E" : $self->{_text}->{status} .'\s+<'. $self->{_mail}->{status} .'>' );
             $msgbuffer =~ /$regexp/;
-            $self->{defaultArguments}->{result} = ( $' ? $' : '' );
+            $self->{defaultArguments}->{result} = ( $' ) ? $' : '';
           } else {
             $self->{defaultArguments}->{result} = $msgbuffer;
           }

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, create_NCPL_weblogic_configuration_for_SNMP.pl
+# 2009/04/19, v3.000.020, create_NCPL_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications v3.000.020;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_NCPL_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create NCPL weblogic configuration for SNMP',
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogicConfig)
@@ -110,7 +110,7 @@ if ( $dbhWEBLOGIC and $dbhNCPL ) {
   if ( $rv ) {
     while( $sthWEBLOGIC->fetch() ) {
       if ( $activated ) {
-        if ( $community eq $domainname or $community =~ /snmp_${domainname}/ ) {
+        if ( $community eq $domainname or $community =~ /snmp_${domainname}/ or $community =~ /v10_${domainname}/ ) {
           my $host_name  = $host_Description .'_'. $domainname;
           my $service_description = "$service_Description [$virtual_servername]";
           my $timeperiod = ( $environment =~ /PROD/ ? '' : $timeperiod_acc );
@@ -135,7 +135,7 @@ if ( $dbhWEBLOGIC and $dbhNCPL ) {
           print "    $sqlINSERT\n" if ( $debug );
           $dbhNCPL->do( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->do: '. $sqlINSERT ) if $rv;
         } else {
-          $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => "$community <> snmp_${domainname}" }, $TYPE{APPEND} );
+          $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => "$community <> snmp_${domainname} and $community <> v10_${domainname}" }, $TYPE{APPEND} );
         }
       }
     }

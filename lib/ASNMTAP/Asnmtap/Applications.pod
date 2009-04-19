@@ -66,7 +66,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.000.019 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.000.020 or higher
  #
  # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
  #
@@ -845,29 +845,29 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019-distributed.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1157,19 +1157,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.019-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.019-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1182,6 +1182,10 @@ Install net-snmp 5.4.x
 =item 1
 
  plugins/templates/snmptt/snmptt-bea-weblogic.conf
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/templates/snmptt/snmptt-oracle.conf
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1204,6 +1208,10 @@ Install net-snmp 5.4.x
 =item 4a ASNMTAP
 
  plugins/snmptt/create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
+ plugins/snmptt/check_SNMPTT_oracle.pl
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 

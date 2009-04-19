@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Applications::Collector
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -51,7 +51,7 @@ BEGIN {
                                                                                 $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                                 $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                                 $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
-                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS
+                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT
                                                                                 %COLORSRRD
                                                                                 &read_table &get_trendline_from_test
                                                                                 &set_doIt_and_doOffline
@@ -86,11 +86,11 @@ BEGIN {
                                                                                   &create_header &create_footer)],
 
                                                              DBCOLLECTOR  => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                                                                  $SERVERTABLCOMMENTS $SERVERTABLEVENTS) ] );
+                                                                                  $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ] );
 
   @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Applications::Display
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Display;
@@ -50,9 +50,9 @@ BEGIN {
                                                                                 $HTTPSURL $IMAGESURL $RESULTSURL
                                                                                 $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                                 $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
+                                                                                %COLORS %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ENVIRONMENT %SOUND
                                                                                 $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS
+                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT
                                                                                 &read_table &get_trendline_from_test
                                                                                 &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
 
@@ -79,16 +79,16 @@ BEGIN {
                                                                                 $HTTPSURL $IMAGESURL $RESULTSURL
                                                                                 $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                                 $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                                %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
+                                                                                %COLORS %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ENVIRONMENT %SOUND
                                                                                 &read_table &get_trendline_from_test
                                                                                 &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend)],
 
                                                            DBDISPLAY    => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS ) ] );
+                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT ) ] );
 
   @ASNMTAP::Asnmtap::Applications::Display::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

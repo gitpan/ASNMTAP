@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.000.019',
+   _programVersion     => '3.000.020',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -137,7 +137,8 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
  $COPYRIGHT         2003-2009
  $SENDEMAILTO       alex.peeters@citap.be
  $TYPEMONITORING    central # central or distributed
- 
+ $RUNCMDONDEMAND    localhost # localhost or probe
+
  $CAPTUREOUTPUT     1 # 1 -> capture_exec($system_action) or 0 -> system ($system_action)
 
  $PREFIXPATH        /opt/asnmtap-3.000.xxx
@@ -215,7 +216,8 @@ With the environment variable ASNMTAP_PATH you can change the default location f
      DEPARTMENT         Development
      COPYRIGHT          2003-2009
      SENDEMAILTO        alex.peeters@citap.be
-     TYPEMONITORING     1
+     TYPEMONITORING     central
+     RUNCMDONDEMAND     probe
  </COMMON>
 
  <COMMAND>
@@ -581,7 +583,7 @@ returns success, stdout and stderr
 
 ALL
 
-  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
   $CAPTUREOUTPUT
   $PREFIXPATH $APPLICATIONPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
   $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
@@ -591,7 +593,7 @@ ALL
 
 ASNMTAP
 
-  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+  $APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
   $CAPTUREOUTPUT
   $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
   %ERRORS %STATE %TYPE

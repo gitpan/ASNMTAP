@@ -105,6 +105,7 @@ t/Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-authorization.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t
+t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.1.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact.t
@@ -222,11 +223,13 @@ applications/htmlroot/img/2arrowLeft.gif
 applications/htmlroot/img/2arrowRight.gif
 applications/htmlroot/img/404.jpg
 applications/htmlroot/img/awstats.gif
-applications/htmlroot/img/blue-ack.gif
 applications/htmlroot/img/blue.gif
+applications/htmlroot/img/blue-ack.gif
+applications/htmlroot/img/blue-unstable.gif
 applications/htmlroot/img/cal.gif
-applications/htmlroot/img/clear-ack.gif
 applications/htmlroot/img/clear.gif
+applications/htmlroot/img/clear-ack.gif
+applications/htmlroot/img/clear-unstable.gif
 applications/htmlroot/img/cupido.gif
 applications/htmlroot/img/daemonReload.gif
 applications/htmlroot/img/daemonRestart.gif
@@ -258,23 +261,27 @@ applications/htmlroot/img/fw0/19.gif
 applications/htmlroot/img/fw0/20.gif
 applications/htmlroot/img/gears.gif
 applications/htmlroot/img/ghost.gif
-applications/htmlroot/img/green-ack.gif
 applications/htmlroot/img/green.gif
+applications/htmlroot/img/green-ack.gif
+applications/htmlroot/img/green-unstable.gif
 applications/htmlroot/img/info.gif
 applications/htmlroot/img/logoff.jpg
 applications/htmlroot/img/logos/bodyimage.gif
 applications/htmlroot/img/maintenance.gif
-applications/htmlroot/img/notest-ack.gif
 applications/htmlroot/img/notest.gif
+applications/htmlroot/img/notest-ack.gif
+applications/htmlroot/img/notest-unstable.gif
 applications/htmlroot/img/off.gif
 applications/htmlroot/img/on.gif
 applications/htmlroot/img/ondemand.gif
-applications/htmlroot/img/orange-ack.gif
 applications/htmlroot/img/orange.gif
+applications/htmlroot/img/orange-ack.gif
+applications/htmlroot/img/orange-unstable.gif
 applications/htmlroot/img/pidKill.gif
 applications/htmlroot/img/pidremove.gif
-applications/htmlroot/img/purple-ack.gif
 applications/htmlroot/img/purple.gif
+applications/htmlroot/img/purple-ack.gif
+applications/htmlroot/img/purple-unstable.gif
 applications/htmlroot/img/question.gif
 applications/htmlroot/img/recordDelete.gif
 applications/htmlroot/img/recordDetails.gif
@@ -282,8 +289,9 @@ applications/htmlroot/img/recordDuplicate.gif
 applications/htmlroot/img/recordEdit.gif
 applications/htmlroot/img/recordQuery.gif
 applications/htmlroot/img/recordTable.gif
-applications/htmlroot/img/red-ack.gif
 applications/htmlroot/img/red.gif
+applications/htmlroot/img/red-ack.gif
+applications/htmlroot/img/red-unstable.gif
 applications/htmlroot/img/report.gif
 applications/htmlroot/img/running.gif
 applications/htmlroot/img/spacer.gif
@@ -297,8 +305,9 @@ applications/htmlroot/img/stop.gif
 applications/htmlroot/img/stopRefresh.gif
 applications/htmlroot/img/toggle.gif
 applications/htmlroot/img/up.gif
-applications/htmlroot/img/yellow-ack.gif
 applications/htmlroot/img/yellow.gif
+applications/htmlroot/img/yellow-ack.gif
+applications/htmlroot/img/yellow-unstable.gif
 
 applications/htmlroot/pdf/ApplicationMonitorVersion2.000.xxx.pdf
 applications/htmlroot/pdf/CheckDummy.pdf
@@ -367,10 +376,10 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.019.sql
-applications/tools/mysql/asnmtap-3.000.019_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.000.019-distributed.sql
-applications/tools/mysql/asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.020.sql
+applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.000.020-distributed.sql
+applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -429,6 +438,7 @@ plugins/nagios/templates/xml/nagios-1.0.xml-dtd
 plugins/jUnit/check_jUnit.pl
 plugins/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit.pl
 
+plugins/snmptt/check_SNMPTT_oracle.pl
 plugins/snmptt/check_SNMPTT_probe.pl
 plugins/snmptt/check_SNMPTT_weblogic.pl
 plugins/snmptt/create_ASNMTAP_weblogic_configuration_for_SNMP.pl
@@ -460,6 +470,7 @@ plugins/templates/check_template-WebTransact-with-client-certificate.pl
 plugins/templates/check_template-WebTransact-XML.pl
 plugins/templates/check_template-WebTransact-XML-Cactus-parser.pl
 plugins/templates/check_template-WebTransact-XML-Monitoring.pl
+plugins/templates/check_template-WebTransact-XML-Monitoring-1.1.pl
 plugins/templates/check_template-XML.pl
 
 plugins/templates/dtd/email-upgrade-1.0.dtd
@@ -469,14 +480,15 @@ plugins/templates/dtd/Monitoring-1.1.dtd
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.019_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.020_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.020_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.019_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
-plugins/templates/snmptt/snmptt-3.000.019.sql
-plugins/templates/snmptt/snmptt-3.000.019-v5.0.x.sql
+plugins/templates/snmptt/snmptt-oracle.conf
+plugins/templates/snmptt/snmptt-3.000.020.sql
+plugins/templates/snmptt/snmptt-3.000.020-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml
@@ -508,4 +520,3 @@ usr/bin/pon                                         pon
 
 plugins/tools/removeModulePerl.pl
 plugins/tools/GrinderCaptureConverter.pl
-

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, archive.pl for ASNMTAP::Applications
+# 2009/04/19, v3.000.020, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,11 +21,11 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
-use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE);
+use ASNMTAP::Asnmtap::Applications v3.000.020;
+use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -205,7 +205,7 @@ sub archiveCommentsAndEventsTables {
   print EMAILREPORT "\nArchive '$SERVERTABLCOMMENTS' and '$SERVERTABLEVENTS' tables:\n--------------------------------------------------\n" unless ( $debug );
 
   # Init parameters
-  my ($rv, $dbh, $sth, $sql, $year, $month, $day, $timeslot, $yearMOVE, $monthMOVE, $sqlMOVE);
+  my ($rv, $dbh, $sth, $sql, $year, $month, $day, $timeslot, $yearMOVE, $monthMOVE, $sqlMOVE, $sqlUPDATE);
 
   $rv  = 1;
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = errorTrapDBI("Cannot connect to the database", $debug); 
@@ -245,17 +245,38 @@ sub archiveCommentsAndEventsTables {
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
 
+    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.uKey from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLVIEWS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
+
+    if ($debug) {
+      print "\nUpdate table '$SERVERTABLCOMMENTS': <$sql>\n";
+    } else {
+      print EMAILREPORT "\nUpdate table '$SERVERTABLCOMMENTS': <$sql>\n";
+    }
+
+    $sth = $dbh->prepare($sql) or $rv = errorTrapDBI("dbh->prepare: $sql", $debug);
+    $rv  = $sth->execute() or $rv = errorTrapDBI("sth->execute: $sql", $debug) if $rv;
+
+    if ( $rv ) {
+      while (my $ref = $sth->fetchrow_hashref()) {
+        $sqlUPDATE = "UPDATE $SERVERTABLCOMMENTS SET $SERVERTABLCOMMENTS.problemSolved = 2 WHERE $SERVERTABLCOMMENTS.uKey = \"" .$ref->{uKey}. "\" and $SERVERTABLCOMMENTS.problemSolved = 0";
+        print "$sqlUPDATE;\n" if ($debug);
+        $dbh->do( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+      }
+
+      $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
+    }
+
     $year  = get_year  ($commentsAgo);
     $month = get_month ($commentsAgo);
     $day   = get_day   ($commentsAgo);
 
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
+    $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved >= '1' and solvedTimeslot < '" .$timeslot. "'";
+
     if ($debug) {
-      $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
       print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
     } else {
-      $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
       print EMAILREPORT "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
     }
 
@@ -919,7 +940,7 @@ sub removeOldReportFiles {
 
     print "\n";
   }
-	
+
   if (defined $restant) {
     $datum = substr($datum, 0, 8);
 

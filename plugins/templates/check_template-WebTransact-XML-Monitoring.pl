@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, check_template-WebTransact-XML-Monitoring.pl
+# 2009/04/19, v3.000.020, check_template-WebTransact-XML-Monitoring.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.0";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -147,9 +147,9 @@ __END__
 
 =head1 NAME
 
-heck_template-WebTransact-XML-Monitoring.pl
+check_template-WebTransact-XML-Monitoring.pl
 
-WebTransact XML Monitoring plugin template for testing the 'Application Monitor'
+WebTransact XML Monitoring plugin template for testing the 'Application Monitor' for Monitoring-1.0.xml
 
 The ASNMTAP plugins come with ABSOLUTELY NO WARRANTY.
 

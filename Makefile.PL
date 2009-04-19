@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.19 2009/xx/xx 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.20 2009/xx/xx 18:27:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,7 +7,7 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# replace 'Latest update: .. ... 2009' with 'Latest update: dd month 2009'
+# replace 'Latest update: .. ... 2009' with 'Latest update: 19 April 2009'
 # replace 'Version      : 3.000.xxx' with ...
 
 # replace `# 2009/../.., v` with `# 2009/mm/dd, v`
@@ -23,7 +23,7 @@ use strict;
 # replace `'3.000.xxx'` with `'3.000.yyy'`
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: dd month 2009' with 'Latest update: .. ... 2009'
+# replace 'Latest update: 19 April 2009' with 'Latest update: .. ... 2009'
 # replace `# 2009/mm/dd, v` with `# 2009/../.., v`
 # replace 'Gecko/yyyymmdd' with 'Gecko/2009....'
 
@@ -52,7 +52,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -303,7 +303,7 @@ my %has_module_cache = ();
 use Getopt::Std;
 use vars qw ( $opt_n );
 unless ( getopts ('n') ) { die "Usage: $0 [-n]\n"; }
-my $prompt = ( $opt_n ? 0 : 1 );
+my $prompt = ( $opt_n ) ? 0 : 1;
 
 unlink ('t/APPLICATIONS_ENABLED')        if ( -e 't/APPLICATIONS_ENABLED' );
 unlink ('t/APPLICATIONS_CGI_ENABLED')    if ( -e 't/APPLICATIONS_CGI_ENABLED' );

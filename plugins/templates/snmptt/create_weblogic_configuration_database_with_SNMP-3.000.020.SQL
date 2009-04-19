@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, create_weblogic_configuration_database_with_SNMP-3.000.019.SQL
+# 2009/04/19, v3.000.020, create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `weblogicConfig`;
@@ -78,6 +78,26 @@ CREATE TABLE `SERVERS` (
   KEY `VIRTUAL_SERVER_ID` (`VIRTUAL_SERVER_ID`),
   KEY `UKEY` (`UKEY`)
 ) ENGINE=MyISAM;
+
+
+#
+# Table structure for table `QUEUES`
+#
+
+CREATE TABLE `QUEUES` (
+  `ADMIN_NAME` varchar(32) NOT NULL default '',
+  `QUEUE_NAME` varchar(254) NOT NULL default '',
+  `QUEUE_OID` varchar(254) default NULL,
+  `ENV` varchar(4) default NULL,
+  `ACTIVATED` tinyint(1) unsigned default '1',
+  `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `VIRTUAL_CLUSTER_ID` int(11) unsigned NOT NULL default '0',
+  `UKEY` varchar(11) default NULL,
+  PRIMARY KEY  (`ADMIN_NAME`,`QUEUE_OID`,`QUEUE_NAME`),
+  KEY `VIRTUAL_CLUSTER_ID` (`VIRTUAL_CLUSTER_ID`),
+  KEY `QUEUE_NAME` (`QUEUE_NAME`),
+  KEY `UKEY` (`UKEY`)
+) ENGINE=MyISAM
 
 #
 # Table structure for table `wls_snmp_CONFIG`

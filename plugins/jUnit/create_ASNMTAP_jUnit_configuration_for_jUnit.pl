@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+# 2009/04/19, v3.000.020, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications v3.000.020;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_jUnit_configuration_for_jUnit.pl',
   _programDescription => 'Create ASNMTAP jUnit configuration for jUnit',
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programUsagePrefix => '[--force] [--update] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--force
 --update
@@ -119,12 +119,13 @@ my %hour;
 $hour{P}                     = '*';
 $hour{S}                     = $hour{P};
 $hour{A}                     = '8-16';
-$hour{P}                     = $hour{A};
+$hour{T}                     = $hour{A};
 
 my %dayOfTheWeek;
 $dayOfTheWeek{P}             = '*';
 $dayOfTheWeek{S}             = $dayOfTheWeek{P};
 $dayOfTheWeek{A}             = '1-5';
+$dayOfTheWeek{T}             = $dayOfTheWeek{A};
 
 # crontabs: statically
 my $dayOfTheMonth            = '*';
@@ -288,10 +289,10 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
       $sthASNMTAP->bind_columns( \$_arguments, \$_title, \$_environment, \$_holidayBundleID, \$_resultsdir, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
-        my $_Activated = ( $activated and $STATUS eq 'ASNMTAP' ? 1 : 0 );
+        my $_Activated = ( $activated and $STATUS eq 'ASNMTAP' ) ? 1 : 0;
 
         if ( $sthASNMTAP->fetch() ) {
-          my $sqlUPDATE = ( defined $update ? 1 : 0 );
+          my $sqlUPDATE = ( defined $update ) ? 1 : 0;
           $actions .= "  + $uKey, $_arguments, $_title, $_environment, $_holidayBundleID, $_resultsdir, $_activated\n" if ( $debug );
 
           if ( $arguments ne $_arguments ) {

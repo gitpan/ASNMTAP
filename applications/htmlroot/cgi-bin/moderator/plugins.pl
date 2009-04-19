@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_csvfiledate);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES &sending_mail);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -70,6 +70,8 @@ my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISES
 # Debug information
 print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>uKey              : $CuKey<br>shortDescription  : $CshortDescription<br>trendline         : $Ctrendline<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
+my $uploadPluginStatus = 'OK';
+
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   if ( $ChelpPluginFilename eq '' or $ChelpPluginFilename eq '<NIHIL>' ) {
     $ChelpPluginFilename = ( $ChelpPluginTextname eq '' ? '<NIHIL>' : $ChelpPluginTextname );
@@ -96,15 +98,18 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             while (<$fh>) { print FHOPEN; }
             $ChelpPluginTextname .= ', Uploaded and wrote file OK!';
           } else {
+            $uploadPluginStatus = 'UNKNOWN';
             $ChelpPluginTextname .= ', Cannot upload PDF file!';
           }
 
           close FHOPEN;
         } else {
+          $uploadPluginStatus = 'UNKNOWN';
           $ChelpPluginFilename = '<NIHIL>';
           $ChelpPluginTextname .= ', Cannot create PDF file!';
         }
       } else {
+        $uploadPluginStatus = 'UNKNOWN';
         $ChelpPluginFilename = '<NIHIL>';
         $ChelpPluginTextname .= ', PDF files only!';
       }
@@ -149,7 +154,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
         $matchingPlugins = "User               = $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn)\n\nuKey               = $CuKey\n\ntitle              = $Otitle\n\nshortDescription old:\n$OshortDescription\n\nshortDescription new:\n$CshortDescription\n\ntrendline          = $Otrendline -> $Ctrendline\n\nhelpPluginTextname = $ChelpPluginTextname\n\nhelpPluginFilename = $OhelpPluginFilename -> $ChelpPluginFilename\n\nholidayBundleID    = $OholidayBundleID -> $CholidayBundleID";
-        my $subject = "$htmlTitle regarding short description, trendline, holiday bundle and/or uploading plugindoc: ". get_csvfiledate();
+        my $subject = "ASNMTAP ~ Moderator: $uploadPluginStatus, $htmlTitle regarding short description, trendline, holiday bundle and/or uploading plugindoc: ". get_csvfiledate();
         my $message = "Geachte, Cher,\n\n\n$matchingPlugins\n\n\n-- Moderator\n\n$APPLICATION\n$DEPARTMENT\n$BUSINESS\n";
 
         unless ( sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $message, 0 ) ) {
@@ -277,10 +282,11 @@ HTML
       print "        <tr align=\"left\"><td align=\"right\"><br><input type=\"submit\" value=\"$submitButton\"></td><td><br><input type=\"reset\" value=\"Reset\"></td></tr>\n" if ($action ne 'displayView');
       print "      </table>\n";
     } elsif ($action eq 'edit') {
-      print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle$ChelpPluginTextname</h1></td></tr>";
-      print "    <tr><td align=\"center\">$matchingPlugins</td></tr>" if (defined $matchingPlugins and $matchingPlugins ne '');
+      print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle</h1></td></tr>";
+      print "    <tr><td class=\"HeaderTitel\">$ChelpPluginTextname<br><br></td></tr>" if (defined $ChelpPluginTextname and $ChelpPluginTextname ne '');
+      print "    <tr><td align=\"left\"><br><PRE>$matchingPlugins</PRE></td></tr>" if ($debug eq 'T' and defined $matchingPlugins and $matchingPlugins ne '');
     } else {
-      print "    <tr><td align=\"center\"><br>$matchingPlugins</td></tr>";
+      print "    <tr><td align=\"left\"><br><PRE>$matchingPlugins</PRE></td></tr>";
     }
 
     print "  </table>\n";

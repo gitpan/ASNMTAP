@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -139,8 +139,8 @@ EndOfHtml
       my ($capture_long, $capture_html, $capture_text, $capture_debug, $capture_array, @WebTransactResponses, @capture_array);
       $capture_long = $capture_html = $capture_text = $capture_debug = $capture_array = 0;
 
-    # my $capture_exec = ( $TYPEMONITORING eq 'central' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/.ssh/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/csw/bin:/opt/local/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/lib:/usr/local/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
-      my $capture_exec = ( $TYPEMONITORING eq 'central' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/monitoring/sbin:/opt/monitoring/bin:/opt/supervision/sbin:/opt/supervision/bin:/opt/mysql/mysql/bin/:/usr/local/sbin:/usr/local/bin:/opt/csw/sbin:/opt/csw/bin:/usr/sbin:/usr/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/mysql5/lib/mysql:/opt/csw/share/perl/5.8.8/unicore/lib:/opt/csw/sparc-sun-solaris2.8/lib:/opt/csw/lib:/opt/supervision/lib:/opt/supervision/ssl/lib:/usr/local/ssl/lib:/opt/mysql/mysql/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
+    # my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/.ssh/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/csw/bin:/opt/local/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/lib:/usr/local/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
+      my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/monitoring/sbin:/opt/monitoring/bin:/opt/supervision/sbin:/opt/supervision/bin:/opt/mysql/mysql/bin/:/usr/local/sbin:/usr/local/bin:/opt/csw/sbin:/opt/csw/bin:/usr/sbin:/usr/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/mysql5/lib/mysql:/opt/csw/share/perl/5.8.8/unicore/lib:/opt/csw/sparc-sun-solaris2.8/lib:/opt/csw/lib:/opt/supervision/lib:/opt/supervision/ssl/lib:/usr/local/ssl/lib:/opt/mysql/mysql/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
 
       if ( 1 == 1 ) {
         @capture_array = `$capture_exec`;

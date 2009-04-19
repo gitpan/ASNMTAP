@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,10 +15,10 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_epoch);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "trendlineCorrectionReports.pl";
 my $prgtext     = "Trendline Correction Reports (for the Collector)";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -120,7 +120,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $calculatedMIN = $calculatedMAX = $calculatedNEW = '';
           }
 
-          $ActionItem = ( $actionPressend and $calculatedNEW ? 1 : '' );
+          $ActionItem = ( $actionPressend and $calculatedNEW ) ? 1 : '';
 
           if ( $ActionItem or ! $shortlist ) {
             $test =~ s/\.pl//g;
@@ -144,7 +144,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         my ($groupEND, $groupMAX, $uKeyPREV, $titlePREV, $testPREV, $resultsdirPREV, $trendlinePREV, $percentagePREV, $tolerancePREV) = (0, 0, 0, 0, 0, 25, 5);
 
         while( $sth->fetch() ) {
-          $groupEND = ($uKeyPREV ne '0' and $uKeyPREV ne $uKey ? 1 : 0);
+          $groupEND = ( $uKeyPREV ne '0' and $uKeyPREV ne $uKey ) ? 1 : 0;
 
           if ( $groupEND ) {
             matchingTrendlineCorrections ($uKeyPREV, $titlePREV, $testPREV, $resultsdirPREV, $trendlinePREV, $percentagePREV, $tolerancePREV, $groupMAX);

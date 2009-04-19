@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -68,7 +68,7 @@ my $htmlTitle = $APPLICATION;
 my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formDisabledAll, $formDisabledRemoteUser, $submitButton, $givenName, $familyName, $password);
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
 
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&downtimeScheduling=$CdowntimeScheduling&generatedReports=$CgeneratedReports&password=$Cpassword&userType=$CuserType&pagedirs=$Cpagedir&activated=$Cactivated&keyLanguage=$CkeyLanguage";
@@ -154,7 +154,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select remoteUser, givenName, familyName, userType, activated from $SERVERTABLUSERS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select remoteUser, givenName, familyName, userType, activated from $SERVERTABLUSERS where userType<=$userType order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Remote User <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName desc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Given Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName asc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName desc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Family Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName asc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> User Type	<a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingUsers, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'User', 'remoteUser', '0', '', '3#0=>Guest|1=>Member|2=>Moderator|4=>Administrator|8=>Server Administrator', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
@@ -181,7 +181,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "select pagedir, groupName from $SERVERTABLPAGEDIRS order by groupName";
       ($rv, $pagedirsSelect) = create_combobox_multiple_from_DBI ($rv, $dbh, $sql, $action, $Cpagedir, 'pagedirs', '-Select-', 10, 100, $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
-	
+
     $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
   }
 
@@ -390,7 +390,9 @@ HTML
 HTML
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
-      my $userTypeSelect = create_combobox_from_keys_and_values_pairs ('0=>Guest|1=>Member|2=>Moderator|4=>Administrator|8=>Server Administrator', 'K', 0, $CuserType, 'userType', '', '', $formDisabledAll, '', $debug);
+      my $userTypeValues = '0=>Guest|1=>Member|2=>Moderator|4=>Administrator';
+      $userTypeValues .= '|8=>Server Administrator' if ( $userType == 8 );
+      my $userTypeSelect = create_combobox_from_keys_and_values_pairs ($userTypeValues, 'K', 0, $CuserType, 'userType', '', '', $formDisabledAll, '', $debug);
 
       my $downtimeSchedulingChecked = ($CdowntimeScheduling eq 'on') ? ' checked' : '';
       my $generatedReportsChecked   = ($CgeneratedReports eq 'on') ? ' checked' : '';

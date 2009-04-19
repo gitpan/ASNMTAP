@@ -5,15 +5,74 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: dd month 2009
-Version      : 3.000.019
+Latest update: 19 April 2009
+Version      : 3.000.020
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.019, 2009/xx/yy, by Alex Peeters with contributions from Yves Van den Hove.
+Version 3.000.020, 2009/xx/yy, by Alex Peeters
+                               - ASNMTAP
+	  	                         - UPDATE /plugins/templates/snmptt/
+								   - NEW check_SNMPTT_oracle.pl
+                                   - NEW snmptt-oracle.conf
+                                 - NEW %ICONSUNSTABLE = ('OK'=>'green-unstable.gif','WARNING'=>'yellow-unstable.gif','CRITICAL'=>'red-unstable.gif','UNKNOWN'=>'clear-unstable.gif','DEPENDENT'=>'','OFFLINE'=>'blue-unstable.gif','NO DATA'=>'purple-unstable.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-unstable.gif','TRENDLINE'=>'orange-unstable.gif');
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020-distributed.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
+                                   - NEW TABLE `eventsChangesLogData` for MySQL'
+                                     CREATE TABLE `eventsChangesLogData` (
+                                       `uKey` varchar(11) NOT NULL default '',
+                                       `lastStatus` varchar(9) NOT NULL default '',
+                                       `lastTimeslot` varchar(10) NOT NULL default '',
+                                       `prevStatus` varchar(9) NOT NULL default '',
+                                       `prevTimeslot` varchar(10) NOT NULL default '',
+                                       PRIMARY KEY  (`uKey`)
+                                     ) ENGINE=InnoDB
+                               - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+                               - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+                                   - NEW TABLE `QUEUES` for MySQL'
+                                     CREATE TABLE `QUEUES` (
+                                       `QUEUE_NAME` varchar(64) NOT NULL default '',
+                                       `QUEUE_OID` varchar(254) default NULL,
+                                       `ENV` varchar(4) default NULL,
+                                       `ACTIVATED` tinyint(1) unsigned default '1',
+                                       `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+                                       `VIRTUAL_CLUSTER_ID` int(11) unsigned NOT NULL default '0',
+                                       `UKEY` varchar(11) default NULL,
+                                       PRIMARY KEY  (`QUEUE_OID`,`QUEUE_NAME`),
+                                       KEY `VIRTUAL_CLUSTER_ID` (`VIRTUAL_CLUSTER_ID`),
+                                       KEY `QUEUE_NAME` (`QUEUE_NAME`),
+                                       KEY `UKEY` (`UKEY`)
+                                     ) ENGINE=MyISAM
+                               - UPDATE /applications/Applications.cfg
+                                 #<TABLES>
+                                 ...
+                                 #    EVENTSCHANGESLOGDATA eventsChangesLogData
+                                 ...
+                                 #  <UNSTABLE>
+                                 #    OK              green-unstable.gif
+                                 #    WARNING         yellow-unstable.gif
+                                 #    CRITICAL        red-unstable.gif
+                                 #    UNKNOWN         clear-unstable.gif
+                                 #    DEPENDENT       
+                                 #    OFFLINE         blue-unstable.gif
+                                 #    NO_DATA         purple-unstable.gif
+                                 #    IN_PROGRESS     running.gif
+                                 #    NO_TEST         notest-unstable.gif
+                                 #    TRENDLINE       orange-unstable.gif
+                                 #  </UNSTABLE>
+                               - UPDATE Applications.pm, CGI.PM, Collector.pm & Display.pm
+                                 - NEW $SERVERTABLEVENTSCHNGSLGDT -> ´eventsChangesLogData´
+                               - NEW WebTransact XML Monitoring plugin template for testing the 'Application Monitor' for Monitoring-1.1.xml
+                                 - check_template-WebTransact-XML-Monitoring.pl
+                               - NEW common variable RUNCMDONDEMAND to Asnmtap.cnf
+                                 # RUNCMDONDEMAND  localhost # localhost or probe
+
+Version 3.000.019, 2009/01/03, by Alex Peeters with contributions from Yves Van den Hove.
                                - ASNMTAP
                                  UPDATE '#!/bin/env perl' with '#!/usr/bin/env perl'
                                  replace '[a-z|A-Z|0-9|-]' with '[a-zA-Z0-9-]'
@@ -598,8 +657,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

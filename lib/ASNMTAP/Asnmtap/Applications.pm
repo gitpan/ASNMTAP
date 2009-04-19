@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, package ASNMTAP::Asnmtap::Applications
+# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -31,7 +31,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::ISA         = qw(Exporter ASNMTAP::Asnmtap);
 
-  %ASNMTAP::Asnmtap::Applications::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+  %ASNMTAP::Asnmtap::Applications::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                        $CAPTUREOUTPUT
                                                                        $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
@@ -59,11 +59,11 @@ BEGIN {
                                                                        $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                        $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE $STATUSHEADER01
-                                                 					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
+                                                 					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
                                                                        &read_table &get_session_param &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
@@ -72,7 +72,7 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
 
-                                                  APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING
+                                                  APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                        $CAPTUREOUTPUT
                                                                        $PREFIXPATH $PLUGINPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
                                                                        %ERRORS %STATE %TYPE
@@ -112,7 +112,7 @@ BEGIN {
                                                                        &print_revision &usage &call_system) ],
 
                                                   DBCOLLECTOR  => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS) ],
+                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
  
                                                   DISPLAY      => [ qw($APPLICATIONPATH
 
@@ -121,14 +121,14 @@ BEGIN {
                                                                        $HTTPSURL $IMAGESURL $RESULTSURL
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
                                                                        $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $STATUSHEADER01
-                                                                       %COLORS %ICONS %ICONSACK %ICONSRECORD %ENVIRONMENT %SOUND
+                                                                       %COLORS %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ENVIRONMENT %SOUND
                                                                        &read_table &get_trendline_from_test
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
 
                                                                        &print_revision &usage &call_system) ],
  
                                                   DBDISPLAY    => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
-                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS) ],
+                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
 									   
                                                   CGI          => [ qw($APPLICATIONPATH
 
@@ -146,7 +146,7 @@ BEGIN {
                                                                        $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                        $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
-                                                                       %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
+                                                                       %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        &get_session_param
                                                                        &set_doIt_and_doOffline
                                                                        &encode_html_entities &print_header &print_legend
@@ -154,11 +154,11 @@ BEGIN {
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
+                                                                       $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,7 +257,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -395,48 +395,50 @@ our $PERFPARSEUSERNAME = ( exists $_config{COMMON}{PERFPARSE}{USERNAME} ? $_conf
 our $PERFPARSEPASSWORD = ( exists $_config{COMMON}{PERFPARSE}{PASSWORD} ? $_config{COMMON}{PERFPARSE}{PASSWORD} : $SERVERPASSREADWRITE );
 
 # tables
-our $SERVERTABLCLLCTRDMNS   = 'collectorDaemons';
-our $SERVERTABLCOMMENTS     = 'comments';
-our $SERVERTABLCOUNTRIES    = 'countries';
-our $SERVERTABLCRONTABS     = 'crontabs';
-our $SERVERTABLDISPLAYDMNS  = 'displayDaemons';
-our $SERVERTABLDISPLAYGRPS  = 'displayGroups';
-our $SERVERTABLENVIRONMENT  = 'environment';
-our $SERVERTABLEVENTS       = 'events';
-our $SERVERTABLHOLIDYS      = 'holidays';
-our $SERVERTABLHOLIDYSBNDL  = 'holidaysBundle';
-our $SERVERTABLLANGUAGE     = 'language';
-our $SERVERTABLPAGEDIRS     = 'pagedirs';
-our $SERVERTABLPLUGINS      = 'plugins';
-our $SERVERTABLREPORTS      = 'reports';
-our $SERVERTABLREPORTSPRFDT = 'reports_perfdata';
-our $SERVERTABLRESULTSDIR   = 'resultsdir';
-our $SERVERTABLSERVERS      = 'servers';
-our $SERVERTABLTIMEPERIODS  = 'timeperiods';
-our $SERVERTABLUSERS        = 'users';
-our $SERVERTABLVIEWS        = 'views';
+our $SERVERTABLCLLCTRDMNS      = 'collectorDaemons';
+our $SERVERTABLCOMMENTS        = 'comments';
+our $SERVERTABLCOUNTRIES       = 'countries';
+our $SERVERTABLCRONTABS        = 'crontabs';
+our $SERVERTABLDISPLAYDMNS     = 'displayDaemons';
+our $SERVERTABLDISPLAYGRPS     = 'displayGroups';
+our $SERVERTABLENVIRONMENT     = 'environment';
+our $SERVERTABLEVENTS          = 'events';
+our $SERVERTABLEVENTSCHNGSLGDT = 'eventsChangesLogData';
+our $SERVERTABLHOLIDYS         = 'holidays';
+our $SERVERTABLHOLIDYSBNDL     = 'holidaysBundle';
+our $SERVERTABLLANGUAGE        = 'language';
+our $SERVERTABLPAGEDIRS        = 'pagedirs';
+our $SERVERTABLPLUGINS         = 'plugins';
+our $SERVERTABLREPORTS         = 'reports';
+our $SERVERTABLREPORTSPRFDT    = 'reports_perfdata';
+our $SERVERTABLRESULTSDIR      = 'resultsdir';
+our $SERVERTABLSERVERS         = 'servers';
+our $SERVERTABLTIMEPERIODS     = 'timeperiods';
+our $SERVERTABLUSERS           = 'users';
+our $SERVERTABLVIEWS           = 'views';
 
 if ( exists $_config{TABLES} ) {
-  $SERVERTABLCLLCTRDMNS     = $_config{TABLES}{COLLECTORDAEMONS} if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
-  $SERVERTABLCOMMENTS       = $_config{TABLES}{COMMENTS}         if ( exists $_config{TABLES}{COMMENTS} );
-  $SERVERTABLCOUNTRIES      = $_config{TABLES}{COUNTRIES}        if ( exists $_config{TABLES}{COUNTRIES} );
-  $SERVERTABLCRONTABS       = $_config{TABLES}{CRONTABS}         if ( exists $_config{TABLES}{CRONTABS} );
-  $SERVERTABLDISPLAYDMNS    = $_config{TABLES}{DISPLAYDAEMONS}   if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
-  $SERVERTABLDISPLAYGRPS    = $_config{TABLES}{DISPLAYGROUPS}    if ( exists $_config{TABLES}{DISPLAYGROUPS} );
-  $SERVERTABLENVIRONMENT    = $_config{TABLES}{ENVIRONMENT}      if ( exists $_config{TABLES}{ENVIRONMENT} );
-  $SERVERTABLEVENTS         = $_config{TABLES}{EVENTS}           if ( exists $_config{TABLES}{EVENTS} );
-  $SERVERTABLHOLIDYS        = $_config{TABLES}{HOLIDAYS}         if ( exists $_config{TABLES}{HOLIDAYS} );
-  $SERVERTABLHOLIDYSBNDL    = $_config{TABLES}{HOLIDAYSBUNDLE}   if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
-  $SERVERTABLLANGUAGE       = $_config{TABLES}{LANGUAGE}         if ( exists $_config{TABLES}{LANGUAGE} );
-  $SERVERTABLPAGEDIRS       = $_config{TABLES}{PAGEDIRS}         if ( exists $_config{TABLES}{PAGEDIRS} );
-  $SERVERTABLPLUGINS        = $_config{TABLES}{PLUGINS}          if ( exists $_config{TABLES}{PLUGINS} );
-  $SERVERTABLREPORTS        = $_config{TABLES}{REPORTS}          if ( exists $_config{TABLES}{REPORTS} );
-  $SERVERTABLREPORTSPRFDT   = $_config{TABLES}{REPORTSPERFDATA}  if ( exists $_config{TABLES}{REPORTSPERFDATA} );
-  $SERVERTABLRESULTSDIR     = $_config{TABLES}{RESULTSDIR}       if ( exists $_config{TABLES}{RESULTSDIR} );
-  $SERVERTABLSERVERS        = $_config{TABLES}{SERVERS}          if ( exists $_config{TABLES}{SERVERS} );
-  $SERVERTABLTIMEPERIODS    = $_config{TABLES}{TIMEPERIODS}      if ( exists $_config{TABLES}{TIMEPERIODS} );
-  $SERVERTABLUSERS          = $_config{TABLES}{USERS}            if ( exists $_config{TABLES}{USERS} );
-  $SERVERTABLVIEWS          = $_config{TABLES}{VIEWS}            if ( exists $_config{TABLES}{VIEWS} );
+  $SERVERTABLCLLCTRDMNS        = $_config{TABLES}{COLLECTORDAEMONS}     if ( exists $_config{TABLES}{COLLECTORDAEMONS} );
+  $SERVERTABLCOMMENTS          = $_config{TABLES}{COMMENTS}             if ( exists $_config{TABLES}{COMMENTS} );
+  $SERVERTABLCOUNTRIES         = $_config{TABLES}{COUNTRIES}            if ( exists $_config{TABLES}{COUNTRIES} );
+  $SERVERTABLCRONTABS          = $_config{TABLES}{CRONTABS}             if ( exists $_config{TABLES}{CRONTABS} );
+  $SERVERTABLDISPLAYDMNS       = $_config{TABLES}{DISPLAYDAEMONS}       if ( exists $_config{TABLES}{DISPLAYDAEMONS} );
+  $SERVERTABLDISPLAYGRPS       = $_config{TABLES}{DISPLAYGROUPS}        if ( exists $_config{TABLES}{DISPLAYGROUPS} );
+  $SERVERTABLENVIRONMENT       = $_config{TABLES}{ENVIRONMENT}          if ( exists $_config{TABLES}{ENVIRONMENT} );
+  $SERVERTABLEVENTS            = $_config{TABLES}{EVENTS}               if ( exists $_config{TABLES}{EVENTS} );
+  $SERVERTABLEVENTSCHNGSLGDT   = $_config{TABLES}{EVENTSCHANGESLOGDATA} if ( exists $_config{TABLES}{EVENTSCHANGESLOGDATA} );
+  $SERVERTABLHOLIDYS           = $_config{TABLES}{HOLIDAYS}             if ( exists $_config{TABLES}{HOLIDAYS} );
+  $SERVERTABLHOLIDYSBNDL       = $_config{TABLES}{HOLIDAYSBUNDLE}       if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
+  $SERVERTABLLANGUAGE          = $_config{TABLES}{LANGUAGE}             if ( exists $_config{TABLES}{LANGUAGE} );
+  $SERVERTABLPAGEDIRS          = $_config{TABLES}{PAGEDIRS}             if ( exists $_config{TABLES}{PAGEDIRS} );
+  $SERVERTABLPLUGINS           = $_config{TABLES}{PLUGINS}              if ( exists $_config{TABLES}{PLUGINS} );
+  $SERVERTABLREPORTS           = $_config{TABLES}{REPORTS}              if ( exists $_config{TABLES}{REPORTS} );
+  $SERVERTABLREPORTSPRFDT      = $_config{TABLES}{REPORTSPERFDATA}      if ( exists $_config{TABLES}{REPORTSPERFDATA} );
+  $SERVERTABLRESULTSDIR        = $_config{TABLES}{RESULTSDIR}           if ( exists $_config{TABLES}{RESULTSDIR} );
+  $SERVERTABLSERVERS           = $_config{TABLES}{SERVERS}              if ( exists $_config{TABLES}{SERVERS} );
+  $SERVERTABLTIMEPERIODS       = $_config{TABLES}{TIMEPERIODS}          if ( exists $_config{TABLES}{TIMEPERIODS} );
+  $SERVERTABLUSERS             = $_config{TABLES}{USERS}                if ( exists $_config{TABLES}{USERS} );
+  $SERVERTABLVIEWS             = $_config{TABLES}{VIEWS}                if ( exists $_config{TABLES}{VIEWS} );
 }
 
 our %COLORS      = ('OK'=>'#99CC99','WARNING'=>'#FFFF00','CRITICAL'=>'#FF4444','UNKNOWN'=>'#FFFFFF','DEPENDENT'=>'#D8D8BF','OFFLINE'=>'#0000FF','NO DATA'=>'#CC00CC','IN PROGRESS'=>'#99CC99','NO TEST'=>'#99CC99', '<NIHIL>'=>'#CC00CC','TRENDLINE'=>'#ffa000');
@@ -493,12 +495,13 @@ if ( exists $_config{COLORS} ) {
   }
 }
 
-our %ENVIRONMENT = ('P'=>'Production', 'S'=>'Simulation', 'A'=>'Acceptation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
+our %ENVIRONMENT   = ('P'=>'Production', 'S'=>'Simulation', 'A'=>'Acceptation', 'T'=>'Test', 'D'=>'Development', 'L'=>'Local');
 
-our %ICONS       = ('OK'=>'green.gif','WARNING'=>'yellow.gif','CRITICAL'=>'red.gif','UNKNOWN'=>'clear.gif','DEPENDENT'=>'','OFFLINE'=>'blue.gif','NO DATA'=>'purple.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest.gif','TRENDLINE'=>'orange.gif');
-our %ICONSACK    = ('OK'=>'green-ack.gif','WARNING'=>'yellow-ack.gif','CRITICAL'=>'red-ack.gif','UNKNOWN'=>'clear-ack.gif','DEPENDENT'=>'','OFFLINE'=>'blue-ack.gif','NO DATA'=>'purple-ack.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-ack.gif','TRENDLINE'=>'orange-ack.gif');
-our %ICONSRECORD = ('maintenance'=>'maintenance.gif', 'duplicate'=>'recordDuplicate.gif', 'delete'=>'recordDelete.gif', 'details'=>'recordDetails.gif', 'query'=>'recordQuery.gif', 'edit'=>'recordEdit.gif', 'table'=>'recordTable.gif', 'up'=>'1arrowUp.gif', 'down'=>'1arrowDown.gif', 'left'=>'1arrowLeft.gif', 'right'=>'1arrowRight.gif', 'first'=>'2arrowLeft.gif', 'last'=>'2arrowRight.gif');
-our %ICONSSYSTEM = ('pidKill'=>'pidKill.gif', 'pidRemove'=>'pidRemove.gif', 'daemonReload'=>'daemonReload.gif', 'daemonStart'=>'daemonStart.gif', 'daemonStop'=>'daemonStop.gif', 'daemonRestart'=>'daemonRestart.gif');
+our %ICONS         = ('OK'=>'green.gif','WARNING'=>'yellow.gif','CRITICAL'=>'red.gif','UNKNOWN'=>'clear.gif','DEPENDENT'=>'','OFFLINE'=>'blue.gif','NO DATA'=>'purple.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest.gif','TRENDLINE'=>'orange.gif');
+our %ICONSACK      = ('OK'=>'green-ack.gif','WARNING'=>'yellow-ack.gif','CRITICAL'=>'red-ack.gif','UNKNOWN'=>'clear-ack.gif','DEPENDENT'=>'','OFFLINE'=>'blue-ack.gif','NO DATA'=>'purple-ack.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-ack.gif','TRENDLINE'=>'orange-ack.gif');
+our %ICONSUNSTABLE = ('OK'=>'green-unstable.gif','WARNING'=>'yellow-unstable.gif','CRITICAL'=>'red-unstable.gif','UNKNOWN'=>'clear-unstable.gif','DEPENDENT'=>'','OFFLINE'=>'blue-unstable.gif','NO DATA'=>'purple-unstable.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-unstable.gif','TRENDLINE'=>'orange-unstable.gif');
+our %ICONSRECORD   = ('maintenance'=>'maintenance.gif', 'duplicate'=>'recordDuplicate.gif', 'delete'=>'recordDelete.gif', 'details'=>'recordDetails.gif', 'query'=>'recordQuery.gif', 'edit'=>'recordEdit.gif', 'table'=>'recordTable.gif', 'up'=>'1arrowUp.gif', 'down'=>'1arrowDown.gif', 'left'=>'1arrowLeft.gif', 'right'=>'1arrowRight.gif', 'first'=>'2arrowLeft.gif', 'last'=>'2arrowRight.gif');
+our %ICONSSYSTEM   = ('pidKill'=>'pidKill.gif', 'pidRemove'=>'pidRemove.gif', 'daemonReload'=>'daemonReload.gif', 'daemonStart'=>'daemonStart.gif', 'daemonStop'=>'daemonStop.gif', 'daemonRestart'=>'daemonRestart.gif');
 
 if ( exists $_config{ICONS} ) {
   $ICONS{OK}            = $_config{ICONS}{OK}          if ( exists $_config{ICONS}{OK} );
@@ -523,6 +526,19 @@ if ( exists $_config{ICONS} ) {
     $ICONSACK{'IN PROGRESS'} = $_config{ICONS}{ACK}{IN_PROGRESS} if ( exists $_config{ICONS}{ACK}{IN_PROGRESS} );
     $ICONSACK{'NO TEST'}     = $_config{ICONS}{ACK}{NO_TEST}     if ( exists $_config{ICONS}{ACK}{NO_TEST} );
     $ICONSACK{TRENDLINE}     = $_config{ICONS}{ACK}{TRENDLINE}   if ( exists $_config{ICONS}{ACK}{TRENDLINE} );
+  }
+
+  if ( exists $_config{ICONS}{UNSTABLE} ) {
+    $ICONSUNSTABLE{OK}            = $_config{ICONS}{UNSTABLE}{OK}          if ( exists $_config{ICONS}{UNSTABLE}{OK} );
+    $ICONSUNSTABLE{WARNING}       = $_config{ICONS}{UNSTABLE}{WARNING}     if ( exists $_config{ICONS}{UNSTABLE}{WARNING} );
+    $ICONSUNSTABLE{CRITICAL}      = $_config{ICONS}{UNSTABLE}{CRITICAL}    if ( exists $_config{ICONS}{UNSTABLE}{CRITICAL} );
+    $ICONSUNSTABLE{UNKNOWN}       = $_config{ICONS}{UNSTABLE}{UNKNOWN}     if ( exists $_config{ICONS}{UNSTABLE}{UNKNOWN} );
+    $ICONSUNSTABLE{DEPENDENT}     = $_config{ICONS}{UNSTABLE}{DEPENDENT}   if ( exists $_config{ICONS}{UNSTABLE}{DEPENDENT} );
+    $ICONSUNSTABLE{OFFLINE}       = $_config{ICONS}{UNSTABLE}{OFFLINE}     if ( exists $_config{ICONS}{UNSTABLE}{OFFLINE} );
+    $ICONSUNSTABLE{'NO DATA'}     = $_config{ICONS}{UNSTABLE}{NO_DATA}     if ( exists $_config{ICONS}{UNSTABLE}{NO_DATA} );
+    $ICONSUNSTABLE{'IN PROGRESS'} = $_config{ICONS}{UNSTABLE}{IN_PROGRESS} if ( exists $_config{ICONS}{UNSTABLE}{IN_PROGRESS} );
+    $ICONSUNSTABLE{'NO TEST'}     = $_config{ICONS}{UNSTABLE}{NO_TEST}     if ( exists $_config{ICONS}{UNSTABLE}{NO_TEST} );
+    $ICONSUNSTABLE{TRENDLINE}     = $_config{ICONS}{UNSTABLE}{TRENDLINE}   if ( exists $_config{ICONS}{UNSTABLE}{TRENDLINE} );
   }
 
   if ( exists $_config{ICONS}{RECORD} ) {
@@ -664,7 +680,7 @@ sub get_session_param {
 
   print "$cgisession\n\n" if ($Tdebug == 2);
 
-  (undef, $cgisession) = map { split (/^\$D = {/) } split (/};$/, $cgisession);
+  (undef, $cgisession) = map { split (/^\$D = {/) } split (/};;\$D$/, $cgisession);
   $cgisession =~ s/["']//g;
 
   my %session = map { my ($key, $value) = split (/ => /) } split (/,/, $cgisession);
@@ -922,7 +938,7 @@ sub print_header {
 
   my $sessionIdOrCookie = ( defined $sessionID ) ? "&amp;CGISESSID=$sessionID" : "&amp;CGICOOKIE=1";
   my $reloadOrToggle    = ( $subTitle =~ /^(?:Full View|Condenced View|Minimal Condenced View)$/ ) ? "<A HREF=\"#\" onClick=\"togglePageDirCookie('pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir')\">" : "<A HREF=\"#\" onClick=\"reloadPageDirCookie('pagedir_id_${pageDir}_${environment}', '$HTTPSURL/nav/$pagedir')\">";
-  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form action="" name="environment"><select name="environment" size="1" onChange="loadEnvironmentPageDirCookie(\'' .$pageDir. '\', this.options[this.selectedIndex].value);"><option value="P"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="A"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="S"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option></select></form>' : '');
+  my $selectEnvironment = (( $pagedir ne '<NIHIL>' and $pageset ne '<NIHIL>' ) ? '<form action="" name="environment"><select name="environment" size="1" onChange="loadEnvironmentPageDirCookie(\'' .$pageDir. '\', this.options[this.selectedIndex].value);"><option value="P"'. ($environment eq 'P' ? ' selected' : '') .'>Production</option><option value="A"'. ($environment eq 'A' ? ' selected' : '') .'>Acceptation</option><option value="S"'. ($environment eq 'S' ? ' selected' : '') .'>Simulation</option><option value="T"'. ($environment eq 'T' ? ' selected' : '') .'>Test</option></select></form>' : '');
 
   my $showToggle   = ($pagedir ne '<NIHIL>') ? $reloadOrToggle : "<A HREF=\"$HTTPSURL/cgi-bin/$pageset/index.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F$sessionIdOrCookie\">";
   $showToggle     .= "<IMG SRC=\"$IMAGESURL/toggle.gif\" title=\"Toggle\" alt=\"Toggle\" WIDTH=\"32\" HEIGHT=\"27\" BORDER=0></A>";
@@ -1381,6 +1397,18 @@ sub print_legend {
     <td class="LegendIcons"><FONT COLOR="$COLORS{'NO TEST'}"><IMG SRC="$IMAGESURL/$ICONSACK{'NO TEST'}" ALT="NO TEST" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> no test</FONT></TD>
     <td class="LegendIcons"><FONT COLOR="$COLORS{'NO DATA'}"><IMG SRC="$IMAGESURL/$ICONSACK{'NO DATA'}" ALT="NO DATA" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{'NO DATA'}}');"> no data</FONT></TD>
     <td class="LegendIcons"><FONT COLOR="$COLORS{OFFLINE}"><IMG SRC="$IMAGESURL/$ICONSACK{OFFLINE}" ALT="OFFLINE" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> offline</FONT></TD>
+    <td>&nbsp;</td>
+  </tr><tr>
+	<td>&nbsp;</td>
+	<td class="LegendIcons">Instability:</td>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{OK}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{OK}" ALT="OK" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> ok</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{TRENDLINE}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{TRENDLINE}" ALT="TRENDLINE" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{TRENDLINE}}');"> trendline</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{WARNING}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{WARNING}" ALT="WARNING" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{WARNING}}');"> warning</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{CRITICAL}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{CRITICAL}" ALT="CRITICAL" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{CRITICAL}}');"> critical</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{UNKNOWN}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{UNKNOWN}" ALT="UNKNOWN" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{UNKNOWN}}');"> unknown</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{'NO TEST'}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{'NO TEST'}" ALT="NO TEST" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> no test</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{'NO DATA'}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{'NO DATA'}" ALT="NO DATA" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle" onMouseOver="LegendSound('$SOUND{$ERRORS{'NO DATA'}}');"> no data</FONT></TD>
+    <td class="LegendIcons"><FONT COLOR="$COLORS{OFFLINE}"><IMG SRC="$IMAGESURL/$ICONSUNSTABLE{OFFLINE}" ALT="OFFLINE" WIDTH="16" HEIGHT="16" BORDER=0 ALIGN="middle"> offline</FONT></TD>
     <td class="LegendLastUpdate">last update:&nbsp;&nbsp;
 EndOfHtml
 

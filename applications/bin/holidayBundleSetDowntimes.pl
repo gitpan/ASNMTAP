@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2009/04/19, v3.000.020, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications v3.000.020;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -179,7 +179,7 @@ if ($dbh and $rv) {
                           $alert .= "\n  P $pagedirs" if ($debug);
                           $commentData = "'$holiday' for '$title' on $holidayYear-$holidayMonth-$holidayDay";
                           $alert .= "\n  C + $commentData" if ($debug);
-                          my $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$uKey. '", title="' .$title. '", entryDate="' .$entryDate. '", entryTime="' .$entryTime.'", entryTimeslot="' .$entryTimeslot. '", persistent="0", downtime="1", problemSolved="0", solvedDate="", solvedTime="", solvedTimeslot="", remoteUser="' .$RMDEFAULTUSER. '", commentData="' .$commentData. '", activationDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", activationTime="00:00:00", activationTimeslot="' .$activationTimeslot. '", suspentionDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", suspentionTime="23:59:59", suspentionTimeslot="' .$suspentionTimeslot. '"';
+                          my $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$uKey. '", title="' .$title. '", entryDate="' .$entryDate. '", entryTime="' .$entryTime.'", entryTimeslot="' .$entryTimeslot. '", instability="0", persistent="0", downtime="1", problemSolved="0", solvedDate="", solvedTime="", solvedTimeslot="", remoteUser="' .$RMDEFAULTUSER. '", commentData="' .$commentData. '", activationDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", activationTime="00:00:00", activationTimeslot="' .$activationTimeslot. '", suspentionDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", suspentionTime="23:59:59", suspentionTimeslot="' .$suspentionTimeslot. '"';
                           $alert .= "\n  C $sql" if ($debug >= 2);
                           $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->do: $sql", $debug);
 

@@ -19,7 +19,7 @@ TODO: {
   my $objectApplications = ASNMTAP::Asnmtap::Applications->new (
     _programName        => 'Applications.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Applications',
-    _programVersion     => '3.000.019',
+    _programVersion     => '3.000.020',
     _debug              => 0);
 
   isa_ok( $objectApplications, 'ASNMTAP::Asnmtap::Applications' );

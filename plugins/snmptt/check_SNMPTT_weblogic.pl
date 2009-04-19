@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, check_SNMPTT_weblogic.pl
+# 2009/04/19, v3.000.020, check_SNMPTT_weblogic.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_weblogic.pl',
   _programDescription => 'Check SNMP Trap Translator Database for Weblogic SNMP traps',
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programUsagePrefix => '[--weblogicConfig=<weblogicConfig>] [--adminConsole=<adminConsole>] [--uKey|-K=<uKey>] [-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => '--weblogicConfig=<weblogicConfig>
 --adminConsole=<adminConsole>
@@ -72,9 +72,9 @@ my $outOffDate   = 1800;                                        # seconds
 my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 my ($prefix, $suffix) = split ( /(snmp|v10)_/, $community );
-my $domainname = ( defined $suffix ? $suffix : $prefix );
+my $domainname = ( defined $suffix ) ? $suffix : $prefix;
 my $versionWeblogic = ( $prefix eq 'v10_' ? '>= v10.x' : '< v10.x');
-my ($agentLocation, $hosts) = split ( /\|/, $weblogicConfig ) if ( defined $weblogicConfig );
+my ($agentLocation, $hosts) = split ( /\@/, $weblogicConfig ) if ( defined $weblogicConfig );
 
 if ( defined $uKey ) {
   my $message = $objectPlugins->pluginValue ('message') .' for uKey '. $uKey;

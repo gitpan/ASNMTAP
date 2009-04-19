@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -534,7 +534,7 @@ HTML
         <tr><td><b>Trendline: </b></td><td>
           <input type="text" name="trendline" value="$Ctrendline" size="6" maxlength="6" $formDisabledAll>
         <tr><td><b>Percentage: </b></td><td>
-          <input type="text" name="percentage" value="$Cpercentage" size="2" maxlength="2" $formDisabledAll>&nbsp;&nbsp;Proposal = MAX ( week ( hour ( AVG ( Duration ), 9-17 ), 1-4 ) ) * 1.percentage
+          <input type="text" name="percentage" value="$Cpercentage" size="2" maxlength="2" $formDisabledAll>&nbsp;&nbsp;Proposal = MAX ( week ( hour ( AVG ( Duration ), 9-17 ), 1-5 ) ) * 1.percentage
         <tr><td><b>Tolerance: </b></td><td>
           <input type="text" name="tolerance" value="$Ctolerance" size="2" maxlength="2" $formDisabledAll>&nbsp;&nbsp;Proposal * 0.tolerance < Trendline < Proposal * 1.tolerance where Tolerance=0 means FIXED Trendline
         <tr><td><b>Step: </b></td><td>

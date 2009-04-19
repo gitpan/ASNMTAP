@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, asnmtap-3.000.019_mysql-v5.0.x.sql
+# 2009/04/19, v3.000.020, asnmtap-3.000.020_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -482,7 +482,7 @@ CREATE TABLE `events` (
   `statusMessage` varchar(1024) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9'
+  `instability` tinyint(1) NOT NULL default '9',
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -497,6 +497,21 @@ CREATE TABLE `events` (
   KEY `key_timeslot` (`timeslot`),
   KEY `idx_persistent` (`persistent`),
   KEY `idx_downtime` (`downtime`)
+) ENGINE=InnoDB;
+
+#
+# Table structure for table eventsChangesLogData
+#
+
+DROP TABLE IF EXISTS `eventsChangesLogData`;
+
+CREATE TABLE `eventsChangesLogData` (
+  `uKey` varchar(11) NOT NULL default '',
+  `lastStatus` varchar(9) NOT NULL default '',
+  `lastTimeslot` varchar(10) NOT NULL default '',
+  `prevStatus` varchar(9) NOT NULL default '',
+  `prevTimeslot` varchar(10) NOT NULL default '',
+  PRIMARY KEY  (`uKey`)
 ) ENGINE=InnoDB;
 
 #
@@ -881,6 +896,8 @@ DROP TABLE IF EXISTS `servers`;
 CREATE TABLE `servers` (
   `serverID` varchar(11) NOT NULL default '',
   `serverTitle` varchar(64) default NULL,
+  `typeServers` tinyint(1) NOT NULL default '0',
+  `typeMonitoring` tinyint(1) NOT NULL default '0',
   `masterFQDN` varchar(64) default NULL,
   `masterASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx',
   `masterRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/bin',
@@ -897,8 +914,6 @@ CREATE TABLE `servers` (
   `slaveSSHpasswd` varchar(32) default NULL,
   `slaveDatabaseFQDN` varchar(64) NOT NULL default 'chablis.dvkhosting.com',
   `slaveDatabasePort` varchar(4) NOT NULL default '3306',
-  `typeServers` tinyint(1) NOT NULL default '0',
-  `typeMonitoring` tinyint(1) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`serverID`)
 ) ENGINE=InnoDB;
@@ -907,7 +922,7 @@ CREATE TABLE `servers` (
 # Data for the table servers
 #
 
-insert into `servers` values ('CTP-CENTRAL','CITAP\'s Application Monitoring Server','asnmtap.citap.com','','','asnmtap.citap.be','3306','asnmtap.citap.be','','','asnmtap.citap.com','3306',1,0,1);
+insert into `servers` (`serverID`,`serverTitle`,`typeServers`,`typeMonitoring`,`masterFQDN`,`masterASNMTAP_PATH`,`masterRSYNC_PATH`,`masterSSH_PATH`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveASNMTAP_PATH`,`slaveRSYNC_PATH`,`slaveSSH_PATH`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`activated`) values ('CTP-CENTRAL','CITAP\'s Application Monitoring Server',1,0,'asnmtap.citap.com','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','localhost','3306','asnmtap.citap.be','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','localhost','3306',1);
 
 #
 # Table structure for table timeperiods

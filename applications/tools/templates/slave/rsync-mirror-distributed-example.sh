@@ -87,7 +87,7 @@
 # /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.019'
+RMVersion='3.000.020'
 echo "rsync-mirror-distributed version $RMVersion"
 
 if [ -f ~/.profile ]; then

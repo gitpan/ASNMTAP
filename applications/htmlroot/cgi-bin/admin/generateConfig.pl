@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1254,8 +1254,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
-              $sameServerID = ($prevServerID eq $serverID ? 1 : 0);
-              $firstCollectorDaemon = ($sameServerID and $prevCollectorDaemon ne $collectorDaemon ? 1 : 0);
+              $sameServerID = ( $prevServerID eq $serverID ) ? 1 : 0;
+              $firstCollectorDaemon = ( $sameServerID and $prevCollectorDaemon ne $collectorDaemon ) ? 1 : 0;
 
               if ((! $sameServerID) or $firstCollectorDaemon) {
                 if ($prevServerID ne '' and $prevCollectorDaemon ne '') {

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+# 2009/04/19, v3.000.020, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.019;
+use ASNMTAP::Time v3.000.020;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.019;
+use ASNMTAP::Asnmtap::Applications v3.000.020;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create ASNMTAP weblogic configuration for SNMP',
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programUsagePrefix => '[--update] [--hostname] [--domain=<domain>] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--update
 --hostname
@@ -91,7 +91,7 @@ my $pluginPagedir            = '/index/';               # pagedirs: 'index' must
 my $pluginResultsdir         = 'SNMPTT';                # resultsdir: 'SNMPTT' must exist
 
 # plugins: template
-my $pluginTemplate = "ondemand='$pluginOndemand', production='$pluginProduction', pagedir='$pluginPagedir', resultsdir='$pluginResultsdir', helpPluginFilename = '$pluginHelpPluginFilename'";
+my $pluginTemplate = "ondemand='$pluginOndemand', production='$pluginProduction', pagedir='$pluginPagedir', resultsdir='$pluginResultsdir', helpPluginFilename='$pluginHelpPluginFilename'";
 
 # displayDaemons: dynamically
 my $displayDaemon            = 'Supervisie';            # displayDaemon: 'Supervisie' must exist
@@ -148,19 +148,20 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
       $sthASNMTAP->bind_columns( \$_uKey, \$_title, \$_environment, \$_step, \$_helpPluginFilename, \$_holidayBundleID, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
-        my $weblogicConfig = "${agent_location}|${hosts}" if ( $community =~ /^v10_/ );
+        my $weblogicVersionTitle = ( $community =~ /^v10_/ ? ' - v10' : '' );
+        my $weblogicConfig = "${agent_location}\@${hosts}" if ( $community =~ /^v10_/ );
 
         my ($adminHostPortState, undef) = split ( ',', $hosts, 2 );
         my ($adminHost, $adminPort, $state) = split ( ':', $adminHostPortState );
         my $adminConsole = $adminConsoleHTTP . $adminHost .'.'. $adminConsoleDomainURL .':'. ( $adminPort + $adminConsolePortOffset ) . $adminConsoleApplication if ( $adminConsoleCheck and $agent_location ne 'virtual' );
 
         if ( $sthASNMTAP->fetch() ) {
-          my $sqlUPDATE = ( defined $update ? 1 : 0 );
+          my $sqlUPDATE = ( defined $update ) ? 1 : 0;
           $actions .= "  + $_uKey, $_title, $_environment, $_step, $_helpPluginFilename, $_holidayBundleID, $_activated\n" if ( $debug );
 
-          if ( "Weblogic - $adminName" ne $_title ) {
+          if ( "$pluginTitle$adminName$weblogicVersionTitle" ne $_title ) {
             $sqlUPDATE++;
-            $actions .= "  - title changed to 'Weblogic - $adminName'\n" if ( $debug );
+            $actions .= "  - title changed to '$pluginTitle$adminName$weblogicVersionTitle'\n" if ( $debug );
           }
 
           if ( $_Environment ne $_environment ) {
@@ -189,13 +190,13 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `plugins` SET title='$pluginTitle$adminName', arguments='$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig=$weblogicConfig" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "', environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated' WHERE uKey='$uKey'";
+            $sqlUPDATE = "UPDATE `plugins` SET title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated' WHERE uKey='$uKey'";
             $actions .= "  ASNMTAP: $sqlUPDATE\n";
             unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
           }
         } else {
           $actions .= "  ASNMTAP: ukey '$uKey' doesn't exist\n";
-          my $sqlINSERT = "INSERT INTO `plugins` SET uKey='$uKey', title='$pluginTitle$adminName', arguments='$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig=$weblogicConfig" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "', environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated'";
+          my $sqlINSERT = "INSERT INTO `plugins` SET uKey='$uKey', title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated'";
           $actions .= "  ASNMTAP: $sqlINSERT\n";
           unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
@@ -213,7 +214,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
 
       if ( $rv ) {
         if ( $sthASNMTAP->fetch() ) {
-          my $sqlUPDATE = ( defined $update ? 1 : 0 );
+          my $sqlUPDATE = ( defined $update ) ? 1 : 0;
           $actions .= "  + $_uKey, $_displayDaemon, $_displayGroupID, $_activated\n" if ( $debug );
 
           if ( $displayDaemon ne $_displayDaemon ) {
@@ -256,7 +257,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
 
       if ( $rv ) {
         if ( $sthASNMTAP->fetch() ) {
-          my $sqlUPDATE = ( defined $update ? 1 : 0 );
+          my $sqlUPDATE = ( defined $update ) ? 1 : 0;
           $actions .= "  + $_uKey, $_lineNumber, $_collectorDaemon, $_arguments, $_minute, $_hour, $_dayOfTheMonth, $_monthOfTheYear, $_dayOfTheWeek, $_noOffline, $_activated\n" if ( $debug );
 
           if ( $collectorDaemon{$environment} ne $_collectorDaemon ) {

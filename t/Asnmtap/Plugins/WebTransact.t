@@ -4,13 +4,13 @@ BEGIN { require_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::WebTransact' ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.019;
+use ASNMTAP::Asnmtap::Plugins v3.000.020;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'WebTransact.t',
   _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::WebTransact',
-  _programVersion     => '3.000.019',
+  _programVersion     => '3.000.020',
   _programGetOptions  => ['environment|e:s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
@@ -62,7 +62,7 @@ ok ($returnCode, 'ASNMTAP::Asnmtap::Plugins::WebTransact::urls():');
 
 
 SKIP: {
-  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ? $ENV{ASNMTAP_PROXY} : undef );
+  my $ASNMTAP_PROXY = ( exists $ENV{ASNMTAP_PROXY} ) ? $ENV{ASNMTAP_PROXY} : undef;
   skip 'Missing ASNMTAP_PROXY', 5 if ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) );
 
   $returnCode = $objectWebTransact->check ( { } );

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.019
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.020
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -165,6 +165,19 @@
 #    TRENDLINE       orange-ack.gif
 #  </ACK>
 
+#  <UNSTABLE>
+#    OK              green-unstable.gif
+#    WARNING         yellow-unstable.gif
+#    CRITICAL        red-unstable.gif
+#    UNKNOWN         clear-unstable.gif
+#    DEPENDENT       
+#    OFFLINE         blue-unstable.gif
+#    NO_DATA         purple-unstable.gif
+#    IN_PROGRESS     running.gif
+#    NO_TEST         notest-unstable.gif
+#    TRENDLINE       orange-unstable.gif
+#  </UNSTABLE>
+
 #  <RECORD>
 #    maintenance     maintenance.gif
 #    duplicate       recordDuplicate.gif
@@ -228,26 +241,27 @@
 #</DATABASE>
 
 #<TABLES>
-#    COLLECTORDAEMONS collectorDaemons
-#    COMMENTS         comments
-#    COUNTRIES        countries
-#    CRONTABS         crontabs
-#    DISPLAYDAEMONS   displayDaemons
-#    DISPLAYGROUPS    displayGroups
-#    ENVIRONMENT      environment
-#    EVENTS           events
-#    HOLIDAYS         holidays
-#    HOLIDAYSBUNDLE   holidaysBundle
-#    LANGUAGE         language
-#    PAGEDIRS         pagedirs
-#    PLUGINS          plugins
-#    REPORTS          reports
-#    REPORTSPERFDATA  reports_perfdata
-#    RESULTSDIR       resultsdir
-#    SERVERS          servers
-#    TIMEPERIODS      timeperiods
-#    USERS            users
-#    VIEWS            views
+#    COLLECTORDAEMONS     collectorDaemons
+#    COMMENTS             comments
+#    COUNTRIES            countries
+#    CRONTABS             crontabs
+#    DISPLAYDAEMONS       displayDaemons
+#    DISPLAYGROUPS        displayGroups
+#    ENVIRONMENT          environment
+#    EVENTS               events
+#    EVENTSCHANGESLOGDATA eventsChangesLogData
+#    HOLIDAYS             holidays
+#    HOLIDAYSBUNDLE       holidaysBundle
+#    LANGUAGE             language
+#    PAGEDIRS             pagedirs
+#    PLUGINS              plugins
+#    REPORTS              reports
+#    REPORTSPERFDATA      reports_perfdata
+#    RESULTSDIR           resultsdir
+#    SERVERS              servers
+#    TIMEPERIODS          timeperiods
+#    USERS                users
+#    VIEWS                views
 #</TABLES>
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

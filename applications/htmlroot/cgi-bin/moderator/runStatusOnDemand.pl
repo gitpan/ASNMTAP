@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/04/19, v3.000.020, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.019;
+use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.019$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -71,7 +71,13 @@ print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $d
 my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;status=$status";
 
 unless ( defined $errorUserAccessControl ) {
-  ($iconAdd, $iconDelete, $iconDetails, $iconEdit) = (0, 0, 0, 0) if ($userType != 8);
+  # 'Moderator' = 2, 'Administrator' = 4 & 'Server Administrator' = 8
+  if ($userType >= 4) {
+    ($iconAdd, $iconDelete, $iconDetails, $iconEdit) = (1, 1, 1, 1);
+  } else {
+    ($iconAdd, $iconDelete, $iconDetails, $iconEdit) = (0, 0, 0, 0);
+  }
+
   my $typeStatusSelect = create_combobox_from_keys_and_values_pairs ('collector=>Collectors|display=>Displays', 'K', 0, $status, 'status', 'none', '-Select-', '', '', $debug);
 
   # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.000.019, asnmtap-3.000.019-distributed_mysql-v5.0.x.sql
+# 2009/04/19, v3.000.020, asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -464,7 +464,7 @@ CREATE TABLE `events` (
   `statusMessage` varchar(1024) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9'
+  `instability` tinyint(1) NOT NULL default '9',
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
@@ -482,6 +482,21 @@ CREATE TABLE `events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `events` */
+
+/*Table structure for table `eventsChangesLogData` */
+
+DROP TABLE IF EXISTS `eventsChangesLogData`;
+
+CREATE TABLE `eventsChangesLogData` (
+  `uKey` varchar(11) NOT NULL default '',
+  `lastStatus` varchar(9) NOT NULL default '',
+  `lastTimeslot` varchar(10) NOT NULL default '',
+  `prevStatus` varchar(9) NOT NULL default '',
+  `prevTimeslot` varchar(10) NOT NULL default '',
+  PRIMARY KEY  (`uKey`)
+) ENGINE=InnoDB;
+
+/*Data for the table `eventsChangesLogData` */
 
 /*Table structure for table `holidays` */
 
@@ -830,6 +845,8 @@ DROP TABLE IF EXISTS `servers`;
 CREATE TABLE `servers` (
   `serverID` varchar(11) NOT NULL default '',
   `serverTitle` varchar(64) default NULL,
+  `typeServers` tinyint(1) NOT NULL default '0',
+  `typeMonitoring` tinyint(1) NOT NULL default '0',
   `masterFQDN` varchar(64) default NULL,
   `masterASNMTAP_PATH` varchar(64) NOT NULL default '/opt/asnmtap-3.000.xxx',
   `masterRSYNC_PATH` varchar(64) NOT NULL default '/usr/local/bin',
@@ -846,17 +863,15 @@ CREATE TABLE `servers` (
   `slaveSSHpasswd` varchar(32) default NULL,
   `slaveDatabaseFQDN` varchar(64) NOT NULL default 'chablis.dvkhosting.com',
   `slaveDatabasePort` varchar(4) NOT NULL default '3306',
-  `typeServers` tinyint(1) NOT NULL default '0',
-  `typeMonitoring` tinyint(1) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`serverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `servers` */
 
-insert into `servers` (`serverID`,`serverTitle`,`masterFQDN`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`typeServers`,`typeMonitoring`,`activated`) values ('asnmtap01','Admin Collector [asnmtap01]','asnmtap01.citap.be','','','','3306','','','','','3306',0,1,1);
-insert into `servers` (`serverID`,`serverTitle`,`masterFQDN`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`typeServers`,`typeMonitoring`,`activated`) values ('asnmtap02','Admin Collector [asnmtap02]','asnmtap02.citap.be','','','','3306','','','','','3306',0,1,1);
-insert into `servers` (`serverID`,`serverTitle`,`masterFQDN`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`typeServers`,`typeMonitoring`,`activated`) values ('CTP-CENTRAL','CITAP\'s Application Monitoring Server','asnmtap01.citap.be','','','localhost','3306','asnmtap02.citap.be','','','localhost','3306',1,0,1);
+insert into `servers` (`serverID`,`serverTitle`,`typeServers`,`typeMonitoring`,`masterFQDN`,`masterASNMTAP_PATH`,`masterRSYNC_PATH`,`masterSSH_PATH`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveASNMTAP_PATH`,`slaveRSYNC_PATH`,`slaveSSH_PATH`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`activated`) values ('asnmtap01','Admin Collector [asnmtap01]',0,1,'asnmtap01.citap.be','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','','3306','','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','','3306',1);
+insert into `servers` (`serverID`,`serverTitle`,`typeServers`,`typeMonitoring`,`masterFQDN`,`masterASNMTAP_PATH`,`masterRSYNC_PATH`,`masterSSH_PATH`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveASNMTAP_PATH`,`slaveRSYNC_PATH`,`slaveSSH_PATH`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`activated`) values ('asnmtap02','Admin Collector [asnmtap02]',0,1,'asnmtap02.citap.be','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','','3306','','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','','3306',1);
+insert into `servers` (`serverID`,`serverTitle`,`typeServers`,`typeMonitoring`,`masterFQDN`,`masterASNMTAP_PATH`,`masterRSYNC_PATH`,`masterSSH_PATH`,`masterSSHlogon`,`masterSSHpasswd`,`masterDatabaseFQDN`,`masterDatabasePort`,`slaveFQDN`,`slaveASNMTAP_PATH`,`slaveRSYNC_PATH`,`slaveSSH_PATH`,`slaveSSHlogon`,`slaveSSHpasswd`,`slaveDatabaseFQDN`,`slaveDatabasePort`,`activated`) values ('CTP-CENTRAL','CITAP\'s Application Monitoring Server',1,0,'asnmtap01.citap.be','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','localhost','3306','asnmtap02.citap.be','/opt/asnmtap-3.000.xxx','/usr/local/bin','/usr/bin','','','localhost','3306',1);
 
 /*Table structure for table `timeperiods` */
 
