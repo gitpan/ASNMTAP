@@ -2,9 +2,9 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, generateCollectorDaemonSchedulingReports.pl
+# 2009/mm/dd, v3.001.000, generateCollectorDaemonSchedulingReports.pl
 # ---------------------------------------------------------------------------------------------------------
-#  http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports.pl-_ASNMTAP-FQDN-Daily.pdf
+#  http://asnmtap.citap.be/results/_ASNMTAP/reports/yyyymmdd-collectorDaemonSchedulingReports-_ASNMTAP-FQDN-Daily.pdf
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,9 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.020;
+use ASNMTAP::Asnmtap::Applications v3.001.000;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
+                                      $CATALOGID
                                       $REPORTDIR
                                       $RESULTSPATH
                                       $REMOTE_HOST $HTTPSURL
@@ -41,7 +42,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReports.pl";
 my $prgtext     = "Generate Collector Daemon Scheduling Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -103,6 +104,7 @@ my $emailMessage = "\n";
 my $urlAccessParameters;
 
 $urlAccessParameters  = "htmlToPdf=1";
+$urlAccessParameters .= "&catalogID=$CATALOGID";
 $urlAccessParameters .= "&sqlPeriode=$sqlPeriode";
 $urlAccessParameters .= "&width=$width";
 $urlAccessParameters .= "&xOffset=$xOffset";
@@ -130,7 +132,7 @@ create_footer ($reports."FOOTER.html");
 use Sys::Hostname;
 my $hostname = hostname();
 $hostname =~ s/\./_/g;
-my $pdfFilename = "$RESULTSPATH/_ASNMTAP/$REPORTDIR/$currentYear$currentMonth$currentDay-collectorDaemonSchedulingReports.pl-_ASNMTAP-$hostname-Daily.pdf";
+my $pdfFilename = "$RESULTSPATH/_ASNMTAP/$REPORTDIR/$currentYear$currentMonth$currentDay-collectorDaemonSchedulingReports-_ASNMTAP-$hostname-Daily.pdf";
 my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters);
 my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$HTTPSURL/cgi-bin/moderator/collectorDaemonSchedulingReports.pl?$encodedUrlAccessParameters'";
 

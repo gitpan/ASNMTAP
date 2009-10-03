@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.020;
+use ASNMTAP::Time v3.001.000;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -104,9 +104,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
     if ($dbh and $rv) {
-      my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $uKey, $test, $interval, $title, $helpPluginFilename, $environment, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
-      my ($prevServerID, $prevTypeServers, $prevTypeMonitoring, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevDisplayDaemon, $prevCollectorDaemon, $prevResultsdir, $prevGroupTitle, $prevPagedir, $prevUniqueKey);
-      my ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN);
+      my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $catalogID, $uKey, $test, $interval, $title, $helpPluginFilename, $environment, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
+      my ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevDisplayDaemon, $prevCollectorDaemon, $prevResultsdir, $prevGroupTitle, $prevPagedir, $prevUniqueKey);
+      my ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN);
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -117,7 +117,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # displayDaemons <-> views  - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLDISPLAYDMNS.displayDaemon, count($SERVERTABLVIEWS.displayDaemon) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon where $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.displayDaemon";
+      $sql = "SELECT $SERVERTABLDISPLAYDMNS.displayDaemon, count($SERVERTABLVIEWS.displayDaemon) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.displayDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -136,7 +136,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.displayDaemon, count($SERVERTABLDISPLAYDMNS.displayDaemon) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayDaemon";
+      $sql = "SELECT $SERVERTABLVIEWS.displayDaemon, count($SERVERTABLDISPLAYDMNS.displayDaemon) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -156,7 +156,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # displayGroups <-> views - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLDISPLAYGRPS.groupTitle, count($SERVERTABLVIEWS.displayGroupID) FROM $SERVERTABLDISPLAYGRPS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYGRPS.displayGroupID = $SERVERTABLVIEWS.displayGroupID where $SERVERTABLDISPLAYGRPS.activated = 1 group by $SERVERTABLDISPLAYGRPS.displayGroupID";
+      $sql = "SELECT $SERVERTABLDISPLAYGRPS.groupTitle, count($SERVERTABLVIEWS.displayGroupID) FROM $SERVERTABLDISPLAYGRPS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYGRPS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYGRPS.displayGroupID = $SERVERTABLVIEWS.displayGroupID where $SERVERTABLDISPLAYGRPS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYGRPS.activated = 1 group by $SERVERTABLDISPLAYGRPS.displayGroupID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -175,7 +175,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.displayGroupID, count($SERVERTABLDISPLAYGRPS.displayGroupID) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYGRPS ON $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayGroupID";
+      $sql = "SELECT $SERVERTABLVIEWS.displayGroupID, count($SERVERTABLDISPLAYGRPS.displayGroupID) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYGRPS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayGroupID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -195,7 +195,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # collectorDaemons <-> crontabs - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLCLLCTRDMNS.collectorDaemon, count($SERVERTABLCRONTABS.collectorDaemon) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon where $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.collectorDaemon";
+      $sql = "SELECT $SERVERTABLCLLCTRDMNS.collectorDaemon, count($SERVERTABLCRONTABS.collectorDaemon) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon where $SERVERTABLCLLCTRDMNS.catalogID = '$CATALOGID' and $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.collectorDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -214,7 +214,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLCRONTABS.collectorDaemon, count($SERVERTABLCLLCTRDMNS.collectorDaemon) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon where $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.collectorDaemon";
+      $sql = "SELECT $SERVERTABLCRONTABS.collectorDaemon, count($SERVERTABLCLLCTRDMNS.collectorDaemon) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon where $SERVERTABLCRONTABS.catalogID = '$CATALOGID' and $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.collectorDaemon";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -234,7 +234,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # pagedirs <-> displayDaemons - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count($SERVERTABLDISPLAYDMNS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLPAGEDIRS.pagedir = $SERVERTABLDISPLAYDMNS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
+      $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count($SERVERTABLDISPLAYDMNS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLPAGEDIRS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLPAGEDIRS.pagedir = $SERVERTABLDISPLAYDMNS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -253,7 +253,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLDISPLAYDMNS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLPAGEDIRS ON $SERVERTABLDISPLAYDMNS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.pagedir";
+      $sql = "SELECT $SERVERTABLDISPLAYDMNS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLPAGEDIRS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLPAGEDIRS.catalogID and $SERVERTABLDISPLAYDMNS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.pagedir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -279,14 +279,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ( $rv ) {
         $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
-        $sqlTmp = "create temporary table `tmp$SERVERTABLPLUGINS`(`pagedir` varchar(11) default '') TYPE=InnoDB";
+        $sqlTmp = "create temporary table `tmp$SERVERTABLPLUGINS`(`catalogID` varchar(5) NOT NULL default '$CATALOGID', `pagedir` varchar(11) default '') TYPE=InnoDB";
         $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
         if ( $rv ) {
           $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
-          $sql = "SELECT $SERVERTABLPLUGINS.pagedir FROM $SERVERTABLPLUGINS";
+          $sql = "SELECT $SERVERTABLPLUGINS.pagedir FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID'";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -299,7 +299,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 my @pagedirs = split (/\//, $pagedirs);
 
                 foreach my $pagedirTmp (@pagedirs) {
-                  $sqlTmp = "insert into tmp$SERVERTABLPLUGINS set pagedir = '$pagedirTmp'";
+                  $sqlTmp = "insert into tmp$SERVERTABLPLUGINS set catalogID = '$CATALOGID', pagedir = '$pagedirTmp'";
                   $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
                   $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
                   $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -311,7 +311,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLPLUGINS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLPLUGINS ON $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLPLUGINS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
+          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLPLUGINS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLPLUGINS ON $SERVERTABLPAGEDIRS.catalogID = tmp$SERVERTABLPLUGINS.catalogID and $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLPLUGINS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -330,7 +330,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-          $sql = "SELECT tmp$SERVERTABLPLUGINS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLPLUGINS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLPLUGINS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLPLUGINS.pagedir";
+          $sql = "SELECT tmp$SERVERTABLPLUGINS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLPLUGINS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLPLUGINS.catalogID = $SERVERTABLPAGEDIRS.catalogID and tmp$SERVERTABLPLUGINS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLPLUGINS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -363,14 +363,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ( $rv ) {
         $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
-        $sqlTmp = "create temporary table `tmp$SERVERTABLUSERS`(`pagedir` varchar(11) default '') TYPE=InnoDB";
+        $sqlTmp = "create temporary table `tmp$SERVERTABLUSERS`(`catalogID` varchar(5) NOT NULL default '$CATALOGID', `pagedir` varchar(11) default '') TYPE=InnoDB";
         $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
         if ( $rv ) {
           $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
-          $sql = "SELECT $SERVERTABLUSERS.pagedir FROM $SERVERTABLUSERS";
+          $sql = "SELECT $SERVERTABLUSERS.pagedir FROM $SERVERTABLUSERS where catalogID = '$CATALOGID'";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -383,7 +383,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 my @pagedirs = split (/\//, $pagedirs);
 
                 foreach my $pagedirTmp (@pagedirs) {
-                  $sqlTmp = "insert into tmp$SERVERTABLUSERS set pagedir = '$pagedirTmp'";
+                  $sqlTmp = "insert into tmp$SERVERTABLUSERS set catalogID = '$CATALOGID', pagedir = '$pagedirTmp'";
                   $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
                   $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
                   $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -395,7 +395,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLUSERS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLUSERS ON $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLUSERS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
+          $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLUSERS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLUSERS ON $SERVERTABLPAGEDIRS.catalogID = tmp$SERVERTABLUSERS.catalogID and $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLUSERS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -414,7 +414,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-          $sql = "SELECT tmp$SERVERTABLUSERS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLUSERS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLUSERS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLUSERS.pagedir";
+          $sql = "SELECT tmp$SERVERTABLUSERS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLUSERS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLUSERS.catalogID = $SERVERTABLPAGEDIRS.catalogID and tmp$SERVERTABLUSERS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLUSERS.pagedir";
           $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
           $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -441,7 +441,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # plugins <-> comments  - - - - - - - - - - - - - - - - - - - - - -
       # $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLCOMMENTS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
+      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLCOMMENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCOMMENTS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
       # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       # $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -460,7 +460,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # }
 
       # $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      # $sql = "SELECT $SERVERTABLCOMMENTS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCOMMENTS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCOMMENTS.activated = 1 group by $SERVERTABLCOMMENTS.uKey";
+      # $sql = "SELECT $SERVERTABLCOMMENTS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCOMMENTS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCOMMENTS.catalogID = '$CATALOGID' and $SERVERTABLCOMMENTS.activated = 1 group by $SERVERTABLCOMMENTS.uKey";
       # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       # $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -499,7 +499,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLCRONTABS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.uKey";
+      $sql = "SELECT $SERVERTABLCRONTABS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLPLUGINS ON  $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCRONTABS.catalogID = '$CATALOGID' and $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -519,7 +519,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # plugins <-> views - - - - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
+      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -538,7 +538,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLVIEWS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.uKey";
+      $sql = "SELECT $SERVERTABLVIEWS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and  $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.uKey";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -558,7 +558,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # resultsdir <-> plugins  - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLRESULTSDIR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRESULTSDIR LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLRESULTSDIR.resultsdir = $SERVERTABLPLUGINS.resultsdir where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLRESULTSDIR.resultsdir";
+      $sql = "SELECT $SERVERTABLRESULTSDIR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRESULTSDIR LEFT JOIN $SERVERTABLPLUGINS ON  $SERVERTABLRESULTSDIR.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLRESULTSDIR.resultsdir = $SERVERTABLPLUGINS.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLRESULTSDIR.resultsdir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -577,7 +577,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRESULTSDIR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRESULTSDIR ON $SERVERTABLPLUGINS.resultsdir = $SERVERTABLRESULTSDIR.resultsdir where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.resultsdir";
+      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRESULTSDIR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRESULTSDIR ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLRESULTSDIR.catalogID and $SERVERTABLPLUGINS.resultsdir = $SERVERTABLRESULTSDIR.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.resultsdir";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -597,7 +597,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # servers <-> collectorDaemons  - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -616,7 +616,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
+      $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLCLLCTRDMNS.catalogID = '$CATALOGID' and $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -636,7 +636,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # servers <-> displayDaemons  - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDISPLAYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID where $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
+      $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDISPLAYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -655,7 +655,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLDISPLAYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDISPLAYDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.serverID";
+      $sql = "SELECT $SERVERTABLDISPLAYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLDISPLAYDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.serverID";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -675,7 +675,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # servers <-> servers - - - - - - - - - - - - - - - - - - - - - - -
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Servers</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Central Monitoring Servers</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT count(typeMonitoring) FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1 group by typeMonitoring";
+      $sql = "SELECT count(typeMonitoring) FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and typeMonitoring = 0 and activated = 1 group by typeMonitoring";
       ($rv, $numberCentralServers) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       unless ( defined $numberCentralServers) {
@@ -685,12 +685,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $countErrors++;
         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td><td>&nbsp;</td></tr>";
       } else {
-        $sql = "SELECT serverID, typeMonitoring, typeServers, masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, masterDatabaseFQDN, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where typeMonitoring = 0 and activated = 1";
+        $sql = "SELECT serverID, typeMonitoring, typeServers, typeActiveServer, masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, masterDatabaseFQDN, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and typeMonitoring = 0 and activated = 1";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ($rv) {
-          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID); }
+          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID); }
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
         }
 
@@ -703,7 +703,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # plugins uploaded <-> plugins configurated - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where activated = 1";
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID' and activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -742,7 +742,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
 
-      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where activated = 1";
+      $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID' and activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -775,7 +775,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # help plugin filenames <-> plugin  - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Help Plugin Filenames <-> Plugin</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Help Plugin Filename</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT DISTINCT helpPluginFilename FROM $SERVERTABLPLUGINS WHERE helpPluginFilename != '<NIHIL>'";
+      $sql = "SELECT DISTINCT helpPluginFilename FROM $SERVERTABLPLUGINS WHERE catalogID = '$CATALOGID' and helpPluginFilename != '<NIHIL>'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -812,7 +812,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       # plugins <-> help plugin filename  - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Help Plugin Filename</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as shortTitle, helpPluginFilename FROM $SERVERTABLPLUGINS WHERE activated = 1 order by shortTitle";
+      $sql = "SELECT uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as shortTitle, helpPluginFilename FROM $SERVERTABLPLUGINS WHERE catalogID = '$CATALOGID' and activated = 1 order by shortTitle";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$warning, \$title, \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -843,7 +843,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       if ($action eq 'generateView') {
-        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $mode, $dumphttp, $status, $loop, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
+        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $mode, $dumphttp, $status, $loop, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
 
         $initializeGenerateView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><th>Initialize Generate Configs</th></tr>";
 
@@ -857,14 +857,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         if ( defined $numberCentralServers and $numberCentralServers == 1) {
-          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN", $debug);
-          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN/etc", $debug);
-          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN/master", $debug);
+          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralTypeActiveServer-$centralMasterFQDN", $debug);
+          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralTypeActiveServer-$centralMasterFQDN/etc", $debug);
+          $initializeGenerateView .= system_call ("mkdir",  "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralTypeActiveServer-$centralMasterFQDN/master", $debug);
 
 		  if ( $centralTypeServers ) {
-            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralSlaveFQDN", $debug);
-            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralSlaveFQDN/etc", $debug);
-            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master", $debug);
+            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralTypeActiveServer-$centralSlaveFQDN", $debug);
+            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralTypeActiveServer-$centralSlaveFQDN/etc", $debug);
+            $initializeGenerateView .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralTypeActiveServer-$centralSlaveFQDN/master", $debug);
           }
         }
 
@@ -874,16 +874,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $rvOpen = 0;
 
         # ArchiveCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir, \$catalogID, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingArchiveCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            $prevTypeServers = 0;
+            $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevResultsdir = '';
-            $matchingArchiveCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ($prevServerID ne $serverID) {
@@ -895,7 +896,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                     if ($prevTypeServers) {
                       $typeMonitoringCharDorC = ($prevTypeMonitoring) ? 'D' : 'C';
-                      $matchingArchiveCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevMasterFQDN/etc/ArchiveCT $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevSlaveFQDN/etc/ArchiveCT", $debug);
+                      $matchingArchiveCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/ArchiveCT $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/ArchiveCT", $debug);
                     }
 
                     $matchingArchiveCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>ArchiveCT - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
@@ -905,30 +906,32 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingArchiveCT .= "\n        <tr><th>ArchiveCT - $serverID</th></tr>";
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
-                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
+                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
+                $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
 
                 if ($typeServers) {
-                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
-                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/etc", $debug);
+                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
+                  $matchingArchiveCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc", $debug);
                 }
 
-                $rvOpen = open(ArchiveCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/ArchiveCT");
+                $rvOpen = open(ArchiveCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/ArchiveCT");
 
                 if ($rvOpen) {
-                  $matchingArchiveCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/ArchiveCT\" target=\"_blank\">ArchiveCT</a></td></tr>";
-                  print ArchiveCT "# ArchiveCT - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n_ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl\n";
+                  $matchingArchiveCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/ArchiveCT\" target=\"_blank\">ArchiveCT</a></td></tr>";
+                  print ArchiveCT "# ArchiveCT - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n_ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl\n";
                 }
               }
 
               if ($rvOpen) {
                 print ArchiveCT "#\n" if ( $prevResultsdir ne $resultsdir );
-                print ArchiveCT "$resultsdir#$uKey#$test\n";
+                my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
+                print ArchiveCT "$resultsdir#$catalogID_uKey#$test\n";
               }
 
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -947,7 +950,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
               if ($typeServers) {
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-                $matchingArchiveCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/ArchiveCT $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/etc/ArchiveCT", $debug);
+                $matchingArchiveCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/ArchiveCT $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/ArchiveCT", $debug);
               }
 
               $matchingArchiveCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>ArchiveCT - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
@@ -961,16 +964,18 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS where $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS ";
+        $sql .= "where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$catalogID, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            $prevTypeServers = 0;
+            $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevDisplayDaemon = $prevGroupTitle = '';
-            $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID or $prevDisplayDaemon ne $displayDaemon ) {
@@ -980,7 +985,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                     close(DisplayCT);
                     $rvOpen = 0;
                     $typeMonitoringCharDorC = ($prevTypeMonitoring) ? 'D' : 'C';
-                    $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevMasterFQDN/etc/DisplayCT-$prevDisplayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevSlaveFQDN/etc/DisplayCT-$prevDisplayDaemon", $debug) if ($prevTypeServers);
+                    $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/DisplayCT-$prevDisplayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/DisplayCT-$prevDisplayDaemon", $debug) if ($prevTypeServers);
                     $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$prevDisplayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   }
                 }
@@ -988,29 +993,30 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingDisplayCT .= "\n        <tr><th>DisplayCT - $serverID</th></tr>" if ( $prevServerID ne $serverID and $prevDisplayDaemon ne $displayDaemon );
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
-                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
+                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
+                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
+                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
                 if ( $typeServers ) {
-                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
-                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
+                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
                 }
 
-                $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon");
+                $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon");
 
                 if ($rvOpen) {
-                  $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon\" target=\"_blank\">DisplayCT-$displayDaemon</a></td></tr>";
-                  print DisplayCT "# DisplayCT-$displayDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <interval>#<groep title>#<resultsdir>#<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
+                  $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon\" target=\"_blank\">DisplayCT-$displayDaemon</a></td></tr>";
+                  print DisplayCT "# DisplayCT-$displayDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
                 }
               } else {
                 print DisplayCT "#\n" if ( $prevGroupTitle ne $groupTitle and $prevGroupTitle ne '' );
               }
 
               if ($rvOpen) {
-                print DisplayCT "$interval#$groupTitle#$resultsdir#$uKey#$title#$test --environment=$environment --trendline=$trendline#";
+                my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
+                print DisplayCT "$interval#$groupTitle#$resultsdir#$catalogID_uKey#$title#$test --environment=$environment --trendline=$trendline#";
                 (! defined $helpPluginFilename or $helpPluginFilename eq '<NIHIL>') ? print DisplayCT "0" : print DisplayCT "1";
                 print DisplayCT "\n";
               }
@@ -1018,6 +1024,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -1035,7 +1042,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               close(DisplayCT);
               $rvOpen = 0;
               $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-              $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/DisplayCT-$displayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/etc/DisplayCT-$displayDaemon", $debug) if ($typeServers);
+              $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/DisplayCT-$displayDaemon", $debug) if ($typeServers);
               $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$displayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
             }
           } else {
@@ -1048,22 +1055,23 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Display Start/Stop scripts
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLDISPLAYDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLDISPLAYDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingAsnmtapDisplayCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            $prevTypeServers = 0;
+            $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = '';
-            $matchingAsnmtapDisplayCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID ) {
                 if ( $prevServerID ne '' ) {
-                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
-                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
+                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'M', $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
+                  $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($prevTypeMonitoring, 'S', $prevTypeActiveServer, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
                   $matchingAsnmtapDisplayCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Display Start/Stop scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   delete @matchingAsnmtapDisplayCTscript[0..@matchingAsnmtapDisplayCTscript];
                 }
@@ -1075,6 +1083,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -1085,8 +1094,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevSlaveSSH_PATH      = $slaveSSH_PATH;
             }
 
-            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
-            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
+            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
+            $matchingAsnmtapDisplayCTscript .= createAsnmtapDisplayCTscript ($typeMonitoring, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
             $matchingAsnmtapDisplayCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Display Start/Stop scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
             $matchingAsnmtapDisplayCTscript .= "        <tr><td>No records found for any DisplayCT</td></tr>\n";
@@ -1097,16 +1106,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # CollectorCT - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$catalogID, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingCollectorCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            $prevTypeServers = 0;
+            $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevCollectorDaemon = $prevUniqueKey = '';
-            $matchingCollectorCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID or $prevCollectorDaemon ne $collectorDaemon ) {
@@ -1116,7 +1126,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                     close(CollectorCT);
                     $rvOpen = 0;
                     $typeMonitoringCharDorC = ($prevTypeMonitoring) ? 'D' : 'C';
-                    $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevMasterFQDN/etc/CollectorCT-$prevCollectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevSlaveFQDN/etc/CollectorCT-$prevCollectorDaemon", $debug) if ($prevTypeServers);
+                    $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/CollectorCT-$prevCollectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/CollectorCT-$prevCollectorDaemon", $debug) if ($prevTypeServers);
                     $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>CollectorCT-$prevCollectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   }
                 }
@@ -1124,23 +1134,23 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingCollectorCT .= "\n        <tr><th>CollectorCT - $serverID</th></tr>" if ( $prevServerID ne $serverID and $prevCollectorDaemon ne $collectorDaemon );
 
                 $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN", $debug);
-                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc", $debug);
-                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master", $debug);
-                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave", $debug) if ($typeMonitoring);
-                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
+                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
+                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
+                $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave", $debug) if ($typeMonitoring);
+                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
 
                 if ( $typeServers ) {                          # Failover
-                  $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN", $debug);
-                  $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave", $debug);
-                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                  $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
+                  $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
+                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
                 }
 
-                $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon");
+                $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon");
 
                 if ($rvOpen) {
-                  $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon\" target=\"_blank\">CollectorCT-$collectorDaemon</a></td></tr>";
-                  print CollectorCT "# CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
+                  $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon\" target=\"_blank\">CollectorCT-$collectorDaemon</a></td></tr>";
+                  print CollectorCT "# CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
 
                 }
               } else {
@@ -1148,7 +1158,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
 
               if ($rvOpen) {
-                print CollectorCT "$minute $hour $dayOfTheMonth $monthOfTheYear $dayOfTheWeek $interval $uKey#$resultsdir#$title#$test";
+                my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
+                print CollectorCT "$minute $hour $dayOfTheMonth $monthOfTheYear $dayOfTheWeek $interval $catalogID_uKey#$resultsdir#$title#$test";
                 print CollectorCT " --environment=$environment --trendline=$trendline";
                 print CollectorCT " $argumentsCommon" if ( $argumentsCommon ne '' );
                 print CollectorCT " $argumentsCrontab" if ( $argumentsCrontab ne '' );
@@ -1159,6 +1170,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -1176,7 +1188,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               close(CollectorCT);
               $rvOpen = 0;
               $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-              $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/etc/CollectorCT-$collectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/etc/CollectorCT-$collectorDaemon", $debug) if ($typeServers);
+              $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/CollectorCT-$collectorDaemon", $debug) if ($typeServers);
               $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
             }
           } else {
@@ -1189,22 +1201,23 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Collector Start/Stop scripts
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS where $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingAsnmtapCollectorCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            $prevTypeServers = 0;
+            $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = '';
-            $matchingAsnmtapCollectorCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID ) {
                 if ( $prevServerID ne '' ) {
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevTypeActiveServer, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
                   $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   delete @matchingAsnmtapCollectorCTscript[0..@matchingAsnmtapCollectorCTscript];
                 }
@@ -1216,6 +1229,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -1226,8 +1240,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevSlaveSSH_PATH      = $slaveSSH_PATH;
             }
 
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
             $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
             $matchingAsnmtapCollectorCTscript .= "        <tr><td>No records found for any CollectorCT</td></tr>\n";
@@ -1238,20 +1252,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # rsync-mirror  - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
+          $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
           if ( $sth->rows ) {
-            my ($matchingRsyncMirrorConfigFailover, $matchingRsyncMirrorConfigDistributed);
-            $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributed = '';
+            my ($matchingRsyncMirrorConfigFailover, $matchingRsyncMirrorConfigDistributedMaster, $matchingRsyncMirrorConfigDistributedSlave);
+            $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributedMaster = $matchingRsyncMirrorConfigDistributedSlave = '';
 
             my ($sameServerID, $firstCollectorDaemon) = (0, 0);
-            $prevTypeMonitoring = $prevTypeServers = 0;
+            $prevTypeMonitoring = $prevTypeServers = $prevTypeActiveServer = 0;
             $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevCollectorDaemon = $prevResultsdir = '';
-            $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
 
             while( $sth->fetch() ) {
               $sameServerID = ( $prevServerID eq $serverID ) ? 1 : 0;
@@ -1259,10 +1274,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
               if ((! $sameServerID) or $firstCollectorDaemon) {
                 if ($prevServerID ne '' and $prevCollectorDaemon ne '') {
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
-                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+                  $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($prevServerID, $prevTypeMonitoring, $prevTypeServers, $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $prevCollectorDaemon, $matchingRsyncMirrorConfigDistributedMaster, $matchingRsyncMirrorConfigDistributedSlave, $debug);
                   $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>" unless ($sameServerID);
-                  $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributed = '';
+                  $matchingRsyncMirrorConfigFailover = $matchingRsyncMirrorConfigDistributedMaster = $matchingRsyncMirrorConfigDistributedSlave = '';
                 }
 
                 $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>" unless ($sameServerID);
@@ -1271,13 +1286,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n" if ($typeServers);
 
               if ($typeMonitoring) {
-                $matchingRsyncMirrorConfigDistributed .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
-                $matchingRsyncMirrorConfigDistributed .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+
+                if ( defined $centralSlaveFQDN and $centralSlaveFQDN ) { # and $centralTypeServers ?
+                  $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                  $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                }
               }
 
               $prevServerID           = $serverID;
               $prevTypeMonitoring     = $typeMonitoring;
               $prevTypeServers        = $typeServers;
+              $prevTypeActiveServer   = $typeActiveServer;
               $prevMasterFQDN         = $masterFQDN;
               $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
               $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
@@ -1290,8 +1311,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevResultsdir         = $resultsdir;
             }
 
-            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
-            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsFailover ($serverID, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug);
+            $matchingRsyncMirror .= createRsyncMirrorScriptsDistributed ($serverID, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributedMaster, $matchingRsyncMirrorConfigDistributedSlave, $debug);
 
             $matchingRsyncMirror .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Rsync Mirror Scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
@@ -1313,7 +1334,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($dbh and $rv) {
       my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
-      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where activated = 1";
+      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -1321,8 +1342,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ($rv) {
         if ( $sth->rows ) {
           while( $sth->fetch() ) {
-            $ASNMTAP_PATH { 'master' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
-            $ASNMTAP_PATH { 'slave'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
+            $ASNMTAP_PATH { 'M' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
+            $ASNMTAP_PATH { 'S'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
           }
         }
 
@@ -1350,7 +1371,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($dbh and $rv) {
       my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
-      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where activated = 1";
+      $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and activated = 1";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -1358,8 +1379,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ($rv) {
         if ( $sth->rows ) {
           while( $sth->fetch() ) {
-            $ASNMTAP_PATH { 'master' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
-            $ASNMTAP_PATH { 'slave'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
+            $ASNMTAP_PATH { 'M' } { $masterFQDN } = $masterASNMTAP_PATH if ( defined $masterFQDN and $masterFQDN and defined $masterASNMTAP_PATH and $masterASNMTAP_PATH );
+            $ASNMTAP_PATH { 'S'} { $slaveFQDN } = $slaveASNMTAP_PATH if ( defined $slaveFQDN and $slaveFQDN and defined $slaveASNMTAP_PATH and $slaveASNMTAP_PATH );
           }
         }
 
@@ -1516,9 +1537,9 @@ print '</BODY>', "\n", '</HTML>', "\n";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createCollectorCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
   
-  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
+  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/CollectorCT-template.sh >> $filename";
 
   my $rvOpen = open(CollectorCT, ">$filename");
@@ -1556,18 +1577,18 @@ STARTUPFILE
   }
 
   my $statusMessage = do_system_call ($command, $debug);
-  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh\" target=\"_blank\">CollectorCT-$collectorDaemon.sh ($subdir)</a></td></tr>";
+  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh\" target=\"_blank\">CollectorCT-$collectorDaemon.sh ($subdir)</a></td></tr>";
   return ($statusMessage);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createAsnmtapCollectorCTscript {
-  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
+  my ($typeMonitoring, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
-  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/root-collector.sh";
+  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/root-collector.sh";
   my $rvOpen = open(AsnmtapCollectorCTscript, ">$filename");
 
   if ($rvOpen) {
@@ -1583,9 +1604,9 @@ STARTUPFILE
     close (AsnmtapCollectorCTscript);
   }
 
-  my $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/root-collector.sh\" target=\"_blank\">root-collector.sh ($subdir)</a></td></tr>";
+  my $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/root-collector.sh\" target=\"_blank\">root-collector.sh ($subdir)</a></td></tr>";
 
-  $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/asnmtap-collector.sh";
+  $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/asnmtap-collector.sh";
   $rvOpen = open(AsnmtapCollectorCTscript, ">$filename");
 
   if ($rvOpen) {
@@ -1652,16 +1673,16 @@ STARTUPFILE
     close (AsnmtapCollectorCTscript);
   }
 
-  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/asnmtap-collector.sh\" target=\"_blank\">asnmtap-collector.sh ($subdir)</a></td></tr>";
+  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/asnmtap-collector.sh\" target=\"_blank\">asnmtap-collector.sh ($subdir)</a></td></tr>";
   return ($statusMessage);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createDisplayCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
 
-  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
+  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/DisplayCT-template.sh >> $filename";
 
   my $rvOpen = open(DisplayCT, ">$filename");
@@ -1700,18 +1721,18 @@ STARTUPFILE
   }
 
   my $statusMessage = do_system_call ($command, $debug);
-  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh\" target=\"_blank\">DisplayCT-$displayDaemon.sh ($subdir)</a></td></tr>";
+  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh\" target=\"_blank\">DisplayCT-$displayDaemon.sh ($subdir)</a></td></tr>";
   return ($statusMessage);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createAsnmtapDisplayCTscript {
-  my ($typeMonitoring, $typeServersCharMorS, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
+  my ($typeMonitoring, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
-  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/root-display.sh";
+  my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/root-display.sh";
   my $rvOpen = open(AsnmtapDisplayCTscript, ">$filename");
 
   if ($rvOpen) {
@@ -1728,9 +1749,9 @@ STARTUPFILE
     close (AsnmtapDisplayCTscript);
   }
 
-  my $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/root-display.sh\" target=\"_blank\">root-display.sh ($subdir)</a></td></tr>";
+  my $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/root-display.sh\" target=\"_blank\">root-display.sh ($subdir)</a></td></tr>";
 
-  $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/asnmtap-display.sh";
+  $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/asnmtap-display.sh";
   $rvOpen = open(AsnmtapDisplayCTscript, ">$filename");
 
   if ($rvOpen) {
@@ -1797,21 +1818,21 @@ STARTUPFILE
     close (AsnmtapDisplayCTscript);
   }
 
-  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$serverFQDN/$subdir/asnmtap-display.sh\" target=\"_blank\">asnmtap-display.sh ($subdir)</a></td></tr>";
+  $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/asnmtap-display.sh\" target=\"_blank\">asnmtap-display.sh ($subdir)</a></td></tr>";
   return ($statusMessage);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsFailover {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigFailover, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
   my ($filename, $command, $rvOpen);
   my $statusMessage = '';
 
   if ( $typeServers ) {                                        # Failover
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh";
 
     unless ( -e $filename ) {
       $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover between $masterFQDN and $slaveFQDN</td></tr>";
@@ -1860,12 +1881,12 @@ RSYNCMIRRORFILE
       }
 
       $statusMessage .= do_system_call ($command, $debug);
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh\" target=\"_blank\">rsync-wrapper-failover-$masterFQDN.sh (master)</a></td></tr>";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh\" target=\"_blank\">rsync-wrapper-failover-$masterFQDN.sh (master)</a></td></tr>";
     }
 
     $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover Monitoring from $slaveFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
 
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh";
     $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-template.sh >> $filename";
 
     $rvOpen = open(RsyncMirror, ">$filename");
@@ -1902,6 +1923,7 @@ fi
 
 PidPath="\$ASNMTAP_PATH/pid"
 Rsync=$slaveRSYNC_PATH/rsync                     # slave
+RsyncPath=$masterRSYNC_PATH/rsync                # remote server
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf
 ConfPath="\$ASNMTAP_PATH/applications/slave"
@@ -1916,16 +1938,16 @@ RSYNCMIRRORFILE
     }
 
     $statusMessage .= do_system_call ($command, $debug);
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
 
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf";
 
     $rvOpen = open(RsyncMirror, ">$filename");
 
     if ($rvOpen) {
       print RsyncMirror <<RSYNCMIRRORFILE;
 # ------------------------------------------------------------------------------
-# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# Copyright $COPYRIGHT Alex Peeters [alex.peeters\\\@citap.be]
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
 #   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-failover-example.sh
@@ -1949,16 +1971,16 @@ RSYNCMIRRORFILE
       close (RsyncMirror);
     }
 
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-failover-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
   }
-  
+
   return ($statusMessage);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createRsyncMirrorScriptsDistributed {
-  my ($serverID, $typeMonitoring, $typeServers, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributed, $debug) = @_;
+  my ($serverID, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $collectorDaemon, $matchingRsyncMirrorConfigDistributedMaster, $matchingRsyncMirrorConfigDistributedSlave, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
@@ -1966,7 +1988,7 @@ sub createRsyncMirrorScriptsDistributed {
   my $statusMessage = '';
 
   if ( $typeMonitoring ) {                                 # Distributed
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CM-$centralTypeActiveServer-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh";
 
     unless ( -e $filename ) {
       $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralMasterFQDN</td></tr>";
@@ -1984,9 +2006,9 @@ sub createRsyncMirrorScriptsDistributed {
 #   execution via ssh key for use with rsync-mirror-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $centralMasterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $centralMasterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $centralMasterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 use strict;
@@ -2015,20 +2037,21 @@ RSYNCMIRRORFILE
       }
 
       $statusMessage .= do_system_call ($command, $debug);
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CM-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralMasterFQDN.sh (master)</a></td></tr>";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CM-$centralTypeActiveServer-$centralMasterFQDN/master/rsync-wrapper-distributed-$centralMasterFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralMasterFQDN.sh (master)</a></td></tr>" if ( defined $centralSlaveFQDN and $centralSlaveFQDN );
     }
 
-    if ( $centralTypeServers ) {
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh";
+    if ( $centralTypeServers == $centralTypeServers ) {
+      if ( defined $centralSlaveFQDN and $centralSlaveFQDN ) {
+        $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/CS-$centralTypeActiveServer-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh";
 
-      unless ( -e $filename ) {
-        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralSlaveFQDN</td></tr>";
-        $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
+        unless ( -e $filename ) {
+          $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring destination $centralSlaveFQDN</td></tr>";
+          $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-distributed-template.sh >> $filename";
 
-        $rvOpen = open(RsyncMirror, ">$filename");
+          $rvOpen = open(RsyncMirror, ">$filename");
 
-        if ($rvOpen) {
-          print RsyncMirror <<RSYNCMIRRORFILE;
+          if ($rvOpen) {
+            print RsyncMirror <<RSYNCMIRRORFILE;
 #!/usr/bin/env perl
 # ------------------------------------------------------------------------------
 # © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
@@ -2037,9 +2060,9 @@ RSYNCMIRRORFILE
 #   execution via ssh key for use with rsync-mirror-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $centralSlaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $centralSlaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $centralSlaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 use strict;
@@ -2064,15 +2087,16 @@ my \$captureOutput = $CAPTUREOUTPUT;
 
 RSYNCMIRRORFILE
 
-          close (RsyncMirror);
-        }
+            close (RsyncMirror);
+          }
 
-        $statusMessage .= do_system_call ($command, $debug);
-        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CS-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralSlaveFQDN.sh (master)</a></td></tr>";
+          $statusMessage .= do_system_call ($command, $debug);
+          $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/CS-$centralTypeActiveServer-$centralSlaveFQDN/master/rsync-wrapper-distributed-$centralSlaveFQDN.sh\" target=\"_blank\">rsync-wrapper-distributed-$centralSlaveFQDN.sh (master)</a></td></tr>";
+        }
       }
 
       $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $masterFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh";
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh";
       $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-template.sh >> $filename";
 
       $rvOpen = open(RsyncMirror, ">$filename");
@@ -2087,9 +2111,9 @@ RSYNCMIRRORFILE
 #   execution via ssh key for use with rsync-wrapper-distributed.sh
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
 RMVersion='$RMVERSION'
@@ -2109,6 +2133,7 @@ fi
 
 PidPath="\$ASNMTAP_PATH/pid"
 Rsync=$masterRSYNC_PATH/rsync                    # master
+RsyncPath=$centralMasterRSYNC_PATH/rsync         # remote server
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf
 ConfPath="\$ASNMTAP_PATH/applications/slave"
@@ -2125,35 +2150,35 @@ RSYNCMIRRORFILE
       $statusMessage .= do_system_call ($command, $debug);
     }
 
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
 
-    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf";
+    $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf";
 
     $rvOpen = open(RsyncMirror, ">$filename");
 
     if ($rvOpen) {
       print RsyncMirror <<RSYNCMIRRORFILE;
 # ------------------------------------------------------------------------------
-# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# Copyright $COPYRIGHT Alex Peeters [alex.peeters\\\@citap.be]
 # ------------------------------------------------------------------------------
 # Step-by-step instructions for installation:
-#   $slaveASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
-#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
-#   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
+#   $masterASNMTAP_PATH/applications/tools/templates/master/rsync-wrapper-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.sh
+#   $masterASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
-$matchingRsyncMirrorConfigDistributed
+$matchingRsyncMirrorConfigDistributedMaster
 # ------------------------------------------------------------------------------
 RSYNCMIRRORFILE
 
       close (RsyncMirror);
     }
 
-    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
+    $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave/rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$masterFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
 
     if ( $typeServers ) {
       $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Distributed Monitoring from $slaveFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh";
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh";
       $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-distributed-template.sh >> $filename";
 
       $rvOpen = open(RsyncMirror, ">$filename");
@@ -2190,6 +2215,7 @@ fi
 
 PidPath="\$ASNMTAP_PATH/pid"
 Rsync=$slaveRSYNC_PATH/rsync                     # slave
+RsyncPath=$centralMasterRSYNC_PATH/rsync         # remote server
 KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
 ConfFile=rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf
 ConfPath="\$ASNMTAP_PATH/applications/slave"
@@ -2204,9 +2230,8 @@ RSYNCMIRRORFILE
       }
 
       $statusMessage .= do_system_call ($command, $debug);
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
-
-      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.sh (slave)</a></td></tr>";
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf";
 
       $rvOpen = open(RsyncMirror, ">$filename");
 
@@ -2221,14 +2246,14 @@ RSYNCMIRRORFILE
 #   $slaveASNMTAP_PATH/applications/tools/templates/slave/rsync-mirror-distributed-example.conf
 # ------------------------------------------------------------------------------
 
-$matchingRsyncMirrorConfigDistributed
+$matchingRsyncMirrorConfigDistributedSlave
 # ------------------------------------------------------------------------------
 RSYNCMIRRORFILE
 
         close (RsyncMirror);
       }
 
-      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-distributed-$slaveFQDN-$collectorDaemon.conf (slave)</a></td></tr>";
     }
   }
 
@@ -2306,7 +2331,7 @@ sub do_compare_view {
     $compareView =~ s/$APPLICATIONPATH\/tmp\/$CONFIGDIR\///g;
 
     if ($compareView ne '') {
-      my ($type, $server, $path, $subpath, $generated, $installed, $compareDiff, $compareText);
+      my ($type, $activeServer, $server, $path, $subpath, $generated, $installed, $compareDiff, $compareText);
       my $todo = $type = 0;
 
       if ( $compareView =~ /^Only in generated\// ) {
@@ -2315,21 +2340,21 @@ sub do_compare_view {
         if ($details) {
           $compareText = "File '$path/$generated' added to the generated configuration.";
         } else {
-          ($type, $server) = split (/-/, $path, 2);
+          ($type, $activeServer, $server) = split (/-/, $path, 3);
           ($server, $subpath) = split (/\//, $server, 2);
           $subpath .= ($subpath eq '') ? '' : '/';
-          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DM-distributed.citap.com/etc/DisplayCT-distributed' to 'distributed.citap.com:/opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-distributed'
+          # Copy '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/DM-[MS]-distributed.citap.com/etc/DisplayCT-distributed' to 'distributed.citap.com:/opt/asnmtap/applications/etc/DisplayCT-distributed'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<--- $generated ---->      <----- $server ----->:$APPLICATIONPATH/<---- $generated --->
           # or
-          # Copy '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/CM-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-index.sh'
+          # Copy '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/CM-[MS]-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap/applications/master/CollectorCT-index.sh'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<----------------- $generated ---------------->      <------ $server ----->:$APPLICATIONPATH/$subpath/<------------ $generated ----------->
-          $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated'";
+          $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated'";
 
 		  if (($generated =~ /^DisplayCT-[\w-]+.sh$/) or ($generated =~ /^CollectorCT-[\w-]+.sh$/)) {
             $compareText .= '<br>';
-            $compareText .= "chmod 755 $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated";
+            $compareText .= "chmod 755 $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated";
             $compareText .= '<br>';
-            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$subpath$generated start";
+            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated start";
           } elsif (($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
             $todo = 1;
           } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)) {
@@ -2343,11 +2368,11 @@ sub do_compare_view {
           $compareText = "$compareView";
         } else {
           my (undef, $servername) = split (/: /, $compareView, 2);
-          ($type, $server) = split (/-/, $servername, 2);
-          $compareText  = "Copy $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername to $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications<br>";
+          ($type, $activeServer, $server) = split (/-/, $servername, 3);
+          $compareText  = "Copy $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername to $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications<br>";
           $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername", '', '', '<br>', $debug);
 
-		  if ($type eq 'CM' or $type eq 'DM') {
+		  if (defined $activeServer and $type =~ /^[CD]${activeServer}$/) {
             $compareText .= "Now 'DisplayCT-*.sh start' and 'CollectorCT-*.sh start' and add 'rsync-mirror-*.sh' to crontab!!!";
           } else {
             $compareText .= "Now add 'rsync-mirror-*.sh' to crontab!!!";
@@ -2362,21 +2387,21 @@ sub do_compare_view {
           $compareText = "File '$path/$installed' removed from the generated configuration.";
         } else {
           my ($servername, $directory) = split (/\//, $path, 2);
-          ($type, $server) = split (/-/, $servername, 2);
+          ($type, $activeServer, $server) = split (/-/, $servername, 3);
   
 		  if (($installed =~ /^DisplayCT-[\w-]+.sh$/) or ($installed =~ /^CollectorCT-[\w-]+.sh$/)) {
-            $compareText  = "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
+            $compareText  = "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installed stop";
             $compareText .= '<br>';
           } elsif ((($type eq 'CS' or $type eq 'DS') and ($installed =~ /^rsync-mirror-failover-[\w\-.]+.sh$/))
                 or (($type eq 'DM' or $type eq 'DS') and ($installed =~ /^rsync-mirror-distributed-[\w\-.]+.sh$/))) {
-            $compareText  = "Remove $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
+            $compareText  = "Remove $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installed from crontab";
             $compareText .= '<br>';
             my ($installedConf, undef) = split (/.sh/, $installed);
-            $compareText .= "Remove also $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
+            $compareText .= "Remove also $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
             $compareText .= "/$directory" if (defined $directory);
             $compareText .= "/$installedConf.conf";
             $compareText .= '<br>';
@@ -2389,9 +2414,9 @@ sub do_compare_view {
             $compareText  = '';
           }
 
-          # Remove 'distributed.citap.com:/opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-distributed-magweg'
+          # Remove 'distributed.citap.com:/opt/asnmtap/applications/etc/DisplayCT-distributed-magweg'
           #         <----- $server ----->:$APPLICATIONPATH/<------- $installed ------->
-          $compareText .= "Remove '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications";
+          $compareText .= "Remove '$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
           $compareText .= "/$directory" if (defined $directory);
           $compareText .= "/$installed'";
         }
@@ -2400,10 +2425,10 @@ sub do_compare_view {
           $compareText = "$compareView";
         } else {
           my (undef, $servername) = split (/: /, $compareView, 2);
-          ($type, $server) = split (/-/, $servername, 2);
-          $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated", '', '', '<br>', $debug);
+          ($type, $activeServer, $server) = split (/-/, $servername, 3);
+          $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/installed", '', '', '<br>', $debug);
           $compareText .= "First 'DisplayCT-*.sh stop', 'CollectorCT-*.sh stop' and remove 'rsync-mirror-*.sh' from crontab!!!<br>";
-          $compareText .= "Remove $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/master and/or $server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/slave";
+  # APE # $compareText .= "Remove $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/master and/or $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/slave";
           $todo = 1;
         }
       } elsif ( $compareView =~ /^Files generated\// ) {
@@ -2413,23 +2438,23 @@ sub do_compare_view {
           $compareText = "File '$generated' changed into the generated configuration.";
         } else {
           my (undef, $servername, $filename) = split (/\//, $generated, 3);
-          ($type, $server) = split (/-/, $servername, 2);
+          ($type, $activeServer, $server) = split (/-/, $servername, 3);
 
-          # Replace 'distributed.citap.be:/opt/asnmtap-3.000.xxx/applications/slave/asnmtap-display.sh' with '/opt/asnmtap-3.000.xxx/applications/tmp/$CONFIGDIR/generated/DS-distributed.citap.be/slave/asnmtap-display.sh'
+          # Replace 'distributed.citap.be:/opt/asnmtap/applications/slave/asnmtap-display.sh' with '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/DS-[SM]-distributed.citap.be/slave/asnmtap-display.sh'
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
-          $compareText = "Replace '$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$filename' with '$APPLICATIONPATH/tmp/$CONFIGDIR/$generated'";
-
+          $compareText = "<FONT COLOR=\"#99CC99\">scp -i ~/.ssh/</FONT>&lt;nagios&gt;<FONT COLOR=\"#99CC99\"> $APPLICATIONPATH/tmp/$CONFIGDIR/$generated </FONT>&lt;username&gt;\@<FONT COLOR=\"#99CC99\">$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$filename</FONT>";
+  
 		  if (($filename =~ /^etc\/DisplayCT-[\w-]+$/) or ($filename =~ /^etc\/CollectorCT-[\w-]+$/)) {
             $filename =~ s/etc\///g;
-            $compareText .= '<br>';
-            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/";
+            $compareText .= '<br><FONT COLOR="#99CC99">';
+            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/";
             $compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';
-            $compareText .= "/$filename.sh reload";
+            $compareText .= "/$filename.sh reload</FONT>";
 #		  } elsif (($filename =~ /^(slave|master)\/asnmtap-display.sh$/)   or ($filename =~ /^(slave|master)\/asnmtap-collector.sh$/)
 #              or ($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
 		  } elsif (($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
             $compareText .= '<br>';
-            $compareText .= "$server:". $ASNMTAP_PATH { 'master' } { $server } ."/applications/$filename restart";
+            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$filename restart";
           } elsif ( $filename =~ /^master\/rsync-mirror-failover-[\w\-.]+.conf$/ or $filename =~ /^slave\/rsync-mirror-failover-[\w\-.]+.conf$/) {
             $todo = 1;
           }
@@ -2442,7 +2467,7 @@ sub do_compare_view {
         $compareText = "Under construction < $compareView >";
       }
 
-      unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or $type eq 'CM' or $type eq 'DM'); $compareText .= '<HR>'; }
+      unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or (defined $activeServer and $type =~ /^[CD]${activeServer}$/)); $compareText .= '<HR>'; }
 
       $statusMessage .= "\n		   <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$compareView</td></tr>" if ($details or $debug eq 'T');
       $statusMessage .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$compareDiff</td></tr>" if (defined $compareDiff);

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl -w -I ..
 #
-# ... Tests via check_template-mail-without-fingerprint.pl
+# ... Tests via check_template-mail-fingerprint.pl
 #
 # $Id: check_template-mail-without-fingerprint.t, v 1.0 2006/02/01 Alex Peeters Exp $
 #
@@ -14,7 +14,7 @@ BEGIN {$tests = 5; plan tests => $tests}
 
 my $t;
 my $prefix = '../plugins/templates';
-my $plugin = 'check_template-mail-without-fingerprint.pl';
+my $plugin = 'check_template-mail-fingerprint.pl';
 
 if ( -x "$prefix/$plugin" ) {
   $t += checkCmd( "$prefix/$plugin -V", 3, "/$plugin/");

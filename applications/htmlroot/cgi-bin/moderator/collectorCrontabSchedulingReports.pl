@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, collectorCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, collectorCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "collectorCrontabSchedulingReports.pl";
 my $prgtext     = "Collector Crontab Scheduling Reports";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,7 @@ my $cgi = new CGI;
 my $pagedir         = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
 my $pageset         = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
 my $debug           = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $CcatalogID      = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
 my $sqlEndDate      = (defined $cgi->param('sqlEndDate'))      ? $cgi->param('sqlEndDate')      : timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
 my $sqlPeriode      = (defined $cgi->param('sqlPeriode'))      ? $cgi->param('sqlPeriode')      : 3600;
 my $width           = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
@@ -62,10 +63,10 @@ my $htmlTitle       = $prgtext;
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Crontabs", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&sqlEndDate=$sqlEndDate&sqlPeriode=$sqlPeriode&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&currentTimeslot=$currentTimeslot&pf=$pf&htmlToPdf=$htmlToPdf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&sqlEndDate=$sqlEndDate&sqlPeriode=$sqlPeriode&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&currentTimeslot=$currentTimeslot&pf=$pf&htmlToPdf=$htmlToPdf";
 
 # Debug information
-print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>sqlEndDate : $sqlEndDate<br>sqlPeriode : $sqlPeriode<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>catalog ID : $CcatalogID<br>sqlEndDate : $sqlEndDate<br>sqlPeriode : $sqlPeriode<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   my ($rv, $dbh, $sth, $sql, $errorMessage);
@@ -80,7 +81,7 @@ unless ( defined $errorUserAccessControl ) {
 
     my $collectorDaemon;
 
-    $sql = "select distinct $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLSERVERS where $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." order by $SERVERTABLCLLCTRDMNS.collectorDaemon";
+    $sql = "select distinct $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLSERVERS where $SERVERTABLCLLCTRDMNS.catalogID = '$CcatalogID' and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." order by $SERVERTABLCLLCTRDMNS.catalogID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
     $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
     $sth->bind_columns( \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -177,6 +178,9 @@ function validateForm() {
   <input type="hidden" name="debug"     value="$debug">
   <input type="hidden" name="CGISESSID" value="$sessionID">
   <table border="0">
+    <tr><td><b>Catalog ID: </b></td><td>
+      <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+    </td></tr>
     <tr align="left">
       <td>Periode:</td><td><input name="sqlPeriode" type="text" value="$sqlPeriode" size="4" maxlength="4">&nbsp;&nbsp;&nbsp;</td>
       <td>Width:</td><td><input name="width" type="text" value="$width" size="4" maxlength="4">&nbsp;&nbsp;&nbsp;</td>
@@ -196,7 +200,7 @@ HTML
       print $errorMessage, "\n" ;
     } else {
       foreach my $collectorDaemon (@collectorDaemons) {
-        print "<br><center><img src=\"$HTTPSURL/cgi-bin/moderator/generateCollectorCrontabSchedulingReport.pl?collectorDaemon=$collectorDaemon&amp;".encode_html_entities('U', $urlAccessParameters)."\"></center>\n";
+        print "<br><center><img src=\"$HTTPSURL/cgi-bin/moderator/generateCollectorCrontabSchedulingReport.pl?catalogID=$CcatalogID&amp;collectorDaemon=$collectorDaemon&amp;".encode_html_entities('U', $urlAccessParameters)."\"></center>\n";
       }
 
       print "<br><center><a href=\"$HTTPSURL/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,16 +33,17 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $uKey    = (defined $cgi->param('uKey'))    ? $cgi->param('uKey')    : '<NIHIL>';  $uKey    =~ s/\+/ /g;
-my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : 'index';    $pagedir =~ s/\+/ /g;
-my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : 'F';
+my $CcatalogID = (defined $cgi->param('catalogID'))  ? $cgi->param('catalogID') : $CATALOGID;
+my $uKey       = (defined $cgi->param('uKey'))       ? $cgi->param('uKey')      : '<NIHIL>';  $uKey    =~ s/\+/ /g;
+my $pagedir    = (defined $cgi->param('pagedir'))    ? $cgi->param('pagedir')   : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset    = (defined $cgi->param('pageset'))    ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug      = (defined $cgi->param('debug'))      ? $cgi->param('debug')     : 'F';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -61,10 +62,10 @@ my ($command, $serverID) = ('', '');
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "On demand", "uKey=$uKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "On demand", "catalogID=$CcatalogID&uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&uKey=$uKey";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&uKey=$uKey";
 
 unless ( defined $errorUserAccessControl ) {
   my ($rv, $dbh, $sth, $sql, $uKeySelect);
@@ -73,12 +74,12 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
-    $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where ( $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') ) and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+    $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and ( $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') ) and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
     ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
     if ( $rv ) {
       if ($uKey ne '<NIHIL>') {
-        $sql = "select distinct test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, argumentsOndemand, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, trendline, $SERVERTABLCLLCTRDMNS.serverID from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS where $SERVERTABLPLUGINS.uKey = '$uKey'  and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sql = "select distinct test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, argumentsOndemand, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, trendline, $SERVERTABLCLLCTRDMNS.serverID from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.uKey = '$uKey'  and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
@@ -90,7 +91,7 @@ unless ( defined $errorUserAccessControl ) {
           if ($arguments ne '') { $command .= " " . $arguments; }
           if ($argumentsOndemand ne '') { $command .= " " . $argumentsOndemand; }
           if (int($trendline) > 0) { $command .= " --trendline=" . $trendline; }
-          $htmlTitle = "Results for " . $title . " launched on $serverID";
+          $htmlTitle = "Results for ". $title ." from ". $CcatalogID ." launched on $serverID";
 
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
@@ -112,6 +113,9 @@ unless ( defined $errorUserAccessControl ) {
     <input type="hidden" name="pageset"   value="$pageset">
     <input type="hidden" name="CGISESSID" value="$sessionID">
     <table border=0>
+      <tr><td><b>Catalog ID: </b></td><td>
+        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      </td></tr>
 	  <tr align="left"><td>Application:</td><td>$uKeySelect</td></tr>
 	  <tr align="left"><td>Debug:</td><td>
         <select name="debug">
@@ -135,7 +139,7 @@ EndOfHtml
 
     if ($uKey ne '<NIHIL>') {
       my $commandMaskedPassword = maskPassword ($command);
-      print "<P class=\"RunCmdOnDemandHtmlTitle\">$htmlTitle: <font class=\"RunCmdOnDemandCommand\">$commandMaskedPassword --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F'</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\">";
+      print "<P class=\"RunCmdOnDemandHtmlTitle\">$htmlTitle:<br> <font class=\"RunCmdOnDemandCommand\">$commandMaskedPassword --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F'</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\">";
       my ($capture_long, $capture_html, $capture_text, $capture_debug, $capture_array, @WebTransactResponses, @capture_array);
       $capture_long = $capture_html = $capture_text = $capture_debug = $capture_array = 0;
 

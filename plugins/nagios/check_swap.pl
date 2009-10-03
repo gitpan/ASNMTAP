@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_swap.pl
+# 2009/mm/dd, v3.001.000, check_swap.pl
 # ----------------------------------------------------------------------------------------------------------
 # Linux: swap
 # ----------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.000.020;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.000;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_swap.pl',
   _programDescription => 'SWAP',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent>',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

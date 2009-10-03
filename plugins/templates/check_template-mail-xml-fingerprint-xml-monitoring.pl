@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_template-mail-xml-fingerprint-xml-monitoring.pl
+# 2009/mm/dd, v3.001.000, check_template-mail-xml-fingerprint-xml-monitoring.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ my $schema = '1.0';
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml-monitoring.pl',
   _programDescription => "XML fingerprint Mail XML monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
@@ -54,9 +54,12 @@ $objectPlugins->printUsage ('Missing command line argument hostname') unless (de
 my $service  = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
 $objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
 
-my $validate = $objectPlugins->getOptionsArgv ('validation') ? $objectPlugins->getOptionsArgv ('validation') : 'F';
-$objectPlugins->printUsage ('Invalid validation option: '. $validate) unless ($validate =~ /^[FT]$/);
-my $validateDTD = ( $validate eq 'T' ) ? 1 : 0;
+my $validateDTD = $objectPlugins->getOptionsArgv ('validation') ? $objectPlugins->getOptionsArgv ('validation') : 'F';
+
+if (defined $validateDTD) {
+  $objectPlugins->printUsage ('Invalid validation option: '. $validateDTD) unless ($validateDTD =~ /^[FT]$/);
+  $validateDTD = ($validateDTD eq 'T') ? 1 : 0;
+}
 
 my $username = $objectPlugins->getOptionsArgv ('username');
 my $password = $objectPlugins->getOptionsArgv ('password');
@@ -67,7 +70,7 @@ my $environmentText = $objectPlugins->getOptionsValue ('environment');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.000.020;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.001.000;
 
 my $body = '
 <?xml version="1.0" encoding="UTF-8"?>
@@ -106,13 +109,13 @@ my ($returnCode, $numberOfMatches, $debugfileMessage, @xml);
 # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$debugfileMessage  = "\n<HTML><HEAD><TITLE>Mail XML monitoring plugin template \@ $APPLICATION</TITLE></HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">Mail XML monitoring plugin template @ $APPLICATION</H1><HR>\n";
+$debugfileMessage  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<HTML><HEAD><TITLE>Mail XML monitoring plugin template \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">Mail XML monitoring plugin template @ $APPLICATION</H1><HR>\n";
 $debugfileMessage .= "<TABLE WIDTH=\"100%\"><TR style=\"font: normal 68% bold verdana,arial,helvetica; text-align:left; background:#a6caf0;\"><TH>Server</TH><TH>Name</TH><TH>First Occurence Date</TH><TH>First Occurence Time</TH><TH>Status</TH><TH>Status Message</TH><TH>Errors</TH></TR>\n";
 $debugfileMessage .= "<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">$environmentText</H3>";
 
 ($returnCode, $numberOfMatches) = $objectMAIL->receiving_fingerprint_mails( custom => \&actionOnMailBody, customArguments => \{ xml => \@xml, header => HEADER, footer => FOOTER, validateDTD => $validateDTD, filenameDTD => "Monitoring-$schema.dtd" }, receivedState => 1, outOfDate => $resultOutOfDate, perfdataLabel => 'email(s) received' );
 
-if ( defined $numberOfMatches and $numberOfMatches ) { 
+if ( defined $numberOfMatches and $numberOfMatches ) {
   my $debug = $objectPlugins->getOptionsValue ('debug');
   my %hosts = ();
   my $fixedAlert = "+";

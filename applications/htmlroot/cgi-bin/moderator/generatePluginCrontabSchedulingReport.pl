@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, generatePluginCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, generatePluginCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +37,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generatePluginCrontabSchedulingReport.pl";
 my $prgtext     = "Plugin Crontab Scheduling Report";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -55,6 +55,7 @@ my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('p
 my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'moderator'; $pageset =~ s/\+/ /g;
 my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
 my $sessionID        = (defined $cgi->param('CGISESSID'))       ? $cgi->param('CGISESSID')       : '';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
 my $CuKey            = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '';
 my $width            = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
 my $xOffset          = (defined $cgi->param('xOffset'))         ? $cgi->param('xOffset')         : 48;
@@ -78,7 +79,7 @@ if ($pf eq 'on') {
   $axisColor  = 0x0000FF;
 }
 
-$chartTitle = "$prgtext for '$CuKey'";
+$chartTitle = "$prgtext for '$CuKey' from '$CcatalogID'";
 
 my (%uKeys, @stepValue, @labels, @colorsCrontab, @colorsTimeslot, @dataPoints, @crontabStartDate, @crontabEndDate, @crontabEndTimeslot);
 
@@ -99,9 +100,8 @@ if ( $rv ) {
 
   if ( $dbh and $rv ) {
     my ($startDate, $startTime, $endDate, $endTime, $status, $timeslot);
-    $sql = "select $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.uKey = '$CuKey' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
+    $sql = "select $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.catalogID = '$CcatalogID' and $SERVERTABLCRONTABS.uKey = '$CuKey' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
     ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, undef, $debug);
-
     $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', 0, '', $sessionID) if (defined $dbh) ;
   }
   
@@ -110,7 +110,7 @@ if ( $rv ) {
     my $stepValue = $stepValue[0] * 60;
     my $restCurrentTimeslot = $stepValue;
     my $applicationTitle = $labels[0];
-    $chartTitle = "$prgtext for '$applicationTitle'";
+    $chartTitle = "$prgtext for '$applicationTitle' from '$CcatalogID'";
     my ($mon, $mday) = (1, 1);
     @labels = ();
     my @dayOfTheWeek = ('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
@@ -131,13 +131,13 @@ if ( $rv ) {
             my $collectorDaemon = $uKeys{$uKey}->{collectorDaemon} if ($uKeys{$uKey}->{collectorDaemon} !~ /\|/);
 
             unless ( defined $collectorDaemon ) {
-              $hight = $hightMin; $rv = 0; $errorMessage = "'$uKey' into more then one Collector Daemon available: '". $uKeys{$uKey}->{collectorDaemon} ."'";
+              $hight = $hightMin; $rv = 0; $errorMessage = "'$uKey' from '$CcatalogID' into more then one Collector Daemon available: '". $uKeys{$uKey}->{collectorDaemon} ."'";
               last FORHOUR;
             } else {
               my $noOFFLINE = $uKeys{$uKey}->{noOffline} if ($uKeys{$uKey}->{noOffline} !~ /\|/);
 
               unless ( defined $noOFFLINE ) {
-                $hight = $hightMin; $rv = 0; $errorMessage = "For '$uKey' is there more then one noOffline type available: '". $uKeys{$uKey}->{noOffline} ."'";
+                $hight = $hightMin; $rv = 0; $errorMessage = "For '$uKey' from '$CcatalogID' is there more then one noOffline type available: '". $uKeys{$uKey}->{noOffline} ."'";
                 last FORHOUR;
               } else {
                 my $insertStatus;

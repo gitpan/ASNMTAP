@@ -14,7 +14,7 @@ We are working onto an new Object Oriented version for the ASNMTAP Applications
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin
+=item located at /opt/asnmtap/applications/htmlroot/cgi-bin
 
 =over 4
 
@@ -84,7 +84,7 @@ this program make it possible change the current logged in user setting through 
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/admin
+=item located at /opt/asnmtap/applications/htmlroot/cgi-bin/admin
 
 =over 4
 
@@ -117,6 +117,7 @@ this program allow you to add, modify and delete reports (used by generateReport
 this program allow you to add, modify and delete timeperiods through the CGI Interface.
 
  The record with `timeperiodID` equals '1' must be 'No Time Is A Good Time', otherwise you will have problems!
+ `catalogID`       '000'
  `timeperiodID`    '1'
  `timeperiodAlias` 'none'
  `timeperiodName`  'No Time Is A Good Time'
@@ -135,7 +136,7 @@ this program allow you to add, modify and delete users through the CGI Interface
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/moderator
+=item located at /opt/asnmtap/applications/htmlroot/cgi-bin/moderator
 
 =over 4
 
@@ -150,6 +151,26 @@ this program allow you to create all the collector crontab scheduling reports th
 =item collectorDaemonSchedulingReports.pl
 
 this program allow you to create all the collector daemon scheduling reports through the CGI Interface.
+
+=item downtimes.pl
+
+this program allow you to set downtimes by uploading a uKey list for a group of tests through the CGI Interface.
+
+Format uKey without CatalogID (uses default CatalogID) list upload file, example: CatalogIDuKeyList.txt
+
+# ASNMTAP DOWNTIMES
+DUMMY-T1
+DUMMY-T3
+DUMMY-T5
+EOF
+
+or Format uKey with CatalogID list upload file, example: CatalogIDuKeyList.txt
+
+# ASNMTAP DOWNTIMES
+CID_DUMMY-T1
+CID_DUMMY-T3
+CID_DUMMY-T5
+EOF
 
 =item generateCollectorCrontabSchedulingReport.pl
 
@@ -177,7 +198,7 @@ this program allow you to view, modify and delete sessions through the CGI Inter
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/sadmin
+=item located at /opt/asnmtap/applications/htmlroot/cgi-bin/sadmin
 
 =over 4
 
@@ -188,6 +209,8 @@ this program make generate the sadmin menu through the CGI Interface.
 =item collectorDaemons.pl
 
 this program allow you to add, modify and delete collector daemons through the CGI Interface.
+
+When the field 'groupName' from the table 'collectorDaemon' contains 'Admin Collector [<hostname>]'
 
 =item crontabs.pl
 

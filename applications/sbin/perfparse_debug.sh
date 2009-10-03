@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, perfparse_debug.sh
+# 2009/mm/dd, v3.001.000, perfparse_debug.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then 
@@ -13,13 +13,13 @@ if [ -f ~/.bash_profile ]; then
   source ~/.bash_profile 
 fi 
 
-AMPATH=/opt/asnmtap-3.000.xxx
+AMPATH=/opt/asnmtap-3.001.xxx
 
 if [ "$ASNMTAP_PATH" ]; then
   AMPATH=$ASNMTAP_PATH
 fi
 
-PERFPARSEPATH=/opt/asnmtap-3.000.xxx/perfparse
+PERFPARSEPATH=/opt/asnmtap/perfparse
 
 # Store file name 
 FILE=$1 

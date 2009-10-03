@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Date_to_Text_Long Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,7 +38,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -69,6 +69,7 @@ my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset'
 my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
 my $sessionID    = (defined $cgi->param('CGISESSID'))    ? $cgi->param('CGISESSID')    : '';
 my $selChart     = (defined $cgi->param('chart'))        ? $cgi->param('chart')        : 'ErrorDetails';
+my $CcatalogID   = (defined $cgi->param('catalogID'))    ? $cgi->param('catalogID')    : $CATALOGID;
 my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
 my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
 my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
@@ -137,11 +138,11 @@ if ( $rv ) {
     if ( $uKey1 eq 'none' ) {
       $rv = 0; $errorMessage = "URL Access Parameters Error: Application 1";
     } else {
-      ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle1, $trendvalue, undef) = get_title( $dbh, $rv, $uKey1, $debug, 0, $sessionID );
+      ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle1, $trendvalue, undef) = get_title( $dbh, $rv, $CcatalogID, $uKey1, $debug, 0, $sessionID );
     }
 
-    if ( $rv ) { if ( $uKey2 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle2, undef, undef) = get_title( $dbh, $rv, $uKey2, $debug, 0, $sessionID ); } }
-    if ( $rv ) { if ( $uKey3 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle3, undef, undef) = get_title( $dbh, $rv, $uKey3, $debug, 0, $sessionID ); } }
+    if ( $rv ) { if ( $uKey2 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle2, undef, undef) = get_title( $dbh, $rv, $CcatalogID, $uKey2, $debug, 0, $sessionID ); } }
+    if ( $rv ) { if ( $uKey3 ne 'none' ) { ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle3, undef, undef) = get_title( $dbh, $rv, $CcatalogID, $uKey3, $debug, 0, $sessionID ); } }
 
     if ( $rv ) {
       if ( $uKey1 eq 'none' and $applicationTitle1 eq '<NIHIL>' ) {
@@ -170,6 +171,8 @@ if ( $rv ) {
             $chartTitle .= ", '$applicationTitle2' and '$applicationTitle3' ";
           }
         }
+
+        $chartTitle .= " from $CcatalogID ";
       }
 
       if ( $rv ) {
@@ -190,11 +193,11 @@ if ( $rv ) {
         } elsif ( $inputType eq "month" ) {
           $chartTitle  .= "for ". $arrMonths[$selMonth -1] .' '. $selYear;
         } elsif ( $inputType eq "week" ) {
-          $chartTitle .= "for $selYear week $selWeek";
+          $chartTitle .= "for $selYear week $selWeek from $CcatalogID";
         } else {
           $rv = 0; $errorMessage = "Whoops - title error! ($inputType)";
         }
-	
+
         my ($sqlStartDate, $sqlEndDate);
 
         if ( $rv ) {
@@ -205,7 +208,7 @@ if ( $rv ) {
             $sqlPeriode = "AND startDate between '$sqlStartDate' AND '$sqlEndDate' ";
 
             if ( $timeperiodID > 1 ) {
-              $sql = "select timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
+              $sql = "select timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where catalogID = '$CcatalogID' and timeperiodID = '$timeperiodID'";
               $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
               $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
@@ -225,7 +228,7 @@ if ( $rv ) {
         if ( $rv and $uKey1 ne 'none' ) {
           if ( $selChart eq "Status" ) {
             my ($title, $status, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, status, count(status) as aantal", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, status, count(status) as aantal", $forceIndex, "WHERE catalogID = '$CcatalogID' and uKey = '$uKey1'", $sqlPeriode, "AND status !='OFFLINE'", "GROUP BY status", '', "", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$status, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -275,7 +278,7 @@ if ( $rv ) {
             }
           } elsif ( $selChart eq "ErrorDetails" ) {
             my ($title, $statusmessage, $aantal, %problemSummary);
-            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, statusmessage, count(statusmessage) as aantal", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE title, statusmessage, count(statusmessage) as aantal", $forceIndex, "WHERE catalogID = '$CcatalogID' and uKey = '$uKey1'", $sqlPeriode, "AND status ='CRITICAL'", "GROUP BY statusmessage", '', "", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$statusmessage, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -314,7 +317,7 @@ if ( $rv ) {
           } elsif ( $selChart eq "Bar" ) {
             my ($seconden, $duration, $startDate, $startTime, $status, $step);
             my ($dataOK, $dataWarning, $dataCritical, $dataUnknown, $dataNoTest, $dataOffline);
-            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE duration, startDate, startTime, status, step", $forceIndex, "WHERE uKey = '$uKey1'", $sqlPeriode, '', "", '', "order by startDate, startTime", "ALL");
+            $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE duration, startDate, startTime, status, step", $forceIndex, "WHERE catalogID = '$CcatalogID' and uKey = '$uKey1'", $sqlPeriode, '', "", '', "order by startDate, startTime", "ALL");
             $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$duration, \$startDate, \$startTime, \$status, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
@@ -586,9 +589,9 @@ sub getAverage {
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $startDate, $hour, $average, @avg, @labels);
 
   if ( $selChart eq "HourlyAverage" ) {
-    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, hour(startTime) as hour, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, hour(startTime) as hour, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE catalogID = '$CcatalogID' and uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate, hour(startTime)", '', "order by startDate, hour", "ALL");
   } else {
-    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
+    $sql = create_sql_query_events_from_range_year_month ($inputType, $sqlStartDate, $sqlEndDate, "select SQL_NO_CACHE startDate, round(avg(time_to_sec(duration)), 2)", $forceIndex, "WHERE catalogID = '$CcatalogID' and uKey = '$uKey'", $sqlPeriode, "AND status = 'OK'", "GROUP BY startDate", '', "order by startDate", "ALL");
   }
 
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);

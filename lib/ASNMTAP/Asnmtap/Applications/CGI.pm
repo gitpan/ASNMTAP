@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -47,7 +47,7 @@ BEGIN {
                                                                            $APPLICATIONPATH $PLUGINPATH
 																		   
                                                                            $ASNMTAPMANUAL
-                                                                           $DATABASE
+                                                                           $DATABASE $CATALOGID
                                                                            $AWSTATSENABLED
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                            $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $SSHKEYPATH $WWWKEYPATH
@@ -91,7 +91,7 @@ BEGIN {
 
                                                       CGI          => [ qw($APPLICATIONPATH
 
-                                                                           $DATABASE
+                                                                           $DATABASE $CATALOGID
                                                                            $AWSTATSENABLED
                                                                            $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                            $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -187,7 +187,7 @@ sub user_session_and_access_control {
   my ($errorUserAccessControl, $sessionID, $userType, $cfhOld, $cfhNew, $password);
   $sessionID = '';
 
-  if (! $sessionControl or ($ENV{REMOTE_ADDR} eq $REMOTE_ADDR)) {
+  if (! $sessionControl or ( $ENV{REMOTE_ADDR} eq $REMOTE_ADDR and $ENV{HTTP_HOST} !~ /^${REMOTE_HOST}:\d+/ )) {
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
     print $cgi->header;
     $| = $cfhOld; select ($cfhNew);
@@ -320,7 +320,7 @@ sub user_session_and_access_control {
           $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID);
 
           if ($dbh and $rv) {
-            $sql = "select remoteAddr, remoteNetmask, givenName, familyName, email, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+            $sql = "select remoteAddr, remoteNetmask, givenName, familyName, email, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where catalogID = '$CATALOGID' and remoteUser = '$CremoteUser'";
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if $rv;
 
@@ -672,10 +672,10 @@ sub create_sql_query_from_range_SLA_window {
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 sub get_title {
-  my ($dbh, $rv, $uKey, $debug, $refresh, $sessionID) = @_;
+  my ($dbh, $rv, $catalogID, $uKey, $debug, $refresh, $sessionID) = @_;
 
   my ($sql, $sth, $errorMessage, $dbiErrorCode, $dbiErrorString, $title, $environment, $trendline, $step, $applicationTitle, $trendValue, $stepValue);
-  $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLPLUGINS.environment, trendline, step from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT WHERE uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+  $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLPLUGINS.environment, trendline, step from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT WHERE catalogID = '$catalogID' and uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
   $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", $refresh, '', $sessionID);
   $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
   $sth->bind_columns( \$title, \$environment, \$trendline, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", $refresh, '', $sessionID) if $rv;
@@ -705,12 +705,13 @@ sub get_title {
 sub get_sql_crontab_scheduling_report_data {
   my ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, $uKeys, $labels, $stepValue, $uKeysSqlWhere, $debug) = @_;
 
-  my ($collectorDaemon, $uKey, $lineNumber, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $applicationTitle, $step);
+  my ($catalogID, $collectorDaemon, $uKey, $lineNumber, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $applicationTitle, $step);
   my $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
   $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
   $sth->bind_columns( \$collectorDaemon, \$uKey, \$lineNumber, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
   my $numberOfLabels = 0;
+  $catalogID = $CATALOGID; # TODO # $sql aanpassen ...
 
   if ( $rv ) {
     if ( $sth->rows ) {
@@ -725,7 +726,7 @@ sub get_sql_crontab_scheduling_report_data {
 
           if (defined $$uKeysSqlWhere) { $$uKeysSqlWhere .= (($$uKeysSqlWhere) ? ' OR ' : '') . "$SERVERTABLEVENTS.uKey = '$uKey'"; }
 
-         ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle, undef, $step) = get_title( $dbh, $rv, $uKey, $debug, 0, $sessionID );
+         ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $applicationTitle, undef, $step) = get_title( $dbh, $rv, $catalogID, $uKey, $debug, 0, $sessionID );
 
           if ($rv) {
             @$labels[$numberOfLabels] = $applicationTitle;
@@ -998,7 +999,11 @@ sub create_combobox_multiple_from_DBI {
         $comboboxSelect = "<textarea name=$selectName cols=$textareaCols rows=$comboboxSelectSize $formDisabled>$comboboxSelect</textarea>";
       }
     } else {
-      $comboboxSelect = $selectValue;
+      if ($action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+        $comboboxSelect = "<select name=\"$selectName\" size=\"1\" multiple $onChange></select>";
+      } else {
+        $comboboxSelect = $selectValue;
+      }
     }
 
     $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
@@ -1047,20 +1052,26 @@ sub record_navigation_table {
 
     if ( $sth->rows ) {
       while ( my $ref = $sth->fetchrow_arrayref ) {
-        my $actionItem = ($actionPressend) ? "<td align=\"center\">&nbsp;" : '';
+        my $actionItem = ($actionPressend) ? "<td align=\"left\">&nbsp;" : '';
         my $actionKeys = ''; 
+        my $actionSkip = 0;
         my $item       = 0;
 
         foreach my $keyLabels (@keyLabels) {
           $actionKeys .= "&amp;$keyLabels=$$ref[$keyNumbers[$item]]";
+          $actionSkip = 1 if ( $keyLabels eq 'catalogID' and $$ref[$keyNumbers[$item]] ne $CATALOGID );
           $item++;
         }
 
         my $urlWithAccessParametersAction = "$urlWithAccessParameters$actionKeys&amp;orderBy=$orderBy&amp;action";
         $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display $label\" alt=\"Display $label\" border=\"0\"></a>&nbsp;" if ($iconDetails);
-        $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit $label\" alt=\"Edit $label\" border=\"0\"></a>&nbsp;" if ($iconEdit);
         $actionItem .= "<a href=\"$urlWithAccessParametersAction=duplicateView\"><img src=\"$IMAGESURL/$ICONSRECORD{duplicate}\" title=\"Duplicate $label\" alt=\"Duplicate $label\" border=\"0\"></a>&nbsp;" if ($iconAdd);
-        $actionItem .= "<a href=\"$urlWithAccessParametersAction=deleteView\"><img src=\"$IMAGESURL/$ICONSRECORD{delete}\" title=\"Delete $label\" alt=\"Delete $label\" border=\"0\"></a>&nbsp;" if ($iconDelete);
+
+        unless ( $actionSkip ) {
+          $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit $label\" alt=\"Edit $label\" border=\"0\"></a>&nbsp;" if ($iconEdit);
+          $actionItem .= "<a href=\"$urlWithAccessParametersAction=deleteView\"><img src=\"$IMAGESURL/$ICONSRECORD{delete}\" title=\"Delete $label\" alt=\"Delete $label\" border=\"0\"></a>&nbsp;" if ($iconDelete);
+        }
+
         $actionItem .= "</td>" if ($actionPressend);
 
         $matchingRecords .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\">";

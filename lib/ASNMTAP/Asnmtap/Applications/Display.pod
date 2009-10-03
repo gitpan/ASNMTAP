@@ -14,7 +14,7 @@ We are working onto an new Object Oriented version for the ASNMTAP Applications
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications/custom
+=item located at /opt/asnmtap/applications/custom
 
 =over 4
 
@@ -53,7 +53,7 @@ Here we can add customised expressions to manipulate the output of the display r
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/etc
+=item located at /opt/asnmtap/applications/etc
 
 =over 4
 
@@ -67,34 +67,35 @@ when the Application CGI module and CGI applications are installed, these config
 
 =item format
 
- Format: <Interval>#<Groep Title>#<Pagedir>#<uniqueKey>#<Title nnn>#check_nnn#<help 0|1>[|<uniqueKey>#<Title mmm>#check_mmm#<help 0|1>]
+ Format: <Interval>#<Groep Title>#<Pagedir>#[<catalogID>_]<uniqueKey>#<Title nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<Title mmm>#check_mmm#<help 0|1>]
 
    <Interval>		:
    <Groep Title>	:
    <Pagedir>		: results subdir where the data from the collector is located
-   <uniqueKey>		: uniqueKey key for this plugin
+   <catalogID>      : unique catalogID
+   <uniqueKey>		: unique key for this plugin
    <Title nnn>		:
    check_nnn		: plugin name
    <help 0|1>		:
 		
 =item example
 
- more /opt/asnmtap-3.000.xxx/applications/etc/DisplayCT-test
+ more /opt/asnmtap/applications/etc/DisplayCT-test
 
- # DisplayCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.000.020 or higher
+ # DisplayCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.001.000 or higher
  #
- # <interval>#<groep title>#<resultsdir>#<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
+ # <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  #
  10#CACTUS: Based onto Template cactus#index#CITAP-04#CACTUS plugin cactus.citap.com#cactus-citap-com.pl --trendline=5#0
  #
- 2#Condenced View Test#test-05#DUMMY-T5#Condenced View test#check_dummy.pl --trendline=5#1
+ 2#Condenced View Test#test-05#CID_DUMMY-T5#Condenced View test#check_dummy.pl --trendline=5#1
  #
- 2#Testing Collector & Display for the 'Application Monitor'#test-01#DUMMY-T1#DUMMY-T1#check_dummy.pl --trendline=0#1
- 2#Testing Collector & Display for the 'Application Monitor'#test-02#DUMMY-T2#DUMMY-T2#check_dummy.pl --trendline=1#1
- 2#Testing Collector & Display for the 'Application Monitor'#test-03#DUMMY-T3#DUMMY-T3#check_dummy.pl --trendline=2#1
- 2#Testing Collector & Display for the 'Application Monitor'#test-04#DUMMY-T4#DUMMY-T4#check_dummy.pl --trendline=3#1
+ 2#Testing Collector & Display for the 'Application Monitor'#test-01#CID_DUMMY-T1#DUMMY-T1#check_dummy.pl --trendline=0#1
+ 2#Testing Collector & Display for the 'Application Monitor'#test-02#CID_DUMMY-T2#DUMMY-T2#check_dummy.pl --trendline=1#1
+ 2#Testing Collector & Display for the 'Application Monitor'#test-03#CID_DUMMY-T3#DUMMY-T3#check_dummy.pl --trendline=2#1
+ 2#Testing Collector & Display for the 'Application Monitor'#test-04#CID_DUMMY-T4#DUMMY-T4#check_dummy.pl --trendline=3#1
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  # Einde DisplayCT-test - CTP-CENTRAL
@@ -103,7 +104,7 @@ when the Application CGI module and CGI applications are installed, these config
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/master
+=item located at /opt/asnmtap/applications/master
 
 =over 4
 
@@ -121,7 +122,7 @@ shell script to start, stop, reload, restart or get status for all the Display d
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/slave
+=item located at /opt/asnmtap/applications/slave
 
 =over 4
 
@@ -137,7 +138,7 @@ shell script to start, stop, reload, restart or get status for all the Display d
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications
+=item located at /opt/asnmtap/applications
 
 =over 4
 
@@ -153,7 +154,7 @@ test version from the program display.pl
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/master
+=item located at /opt/asnmtap/applications/master
 
 =over 4
 
@@ -163,7 +164,7 @@ test version from the program display.pl
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/slave
+=item located at /opt/asnmtap/applications/slave
 
 =over 4
 

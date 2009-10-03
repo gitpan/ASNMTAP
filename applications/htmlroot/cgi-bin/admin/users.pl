@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,7 @@ my $pageNo              = (defined $cgi->param('pageNo'))             ? $cgi->pa
 my $pageOffset          = (defined $cgi->param('pageOffset'))         ? $cgi->param('pageOffset')         : 0;
 my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : 'remoteUser';
 my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : 'listView';
+my $CcatalogID          = (defined $cgi->param('catalogID'))          ? $cgi->param('catalogID')          : $CATALOGID;
 my $CremoteUser         = (defined $cgi->param('remoteUser'))         ? $cgi->param('remoteUser')         : '';
 my $CremoteAddr         = (defined $cgi->param('remoteAddr'))         ? $cgi->param('remoteAddr')         : '';
 my $CremoteNetmask      = (defined $cgi->param('remoteNetmask'))      ? $cgi->param('remoteNetmask')      : '';
@@ -71,10 +72,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&downtimeScheduling=$CdowntimeScheduling&generatedReports=$CgeneratedReports&password=$Cpassword&userType=$CuserType&pagedirs=$Cpagedir&activated=$Cactivated&keyLanguage=$CkeyLanguage";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&downtimeScheduling=$CdowntimeScheduling&generatedReports=$CgeneratedReports&password=$Cpassword&userType=$CuserType&pagedirs=$Cpagedir&activated=$Cactivated&keyLanguage=$CkeyLanguage";
 
 # Debug information
-print "<pre>pagedir            : $pagedir<br>pageset            : $pageset<br>debug              : $debug<br>CGISESSID          : $sessionID<br>page no            : $pageNo<br>page offset        : $pageOffset<br>order by           : $orderBy<br>action             : $action<br>remote user        : $CremoteUser<br>remote address     : $CremoteAddr<br>remote netmask     : $CremoteNetmask<br>given name         : $CgivenName<br>surname            : $CfamilyName<br>email              : $Cemail<br>downtime scheduling: $CdowntimeScheduling<br>generated reports  : $CgeneratedReports<br>password           : $Cpassword<br>user type          : $CuserType<br>pagedirs           : $Cpagedir<br>activated          : $Cactivated<br>key language       : $CkeyLanguage<br>URL ...            : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir            : $pagedir<br>pageset            : $pageset<br>debug              : $debug<br>CGISESSID          : $sessionID<br>page no            : $pageNo<br>page offset        : $pageOffset<br>order by           : $orderBy<br>action             : $action<br>catalog ID         : $CcatalogID<br>remote user        : $CremoteUser<br>remote address     : $CremoteAddr<br>remote netmask     : $CremoteNetmask<br>given name         : $CgivenName<br>surname            : $CfamilyName<br>email              : $Cemail<br>downtime scheduling: $CdowntimeScheduling<br>generated reports  : $CgeneratedReports<br>password           : $Cpassword<br>user type          : $CuserType<br>pagedirs           : $Cpagedir<br>activated          : $Cactivated<br>key language       : $CkeyLanguage<br>URL ...            : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($keyLanguageSelect, $pagedirsSelect, $matchingUsers, $navigationBar);
@@ -94,57 +95,57 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if User $CremoteUser exist before to insert";
+      $htmlTitle    = "Check if User $CremoteUser from $CcatalogID exist before to insert";
 
-      $sql = "select remoteUser from $SERVERTABLUSERS WHERE remoteUser='$CremoteUser'";
+      $sql = "select remoteUser from $SERVERTABLUSERS WHERE catalogID='$CcatalogID' and remoteUser='$CremoteUser'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle    = "User $CremoteUser exist already";
+        $htmlTitle    = "User $CremoteUser from $CcatalogID exist already";
         $nextAction   = "insertView";
       } else {
-        $htmlTitle    = "User $CremoteUser inserted";
+        $htmlTitle    = "User $CremoteUser from $CcatalogID inserted";
         my $dummyDowntimeScheduling = ($CdowntimeScheduling eq 'on') ? 1 : 0;
         my $dummyGeneratedReports = ($CgeneratedReports eq 'on') ? 1 : 0;
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
         $Cpassword = '' if ($Cpassword eq "***************");
-        $sql = 'INSERT INTO ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '", password="' .$Cpassword. '", userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLUSERS. ' SET catalogID="' .$CcatalogID. '", remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '", password="' .$Cpassword. '", userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledRemoteUser = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Delete user $CremoteUser";
+      $htmlTitle    = "Delete user $CremoteUser from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = "select remoteUser, title from $SERVERTABLCOMMENTS where remoteUser = '$CremoteUser' order by title, remoteUser";
-      ($rv, $matchingUsers) = check_record_exist ($rv, $dbh, $sql, 'Comments', 'Remote User', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select remoteUser, title from $SERVERTABLCOMMENTS where catalogID = '$CcatalogID' and remoteUser = '$CremoteUser' order by title, remoteUser";
+      ($rv, $matchingUsers) = check_record_exist ($rv, $dbh, $sql, 'Comments from ' .$CcatalogID, 'Remote User', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ($matchingUsers eq '') {
-        $htmlTitle = "User $CremoteUser deleted";
-        $sql = 'DELETE FROM ' .$SERVERTABLUSERS. ' WHERE remoteUser="' .$CremoteUser. '"';
+        $htmlTitle = "User $CremoteUser from $CcatalogID deleted";
+        $sql = 'DELETE FROM ' .$SERVERTABLUSERS. ' WHERE catalogID="' .$CcatalogID. '" and remoteUser="' .$CremoteUser. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
       } else {
-        $htmlTitle = "User $CremoteUser not deleted, still used by";
+        $htmlTitle = "User $CremoteUser from $CcatalogID not deleted, still used by";
       }
     } elsif ($action eq 'displayView') {
       $formDisabledRemoteUser = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Display user $CremoteUser";
+      $htmlTitle    = "Display user $CremoteUser from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledRemoteUser = 'disabled';
-      $htmlTitle    = "Edit user $CremoteUser";
+      $htmlTitle    = "Edit user $CremoteUser from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "User $CremoteUser updated";
+      $htmlTitle    = "User $CremoteUser from $CcatalogID updated";
       my $dummyDowntimeScheduling = ($CdowntimeScheduling eq 'on') ? 1 : 0;
       my $dummyGeneratedReports = ($CgeneratedReports eq 'on') ? 1 : 0;
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
       my $dummyPassword = ($Cpassword eq "***************") ? '' : ', password="' .$Cpassword. '"';
-      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '"' .$dummyPassword. ', userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '" WHERE remoteUser="' .$CremoteUser. '"';
+      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET catalogID="' .$CcatalogID. '", remoteUser="' .$CremoteUser. '", remoteAddr="' .$CremoteAddr. '", remoteNetmask="' .$CremoteNetmask. '", givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '", downtimeScheduling="' .$dummyDowntimeScheduling. '", generatedReports="' .$dummyGeneratedReports. '"' .$dummyPassword. ', userType="' .$CuserType. '", pagedir="' .$Cpagedir. '", activated="' .$dummyActivated. '", keyLanguage="' .$CkeyLanguage. '" WHERE catalogID="' .$CcatalogID. '" and remoteUser="' .$CremoteUser. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -154,18 +155,20 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select remoteUser, givenName, familyName, userType, activated from $SERVERTABLUSERS where userType<=$userType order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Remote User <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName desc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Given Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName asc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName desc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Family Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName asc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> User Type	<a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingUsers, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'User', 'remoteUser', '0', '', '3#0=>Guest|1=>Member|2=>Moderator|4=>Administrator|8=>Server Administrator', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select catalogID, remoteUser, givenName, familyName, userType, activated from $SERVERTABLUSERS where userType<=$userType order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, remoteuser asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, remoteuser asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Remote User <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=remoteuser asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName desc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Given Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=givenName asc, familyName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName desc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Family Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=familyName asc, givenName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> User Type	<a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=userType asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingUsers, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'User', 'catalogID|remoteUser', '0|1', '', '3#0=>Guest|1=>Member|2=>Moderator|4=>Administrator|8=>Server Administrator', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, downtimeScheduling, generatedReports, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+      $sql = "select catalogID, remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, downtimeScheduling, generatedReports, password, userType, pagedir, activated, keyLanguage from $SERVERTABLUSERS where catalogID = '$CcatalogID' and remoteUser = '$CremoteUser'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $CdowntimeScheduling, $CgeneratedReports, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $CdowntimeScheduling, $CgeneratedReports, $Cpassword, $CuserType, $Cpagedir, $Cactivated, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $CdowntimeScheduling = ($CdowntimeScheduling == 1) ? 'on' : 'off';
         $CgeneratedReports = ($CgeneratedReports == 1) ? 'on' : 'off';
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
@@ -178,8 +181,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "select keyLanguage, languageName from $SERVERTABLLANGUAGE where languageActive = '1' order by languageName";
       ($rv, $keyLanguageSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CkeyLanguage, 'keyLanguage', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select pagedir, groupName from $SERVERTABLPAGEDIRS order by groupName";
-      ($rv, $pagedirsSelect) = create_combobox_multiple_from_DBI ($rv, $dbh, $sql, $action, $Cpagedir, 'pagedirs', '-Select-', 10, 100, $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select pagedir, groupName from $SERVERTABLPAGEDIRS where catalogID = '$CcatalogID' order by groupName";
+      ($rv, $pagedirsSelect) = create_combobox_multiple_from_DBI ($rv, $dbh, $sql, $action, $Cpagedir, 'pagedirs', 'Pagedirs missing.', 10, 100, $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
@@ -328,13 +331,13 @@ HTML
 
   if ( document.users.pagedirs.selectedIndex == -1 ) {
     document.users.pagedirs.focus();
-    alert('Please select one or more view pagedirs!');
+    alert('Please create/select one or more view pagedirs!');
     return false;
   }
 
   if ( document.users.keyLanguage.value == null || document.users.keyLanguage.value == 'none' ) {
     document.users.keyLanguage.focus();
-    alert('Please select a language!');
+    alert('Please create/select a language!');
     return false;
   }
 
@@ -368,7 +371,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"remoteUser\"   value=\"$CremoteUser\">\n" if ($formDisabledRemoteUser ne '' and $action ne 'displayView');
+    print "  <input type=\"hidden\" name=\"catalogID\"    value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"remoteUser\"   value=\"$CremoteUser\">\n" if ($formDisabledRemoteUser ne '' and $action ne 'displayView');
 	
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -402,6 +405,9 @@ HTML
     <tr><td>&nbsp;</td></tr>
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
+        <tr><td><b>Catalog ID: </b></td><td>
+          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        </td></tr>
         <tr><td><b>Remote User: </b></td><td>
           <input type="text" name="remoteUser" value="$CremoteUser" size="15" maxlength="15" $formDisabledRemoteUser>
         </td></tr>
@@ -478,4 +484,3 @@ print_legend (*STDOUT);
 print '</BODY>', "\n", '</HTML>', "\n";
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

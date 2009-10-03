@@ -9,41 +9,41 @@
 # 1) Install the rsync package
 # 2) Install a command line ssh (openssh) tool
 # 3) Make sure you can ssh to the remote systems.
-# 4) Install rsync-mirror-failover.sh into /opt/asnmtap-3.000.xxx/applications/slave if it's not already there.
-# 5) Copy rsync-mirror-failover-example.conf to /opt/asnmtap-3.000.xxx/applications/slave if there's not already one there.
+# 4) Install rsync-mirror-failover.sh into /opt/asnmtap/applications/slave if it's not already there.
+# 5) Copy rsync-mirror-failover-example.conf to /opt/asnmtap/applications/slave if there's not already one there.
 #
 # 6) Try a trial run:
 #    onto the master server:
 #    mkdir /tmp/master
 #    echo "Some file content" >/tmp/master/onefile
-#    vi /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-example.conf
+#    vi /opt/asnmtap/applications/slave/rsync-mirror-failover-example.conf
 #    uncomment #ape@asnmtap.citap.com:/tmp/master/  /tmp/slave/  -c -z
 #    ./rsync_mirror-failover.sh
 #
 #    You should now see "Some file content" in the /tmp/slave/onefile over on slave server.
 #
-# 7) Edit /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.conf to include one line for every directory that
+# 7) Edit /opt/asnmtap/applications/slave/rsync-mirror-failover.conf to include one line for every directory that
 #    needs to be regularly mirrored. The rsync-mirror-failover-example.conf includes some sample lines.
 # ------------------------------------------------------------------------------
-#    parameters for /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh:
+#    parameters for /opt/asnmtap/applications/slave/rsync-mirror-failover.sh:
 #
 #    -c|-C  : config file name
 #    -r|-R  : Operating in reverse mode, source and destination fields will be swapped
 #    --nodel: no delete (rsync-wrapper-distributed.sh don't allow this for the moment)
 #
 #  crontab -e
-#    */5    * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
+#    */5    * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
 #  or
-#    0-59/5 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
+#    0-59/5 * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover.sh > /dev/null  <-- crontab op slave server
 #  or
-#    1-59/15 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-15.sh > /dev/null
-#    2-59/10 * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-10.sh > /dev/null
-#    3-59/5  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-05.sh > /dev/null
-#    4-59/2  * * * * /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-02.sh > /dev/null
+#    1-59/15 * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover-15.sh > /dev/null
+#    2-59/10 * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover-10.sh > /dev/null
+#    3-59/5  * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover-05.sh > /dev/null
+#    4-59/2  * * * * /opt/asnmtap/applications/slave/rsync-mirror-failover-02.sh > /dev/null
 #
-#  vi /opt/asnmtap-3.000.xxx/applications/tools/templates/slave/rsync-mirror-failover-tmp.sh
+#  vi /opt/asnmtap/applications/tools/templates/slave/rsync-mirror-failover-tmp.sh
 #    #!/bin/bash
-#    cd /opt/asnmtap-3.000.xxx/applications/tools/templates/slave/
+#    cd /opt/asnmtap/applications/tools/templates/slave/
 #    ./rsync-mirror-failover-example.sh -C rsync-mirror-failover-example.conf
 # ------------------------------------------------------------------------------
 # Shedule only one rsync-mirror-failover.sh scripts at the same time, unless you have more
@@ -51,10 +51,10 @@
 # 'rsync-wrapper-distributed-02.sh', 'rsync-wrapper-distributed-05.sh', 'rsync-wrapper-distributed-10.sh'
 # & 'rsync-wrapper-distributed-15.sh'
 #
-# authorized_keys -> command='/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-02.sh' ...
-#                 -> command='/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-05.sh' ...
-#                 -> command='/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-10.sh' ...
-#                 -> command='/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-15.sh' ...
+# authorized_keys -> command='/opt/asnmtap/applications/master/rsync-wrapper-distributed-02.sh' ...
+#                 -> command='/opt/asnmtap/applications/master/rsync-wrapper-distributed-05.sh' ...
+#                 -> command='/opt/asnmtap/applications/master/rsync-wrapper-distributed-10.sh' ...
+#                 -> command='/opt/asnmtap/applications/master/rsync-wrapper-distributed-15.sh' ...
 # ------------------------------------------------------------------------------
 # vi hosts.allow
 # rsync: <hostname slave failover servers>
@@ -81,13 +81,13 @@
 # 
 # <master server>:
 # vi authorized_keys
-# from="asnmtap.citap.be", command ="/opt/asnmtap-3.000.xxx/applications/master/rsync-wrapper-distributed-asnmtap.citap.com.sh" ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA5o5rh/yScb8506oLJSPRaKR2PCKfI4U/YOSylN7h8w5z5jIO/6W7qKTwWyJ9lPF3c/D6WM2N4cVkVbcprJq+59vxEPCV9jmDQjFKJDHBTQbDoOfb1mgbFZT1SZ0/xhDy05wqxVQ3GByWvbNjzWBYr+ohoVXZajqAS9uaFzD+3KM
+# from="asnmtap.citap.be", command ="/opt/asnmtap/applications/master/rsync-wrapper-distributed-asnmtap.citap.com.sh" ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA5o5rh/yScb8506oLJSPRaKR2PCKfI4U/YOSylN7h8w5z5jIO/6W7qKTwWyJ9lPF3c/D6WM2N4cVkVbcprJq+59vxEPCV9jmDQjFKJDHBTQbDoOfb1mgbFZT1SZ0/xhDy05wqxVQ3GByWvbNjzWBYr+ohoVXZajqAS9uaFzD+3KM
 #                                                                                                                               ^- rsync.pub
 # Testing:
-# /opt/asnmtap-3.000.xxx/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
+# /opt/asnmtap/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.000.020'
+RMVersion='3.001.000'
 echo "rsync-mirror-distributed version $RMVersion"
 
 if [ -f ~/.profile ]; then
@@ -99,12 +99,13 @@ if [ -f ~/.bash_profile ]; then
 fi
 
 if [ ! "$ASNMTAP_PATH" ]; then
-  ASNMTAP_PATH=/opt/asnmtap-3.000.xxx
+  ASNMTAP_PATH=/opt/asnmtap-3.001.xxx
 fi
 
 PidPath="$ASNMTAP_PATH/pid"
 
 Rsync=/usr/local/bin/rsync
+RsyncPath=/usr/local/bin/rsync
 KeyRsync=/home/asnmtap/.ssh/rsync
 ConfFile=rsync-mirror-distributed.conf
 ConfPath="$ASNMTAP_PATH/applications/slave"
@@ -191,11 +192,11 @@ Lock='yes'
   case "$Source" in
     */)
       echo Mirroring directory "$Source" to "$Target"
-      $Rsync --rsync-path=$Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync --rsync-path=$RsyncPath -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     *)
       echo Mirroring "$Source" to "$Target"
-      $Rsync --rsync-path=$Rsync -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
+      $Rsync --rsync-path=$RsyncPath -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
       ;;
     esac
 done

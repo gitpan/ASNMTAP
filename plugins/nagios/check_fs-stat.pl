@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_fs-stat.pl
+# 2009/mm/dd, v3.001.000, check_fs-stat.pl
 # ----------------------------------------------------------------------------------------------------------
 # ./check_fs-stat.pl --message=DisplayCT --directory=/opt/asnmtap/pid/ --wildcard=DisplayCT-*.pid --type=F --files=m --wAge=120 --cAge=300
 # ./check_fs-stat.pl --message=CollectorCT --directory=/opt/asnmtap/pid/ --wildcard=CollectorCT-*.pid --type=F --files=n --wAge=120 --cAge=300
@@ -20,7 +20,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_fs-stat.pl',
   _programDescription => 'Filesystem Stat',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '[--message <plugin massage>] --directory <directory> [--type <F|D|B>] [--dirs <INTEGER>] [--files <INTEGER>] [--wildcard <wildcard>] --wAge INTEGER --cAge INTEGER',
   _programHelpPrefix  => '--message=<plugin massage>
     <plugin massage> is the name displayed into the monitoring tool

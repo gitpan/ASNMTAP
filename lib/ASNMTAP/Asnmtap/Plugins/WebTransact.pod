@@ -913,6 +913,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_template-WebTransact-XML-Cactus-parser.pl
   check_template-WebTransact-XML-Monitoring.pl
   check_template-WebTransact-XML-Monitoring-1.1.pl
+  check_template-WebTransact-XML-Monitoring-1.2.pl
 
 =head1 DEPENDENCIES
 

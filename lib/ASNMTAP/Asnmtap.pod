@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.000.020',
+   _programVersion     => '3.001.000',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -141,7 +141,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
 
  $CAPTUREOUTPUT     1 # 1 -> capture_exec($system_action) or 0 -> system ($system_action)
 
- $PREFIXPATH        /opt/asnmtap-3.000.xxx
+ $PREFIXPATH        /opt/asnmtap-3.001.xxx
  $APPLICATIONPATH   $PREFIXPATH/applications
  $PLUGINPATH        $PREFIXPATH/plugins
  $LOGPATH           $PREFIXPATH/log
@@ -190,7 +190,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
 
 You can change the values for the CONSTANTS by use of an config file 'Asnmtap.cnf'.
 
-The default location for the config file is into the root for ASNMTAP-based applications and plugins '/opt/asnmtap-3.000.xxx'.
+The default location for the config file is into the root for ASNMTAP-based applications and plugins '/opt/asnmtap'.
 
 With the environment variable ASNMTAP_PATH you can change the default location for ASNMTAP-based applications and plugins.
 

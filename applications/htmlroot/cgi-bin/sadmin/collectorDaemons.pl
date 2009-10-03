@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, collectorDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, collectorDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "collectorDaemons.pl";
 my $prgtext     = "Collector Daemons";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,7 @@ my $pageNo              = (defined $cgi->param('pageNo'))          ? $cgi->param
 my $pageOffset          = (defined $cgi->param('pageOffset'))      ? $cgi->param('pageOffset')      : 0;
 my $orderBy             = (defined $cgi->param('orderBy'))         ? $cgi->param('orderBy')         : 'collectorDaemon asc';
 my $action              = (defined $cgi->param('action'))          ? $cgi->param('action')          : 'listView';
+my $CcatalogID          = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
 my $CcollectorDaemon    = (defined $cgi->param('collectorDaemon')) ? $cgi->param('collectorDaemon') : '';
 my $CgroupName          = (defined $cgi->param('groupName'))       ? $cgi->param('groupName')       : '';
 my $CserverID           = (defined $cgi->param('serverID'))        ? $cgi->param('serverID')        : 'none';
@@ -67,10 +68,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Collector Daemon", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&collectorDaemon=$CcollectorDaemon&groupName=$CgroupName&serverID=$CserverID&mode=$Cmode&dumphttp=$Cdumphttp&status=$Cstatus&debugDaemon=$CdebugDaemon&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&collectorDaemon=$CcollectorDaemon&groupName=$CgroupName&serverID=$CserverID&mode=$Cmode&dumphttp=$Cdumphttp&status=$Cstatus&debugDaemon=$CdebugDaemon&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>collectorDaemon   : $CcollectorDaemon<br>groupName         : $CgroupName<br>serverID          : $CserverID<br>mode              : $Cmode<br>dumphttp          : $Cdumphttp<br>status            : $Cstatus<br>debugAllScreen    : $CdebugAllScreen<br>debugAllFile      : $CdebugAllFile<br>debugNokFile      : $CdebugNokFile<br>debugDaemon       : $CdebugDaemon<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>collectorDaemon   : $CcollectorDaemon<br>groupName         : $CgroupName<br>serverID          : $CserverID<br>mode              : $Cmode<br>dumphttp          : $Cdumphttp<br>status            : $Cstatus<br>debugAllScreen    : $CdebugAllScreen<br>debugAllFile      : $CdebugAllFile<br>debugNokFile      : $CdebugNokFile<br>debugDaemon       : $CdebugDaemon<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($serversSelect, $matchingCollectorDaemon, $navigationBar);
@@ -90,53 +91,53 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if Collector Daemon $CcollectorDaemon exist before to insert";
+      $htmlTitle    = "Check if Collector Daemon $CcollectorDaemon from $CcatalogID exist before to insert";
 
-      $sql = "select collectorDaemon from $SERVERTABLCLLCTRDMNS WHERE collectorDaemon='$CcollectorDaemon'";
+      $sql = "select collectorDaemon from $SERVERTABLCLLCTRDMNS WHERE catalogID='$CcatalogID' and collectorDaemon='$CcollectorDaemon'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle  = "Collector Daemon $CcollectorDaemon exist already";
+        $htmlTitle  = "Collector Daemon $CcollectorDaemon from $CcatalogID exist already";
         $nextAction = "insertView";
       } else {
-        $htmlTitle  = "Collector Daemon $CcollectorDaemon inserted";
+        $htmlTitle  = "Collector Daemon $CcollectorDaemon from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLCLLCTRDMNS. ' SET collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLCLLCTRDMNS. ' SET catalogID="' .$CcatalogID. '", collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Delete Collector Daemon $CcollectorDaemon";
+      $htmlTitle    = "Delete Collector Daemon $CcollectorDaemon from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = "select lineNumber, uKey from $SERVERTABLCRONTABS where collectorDaemon = '$CcollectorDaemon' order by uKey, lineNumber";
-      ($rv, $matchingCollectorDaemon) = check_record_exist ($rv, $dbh, $sql, 'Crontabs', 'Unique Key', 'Linenumber', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select lineNumber, uKey from $SERVERTABLCRONTABS where catalogID = '$CcatalogID' and collectorDaemon = '$CcollectorDaemon' order by uKey, lineNumber";
+      ($rv, $matchingCollectorDaemon) = check_record_exist ($rv, $dbh, $sql, 'Crontabs from ' .$CcatalogID, 'Unique Key', 'Linenumber', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 	
 	  if ($matchingCollectorDaemon eq '') {
-        $htmlTitle = "Collector Daemon $CcollectorDaemon deleted";
-        $sql = 'DELETE FROM ' .$SERVERTABLCLLCTRDMNS. ' WHERE collectorDaemon="' .$CcollectorDaemon. '"';
+        $htmlTitle = "Collector Daemon $CcollectorDaemon from $CcatalogID deleted";
+        $sql = 'DELETE FROM ' .$SERVERTABLCLLCTRDMNS. ' WHERE catalogID="' .$CcatalogID. '" and collectorDaemon="' .$CcollectorDaemon. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
       } else {
-        $htmlTitle = "Collector Daemon $CcollectorDaemon not deleted, still used by";
+        $htmlTitle = "Collector Daemon $CcollectorDaemon from $CcatalogID not deleted, still used by";
       }
 
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'displayView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Display Collector Daemon $CcollectorDaemon";
+      $htmlTitle    = "Display Collector Daemon $CcollectorDaemon from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Edit Collector Daemon $CcollectorDaemon";
+      $htmlTitle    = "Edit Collector Daemon $CcollectorDaemon from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "Collector Daemon $CcollectorDaemon updated";
+      $htmlTitle    = "Collector Daemon $CcollectorDaemon from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLCLLCTRDMNS. ' SET collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '" WHERE collectorDaemon="' .$CcollectorDaemon. '"';
+      $sql = 'UPDATE ' .$SERVERTABLCLLCTRDMNS. ' SET catalogID="' .$CcatalogID. '", collectorDaemon="' .$CcollectorDaemon. '", groupName="' .$CgroupName. '", serverID="' .$CserverID. '", mode="' .$Cmode. '", dumphttp="' .$Cdumphttp. '", status="' .$Cstatus. '", debugDaemon="' .$CdebugDaemon. '", debugAllScreen="' .$CdebugAllScreen. '", debugAllFile="' .$CdebugAllFile. '", debugNokFile="' .$CdebugNokFile. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and collectorDaemon="' .$CcollectorDaemon. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -146,25 +147,26 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select collectorDaemon, groupName, serverID, activated from $SERVERTABLCLLCTRDMNS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=collectorDaemon desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Primary Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=collectorDaemon asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> serverID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingCollectorDaemon, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Collector Daemon', 'collectorDaemon', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select catalogID, serverID, collectorDaemon, groupName, activated from $SERVERTABLCLLCTRDMNS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, collectorDaemon asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, collectorDaemon asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> serverID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=serverID asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=collectorDaemon desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Collector Daemon <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=collectorDaemon asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingCollectorDaemon, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Collector Daemon', 'catalogID|collectorDaemon', '0|2', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select collectorDaemon, groupName, serverID, mode, dumphttp, status, debugDaemon, debugAllScreen, debugAllFile, debugNokFile, activated from $SERVERTABLCLLCTRDMNS where collectorDaemon='$CcollectorDaemon'";
+      $sql = "select catalogID, collectorDaemon, groupName, serverID, mode, dumphttp, status, debugDaemon, debugAllScreen, debugAllFile, debugNokFile, activated from $SERVERTABLCLLCTRDMNS where catalogID = '$CcatalogID' and collectorDaemon='$CcollectorDaemon'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CcollectorDaemon, $CgroupName, $CserverID, $Cmode, $Cdumphttp, $Cstatus, $CdebugDaemon, $CdebugAllScreen, $CdebugAllFile, $CdebugNokFile, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CcollectorDaemon, $CgroupName, $CserverID, $Cmode, $Cdumphttp, $Cstatus, $CdebugDaemon, $CdebugAllScreen, $CdebugAllFile, $CdebugNokFile, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
-      $sql = "select serverID, serverTitle from $SERVERTABLSERVERS order by serverTitle";
+      $sql = "select serverID, serverTitle from $SERVERTABLSERVERS where catalogID = '$CcatalogID' order by serverTitle";
       ($rv, $serversSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CserverID, 'serverID', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
@@ -211,7 +213,7 @@ HTML
 
   if( document.collectorDaemon.serverID.options[document.collectorDaemon.serverID.selectedIndex].value == 'none' ) {
     document.collectorDaemon.serverID.focus();
-    alert('Please select one of the servers!');
+    alert('Please create/select one of the servers!');
     return false;
   }
 
@@ -344,7 +346,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"collectorDaemon\" value=\"$CcollectorDaemon\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
+    print "  <input type=\"hidden\" name=\"catalogID\" value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"collectorDaemon\" value=\"$CcollectorDaemon\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -372,6 +374,9 @@ HTML
       <tr><td>&nbsp;</td></tr>
       <tr><td>
 	    <table border="0" cellspacing="0" cellpadding="0">
+          <tr><td><b>Catalog ID: </b></td><td>
+            <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          </td></tr>
           <tr><td><b>Collector Daemon: </b></td><td>
             <input type="text" name="collectorDaemon" value="$CcollectorDaemon" size="64" maxlength="64" $formDisabledPrimaryKey>
           <tr><td><b>Group Name: </b></td><td>

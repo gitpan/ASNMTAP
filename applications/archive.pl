@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, archive.pl for ASNMTAP::Applications
+# 2009/mm/dd, v3.001.000, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.020;
+use ASNMTAP::Time v3.001.000;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.000.020;
+use ASNMTAP::Asnmtap::Applications v3.001.000;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -176,7 +176,7 @@ if ( $rvOpen ) {
 
   removeCgisessFiles ($removeCgisessEpoch) if ($doCgisess);
 
-  my $emailreport = "\nRemove *.MySQL-sql-error.txt:\n-----------------------------\n";
+  my $emailreport = "\nRemove *-MySQL-sql-error.txt:\n-----------------------------\n";
   if ( $debug ) { print "$emailreport"; } else { print EMAILREPORT "$emailreport"; }
 
   my @sqlErrorTxtFiles = glob("$RESULTSPATH/*-MySQL-sql-error.txt");
@@ -218,10 +218,10 @@ sub archiveCommentsAndEventsTables {
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
     if ($debug) {
-      $sql = "select SQL_NO_CACHE id, endDate, startDate, timeslot, uKey from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
+      $sql = "select SQL_NO_CACHE catalogID, id, endDate, startDate, timeslot, uKey from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
       print "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
     } else {
-      $sql = "select SQL_NO_CACHE id, endDate from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
+      $sql = "select SQL_NO_CACHE catalogID, id, endDate from $SERVERTABLEVENTS force index (key_timeslot) where timeslot < '" .$timeslot. "'";
       print EMAILREPORT "\nTable: '$SERVERTABLEVENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot'\n";
     }
 
@@ -231,21 +231,24 @@ sub archiveCommentsAndEventsTables {
     if ( $rv ) {
       while (my $ref = $sth->fetchrow_hashref()) {
         ($yearMOVE, $monthMOVE, undef) = split (/-/, $ref->{endDate});
-        print "\n", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{startDate}, " ", $ref->{endDate}, " ",$ref->{timeslot}, " \n" if ($debug);
+        print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{startDate}, " ", $ref->{endDate}, " ",$ref->{timeslot}, " \n" if ($debug);
 
-        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE id = "' .$ref->{id}. '"';
+        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
 
-        $sqlMOVE = 'DELETE FROM `' .$SERVERTABLEVENTS. '` WHERE id = "' .$ref->{id}. '"';
-        print "$sqlMOVE\n" if ($debug);
-        $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+        if ( $rv ) {
+          $sqlMOVE = 'DELETE FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+          print "$sqlMOVE\n" if ($debug);
+          $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+        }
       }
 
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
 
-    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.uKey from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLVIEWS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
+    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.catalogID, $SERVERTABLCOMMENTS.uKey from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
 
     if ($debug) {
       print "\nUpdate table '$SERVERTABLCOMMENTS': <$sql>\n";
@@ -258,7 +261,7 @@ sub archiveCommentsAndEventsTables {
 
     if ( $rv ) {
       while (my $ref = $sth->fetchrow_hashref()) {
-        $sqlUPDATE = "UPDATE $SERVERTABLCOMMENTS SET $SERVERTABLCOMMENTS.problemSolved = 2 WHERE $SERVERTABLCOMMENTS.uKey = \"" .$ref->{uKey}. "\" and $SERVERTABLCOMMENTS.problemSolved = 0";
+        $sqlUPDATE = "UPDATE $SERVERTABLCOMMENTS SET $SERVERTABLCOMMENTS.replicationStatus = \"U\", $SERVERTABLCOMMENTS.problemSolved = 2 WHERE $SERVERTABLCOMMENTS.catalogID = \"" .$ref->{catalogID}. "\" and $SERVERTABLCOMMENTS.uKey = \"" .$ref->{uKey}. "\" and $SERVERTABLCOMMENTS.problemSolved = 0";
         print "$sqlUPDATE;\n" if ($debug);
         $dbh->do( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
       }
@@ -272,7 +275,7 @@ sub archiveCommentsAndEventsTables {
 
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
-    $sql = "select SQL_NO_CACHE id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved >= '1' and solvedTimeslot < '" .$timeslot. "'";
+    $sql = "select SQL_NO_CACHE catalogID, id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved >= '1' and solvedTimeslot < '" .$timeslot. "'";
 
     if ($debug) {
       print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
@@ -286,15 +289,17 @@ sub archiveCommentsAndEventsTables {
     if ( $rv ) {
       while (my $ref = $sth->fetchrow_hashref()) {
         ($yearMOVE, undef, undef) = split (/-/, $ref->{solvedDate});
-        print "\n", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{solvedDate}, " ", $ref->{solvedTimeslot}, "\n" if ($debug);
+        print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{solvedDate}, " ", $ref->{solvedTimeslot}, "\n" if ($debug);
 
-        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE id = "' .$ref->{id}. '"';
+        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
 
-        $sqlMOVE = 'DELETE FROM `' .$SERVERTABLCOMMENTS. '` WHERE id = "' .$ref->{id}. '"';
-        print "$sqlMOVE\n" if ($debug);
-        $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+        if ( $rv ) {
+          $sqlMOVE = 'DELETE FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+          print "$sqlMOVE\n" if ($debug);
+          $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+        }
       }
 
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
@@ -305,7 +310,7 @@ sub archiveCommentsAndEventsTables {
     my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
     my $solvedTime     = "$currentHour:$currentMin:$currentSec";
     my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-    my $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+    my $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="$CATALOGID" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
     $dbh->do ( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sqlUPDATE", $debug) unless ( $debug );
 
     $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
@@ -362,8 +367,10 @@ sub createCommentsAndEventsArchiveTables {
         $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month .'` LIKE `'. $SERVERTABLEVENTS .'`';
       } else {
         $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month ."` (
+  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
   `test` varchar(100) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `status` varchar(9) NOT NULL default '',
@@ -379,17 +386,20 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY (`id`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `key_status` (`status`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `key_startTime` (`startTime`),
-  KEY `idx_downtime` (`downtime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_test` (`test`),
-  KEY `key_startDate` (`startDate`),
+  PRIMARY KEY (`catalogID`,`id`),
+  KEY `catalogID` (`catalogID`),
+  UNIQUE KEY `id` (`id`),
   KEY `uKey` (`uKey`),
-  KEY `key_endTime` (`endTime`)
+  KEY `replicationStatus` (`replicationStatus`),
+  KEY `key_test` (`test`),
+  KEY `key_status` (`status`),
+  KEY `key_startDate` (`startDate`),
+  KEY `key_startTime` (`startTime`),
+  KEY `key_endDate` (`endDate`),
+  KEY `key_endTime` (`endTime`),
+  KEY `key_timeslot` (`timeslot`),
+  KEY `idx_persistent` (`persistent`),
+  KEY `idx_downtime` (`downtime`)
 ) TYPE=MyISAM";
       }
 
@@ -434,8 +444,10 @@ sub createCommentsAndEventsArchiveTables {
             $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_01`';
           } else {
             $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year ."` (
+  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
   `test` varchar(100) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `status` varchar(9) NOT NULL default '',
@@ -451,17 +463,20 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY (`id`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `key_status` (`status`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `key_startTime` (`startTime`),
-  KEY `idx_downtime` (`downtime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_test` (`test`),
-  KEY `key_startDate` (`startDate`),
+  PRIMARY KEY (`catalogID`,`id`),
+  KEY `catalogID` (`catalogID`),
+  UNIQUE KEY `id` (`id`),
   KEY `uKey` (`uKey`),
-  KEY `key_endTime` (`endTime`)
+  KEY `replicationStatus` (`replicationStatus`),
+  KEY `key_test` (`test`),
+  KEY `key_status` (`status`),
+  KEY `key_startDate` (`startDate`),
+  KEY `key_startTime` (`startTime`),
+  KEY `key_endDate` (`endDate`),
+  KEY `key_endTime` (`endTime`),
+  KEY `key_timeslot` (`timeslot`),
+  KEY `idx_persistent` (`persistent`),
+  KEY `idx_downtime` (`downtime`)
 ) TYPE=MyISAM";
           }
 
@@ -489,8 +504,10 @@ sub createCommentsAndEventsArchiveTables {
               $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 2) .'`';
             } else {
               $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter ."` (
+  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
   `test` varchar(100) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `status` varchar(9) NOT NULL default '',
@@ -506,17 +523,20 @@ sub createCommentsAndEventsArchiveTables {
   `persistent` tinyint(1) NOT NULL default '9',
   `downtime` tinyint(1) NOT NULL default '9',
   `filename` varchar(254) default '',
-  PRIMARY KEY (`id`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `key_status` (`status`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `key_startTime` (`startTime`),
-  KEY `idx_downtime` (`downtime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_test` (`test`),
-  KEY `key_startDate` (`startDate`),
+  PRIMARY KEY (`catalogID`,`id`),
+  KEY `catalogID` (`catalogID`),
+  UNIQUE KEY `id` (`id`),
   KEY `uKey` (`uKey`),
-  KEY `key_endTime` (`endTime`)
+  KEY `replicationStatus` (`replicationStatus`),
+  KEY `key_test` (`test`),
+  KEY `key_status` (`status`),
+  KEY `key_startDate` (`startDate`),
+  KEY `key_startTime` (`startTime`),
+  KEY `key_endDate` (`endDate`),
+  KEY `key_endTime` (`endTime`),
+  KEY `key_timeslot` (`timeslot`),
+  KEY `idx_persistent` (`persistent`),
+  KEY `idx_downtime` (`downtime`)
 ) TYPE=MyISAM";
             }
 
@@ -537,13 +557,15 @@ sub createCommentsAndEventsArchiveTables {
       $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` LIKE `$SERVERTABLCOMMENTS`";
     } else {
       $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` (
+  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
+  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
   `title` varchar(75) NOT NULL default '',
   `remoteUser` varchar(11) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9',
-  `persistent` tinyint(1) NOT NULL default '9',
-  `downtime` tinyint(1) NOT NULL default '9',
+  `instability` tinyint(1) NOT NULL default '0',
+  `persistent` tinyint(1) NOT NULL default '0',
+  `downtime` tinyint(1) NOT NULL default '0',
   `entryDate` date NOT NULL default '0000-00-00',
   `entryTime` time NOT NULL default '00:00:00',
   `entryTimeslot` varchar(10) NOT NULL default '0000000000',
@@ -558,16 +580,19 @@ sub createCommentsAndEventsArchiveTables {
   `solvedTimeslot` varchar(10) NOT NULL default '0000000000',
   `problemSolved` tinyint(1) NOT NULL default '1',
   `commentData` blob NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `activationTimeslot` (`activationTimeslot`),
-  KEY `entryTimeslot` (`entryTimeslot`),
-  KEY `suspentionTimeslot` (`suspentionTimeslot`),
-  KEY `persistent` (`persistent`),
-  KEY `problemSolved` (`problemSolved`),
-  KEY `downtime` (`downtime`),
-  KEY `solvedTimeslot` (`solvedTimeslot`),
+  PRIMARY KEY (`catalogID`,`id`),
+  KEY `catalogID` (`catalogID`),
+  UNIQUE KEY `id` (`id`),
   KEY `uKey` (`uKey`),
-  KEY `remoteUser` (`remoteUser`)
+  KEY `replicationStatus` (`replicationStatus`),
+  KEY `remoteUser` (`remoteUser`),
+  KEY `persistent` (`persistent`),
+  KEY `downtime` (`downtime`),
+  KEY `entryTimeslot` (`entryTimeslot`),
+  KEY `activationTimeslot` (`activationTimeslot`),
+  KEY `suspentionTimeslot` (`suspentionTimeslot`),
+  KEY `solvedTimeslot` (`solvedTimeslot`),
+  KEY `problemSolved` (`problemSolved`)
 ) TYPE=MyISAM";
     }
 
@@ -647,17 +672,25 @@ sub doBackupCsvSqlErrorWeekDebugReport {
     }
 
     foreach $dtest (@stest) {
-      my ($uKey, $test) = split(/\#/, $dtest);
+      my ($catalogID_uKey, $test) = split(/\#/, $dtest);
       ($command, undef) = split(/\.pl/, $test);
+      my ($catalogID, $uKey) = split(/_/, $catalogID_uKey);
+
+      unless ( defined $uKey ) {
+        $uKey = $catalogID;
+        $catalogID = $CATALOGID;
+        $catalogID_uKey = $catalogID .'_'. $uKey unless ( $catalogID eq 'CID' );
+      }
+
       my ( $tWeek, $tYear ) = get_week('yesterday');
-      $weekFilename = get_year('yesterday') ."w$tWeek-$command-$uKey-csv-week.txt";
+      $weekFilename = get_year('yesterday') ."w$tWeek-$command-$catalogID_uKey-csv-week.txt";
       if (-e "$path/$weekFilename") { unlink ($path.'/'.$weekFilename); }
       print "Test          : <$dtest>\n" if ($debug);
 
       foreach $filename (@files) {
         print "Filename      : <$filename>\n" if ($debug >= 2);
-        catAllCsvFilesYesterdayWeek ($firstDayOfWeekEpoch, $yesterdayEpoch, $uKey, $command, $path, $weekFilename, $filename);
-        removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare ($gzipEpoch, $removeAllNokEpoch, $removeGzipEpoch, $removeDebugEpoch, $removeWeeksEpoch, $uKey, $command, $path, $filename);
+        catAllCsvFilesYesterdayWeek ($firstDayOfWeekEpoch, $yesterdayEpoch, $catalogID_uKey, $command, $path, $weekFilename, $filename);
+        removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare ($gzipEpoch, $removeAllNokEpoch, $removeGzipEpoch, $removeDebugEpoch, $removeWeeksEpoch, $catalogID_uKey, $command, $path, $filename);
       }
     }
   }
@@ -666,7 +699,7 @@ sub doBackupCsvSqlErrorWeekDebugReport {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
-  my ($gzipEpoch, $removeAllNokEpoch, $removeGzipEpoch, $removeDebugEpoch, $removeWeeksEpoch, $uKey, $command, $path, $filename) =  @_;
+  my ($gzipEpoch, $removeAllNokEpoch, $removeGzipEpoch, $removeDebugEpoch, $removeWeeksEpoch, $catalogID_uKey, $command, $path, $filename) =  @_;
 
   my ($datum, $staart) = split(/\-/, $filename, 2);
 
@@ -680,7 +713,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           unlink ($path.'/'.$filename);
         }
       }
-    } elsif ( $staart eq "$command-$uKey-csv.txt" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey-csv.txt" ) {
       if ($datum le get_yearMonthDay($gzipEpoch)) {
 	    if ($debug) {
           print "C+ <$datum><", get_yearMonthDay($gzipEpoch), "><$path><$filename>\n";
@@ -690,7 +723,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           print EMAILREPORT "C+  E R R O R: <$stderr>\n" unless ( $status );
         }
       }
-    } elsif ( $staart eq "$command-$uKey-csv.txt.gz" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey-csv.txt.gz" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
 	    if ($debug) {
           print "C- <$datum><", get_yearMonthDay($removeGzipEpoch), "><$path><$filename>\n";
@@ -699,7 +732,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           unlink ($path.'/'.$filename);
         }
       }
-    } elsif ( $staart eq "$command-$uKey-csv-week.txt" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey-csv-week.txt" ) {
       my ($jaar, $week) = split(/w/, $datum);
       my $jaarWeekFilename  = int($jaar.$week);
       my ( $tWeek, $tYear ) = get_week ('yesterday');
@@ -714,7 +747,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           print EMAILREPORT "CW+  E R R O R: <$stderr>\n" unless ( $status );
         }
       }
-    } elsif ( $staart eq "$command-$uKey-csv-week.txt.gz" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey-csv-week.txt.gz" ) {
       my ($jaar, $week) = split(/w/, $datum);
       my $jaarWeekFilename = int($jaar.$week);
       my ( $tWeek, $tYear ) = get_week ('-'. $removeGzipWeeksAgo. ' weeks');
@@ -728,7 +761,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           unlink ($path.'/'.$filename);
         }
       }
-    } elsif ( $staart eq "$command-$uKey.sql" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey.sql" ) {
       if ($debug) {
         print "S+ <$datum><", get_yearMonthDay($gzipEpoch), "><$path><$filename>\n" if ($datum le get_yearMonthDay($gzipEpoch));
       } elsif (! $doDatabase) {
@@ -760,7 +793,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
         }
       }
-    } elsif ( $staart eq "$command-$uKey.sql.gz" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey.sql.gz" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
 	    if ($debug) {
           print "S- <$datum><", get_yearMonthDay($removeGzipEpoch), "><$path><$filename>\n";
@@ -769,7 +802,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
           unlink ($path.'/'.$filename);
         }
       }
-    } elsif ( $staart eq "$command-$uKey-sql-error.txt" ) {
+    } elsif ( $staart eq "$command-$catalogID_uKey-sql-error.txt" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
 	    if ($debug) {
           print "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "><$path><$filename>\n";
@@ -794,10 +827,10 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub catAllCsvFilesYesterdayWeek {
-  my ($firstDayOfWeekEpoch, $yesterdayEpoch, $uKey, $command, $path, $weekFilename, $filename) =  @_;
+  my ($firstDayOfWeekEpoch, $yesterdayEpoch, $catalogID_uKey, $command, $path, $weekFilename, $filename) =  @_;
 
   for (my $loop = $firstDayOfWeekEpoch; $loop <= $yesterdayEpoch; $loop += 86400) {
-    if ($filename eq get_yearMonthDay($loop)."-$command-$uKey-csv.txt") {
+    if ($filename eq get_yearMonthDay($loop)."-$command-$catalogID_uKey-csv.txt") {
       my $rvOpen = open(CAT, ">>$path/$weekFilename");
 
       if ($rvOpen) {

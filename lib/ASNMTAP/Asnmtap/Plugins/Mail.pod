@@ -14,18 +14,18 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.000.020;
+  use ASNMTAP::Asnmtap::Plugins v3.001.000;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.000.020',
+    _programVersion     => '3.001.000',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.000.020;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.001.000;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
@@ -562,9 +562,9 @@ optional, scalar value, default 1
 
 can be 0 or 1:
 
-0: x mail(s) received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
+0: When we receive no mails then the state $ERRORS{CRITICAL} is returned, otherwise the custom function returns $ERRORS{OK..UNKNOWN}
 
-1: No emails received => $ERRORS{OK} otherwise $ERRORS{WARNING..UNKNOWN}
+1: When we receive no mails then the state $ERRORS{OK} is returned, otherwise the custom function returns $ERRORS{OK..UNKNOWN}
 
 optinal, scalar value, default 0
 
@@ -612,8 +612,9 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_template-mail-fingerprint-xml.pl
   check_template-mail-xml-fingerprint-xml.pl
   check_template-mail-xml-fingerprint-xml-monitoring.pl
+  check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
   check_template-mail-xml.pl
-  check_template-mail-without-fingerprint.pl
+  check_template-mail-fingerprint.pl
 
 =head1 DEPENDENCIES
 

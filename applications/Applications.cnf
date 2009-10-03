@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.000.020
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.001.000
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,14 +43,14 @@
 #  <HTMLTOPDF>
 #    PRG             htmldoc                # '<nihil>' or 'htmldoc'
 #    HOW             shell                  # '<nihil>', 'cgi' or 'shell'
-#    OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
+#    OPTIONS         --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
 #  </HTMLTOPDF>
 
 #  <PERFPARSE>
-#    BIN             /opt/asnmtap-3.000.xxx/perfparse/bin
-#    ETC             /opt/asnmtap-3.000.xxx/perfparse/etc
-#    LIB             /opt/asnmtap-3.000.xxx/perfparse/lib
-#    SHARE           /opt/asnmtap-3.000.xxx/perfparse/share
+#    BIN             /opt/asnmtap/perfparse/bin
+#    ETC             /opt/asnmtap/perfparse/etc
+#    LIB             /opt/asnmtap/perfparse/lib
+#    SHARE           /opt/asnmtap/perfparse/share
 #    CGI             /cgi-bin/perfparse.cgi
 #    ENABLED         1                      # '0' or '1'
 #    DATABASE        ~ <DATABASE_ACCOUNT><READWRITE><DATABASE>
@@ -62,10 +62,10 @@
 </COMMON>
 
 <PATH>
-#    HTTPS            /opt/asnmtap-3.000.xxx/applications/htmlroot
-#    IMAGES           /opt/asnmtap-3.000.xxx/applications/htmlroot/img
-#    PDPHELP          /opt/asnmtap-3.000.xxx/applications/htmlroot/pdf
-#    RESULTS          /opt/asnmtap-3.000.xxx/results
+#    HTTPS            /opt/asnmtap/applications/htmlroot
+#    IMAGES           /opt/asnmtap/applications/htmlroot/img
+#    PDPHELP          /opt/asnmtap/applications/htmlroot/pdf
+#    RESULTS          /opt/asnmtap/results
 #    SSHKEY           /home
 #    WWWKEY           /var/www
 </PATH>
@@ -238,6 +238,7 @@
 
 #<DATABASE>
 #    ASNMTAP          asnmtap
+#    CATALOGID        CID
 #</DATABASE>
 
 #<TABLES>

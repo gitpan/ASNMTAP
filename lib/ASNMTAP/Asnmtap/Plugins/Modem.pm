@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Plugins::Modem Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Modem::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Modem::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -290,7 +290,7 @@ sub get_modem_request {
       ($$ok, $$answer) = $$modem->dial( $$parms{phonenumber}, $$parms{timeout} );
       $$answer = '<no answer>' unless ( defined $$answer );
 
-       print 'ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: ', ( $$ok ? 'Dialed' : 'Cannot Dial' ), '['. $$parms{phonenumber} ."], answer: $$answer\n" if ($debug);
+      print 'ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::_test_modem: ', ( $$ok ? 'Dialed' : 'Cannot Dial' ), '['. $$parms{phonenumber} ."], answer: $$answer\n" if ($debug);
     } else {
       $$modem = undef;
     }
@@ -310,11 +310,12 @@ sub get_modem_request {
     my ($pppStatus, $exit);
 
     if ( $parms{windows} ) {
-      eval { no strict 'subs'; $hrasconn = RasDial( $parms{phonebook}, $parms{phonenumber}, $parms{username}, $parms{password} ) or _error_trap_modem ( 'Cannot DIAL to '. $parms{phonenumber}, Win32::RASE::FormatMessage, $debug ) };
+      eval { no strict 'subs'; $hrasconn = RasDial( $parms{phonebook}, $parms{phonenumber}, $parms{username}, $parms{password} ) or _error_trap_modem ( 'Cannot Dial to '. $parms{phonenumber}, Win32::RASE::FormatMessage, $debug ) };
     } else {
       $$asnmtapInherited->call_system ( $ROUTECOMMAND .' del default' ) if ( $parms{defaultDelete} );
 
-      my $command = 'cd '. $parms{pppPath} .'; '. $PPPDCOMMAND .' '. $parms{port} .' '. $parms{baudrate} .' debug user '. $parms{username} .' call '. $parms{phonebook} ." connect \"$CHATCOMMAND -v ABORT BUSY ABORT 'NO CARRIER' ABORT VOICE ABORT 'NO DIALTONE' ABORT 'NO DIAL TONE' ABORT 'NO ANSWER' ABORT DELAYED '' ATZ OK AT OK ATDT". $parms{phonenumber} ." CONNECT '\\d\\c'\" defaultroute";
+      my $ATZ= ''; # APE: there are modems that have problems with the command 'ATZ' ! # ' ATZ OK';
+      my $command = 'cd '. $parms{pppPath} .'; '. $PPPDCOMMAND .' '. $parms{port} .' '. $parms{baudrate} .' debug user '. $parms{username} .' call '. $parms{phonebook} ." connect \"$CHATCOMMAND -v ABORT BUSY ABORT 'NO CARRIER' ABORT VOICE ABORT 'NO DIALTONE' ABORT 'NO DIAL TONE' ABORT 'NO ANSWER' ABORT DELAYED ''". $ATZ ." ATDT". $parms{phonenumber} ." CONNECT '\\d\\c'\" defaultroute";
       print "ASNMTAP::Asnmtap::Plugins::Modem::get_modem_request::pppd: $command\n" if ($debug);
 
       if ( $$asnmtapInherited->call_system ( "$command" ) ) {
@@ -335,10 +336,14 @@ sub get_modem_request {
             } else {
               $not_connected_guess++
             }
+
+            undef $info;
+          } else {
+            $$asnmtapInherited->pluginValues ( { alert => "info '". $parms{phonebook} ."' not defined" }, $TYPE{APPEND} );
+            $not_connected_guess++
           }
 
           sleep (1);
-          undef $info;
         } until (defined $hrasconn || $exit);
 
         alarm (0); $SIG{ALRM} = 'DEFAULT';
@@ -362,7 +367,7 @@ sub get_modem_request {
       return ( $returnCode ) if ( $returnCode = _test_modem ( $asnmtapInherited, \%parms, \$modem, \$ok, \$answer, \$not_connected_guess, ! $modem_not_ras, $debug ) );
 
       if ( $parms{windows} ) {
-        $$asnmtapInherited->pluginValues ( { alert => "Cannot DIAL to '" .$parms{phonenumber}. "'" }, $TYPE{APPEND} );
+        $$asnmtapInherited->pluginValues ( { alert => "Cannot Dial to '" .$parms{phonenumber}. "'" }, $TYPE{APPEND} );
         $not_connected_guess++;
       }
     }
@@ -412,7 +417,7 @@ sub get_modem_request {
   } else {
     $$asnmtapInherited->call_system ( $ROUTECOMMAND .' del default' ) if ( $parms{defaultDelete} );
     $$asnmtapInherited->call_system ( $KILLALLCOMMAND .' -HUP pppd' );
-    $$asnmtapInherited->call_system ( $ROUTECOMMAND .' add default gw '. $parms{defaultGateway} .' dev '. $parms{defaultInterface} );
+    $$asnmtapInherited->call_system ( $ROUTECOMMAND .' add default gw '. $parms{defaultGateway} .' dev '. $parms{defaultInterface} ); # if ( $parms{defaultDelete} );
   }
 
   $returnCode = ( $not_connected_guess ) ? $ERRORS{UNKNOWN} : $returnCode;

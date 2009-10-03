@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, create_weblogic_configuration_database_with_SNMP.pl
+# 2009/mm/dd, v3.001.000, create_weblogic_configuration_database_with_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_weblogic_configuration_database_with_SNMP.pl',
   _programDescription => 'Create Weblogic Configuration Database with SNMP',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '[--uKey|-K=<uKey>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-K, --uKey=<uKey>
 -s, --server=<hostname> (default: localhost)
@@ -45,7 +45,7 @@ my $database  = $objectPlugins->getOptionsArgv ('database') ? $objectPlugins->ge
 my $username  = $objectPlugins->getOptionsArgv ('username') ? $objectPlugins->getOptionsArgv ('username') : 'jUnit';
 my $password  = $objectPlugins->getOptionsArgv ('password') ? $objectPlugins->getOptionsArgv ('password') : '<PASSWORD>';
 
-my $uniquekey = $objectPlugins->getOptionsArgv ('uKey');
+my $uniqueKey = $objectPlugins->getOptionsArgv ('uKey');
 my $debug     = $objectPlugins->getOptionsValue ('debug');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,7 +86,7 @@ if ( $dbh ) {
   my ( $adminName, $hosts, $community, $environment, $version, $activated, $uKey );
 
   my $sqlSTRING = 'SELECT ADMIN_NAME, HOSTS, COMMUNITY, VERSION, ENV, ACTIVATED, uKey FROM `ADMIN_CONFIG`';
-  $sqlSTRING .= " WHERE UKEY='$uniquekey'" if ( defined $uniquekey );
+  $sqlSTRING .= " WHERE UKEY='$uniqueKey'" if ( defined $uniqueKey );
   print "    $sqlSTRING\n" if ( $debug );
   $sth = $dbh->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
   $sth->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;

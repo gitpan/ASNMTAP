@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+# 2009/mm/dd, v3.001.000, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.020;
+use ASNMTAP::Time v3.001.000;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.020;
-use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
+use ASNMTAP::Asnmtap::Applications v3.001.000;
+use ASNMTAP::Asnmtap::Applications qw($CATALOGID &sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create ASNMTAP weblogic configuration for SNMP',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '[--update] [--hostname] [--domain=<domain>] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--update
 --hostname
@@ -141,7 +141,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
 
       # plugins
       my ($_uKey, $_title, $_environment, $_step, $_helpPluginFilename, $_holidayBundleID, $_activated);
-      $sqlSTRING = "SELECT uKey, title, environment, step, helpPluginFilename, holidayBundleID, activated FROM `plugins` WHERE uKey='$uKey' order by uKey";
+      $sqlSTRING = "SELECT uKey, title, environment, step, helpPluginFilename, holidayBundleID, activated FROM `plugins` WHERE catalogID='$CATALOGID' and uKey='$uKey' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
       $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
       $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
@@ -190,15 +190,15 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `plugins` SET title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated' WHERE uKey='$uKey'";
+            $sqlUPDATE = "UPDATE `plugins` SET title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated' WHERE catalogID='$CATALOGID' and uKey='$uKey'";
             $actions .= "  ASNMTAP: $sqlUPDATE\n";
-            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
+            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
           }
         } else {
           $actions .= "  ASNMTAP: ukey '$uKey' doesn't exist\n";
-          my $sqlINSERT = "INSERT INTO `plugins` SET uKey='$uKey', title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated'";
+          my $sqlINSERT = "INSERT INTO `plugins` SET catalogID='$CATALOGID', uKey='$uKey', title='$pluginTitle$adminName$weblogicVersionTitle', arguments=\"$pluginDatabaseArguments --uKey=$uKey --community=$community" . ( defined $hostname ? " --host=$adminHost" : '' ) . ( defined $weblogicConfig ? " --weblogicConfig='$weblogicConfig'" : '' ) . ( defined $adminConsole ? " --adminConsole=$adminConsole" : '' ) . "\", environment='$_Environment', test='$pluginTest', $pluginTemplate, holidayBundleID='$holidayBundleID', step='$step', activated='$activated'";
           $actions .= "  ASNMTAP: $sqlINSERT\n";
-          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
+          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
 
         $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
@@ -206,7 +206,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
 
       # views
       my ($_displayDaemon, $_displayGroupID);
-      $sqlSTRING = "SELECT uKey, displayDaemon, displayGroupID, activated FROM `views` WHERE uKey='$uKey' order by uKey";
+      $sqlSTRING = "SELECT uKey, displayDaemon, displayGroupID, activated FROM `views` WHERE catalogID='$CATALOGID' and uKey='$uKey' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
       $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
       $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
@@ -233,15 +233,15 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `views` SET displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated' WHERE uKey='$uKey'";
+            $sqlUPDATE = "UPDATE `views` SET displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated' WHERE catalogID='$CATALOGID' and uKey='$uKey'";
             $actions .= "  ASNMTAP: $sqlUPDATE\n";
-            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
+            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
           }
         } else {
           $actions .= "  ASNMTAP: ukey '$uKey' doesn't exist\n";
-          my $sqlINSERT = "INSERT INTO `views` SET uKey='$uKey', displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated'";
+          my $sqlINSERT = "INSERT INTO `views` SET catalogID='$CATALOGID', uKey='$uKey', displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated'";
           $actions .= "  ASNMTAP: $sqlINSERT\n";
-          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
+          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
 
         $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );
@@ -249,7 +249,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
 
       # crontabs
       my ($_lineNumber, $_collectorDaemon, $_arguments, $_minute, $_hour, $_dayOfTheMonth, $_monthOfTheYear, $_dayOfTheWeek, $_noOffline);
-      $sqlSTRING = "SELECT uKey, lineNumber, collectorDaemon, arguments, minute, hour, dayOfTheMonth, monthOfTheYear, dayOfTheWeek, noOffline, activated FROM `crontabs` WHERE uKey='$uKey' and lineNumber='00' order by uKey";
+      $sqlSTRING = "SELECT uKey, lineNumber, collectorDaemon, arguments, minute, hour, dayOfTheMonth, monthOfTheYear, dayOfTheWeek, noOffline, activated FROM `crontabs` WHERE catalogID='$CATALOGID' and uKey='$uKey' and lineNumber='00' order by uKey";
       $actions .= "  ASNMTAP: $sqlSTRING\n" if ( $debug );
       $sthASNMTAP = $dbhASNMTAP->prepare( $sqlSTRING ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->prepare: '. $sqlSTRING );
       $sthASNMTAP->execute() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->execute: '. $sqlSTRING ) if $rv;
@@ -286,15 +286,15 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `crontabs` SET collectorDaemon='". $collectorDaemon{$environment} ."', arguments='$arguments', minute='$minute', hour='$hour', dayOfTheMonth='$dayOfTheMonth', monthOfTheYear='$monthOfTheYear', dayOfTheWeek='$dayOfTheWeek', noOffline='$noOffline', activated='$activated' WHERE uKey='$uKey' and lineNumber='00'";
+            $sqlUPDATE = "UPDATE `crontabs` SET collectorDaemon='". $collectorDaemon{$environment} ."', arguments='$arguments', minute='$minute', hour='$hour', dayOfTheMonth='$dayOfTheMonth', monthOfTheYear='$monthOfTheYear', dayOfTheWeek='$dayOfTheWeek', noOffline='$noOffline', activated='$activated' WHERE catalogID='$CATALOGID' and uKey='$uKey' and lineNumber='00'";
             $actions .= "  ASNMTAP: $sqlUPDATE\n";
-            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
+            unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
           }
         } else {
           $actions .= "  ASNMTAP: ukey '$uKey' doesn't exist\n";
-          my $sqlINSERT = "INSERT INTO `crontabs` SET uKey='$uKey', lineNumber='00', collectorDaemon='". $collectorDaemon{$environment} ."', arguments='$arguments', minute='$minute', hour='$hour', dayOfTheMonth='$dayOfTheMonth', monthOfTheYear='$monthOfTheYear', dayOfTheWeek='$dayOfTheWeek', noOffline='$noOffline', activated='$activated'";
+          my $sqlINSERT = "INSERT INTO `crontabs` SET catalogID='$CATALOGID', uKey='$uKey', lineNumber='00', collectorDaemon='". $collectorDaemon{$environment} ."', arguments='$arguments', minute='$minute', hour='$hour', dayOfTheMonth='$dayOfTheMonth', monthOfTheYear='$monthOfTheYear', dayOfTheWeek='$dayOfTheWeek', noOffline='$noOffline', activated='$activated'";
           $actions .= "  ASNMTAP: $sqlINSERT\n";
-          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
+          unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
 
         $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );

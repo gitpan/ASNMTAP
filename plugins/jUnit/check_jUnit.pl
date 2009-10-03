@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_jUnit.pl
+# 2009/mm/dd, v3.001.000, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.000.020;
+use ASNMTAP::Asnmtap::Plugins::XML v3.001.000;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -54,8 +54,8 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 
 my $environment = $objectPlugins->getOptionsArgv ('environment');
 
-my $uniquekey   = $objectPlugins->getOptionsArgv ('uKey');
-$objectPlugins->printUsage ( 'Missing uKey' ) unless ( defined $uniquekey );
+my $uniqueKey   = $objectPlugins->getOptionsArgv ('uKey');
+$objectPlugins->printUsage ( 'Missing uKey' ) unless ( defined $uniqueKey );
 
 my $jUnitServer = $objectPlugins->getOptionsArgv ('jUnitServer');
 $objectPlugins->printUsage ( 'Missing jUnitServer' ) unless ( defined $jUnitServer );
@@ -109,7 +109,7 @@ my $jUnitService        = 'jUnit';
 my $jUnitUsername       = 'junitmanager';
 my $jUnitPassword       = 'tdvmim';
 my $jUnitRequest        = 'junitserver signal SENT_OK';
-my $jUnitUkey           = $uniquekey;
+my $jUnitUkey           = $uniqueKey;
 my $jUnitType           = ($onDemand) ? '0' : '1';
 my $jUnitSvparam        = (defined $svParam) ? $svParam : '';
 my $jUnitMaxtime        = (defined $maxtime) ? $maxtime : 30;
@@ -417,8 +417,10 @@ if ($dbh and $rv) {
       my $sqlMOVE = 'INSERT INTO `' .$jUnitServerTablDRA. '` SELECT * FROM `' .$jUnitServerTablDR. '` WHERE RESULT_ID = "' .$RESULT_ID. '"';
       $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlMOVE");
 
-      $sqlMOVE = 'DELETE FROM `' .$jUnitServerTablDR. '` WHERE RESULT_ID = "' .$RESULT_ID. '"';
-      $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlMOVE");
+      if ( $rv ) {
+        $sqlMOVE = 'DELETE FROM `' .$jUnitServerTablDR. '` WHERE RESULT_ID = "' .$RESULT_ID. '"';
+        $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlMOVE");
+      }
     }
 
     $httpdumpMessage .= "</BODY>\n</HTML>" if (defined $httpdumpMessage);

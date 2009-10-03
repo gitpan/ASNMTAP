@@ -14,7 +14,7 @@ We are working onto an new Object Oriented version for the ASNMTAP Applications
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications/etc
+=item located at /opt/asnmtap/applications/etc
 
 =over 4
 
@@ -28,7 +28,7 @@ when the Application CGI module and CGI applications are installed, these config
 
 =item format
 
- Format: <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultsdir>#<Title nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultsdir>#<Title mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]
+ Format: <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultsdir>#<Title nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultsdir>#<Title mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]
 
    <minute (0-59)> 						    : minute to schedule this plugin(s)
    <hour (0-23)>							: hour to schedule this plugin(s)
@@ -36,7 +36,8 @@ when the Application CGI module and CGI applications are installed, these config
    <month of the year (1-12)>				: month of the year to schedule this plugin(s)
    <day of the week (0-6 with 0=Sunday)>	: day of the week to schedule this plugin(s)
    <interval (1-30 min)>					: test interval for this plugin(s)
-   <uniqueKey>								: uniqueKey key for this plugin
+   <catalogID>                              : unique catalogID
+   <uniqueKey>								: unique key for this plugin
    <resultsdir>                             : the results subdir to store the data regarding this plugin
    <Title nnn>								: Description for this plugin
    /check_nnn								: plugin name
@@ -47,29 +48,29 @@ when the Application CGI module and CGI applications are installed, these config
 		
 =item example
 
- more /opt/asnmtap-3.000.xxx/applications/etc/CollectorCT-test
+ more /opt/asnmtap/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.000.020 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.001.000 or higher
  #
- # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> <uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[noOFFLINE|multiOFFLINE|noTEST]]
+ # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  #
- 1-59/4 7-21/2 * * * 2 DUMMY-T1#test-01#DUMMY-T1#check_dummy.pl -r 0 --trendline=0
+ 1-59/4 7-21/2 * * * 2 CID_DUMMY-T1#test-01#DUMMY-T1#check_dummy.pl -r 0 --trendline=0
  #
- 1-59/6 7-21/2 * * * 2 DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 1 --trendline=1#noOFFLINE
- 3-59/6 7-21/2 * * * 2 DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 2 --trendline=1#noOFFLINE
- 3-59/6 8-22/2 * * * 2 DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 3 --trendline=1#noOFFLINE
- 1-59/6 8-22/2 * * * 2 DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 0 --trendline=1#noOFFLINE
+ 1-59/6 7-21/2 * * * 2 CID_DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 1 --trendline=1#noOFFLINE
+ 3-59/6 7-21/2 * * * 2 CID_DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 2 --trendline=1#noOFFLINE
+ 3-59/6 8-22/2 * * * 2 CID_DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 3 --trendline=1#noOFFLINE
+ 1-59/6 8-22/2 * * * 2 CID_DUMMY-T2#test-02#DUMMY-T2#check_dummy.pl -r 0 --trendline=1#noOFFLINE
  #
- 1-59/6 8-22/2 * * * 2 DUMMY-T3#test-03#DUMMY-T3#check_dummy.pl -r 1 --trendline=2#multiOFFLINE
- 3-59/6 8-22/2 * * * 2 DUMMY-T3#test-03#DUMMY-T3#check_dummy.pl -r 2 --trendline=2#multiOFFLINE
+ 1-59/6 8-22/2 * * * 2 CID_DUMMY-T3#test-03#DUMMY-T3#check_dummy.pl -r 1 --trendline=2#multiOFFLINE
+ 3-59/6 8-22/2 * * * 2 CID_DUMMY-T3#test-03#DUMMY-T3#check_dummy.pl -r 2 --trendline=2#multiOFFLINE
  #
- 1-59/4 8-22/2 * * * 2 DUMMY-T4#test-04#DUMMY-T4#check_dummy.pl -r 0 --trendline=3#noTEST
+ 1-59/4 8-22/2 * * * 2 CID_DUMMY-T4#test-04#DUMMY-T4#check_dummy.pl -r 0 --trendline=3#noTEST
  #
- 1-5/2,17-21/2,33-37/2,49-53/2 * * * * 2 DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 0 --trendline=5#noOFFLINE
- 9-13/2,25-29/2,41-45/2,57-59/2 * * * * 2 DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 0 --trendline=5#noOFFLINE
- 7-59/8 * * * * 2 DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 2 --trendline=5#noOFFLINE
+ 1-5/2,17-21/2,33-37/2,49-53/2 * * * * 2 CID_DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 0 --trendline=5#noOFFLINE
+ 9-13/2,25-29/2,41-45/2,57-59/2 * * * * 2 CID_DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 0 --trendline=5#noOFFLINE
+ 7-59/8 * * * * 2 CID_DUMMY-T5#test-05#Condenced View test#check_dummy.pl -r 2 --trendline=5#noOFFLINE
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  # Einde CollectorCT-test - CTP-CENTRAL
@@ -78,7 +79,7 @@ when the Application CGI module and CGI applications are installed, these config
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/master
+=item located at /opt/asnmtap/applications/master
 
 =over 4
 
@@ -88,7 +89,7 @@ when the Application CGI module and CGI applications are installed, these config
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/slave
+=item located at /opt/asnmtap/applications/slave
 
 =over 4
 
@@ -104,7 +105,7 @@ when the Application CGI module and CGI applications are installed, these config
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications
+=item located at /opt/asnmtap/applications
 
 =over 4
 
@@ -138,16 +139,16 @@ the PID files his atime and mtime is updated every timeslot, to make monitoring 
 
  $perfParseMethode = 'PULP'
 
- cd /opt/asnmtap-3.000.xxx/applications/sbin
+ cd /opt/asnmtap/applications/sbin
  mv perfparse_crontab.sh-orig perfparse_crontab.sh
  chmod 755 perfparse_crontab.sh
 
- when 'crontab': 0,5,10,15,20,25,30,35,40,45,50,55 * * * * /opt/asnmtap-3.000.xxx/applications/sbin/perfparse_crontab.sh > /dev/null
+ when 'crontab': 0,5,10,15,20,25,30,35,40,45,50,55 * * * * /opt/asnmtap/applications/sbin/perfparse_crontab.sh > /dev/null
 
  mv perfparse_crontab_failed.sh-orig perfparse_crontab_failed.sh
  chmod 755 perfparse_crontab_failed.sh
 
- when 'crontab':  30 23 * * * /opt/asnmtap-3.000.xxx/applications/sbin/perfparse_crontab_failed.sh > /dev/null
+ when 'crontab':  30 23 * * * /opt/asnmtap/applications/sbin/perfparse_crontab_failed.sh > /dev/null
 
 
 =item 4) Pipe to Perfparse
@@ -174,7 +175,7 @@ test version from the program collector.pl
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/master
+=item located at /opt/asnmtap/applications/master
 
 =over 4
 
@@ -192,7 +193,7 @@ shell script to start, stop, reload, restart or get status for all the Collector
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/slave
+=item located at /opt/asnmtap/applications/slave
 
 =over 4
 

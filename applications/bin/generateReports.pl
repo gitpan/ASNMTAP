@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, generateReports.pl for ASNMTAP::Applications
+# 2009/mm/dd, v3.001.000, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,9 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.000.020;
+use ASNMTAP::Asnmtap::Applications v3.001.000;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
+                                      $CATALOGID
                                       $REPORTDIR
                                       $RESULTSPATH
                                       $REMOTE_HOST $HTTPSURL
@@ -44,7 +45,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -199,18 +200,18 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
 
   if ($dbh and $rv) {
-    my ($id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showComments, $showPerfdata, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID, $test, $resultsdir);
-    $sql = "select id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showComments, showPerfdata, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, timeperiodID from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $uKeySqlWhere $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by uKey";
+    my ($id, $catalogID, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showComments, $showPerfdata, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID, $test, $resultsdir);
+    $sql = "select id, $SERVERTABLREPORTS.catalogID, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showComments, showPerfdata, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, timeperiodID from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $uKeySqlWhere $SERVERTABLREPORTS.catalogID = '$CATALOGID' and $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by uKey";
     $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
     $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-    $sth->bind_columns( \$id, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showComments, \$showPerfdata, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword, \$timeperiodID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+    $sth->bind_columns( \$id, \$catalogID, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showComments, \$showPerfdata, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword, \$timeperiodID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
 
     my @commands = (); my @pdfFilenames = ();
 
     if ( $rv ) {
       if ( $sth->rows ) {
         while( $sth->fetch() ) {
-          $emailMessage = ($debug >= 2) ? "--> $id, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showComments, $showPerfdata, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID\n" : '';
+          $emailMessage = ($debug >= 2) ? "--> $id, $catalogID, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showComments, $showPerfdata, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID\n" : '';
           my ($urlAccessParameters, $periodeMessage);
 
           if ($periode eq 'D') {
@@ -240,6 +241,7 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
 
           if (defined $urlAccessParameters) {
             $urlAccessParameters  = "htmlToPdf=1&$urlAccessParameters";
+            $urlAccessParameters .= "&catalogID=$catalogID";
             $urlAccessParameters .= "&uKey1=$uKey&uKey2=none&uKey3=none";
             $urlAccessParameters .= "&detailed=on";
             $urlAccessParameters .= "&statuspie=on" if($status);
@@ -254,7 +256,7 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
             $urlAccessParameters .= "&topx=on" if($showTop20SlowTests);
             $urlAccessParameters .= "&pf=on" if($printerFriendlyOutput);
 
-            $sql = "select test, resultsdir from $SERVERTABLPLUGINS where ukey = '$uKey' order by uKey";
+            $sql = "select test, resultsdir from $SERVERTABLPLUGINS where catalogID = '$catalogID' and ukey = '$uKey' order by uKey";
             my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
             $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
 
@@ -279,7 +281,8 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
 
             my $dayReportMonthPdf = ($dayReportMonth < 10) ? "0$dayReportMonth" : $dayReportMonth;
 		    my $dayReportDayPdf = ($dayReportDay < 10) ? "0$dayReportDay" : $dayReportDay;
-            my $pdfFilename = "$RESULTSPATH/$resultsdir/$REPORTDIR/$dayReportYear$dayReportMonthPdf$dayReportDayPdf-$test-$uKey-$periodeMessage-id_$id.pdf";
+            my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
+            my $pdfFilename = "$RESULTSPATH/$resultsdir/$REPORTDIR/$dayReportYear$dayReportMonthPdf$dayReportDayPdf-$test-$catalogID_uKey-$periodeMessage-id_$id.pdf";
             my $encodedUrlAccessParameters = encode_html_entities('U', $urlAccessParameters);
             my $user_password = (defined $userPassword and $userPassword ne '' ? '--user-password '. $userPassword : '');
             my $command = "$HTMLTOPDFPRG -f '$pdfFilename' $user_password $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$HTTPSURL/cgi-bin/detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl?$encodedUrlAccessParameters'";

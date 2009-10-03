@@ -1,7 +1,7 @@
-^ASNMTAP-3.000.020.tar.gz$
+^ASNMTAP-3.001.000.tar.gz$
 ^Makefile$
 ^MANIFEST.bak$
-^MANIFEST-3.000.020$
+^MANIFEST-3.001.000$
 ^TODO$
 \bautoconf/\b
 \bapplications/etc/\b

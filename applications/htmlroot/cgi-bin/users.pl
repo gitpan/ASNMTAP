@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, users.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, users.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "users.pl";
 my $prgtext     = "Users";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,6 +41,7 @@ my $pagedir             = (defined $cgi->param('pagedir'))       ? $cgi->param('
 my $pageset             = (defined $cgi->param('pageset'))       ? $cgi->param('pageset')       : 'index-cv'; $pageset =~ s/\+/ /g;
 my $debug               = (defined $cgi->param('debug'))         ? $cgi->param('debug')         : 'F';
 my $action              = (defined $cgi->param('action'))        ? $cgi->param('action')        : 'editView';
+my $CcatalogID          = (defined $cgi->param('catalogID'))     ? $cgi->param('catalogID')     : $CATALOGID;
 my $CremoteUser         = (defined $cgi->param('remoteUser'))    ? $cgi->param('remoteUser')    : '';
 my $CremoteAddr         = (defined $cgi->param('remoteAddr'))    ? $cgi->param('remoteAddr')    : '';
 my $CremoteNetmask      = (defined $cgi->param('remoteNetmask')) ? $cgi->param('remoteNetmask') : '';
@@ -62,10 +63,10 @@ my ($rv, $dbh, $sth, $sql, $nextAction, $submitButton, $keyLanguageSelect, $give
 my ($sessionID, undef, undef, undef, undef, undef, undef, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Users", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&password=$Cpassword&keyLanguage=$CkeyLanguage";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action&catalogID=$CcatalogID&remoteUser=$CremoteUser&remoteAddr=$CremoteAddr&remoteNetmask=$CremoteNetmask&givenName=$CgivenName&familyName=$CfamilyName&email=$Cemail&password=$Cpassword&keyLanguage=$CkeyLanguage";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>action        : $action<br>remote user   : $CremoteUser<br>remote address: $CremoteAddr<br>remote netmask: $CremoteNetmask<br>given name    : $CgivenName<br>surname       : $CfamilyName<br>email         : $Cemail<br>password      : $Cpassword<br>key language  : $CkeyLanguage<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>action        : $action<br>catalog ID    : $CcatalogID<br>remote user   : $CremoteUser<br>remote address: $CremoteAddr<br>remote netmask: $CremoteNetmask<br>given name    : $CgivenName<br>surname       : $CfamilyName<br>email         : $Cemail<br>password      : $Cpassword<br>key language  : $CkeyLanguage<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
@@ -78,24 +79,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   if ($dbh and $rv) {
     if ($action eq 'editView') {
       $CremoteUser  = $remoteUserLoggedOn if (defined $remoteUserLoggedOn);
-      $htmlTitle    = "Edit user $CremoteUser";
+      $htmlTitle    = "Edit user $CremoteUser from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "User $CremoteUser updated";
+      $htmlTitle    = "User $CremoteUser from $CcatalogID updated";
       my $dummyPassword  = ($Cpassword eq "***************") ? '' : ', password="' .$Cpassword. '"';
-      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '"' .$dummyPassword. ', keyLanguage="' .$CkeyLanguage. '" WHERE remoteUser="' .$CremoteUser. '"';
+      $sql = 'UPDATE ' .$SERVERTABLUSERS. ' SET givenName="' .$CgivenName. '", familyName="' .$CfamilyName. '", email="' .$Cemail. '"' .$dummyPassword. ', keyLanguage="' .$CkeyLanguage. '" WHERE catalogID="' .$CcatalogID. '" and remoteUser="' .$CremoteUser. '"';
       $dbh->do( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     }
 
     if ($action eq 'editView') {
-      $sql = "select remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, password, keyLanguage from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+      $sql = "select catalogID, remoteUser, remoteAddr, remoteNetmask, givenName, familyName, email, password, keyLanguage from $SERVERTABLUSERS where catalogID = '$CcatalogID' and remoteUser = '$CremoteUser'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CremoteUser, $CremoteAddr, $CremoteNetmask, $CgivenName, $CfamilyName, $Cemail, $Cpassword, $CkeyLanguage) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
         $Cpassword = "***************" if ($Cpassword ne '');
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -200,6 +201,7 @@ function validateForm() {
   <input type="hidden" name="debug"      value="$debug">
   <input type="hidden" name="CGISESSID"  value="$sessionID">
   <input type="hidden" name="action"     value="$nextAction">
+  <input type="hidden" name="catalogID"  value="$CcatalogID">
   <input type="hidden" name="remoteUser" value="$CremoteUser">
   <input type="hidden" name="password"   value="$Cpassword">
 HTML
@@ -216,6 +218,9 @@ HTML
     if ($action eq 'editView') {
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
+    <tr><td><b>Catalog ID: </b></td><td>
+      <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+    </td></tr>
     <tr><td><b>Remote User: </b></td><td>
       <input type="text" name="remoteUser" value="$CremoteUser" size="15" maxlength="15" disabled>
     </td></tr><tr><td>Remote Address: </td><td>

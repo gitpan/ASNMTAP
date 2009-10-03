@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications::Collector
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -44,7 +44,7 @@ BEGIN {
 
                                                                                 $APPLICATIONPATH $PLUGINPATH
 
-                                                                                $DATABASE 
+                                                                                $DATABASE $CATALOGID
                                                                                 $DEBUGDIR
                                                                                 $HTTPSPATH $RESULTSPATH $PIDPATH
                                                                                 $CHARTDIRECTORLIB
@@ -85,12 +85,12 @@ BEGIN {
                                                                                   &set_doIt_and_doOffline
                                                                                   &create_header &create_footer)],
 
-                                                             DBCOLLECTOR  => [ qw($DATABASE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
+                                                             DBCOLLECTOR  => [ qw($DATABASE $CATALOGID $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                                   $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ] );
 
   @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

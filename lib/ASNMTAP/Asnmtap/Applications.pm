@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Applications
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -46,7 +46,7 @@ BEGIN {
                                                                        $APPLICATIONPATH $PLUGINPATH
  							   
                                                                        $ASNMTAPMANUAL
-                                                                       $DATABASE
+                                                                       $DATABASE $CATALOGID
                                                                        $AWSTATSENABLED
                                                                        $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                        $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $SSHKEYPATH $WWWKEYPATH
@@ -88,14 +88,14 @@ BEGIN {
                                                                        &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
                                                                        &_dumpValue) ],
 
-                                                  ARCHIVE      => [ qw($DATABASE
+                                                  ARCHIVE      => [ qw($DATABASE $CATALOGID
                                                                        $DEBUGDIR $REPORTDIR
                                                                        $CGISESSPATH $RESULTSPATH
                                                                        $SMTPUNIXSYSTEM $SERVERLISTSMTP $SERVERSMTP $SENDMAILFROM
                                                                        &read_table &get_session_param
                                                                        &init_email_report &send_email_report) ],
 
-                                                  DBARCHIVE    => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE $SERVERTABLEVENTS $SERVERTABLCOMMENTS)],
+                                                  DBARCHIVE    => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE $SERVERTABLEVENTS $SERVERTABLCOMMENTS)],
 
                                                   COLLECTOR    => [ qw($APPLICATIONPATH
 
@@ -111,7 +111,7 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
 
-                                                  DBCOLLECTOR  => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
+                                                  DBCOLLECTOR  => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
  
                                                   DISPLAY      => [ qw($APPLICATIONPATH
@@ -127,13 +127,13 @@ BEGIN {
 
                                                                        &print_revision &usage &call_system) ],
  
-                                                  DBDISPLAY    => [ qw($DATABASE $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
+                                                  DBDISPLAY    => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
                                                                        $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
 									   
                                                   CGI          => [ qw($APPLICATIONPATH
 
                                                                        $ASNMTAPMANUAL
-                                                                       $DATABASE
+                                                                       $DATABASE $CATALOGID
                                                                        $AWSTATSENABLED
                                                                        $CONFIGDIR $CGISESSDIR $DEBUGDIR $REPORTDIR $RESULTSDIR
                                                                        $CGISESSPATH $HTTPSPATH $IMAGESPATH $PDPHELPPATH $RESULTSPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH $SSHKEYPATH $WWWKEYPATH
@@ -158,7 +158,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,7 +257,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -356,6 +356,7 @@ our $HTMLTOPDFHOW      = ( exists $_config{COMMON}{HTMLTOPDF}{HOW}      ? $_conf
 our $HTMLTOPDFOPTNS    = ( exists $_config{COMMON}{HTMLTOPDF}{OPTIONS}  ? $_config{COMMON}{HTMLTOPDF}{OPTIONS}  : "--bodyimage $IMAGESPATH/logos/bodyimage.gif --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage" );
 
 our $DATABASE          = ( exists $_config{DATABASE}{ASNMTAP}           ? $_config{DATABASE}{ASNMTAP}           : 'asnmtap' );
+our $CATALOGID         = ( exists $_config{DATABASE}{CATALOGID}         ? $_config{DATABASE}{CATALOGID}         : 'CID' );
 
 # CGI.pm  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # archiver.pl - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -602,7 +603,7 @@ sub read_table {
         if ($dummy ne '') { push (@table, $_); }
       }
     }
-	
+
     close(CT);
 
 	if ( $email ) {
@@ -1430,6 +1431,15 @@ sub init_email_report {
   my $emailReport = $RESULTSPATH .'/'. $filename;
   my $rvOpen = ( $debug ) ? '1' : open($EMAILREPORT, "> $emailReport");
 
+  unless ( defined $rvOpen ) {
+    $emailReport = '~/'. $filename;
+    $rvOpen = open($EMAILREPORT, "> $emailReport");
+
+    unless(-e "$emailReport") {
+      print "Cannot create $emailReport to create email report information\n";
+    }
+  }
+
   return ($emailReport, $rvOpen);
 }
 
@@ -1439,7 +1449,7 @@ sub send_email_report {
   my ($EMAILREPORT, $emailReport, $rvOpen, $prgtext, $debug) = @_;
 
   my $returnCode;
-  
+
   if ( $rvOpen and ! $debug ) {
     close($EMAILREPORT);
 
@@ -1452,7 +1462,8 @@ sub send_email_report {
         close($EMAILREPORT);
 
         if (defined $emailMessage) {
-          my $subject = "$prgtext / Daily status: ". get_csvfiledate();
+          use Sys::Hostname;
+          my $subject = $prgtext .' / Daily status from '. hostname() .': '. get_csvfiledate();
           $returnCode = sending_mail ( $SERVERLISTSMTP, $SENDEMAILTO, $SENDMAILFROM, $subject, $emailMessage, $debug );
           print "Problem sending email to the '$APPLICATION' server administrators\n" unless ( $returnCode );
         }
@@ -1481,7 +1492,8 @@ sub sending_mail {
   $mailcfg{debug}    = ($debug eq 'T') ? 1 : 0;
   $mailcfg{smtp}     = $serverListSMTP;
 
-  my %mail = ( To => $mailTo, From => $mailFrom, Subject => $mailSubject, Message => $mailBody );
+  use Sys::Hostname;
+  my %mail = ( To => $mailTo, From => $mailFrom, Subject => $mailSubject .' from '. hostname(), Message => $mailBody );
   my $returnCode = ( sendmail %mail ) ? 1 : 0;
   print "\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log, "\n" if ($debug);
   return ( $returnCode );

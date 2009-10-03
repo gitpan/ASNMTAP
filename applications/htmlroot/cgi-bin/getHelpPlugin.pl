@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Shell;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,16 +32,17 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getHelpPlugin.pl";
 my $prgtext     = "Get help for one '$APPLICATION' plugin";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $uKey    = (defined $cgi->param('uKey'))    ? $cgi->param('uKey')    : '';      $uKey    =~ s/\+/ /g;
-my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : 'index'; $pagedir =~ s/\+/ /g;
-my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : 'F';
+my $CcatalogID = (defined $cgi->param('catalogID')) ? $cgi->param('catalogID') : $CATALOGID;
+my $uKey       = (defined $cgi->param('uKey'))      ? $cgi->param('uKey')      : '';      $uKey    =~ s/\+/ /g;
+my $pagedir    = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : 'index'; $pagedir =~ s/\+/ /g;
+my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -49,19 +50,19 @@ $environment = 'P' unless (defined $environment);
 my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Help for Plugin", "uKey=$uKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Help for Plugin", "catalogID=$CcatalogID&uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&uKey=$uKey";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&uKey=$uKey";
 
 # Debug information
-print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>uKey      : $uKey<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>uKey      : $uKey<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   my ($htmlHelpPluginTitle, $htmlHelpPluginFilename, $fileHelpPluginFilename);
   $htmlHelpPluginTitle = $htmlHelpPluginFilename = $fileHelpPluginFilename = '<NIHIL>';
 
-  my $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), helpPluginFilename from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+  my $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), helpPluginFilename from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
 
   my $rv  = 1;
   my $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTitle, 3600, '', $sessionID);	

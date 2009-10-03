@@ -1,6 +1,6 @@
 #!/bin/sh
 
-AMPATH=/opt/asnmtap-3.000.xxx
+AMPATH=/opt/asnmtap-3.001.xxx
 ASNMTAPUSER=asnmtap
 WWWUSER=apache                                               # nobody
 

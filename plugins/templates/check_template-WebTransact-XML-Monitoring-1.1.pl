@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_template-WebTransact-XML-Monitoring-1.1.pl
+# 2009/mm/dd, v3.001.000, check_template-WebTransact-XML-Monitoring-1.1.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.1";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring-1.1.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -108,17 +108,19 @@ my $currentTimeslot = timelocal ((localtime)[0,1,2,3,4,5]);
 my %environment = ( P => 'PROD', S => 'SIM', A => 'ACC', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
 if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Host} eq $hostname and $xml->{Monitoring}{Results}{Details}{Service} eq $service and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^$environment{$environment}$/i) {
-  $debugfileMessage  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<HTML><HEAD><TITLE>$message \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$message @ $APPLICATION</H1><HR>\n";
+  $debugfileMessage  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<HTML><HEAD><TITLE>$message \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$message @ $APPLICATION</H1><HR>\n";
   $debugfileMessage .= "\n<TABLE WIDTH=\"100%\"><TR><TD>\n<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Environment: $environmentText</H3></TD></TR></TABLE>\n";
   $debugfileMessage .= "\n<TABLE WIDTH=\"100%\">";
   validateResultOrSubResult ( \$xml->{Monitoring}{Results}, 0, $reverse, $debug );
 
-  if ( ref $xml->{Monitoring}{Results}{SubResults} eq 'ARRAY' ) {
-    foreach my $subResults (@{$xml->{Monitoring}{Results}{SubResults}}) {
-      validateResultOrSubResult ( \$subResults, 1, $reverse, $debug );
+  if ( defined $xml->{Monitoring}{Results}{SubResults} ) {
+    if ( ref $xml->{Monitoring}{Results}{SubResults} eq 'ARRAY' ) {
+      foreach my $subResults (@{$xml->{Monitoring}{Results}{SubResults}}) {
+        validateResultOrSubResult ( \$subResults, 1, $reverse, $debug );
+      }
+    } else {
+      validateResultOrSubResult ( \$xml->{Monitoring}{Results}{SubResults}, 1, $reverse, $debug );
     }
-  } else {
-    validateResultOrSubResult ( \$xml->{Monitoring}{Results}{SubResults}, 1, $reverse, $debug );
   }
 
   $debugfileMessage .= "</TABLE>\n";
@@ -153,7 +155,7 @@ sub validateResultOrSubResult {
   # yyyy[-/]mm[-/]dd[+-]hh:mm
   $checkDate = reverse ( $checkDate ) if ($reverse);
   (my $offsetDate, $checkDate) = split (/[+-]/, $checkDate, 2);
-  $checkDate = ( defined $checkDate ) ? $checkDate : $offsetDate;
+  $checkDate = $offsetDate unless ( defined $checkDate );
 
   if ($reverse) {
     $checkDate = reverse ( $checkDate );

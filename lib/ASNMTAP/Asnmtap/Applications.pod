@@ -14,7 +14,7 @@ We are working onto an new Object Oriented version for the ASNMTAP Applications
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications
+=item located at /opt/asnmtap/applications
 
 =over 4
 
@@ -26,23 +26,23 @@ General configuration file for the ASNMTAP Applications
 
 =item HTML to PDF
 
-For testing HTML to PDF you can rename /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif
+For testing HTML to PDF you can rename /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif
 
-You can lateron copy your wanted bodyimage picture to /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPDF>OPTIONS into the Application.cnf config file.
+You can lateron copy your wanted bodyimage picture to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPDF>OPTIONS into the Application.cnf config file.
 
  <COMMON>
    <HTMLTOPDF>
-     OPTIONS --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
+     OPTIONS --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
    </HTMLTOPDF>
  </COMMON>
 
-If you change the --bodyimage parameter, don't forget also to change the same parameter into the file /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/htmldoc.sh for the on the fly HTML to PDF generating.
+If you change the --bodyimage parameter, don't forget also to change the same parameter into the file /opt/asnmtap/applications/htmlroot/cgi-bin/htmldoc.sh for the on the fly HTML to PDF generating.
 
 =back
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/etc
+=item located at /opt/asnmtap/applications/etc
 
 =over 4
 
@@ -56,33 +56,34 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item format
 
- format: <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
+ format: <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
 
    <Pagedir>	: results subdir where the data from the collector is located
-    <uniqueKey>	: uniqueKey key for this plugin
-    check_nnn	: plugin name
+   <catalogID>  : unique catalogID
+   <uniqueKey>	: unique key for this plugin
+   check_nnn	: plugin name
 
 =item example
 
- more /opt/asnmtap-3.000.xxx/applications/etc/ArchiveCT
+ more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.000.020 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.000 or higher
  #
- # <Pagedir>#<uniqueKey>#check_nnn[|<uniqueKey>#check_mmm]
+ # <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  #
- _ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl
+ _ASNMTAP#_ASNMTAP#CID_collectorDaemonSchedulingReports.pl
  #
- test-01#DUMMY-T1#check_dummy.pl
+ test-01#CID_DUMMY-T1#check_dummy.pl
  #
- test-02#DUMMY-T2#check_dummy.pl
+ test-02#CID_DUMMY-T2#check_dummy.pl
  #
- test-03#DUMMY-T3#check_dummy.pl
+ test-03#CID_DUMMY-T3#check_dummy.pl
  #
- test-04#DUMMY-T4#check_dummy.pl
+ test-04#CID_DUMMY-T4#check_dummy.pl
  #
- test-05#DUMMY-T5#check_dummy.pl
+ test-05#CID_DUMMY-T5#check_dummy.pl
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  # Einde ArchiveCT - CTP-CENTRAL
@@ -91,7 +92,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/master
+=item located at /opt/asnmtap/applications/master
 
 =over 4
 
@@ -114,7 +115,7 @@ when the Application CGI module and CGI applications are installed, this config 
    ... Access Denied! Sorry
    Connection to probe closed.
 
- rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap-3.000.xxx/results/test/ asnmtap@probe.citap.be:/opt/asnmtap-3.000.xxx/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp
+ rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap/results/test/ asnmtap@probe.citap.be:/opt/asnmtap/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp
    building file list ... done
    ./
    yyyymmdd-check_dummy-PROBE-01-T1-csv.txt
@@ -137,14 +138,14 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item standalone
 
- ln -s /opt/asnmtap-3.000.xxx/applications/master/root-display.sh   /etc/init.d/root-display
+ ln -s /opt/asnmtap/applications/master/root-display.sh   /etc/init.d/root-display
 
  ln -s /etc/init.d/root-display /etc/rc3.d/S99root-display
  ln -s /etc/init.d/root-display /etc/rc3.d/K99root-display
  ln -s /etc/init.d/root-display /etc/rc2.d/S99root-display
  ln -s /etc/init.d/root-display /etc/rc2.d/K99root-display
  
- ln -s /opt/asnmtap-3.000.xxx/applications/master/root-collector.sh /etc/init.d/root-collector
+ ln -s /opt/asnmtap/applications/master/root-collector.sh /etc/init.d/root-collector
 
  ln -s /etc/init.d/root-collector /etc/rc3.d/S99root-collector
  ln -s /etc/init.d/root-collector /etc/rc3.d/K99root-collector
@@ -214,14 +215,14 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item standalone
 
- ln -s /opt/asnmtap-3.000.xxx/applications/master/root-display.sh   /etc/init.d/root-display
+ ln -s /opt/asnmtap/applications/master/root-display.sh   /etc/init.d/root-display
 
  ln -s /etc/init.d/root-display /etc/rc3.d/S99root-display
  ln -s /etc/init.d/root-display /etc/rc3.d/K99root-display
  ln -s /etc/init.d/root-display /etc/rc0.d/S99root-display
  ln -s /etc/init.d/root-display /etc/rc0.d/K99root-display
  
- ln -s /opt/asnmtap-3.000.xxx/applications/master/root-collector.sh /etc/init.d/root-collector
+ ln -s /opt/asnmtap/applications/master/root-collector.sh /etc/init.d/root-collector
 
  ln -s /etc/init.d/root-collector /etc/rc3.d/S99root-collector
  ln -s /etc/init.d/root-collector /etc/rc3.d/K99root-collector
@@ -287,7 +288,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/slave
+=item located at /opt/asnmtap/applications/slave
 
 =over 4
 
@@ -421,7 +422,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =over 4
 
-=item located at /opt/asnmtap-3.000.xxx/applications
+=item located at /opt/asnmtap/applications
 
 =over 4
 
@@ -456,14 +457,14 @@ the Archiver.
 
 Shell script to run archive.pl with the default command line options
 
- cd /opt/asnmtap-3.000.xxx/applications/
+ cd /opt/asnmtap/applications/
  cp archive.sh-orig archive.sh
  chmod 755 archive.sh
 
  crontab -e
   0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh > /dev/null
 
- cd /opt/asnmtap-3.000.xxx/applications/
+ cd /opt/asnmtap/applications/
  mv archive.sh-orig archive-apache.sh
  chmod 755 archive-apache.sh
  chown <apache>:<apache> archive-apache.sh
@@ -474,7 +475,7 @@ Shell script to run archive.pl with the default command line options
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/bin
+=item located at /opt/asnmtap/applications/bin
 
 =over 4
 
@@ -488,7 +489,7 @@ this program generating automatically Collector Daemon Scheduling Reports in PDF
 
 Shell script to run generateCollectorDaemonSchedulingReports.pl with the default command line options
 
- cd /opt/asnmtap-3.000.xxx/applications/bin
+ cd /opt/asnmtap/applications/bin
  mv generateCollectorDaemonSchedulingReports.sh-orig generateCollectorDaemonSchedulingReports.sh
  chmod 755 generateCollectorDaemonSchedulingReports.sh
 
@@ -503,7 +504,7 @@ this program generate automatically reports in PDF format, defined by the CGI pr
 
 Shell script to run generateReports.pl with the default command line options
 
- cd /opt/asnmtap-3.000.xxx/applications/bin
+ cd /opt/asnmtap/applications/bin
  mv generateReports.sh-orig generateReports.sh
  chmod 755 generateReports.sh
 
@@ -518,7 +519,7 @@ this program automatically set the plugin downtimes, defined by the CGI program 
 
 Shell script to run holidayBundleSetDowntimes.pl with the default command line options
 
- cd /opt/asnmtap-3.000.xxx/applications/bin
+ cd /opt/asnmtap/applications/bin
  mv holidayBundleSetDowntimes.sh-orig holidayBundleSetDowntimes.sh
  chmod 755 holidayBundleSetDowntimes.sh
 
@@ -527,7 +528,7 @@ Shell script to run holidayBundleSetDowntimes.pl with the default command line o
 
 =back
 
-=item located at /opt/asnmtap-3.000.xxx/applications/sbin
+=item located at /opt/asnmtap/applications/sbin
 
 =over 4
 
@@ -535,7 +536,7 @@ Shell script to run holidayBundleSetDowntimes.pl with the default command line o
 
 Shell script to run CollectorCT-*.sh and DisplayCT-*.sh with uid protection.
 
- cd /opt/asnmtap-3.000.xxx/applications/sbin
+ cd /opt/asnmtap/applications/sbin
  mv bash_stop_root.sh-orig bash_stop_root.sh
  chmod 755 bash_stop_root.sh
 
@@ -576,9 +577,9 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
    ssh-keygen -t dsa -f /home/asnmtap/.ssh/asnmtap
 
    vi /home/asnmtap/.ssh/authorized_keys
-   from="localhost", command="/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
+   from="localhost", command="/opt/asnmtap/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
  or with
-   from="localhost", command="ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
+   from="localhost", command="ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap/applications/sbin/sshWrapperASNMTAP.pl" ssh-dss AAAAB3Nza...+90k63Mx...3OmZOk= alex.peeters@citap.be
 
    vi hosts.allow
    ssh: localhost
@@ -587,8 +588,8 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
    ssh: ALL
 
    ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'killall number'
-   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-zombie.pid'
-   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-test.sh stop'
+   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'remove /opt/asnmtap/pid/CollectorCT-zombie.pid'
+   ssh  -i '/home/asnmtap/.ssh/asnmtap' asnmtap@localhost 'script /opt/asnmtap/applications/master/CollectorCT-test.sh stop'
 
  Test sshWrapperASNMTAP.pl:
 
@@ -596,21 +597,21 @@ ASNMTAP ssh wrapper script for ssh execution through a rsa or dsa key
       SSH REQUEST FAILED INSPECTION - SKIPPING 'killall number'
       EVALUATING 'killall number'
     or
-      Couldn't open log '/opt/asnmtap-3.000.xxx/log/sshWrapperASNMTAP.log'!
+      Couldn't open log '/opt/asnmtap/log/sshWrapperASNMTAP.log'!
 
     chmod 664 /opt/asnmtap/log/sshWrapperASNMTAP.log 
 
-    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
-      EVALUATING 'script /opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
-      SSH REQUEST PASSED INSPECTION - INITIATING '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
-      EXECUTE '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
-      '/opt/asnmtap-3.000.xxx/applications/master/CollectorCT-Configsol2-environment-probe.sh stop' COMPLETED
+    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'script /opt/asnmtap/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      EVALUATING 'script /opt/asnmtap/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      SSH REQUEST PASSED INSPECTION - INITIATING '/opt/asnmtap/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      EXECUTE '/opt/asnmtap/applications/master/CollectorCT-Configsol2-environment-probe.sh stop'
+      '/opt/asnmtap/applications/master/CollectorCT-Configsol2-environment-probe.sh stop' COMPLETED
 
-    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
-      EVALUATING 'remove /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
-      SSH REQUEST PASSED INSPECTION - INITIATING '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
-      EXECUTE '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid'
-      '/bin/rm /opt/asnmtap-3.000.xxx/pid/CollectorCT-Configsol2-environment-probe.pid' COMPLETED
+    ssh  -i '/home/asnmtap/.ssh/ssh' asnmtap@localhost 'remove /opt/asnmtap/pid/CollectorCT-Configsol2-environment-probe.pid'
+      EVALUATING 'remove /opt/asnmtap/pid/CollectorCT-Configsol2-environment-probe.pid'
+      SSH REQUEST PASSED INSPECTION - INITIATING '/bin/rm /opt/asnmtap/pid/CollectorCT-Configsol2-environment-probe.pid'
+      EXECUTE '/bin/rm /opt/asnmtap/pid/CollectorCT-Configsol2-environment-probe.pid'
+      '/bin/rm /opt/asnmtap/pid/CollectorCT-Configsol2-environment-probe.pid' COMPLETED
   
     more /opt/asnmtap/log/sshWrapperASNMTAP.log 
       ... EVALUATING: 'killall number'
@@ -740,9 +741,9 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
  chmod 600 /home/asnmtap/.ssh/authorized_keys
 
  vi /home/asnmtap/.ssh/authorized_keys
-   add command='/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
+   add command='/opt/asnmtap/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
  or
-   add command='ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
+   add command='ASNMTAP_PERL5LIB=/opt/asnmtap/cpan-shared/lib/perl5; /opt/asnmtap/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
 
 =back
 
@@ -757,8 +758,8 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 =item add /etc/httpd/conf.d/asnmtap.conf
 
  Link index.html and index-cv.html to the default screens
- [/opt/asnmtap-3.000.xxx/applications/htmlroot]# ln -s citap.html  index.html
- [/opt/asnmtap-3.000.xxx/applications/htmlroot]# ln -s citap-cv.html  index-cv.html
+ [/opt/asnmtap/applications/htmlroot]# ln -s citap.html  index.html
+ [/opt/asnmtap/applications/htmlroot]# ln -s citap-cv.html  index-cv.html
 
  vi /etc/httpd/conf.d/asnmtap.conf
 
@@ -845,29 +846,29 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.000.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.000_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.000-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020-distributed.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\applications\tools\mysql\asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.000-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1030,11 +1031,11 @@ MySQL 5.0.x
 
 =item Update your ASNMTAP configuration
 
- vi /opt/asnmtap-3.000.xxx/Asnmtap.cnf
+ vi /opt/asnmtap/Asnmtap.cnf
 
  Here you can modify all the varibales used by the ASNMTAP package !!!
 
- vi /opt/asnmtap-3.000.xxx/applications/custom/Applications.cnf
+ vi /opt/asnmtap/applications/custom/Applications.cnf
 
  URL: http://asnmtap.citap.be/asnmtap/cgi-bin/sadmin/index.pl
 
@@ -1068,7 +1069,7 @@ We use the 'Pipe to Perfparse' methode
  cd /export/download/
  tar -xvzf perfparse-0.106.1.tar.gz
  cd /export/download/perfparse-0.106.1
- ./configure --prefix=/opt/asnmtap-3.000.xxx/perfparse --with-imagedir=/opt/asnmtap-3.000.xxx/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap --disable-phpui
+ ./configure --prefix=/opt/asnmtap/perfparse --with-imagedir=/opt/asnmtap/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap --disable-phpui
  make
  make install-strip
 
@@ -1079,19 +1080,19 @@ We use the 'Pipe to Perfparse' methode
 
 =item Configuration of Perfparse for ASNMTAP
 
- cp /opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg.example /opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg
+ cp /opt/asnmtap/perfparse/etc/perfparse.cfg.example /opt/asnmtap/perfparse/etc/perfparse.cfg
 
- First you should edit '/opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg', adding the correct database settings (if using something other than 'nagios' as DB name, username, and password). The options are :
+ First you should edit '/opt/asnmtap/perfparse/etc/perfparse.cfg', adding the correct database settings (if using something other than 'nagios' as DB name, username, and password). The options are :
 
  Use_Storage_Mysql (only in perfparsed; considered as enabled in perfparse-log2mysql)
 
- vi /opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg
+ vi /opt/asnmtap/perfparse/etc/perfparse.cfg
    ...
    Service_Log "-"
    ...
    # Error handling :
-   Error_Log =                  "/opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-all"
-   Drop_File =                  "/opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-drop"
+   Error_Log =                  "/opt/asnmtap/log/perfparse-asnmtap-all"
+   Drop_File =                  "/opt/asnmtap/log/perfparse-asnmtap-drop"
    ...
 
   # Database managment :
@@ -1125,11 +1126,11 @@ We use the 'Pipe to Perfparse' methode
    1107692805	chablis.dvkhosting.com	process ColdFusion	OK - 40 processes running with command name cfusion	OK				label=1;2;3;4;5
 
    Test ASNMTAP Perfparse integration:
-   /usr/bin/printf "%b" "1107692900\tDUMMY-T1\tDUMMY-T1\tCRITICAL - Check Dummy: +DUMMY-T2+\tCRITICAL\ttperfdata=1;1;;;\n" | /opt/asnmtap-3.000.xxx/perfparse/bin/perfparse-log2mysql -c /opt/asnmtap-3.000.xxx/perfparse/etc/perfparse.cfg
+   /usr/bin/printf "%b" "1107692900\tDUMMY-T1\tDUMMY-T1\tCRITICAL - Check Dummy: +DUMMY-T2+\tCRITICAL\ttperfdata=1;1;;;\n" | /opt/asnmtap/perfparse/bin/perfparse-log2mysql -c /opt/asnmtap/perfparse/etc/perfparse.cfg
 
-   Look for results into the database and the logfile located at /opt/asnmtap-3.000.xxx/log/perfparse-asnmtap-all.yyyymmdd.log
+   Look for results into the database and the logfile located at /opt/asnmtap/log/perfparse-asnmtap-all.yyyymmdd.log
 
-   more /opt/asnmtap-3.000.xxx/log/perfparse-asmtap-all.yyyymmdd.log 
+   more /opt/asnmtap/log/perfparse-asmtap-all.yyyymmdd.log 
    yyyy/mm/dd hh:mmss1 [   storage.c:95    nnnn  ] storage_mysql module successfully loaded
 
 =item Database Maintenance
@@ -1139,7 +1140,7 @@ Deletion policies are defined at various places with default and user-defined po
  To purge the Database daily using 'perfparse-db-purge' from crontab, you might use something like this:
 
  # Purge PerfParse Database daily at 3 AM.
- 0 3 * * * /opt/asnmtap-3.000.xxx/perfparse/bin/perfparse-db-purge > /dev/null
+ 0 3 * * * /opt/asnmtap/perfparse/bin/perfparse-db-purge > /dev/null
 
 =back
 
@@ -1157,19 +1158,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.000.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.000.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.000-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.000-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1223,6 +1224,10 @@ Install net-snmp 5.4.x
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
+ plugins/templates/check_template-cluster.pl
+
+ ... TODO ... NO PART OF NORMAL SETUP ...
+
  plugins/templates/check_template-SNMPTT.pl
 
  ... TODO ... NO PART OF NORMAL SETUP ...
@@ -1267,7 +1272,7 @@ Install net-snmp 5.4.x
 
 =item Configuration of NagTrap for ASNMTAP
 
- more /opt/asnmtap-3.000.xxx/applications/htmlroot/snmptraps/.htaccess
+ more /opt/asnmtap/applications/htmlroot/snmptraps/.htaccess
  AuthName "CITAP's Nagios Access"
  AuthType Basic
  AuthUserFile /etc/httpd/conf/nagios-htpasswd.users
@@ -1323,7 +1328,7 @@ Click on the Update License button to add a license to your system
  perl -MCPAN -e shell
  install HTML::HTMLDoc
 
- ln -s /usr/bin/htmldoc /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/htmldoc.cgi
+ ln -s /usr/bin/htmldoc /opt/asnmtap/applications/htmlroot/cgi-bin/htmldoc.cgi
 
  vi httpd.conf
  AcceptPathInfo On
@@ -1440,15 +1445,15 @@ Click on the Update License button to add a license to your system
 
 =over 4
 
-=item Apache and ASNMTAP not installed into '/opt/asnmtap-3.000.xxx/'
+=item Apache and ASNMTAP not installed into '/opt/asnmtap/'
 
- when ASNMTAP is not installed into '/opt/asnmtap-3.000.xxx/' you need to add SetEnv ASNMTAP_PATH to your webserver config
+ when ASNMTAP is not installed into '/opt/asnmtap/' you need to add SetEnv ASNMTAP_PATH to your webserver config
 
  more /etc/httpd/conf.d/asnmtap.conf
  ...
  <VirtualHost *:80>
    ...
-   SetEnv ASNMTAP_PATH /opt/asnmtap-3.000.xxx-other/
+   SetEnv ASNMTAP_PATH /opt/asnmtap-3.001.xxx-other/
    ...
  </VirtualHost>
 
@@ -1485,8 +1490,8 @@ Click on the Update License button to add a license to your system
  cygrunsrv --start   "CYGWIN crontab"
  cygrunsrv --remove  "CYGWIN crontab"
 
- 0   2 * * * cd /opt/asnmtap-3.000.xxx/applications; ./archive.sh > /dev/null  <-- crontab op master server
- 30 23 * * * cd /opt/asnmtap-3.000.xxx/applications/bin; ./holidayBundleSetDowntimes.sh > /dev/null  <-- crontab op master server
+ 0   2 * * * cd /opt/asnmtap/applications; ./archive.sh > /dev/null  <-- crontab op master server
+ 30 23 * * * cd /opt/asnmtap/applications/bin; ./holidayBundleSetDowntimes.sh > /dev/null  <-- crontab op master server
 
 =item maximum timeslot interval greather then 2 hours:
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBPERFPARSE :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports_perfdata.pl";
 my $prgtext     = "Reports Perfdata";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ my $pageOffset             = (defined $cgi->param('pageOffset'))            ? $c
 my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : 'title asc';
 my $action                 = (defined $cgi->param('action'))                ? $cgi->param('action')                : 'listView';
 my $CuKeyReload            = (defined $cgi->param('uKeyReload'))            ? $cgi->param('uKeyReload')            : 0;
+my $CcatalogID             = (defined $cgi->param('catalogID'))             ? $cgi->param('catalogID')             : $CATALOGID;
 my $CuKey                  = (defined $cgi->param('uKey'))                  ? $cgi->param('uKey')                  : 'none';
 my $Cmetric_id             = (defined $cgi->param('metric_id'))             ? $cgi->param('metric_id')             : 'none';
 my $Ctimes                 = (defined $cgi->param('times'))                 ? $cgi->param('times')                 : '';
@@ -63,10 +64,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports Perfdata", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKeyReload=$CuKeyReload&uKey=$CuKey&metric_id=$Cmetric_id&times=$Ctimes&percentiles=$Cpercentiles&unit=$Cunit&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKeyReload=$CuKeyReload&catalogID=$CcatalogID&uKey=$CuKey&metric_id=$Cmetric_id&times=$Ctimes&percentiles=$Cpercentiles&unit=$Cunit&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>uKey Reload   : $CuKeyReload<br>uKey          : $CuKey<br>metric ID     : $Cmetric_id<br>times         : $Ctimes<br>percentiles   : $Cpercentiles<br>unit          : $Cunit<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>uKey Reload   : $CuKeyReload<br>catalog ID    : $CcatalogID<br>uKey          : $CuKey<br>metric ID     : $Cmetric_id<br>times         : $Ctimes<br>percentiles   : $Cpercentiles<br>unit          : $Cunit<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingReportsPerfdata, $navigationBar);
@@ -96,44 +97,44 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if Report Perfdata $CuKey, $Cmetric_id exist before to insert";
+      $htmlTitle    = "Check if Report Perfdata $CuKey, $Cmetric_id from $CcatalogID exist before to insert";
 
-      $sql = "select uKey, metric_id from $SERVERTABLREPORTSPRFDT WHERE uKey='$CuKey' and metric_id='$Cmetric_id'";
+      $sql = "select catalogID, uKey, metric_id from $SERVERTABLREPORTSPRFDT WHERE catalogID='$CcatalogID' and uKey='$CuKey' and metric_id='$Cmetric_id'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id exist already";
+        $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id from $CcatalogID exist already";
         $nextAction   = "insertView";
       } else {
-        $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id inserted";
+        $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLREPORTSPRFDT. ' SET uKey="' .$CuKey. '", metric_id="' .$Cmetric_id. '", times="' .$Ctimes. '", percentiles="' .$Cpercentiles. '", unit="' .$Cunit. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLREPORTSPRFDT. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", metric_id="' .$Cmetric_id. '", times="' .$Ctimes. '", percentiles="' .$Cpercentiles. '", unit="' .$Cunit. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Delete Report Perfdata $CuKey, $Cmetric_id";
+      $htmlTitle    = "Delete Report Perfdata $CuKey, $Cmetric_id from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = 'DELETE FROM ' .$SERVERTABLREPORTSPRFDT. ' WHERE uKey="' .$CuKey. '" and metric_id="' .$Cmetric_id. '"';
+      $sql = 'DELETE FROM ' .$SERVERTABLREPORTSPRFDT. ' WHERE catalogID="' .$CcatalogID. '" and uKey="' .$CuKey. '" and metric_id="' .$Cmetric_id. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction = "listView" if ($rv);
-      $htmlTitle = "Report Perfdata $CuKey, $Cmetric_id deleted";
+      $htmlTitle = "Report Perfdata $CuKey, $Cmetric_id from $CcatalogID deleted";
     } elsif ($action eq 'displayView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Display Report Perfdata $CuKey, $Cmetric_id";
+      $htmlTitle    = "Display Report Perfdata $CuKey, $Cmetric_id from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Edit Report Perfdata $CuKey, $Cmetric_id";
+      $htmlTitle    = "Edit Report Perfdata $CuKey, $Cmetric_id from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id updated";
+      $htmlTitle    = "Report Perfdata $CuKey, $Cmetric_id from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLREPORTSPRFDT. ' SET uKey="' .$CuKey. '", metric_id="' .$Cmetric_id. '", times="' .$Ctimes. '", percentiles="' .$Cpercentiles. '", unit="' .$Cunit. '", activated="' .$dummyActivated. '" WHERE uKey="' .$CuKey. '" and metric_id="' .$Cmetric_id. '"';
+      $sql = 'UPDATE ' .$SERVERTABLREPORTSPRFDT. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", metric_id="' .$Cmetric_id. '", times="' .$Ctimes. '", percentiles="' .$Cpercentiles. '", unit="' .$Cunit. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and uKey="' .$CuKey. '" and metric_id="' .$Cmetric_id. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -143,18 +144,20 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Metric <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Times <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Percentiles <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unit <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'uKey|metric_id', '0|1', '0|1', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID, $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = $DATABASE.$SERVERTABLPLUGINS.catalogID and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Metric <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Times <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Percentiles <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unit <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'catalogID|uKey|metric_id', '0|1|2', '1|2', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if (!$CuKeyReload and ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView')) {
-      $sql = "select uKey, metric_id, times, percentiles, unit, activated from $SERVERTABLREPORTSPRFDT WHERE uKey='$CuKey' and metric_id='$Cmetric_id'";
+      $sql = "select catalogID, uKey, metric_id, times, percentiles, unit, activated from $SERVERTABLREPORTSPRFDT WHERE catalogID='$CcatalogID' and uKey='$CuKey' and metric_id='$Cmetric_id'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CuKey, $Cmetric_id, $Ctimes, $Cpercentiles, $Cunit, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CuKey, $Cmetric_id, $Ctimes, $Cpercentiles, $Cunit, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -162,15 +165,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
     if ($action eq 'insertView' or $action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'displayView' or $action eq 'editView') {
       if ($CuKey eq 'none' or $action eq 'insertView' or $action eq 'duplicateView' or $action eq 'editView') {
-        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
       } else {
-        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+        $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$CuKey' and $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
       }
 
       ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $CuKey, 'uKey', 'none', '-Select-', $formDisabledPrimaryKey, 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ( $CuKey ne 'none' ) {
-        $sql = "select metric_id, metric from $PERFPARSEDATABASE.perfdata_service_metric where service_description = '$CuKey' and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
+        my $catalogID_CuKey = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $CuKey;
+
+        $sql = "select metric_id, metric from $PERFPARSEDATABASE.perfdata_service_metric where service_description = '$catalogID_CuKey' and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
         ($rv, $metric_idSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $Cmetric_id, 'metric_id', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
         $formDisabledNoMetricID = '';
@@ -194,7 +199,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 function submitForm() {
   if ( document.reports_perfdata.uKey.value == null || document.reports_perfdata.uKey.value == 'none' ) {
     document.reports_perfdata.uKey.focus();
-    alert('Please select a Application!');
+    alert('Please create/select a Application!');
     return false;
   }
 
@@ -210,13 +215,13 @@ HTML
         print <<HTML;
   if ( document.reports_perfdata.uKey.options[document.reports_perfdata.uKey.selectedIndex].value == 'none' ) {
     document.reports_perfdata.uKey.focus();
-    alert('Please select one of the applications!');
+    alert('Please create/select one of the applications!');
     return false;
   }
 
   if ( document.reports_perfdata.metric_id.options[document.reports_perfdata.metric_id.selectedIndex].value == 'none' ) {
     document.reports_perfdata.metric_id.focus();
-    alert('Please select one of the metrics!');
+    alert('Please create/select one of the metrics!');
     return false;
   }
 
@@ -277,6 +282,7 @@ HTML
     }
 
 	if ($formDisabledPrimaryKey ne '' and $action ne 'displayView' and $action ne "listView") {
+      print "  <input type=\"hidden\" name=\"catalogID\"       value=\"$CcatalogID\">\n";
       print "  <input type=\"hidden\" name=\"uKey\"            value=\"$CuKey\">\n";
       print "  <input type=\"hidden\" name=\"metric_id\"       value=\"$Cmetric_id\">\n";
     }
@@ -310,6 +316,9 @@ HTML
     <tr><td>&nbsp;</td></tr>
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
+        <tr><td><b>Catalog ID: </b></td><td>
+          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        </td></tr>
 		<tr><td><b>Application: </b></td><td>
           $uKeySelect
         </td></tr>

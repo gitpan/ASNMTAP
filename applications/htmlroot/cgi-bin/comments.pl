@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,6 +54,7 @@ my $debug           = (defined $cgi->param('debug'))          ? $cgi->param('deb
 my $pageNo          = (defined $cgi->param('pageNo'))         ? $cgi->param('pageNo')         : 1;
 my $pageOffset      = (defined $cgi->param('pageOffset'))     ? $cgi->param('pageOffset')     : 0;
 my $action          = (defined $cgi->param('action'))         ? $cgi->param('action')         : 'listView';
+my $CcatalogID      = (defined $cgi->param('catalogID'))      ? $cgi->param('catalogID')      : $CATALOGID;
 my $Cid             = (defined $cgi->param('id'))             ? $cgi->param('id')             : '';
 my $CuKey           = (defined $cgi->param('uKey'))           ? $cgi->param('uKey')           : 'none';
 my $Ctitle          = (defined $cgi->param('title'))          ? $cgi->param('title')          : '';
@@ -76,7 +77,7 @@ $environment = 'P' unless (defined $environment);
 my $htmlTitle = $APPLICATION .' - '. $ENVIRONMENT{$environment};
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Comments", "uKey=$CuKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Comments", "catalogID=$CcatalogID&uKey=$CuKey");
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
@@ -153,10 +154,10 @@ unless ( defined $errorUserAccessControl ) {
     $nextAction = '';
 
     # Serialize the URL Access Parameters into a string
-    my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&action=$action&id=$Cid&uKey=$CuKey&title=$Ctitle&entryDate=$CentryDate&entryTime=$CentryTime&entryTimeslot=$CentryTimeslot&activationDate=$CactivationDate&activationTime=$CactivationTime&suspentionDate=$CsuspentionDate&suspentionTime=$CsuspentionTime&instability=$Cinstability&persistent=$Cpersistent&downtime=$Cdowntime&problemSolved=$CproblemSolved&solvedDate=$CsolvedDate&solvedTime=$CsolvedTime&solvedTimeslot=$CsolvedTimeslot&remoteUser=$CremoteUser&commentData=$CcommentData";
+    my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&action=$action&catalogID=$CcatalogID&id=$Cid&uKey=$CuKey&title=$Ctitle&entryDate=$CentryDate&entryTime=$CentryTime&entryTimeslot=$CentryTimeslot&activationDate=$CactivationDate&activationTime=$CactivationTime&suspentionDate=$CsuspentionDate&suspentionTime=$CsuspentionTime&instability=$Cinstability&persistent=$Cpersistent&downtime=$Cdowntime&problemSolved=$CproblemSolved&solvedDate=$CsolvedDate&solvedTime=$CsolvedTime&solvedTimeslot=$CsolvedTimeslot&remoteUser=$CremoteUser&commentData=$CcommentData";
 
     # Debug information
-    print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>action        : $action<br>id            : $Cid<br>uKey          : $CuKey<br>title         : $Ctitle<br>entryDate     : $CentryDate<br>entryTime     : $CentryTime<br>entryTimeslot : $CentryTimeslot<br>activationDate: $CactivationDate<br>activationTime: $CactivationTime<br>suspentionDate: $CsuspentionDate<br>suspentionTime: $CsuspentionTime<br>instability   : $Cinstability<br>persistent    : $Cpersistent<br>downtime      : $Cdowntime<br>problemSolved : $CproblemSolved<br>solvedDate    : $CsolvedDate<br>solvedTime    : $CsolvedTime<br>solvedTimeslot: $CsolvedTimeslot<br>remoteUser    : $CremoteUser<br>commentData   : $CcommentData<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+    print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>action        : $action<br>catalog ID    : $CcatalogID<br>id            : $Cid<br>uKey          : $CuKey<br>title         : $Ctitle<br>entryDate     : $CentryDate<br>entryTime     : $CentryTime<br>entryTimeslot : $CentryTimeslot<br>activationDate: $CactivationDate<br>activationTime: $CactivationTime<br>suspentionDate: $CsuspentionDate<br>suspentionTime: $CsuspentionTime<br>instability   : $Cinstability<br>persistent    : $Cpersistent<br>downtime      : $Cdowntime<br>problemSolved : $CproblemSolved<br>solvedDate    : $CsolvedDate<br>solvedTime    : $CsolvedTime<br>solvedTimeslot: $CsolvedTimeslot<br>remoteUser    : $CremoteUser<br>commentData   : $CcommentData<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
     # open connection to database and query data
     $rv  = 1;
@@ -166,9 +167,9 @@ unless ( defined $errorUserAccessControl ) {
     if ($dbh and $rv) {
       if ($action eq 'insertView' or $action eq 'historyView') {
         if ($CuKey eq 'none') {
-          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
         } else {
-          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$CuKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+          $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$CuKey' and catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
         }
 
         ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, 'insert', $CuKey, 'uKey', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
@@ -177,7 +178,7 @@ unless ( defined $errorUserAccessControl ) {
           $nextAction = ($action eq 'insertView') ? 'insert' : 'history';
         }
       } else {
-        ($rv, $Ctitle) = get_title( $dbh, $rv, $CuKey, $debug, -1, $sessionID );
+        ($rv, $Ctitle) = get_title( $dbh, $rv, $CcatalogID, $CuKey, $debug, -1, $sessionID );
         $Ctitle = $CuKey if (! defined $Ctitle or $Ctitle eq '');
 
         if ($action eq 'insert') {
@@ -236,10 +237,10 @@ unless ( defined $errorUserAccessControl ) {
 
         if ($action eq 'insertView' and defined $remoteUserLoggedOn) {
           $CremoteUser = $remoteUserLoggedOn;
-          $sql = "select remoteUser, email from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+          $sql = "select remoteUser, email from $SERVERTABLUSERS where catalogID = '$CcatalogID' and remoteUser = '$CremoteUser'";
         } else {
           my $andActivated = ($action eq 'insertView') ? "and activated = 1" : '';
-          $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$pageDir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
+          $sql = "select remoteUser, email from $SERVERTABLUSERS where catalogID = '$CcatalogID' and pagedir REGEXP '/$pageDir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
         }
 
         ($rv, $remoteUsersSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, '', $CremoteUser, 'remoteUser', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
@@ -261,14 +262,14 @@ unless ( defined $errorUserAccessControl ) {
             my $dummyInstability = ($Cinstability eq 'on') ? 1 : 0;
             my $dummyPersistent  = ($Cpersistent  eq 'on') ? 1 : 0;
             my $dummyDowntime    = ($Cdowntime    eq 'on') ? 1 : 0;
-            $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET uKey="' .$CuKey. '", title="' .$Ctitle. '", entryDate="' .$CentryDate. '", entryTime="' .$CentryTime.'", entryTimeslot="' .$CentryTimeslot. '", instability="' .$dummyInstability. '", persistent="' .$dummyPersistent. '", downtime="' .$dummyDowntime. '", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", remoteUser="' .$CremoteUser. '", commentData="' .$CcommentData. '", activationDate="' .$CactivationDate. '", activationTime="' .$CactivationTime. '", activationTimeslot="' .$CactivationTimeslot. '", suspentionDate="' .$CsuspentionDate. '", suspentionTime="' .$CsuspentionTime. '", suspentionTimeslot="' .$CsuspentionTimeslot. '"';
+            $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", replicationStatus="I", title="' .$Ctitle. '", entryDate="' .$CentryDate. '", entryTime="' .$CentryTime.'", entryTimeslot="' .$CentryTimeslot. '", instability="' .$dummyInstability. '", persistent="' .$dummyPersistent. '", downtime="' .$dummyDowntime. '", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", remoteUser="' .$CremoteUser. '", commentData="' .$CcommentData. '", activationDate="' .$CactivationDate. '", activationTime="' .$CactivationTime. '", activationTimeslot="' .$CactivationTimeslot. '", suspentionDate="' .$CsuspentionDate. '", suspentionTime="' .$CsuspentionTime. '", suspentionTimeslot="' .$CsuspentionTimeslot. '"';
             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
             if ( $dummyDowntime ) {
               my $tDebug = ($debug eq 'T') ? 2 : 0;
 
               my ($Tpagedirs, $Temail, $Tpagedir, $sendEmailTo);
-              $sql = "select pagedir from $SERVERTABLPLUGINS where uKey = '$CuKey' order by uKey";
+              $sql = "select pagedir from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' and uKey = '$CuKey' order by uKey";
               $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
               $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
@@ -277,7 +278,7 @@ unless ( defined $errorUserAccessControl ) {
                 $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
               }
 
-              $sql = "select email, pagedir from $SERVERTABLUSERS where activated = 1 and downtimeScheduling = 1 and userType > 0";
+              $sql = "select email, pagedir from $SERVERTABLUSERS where catalogID = '$CcatalogID' and activated = 1 and downtimeScheduling = 1 and userType > 0";
               $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
               $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
               $sth->bind_columns( \$Temail, \$Tpagedir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -309,43 +310,43 @@ unless ( defined $errorUserAccessControl ) {
               }
             }
           } elsif ($action eq 'delete') {
-            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
+            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
  			$commentData = "$commentData\n<hr>$CcommentData\n\nClosed by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CsolvedDate $CsolvedTime";
 
-            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", commentData="' .$commentData. '" where id="' .$Cid. '"';
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="' .$CproblemSolved. '", solvedDate="' .$CsolvedDate. '", solvedTime="' .$CsolvedTime. '", solvedTimeslot="' .$CsolvedTimeslot. '", commentData="' .$commentData. '" where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           } elsif ($action eq 'editView') {
-            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
+            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
           } elsif ($action eq 'edit') {
  			my $commentData = "$CcommentData\n\nEdited by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CentryDate $CentryTime";
-            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET commentData="' .$commentData. '" where id="' .$Cid. '"';
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", commentData="' .$commentData. '" where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
              $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           } elsif ($action eq 'update') {
-            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where id="' .$Cid. '"';
+            $sql = 'SELECT commentData from ' .$SERVERTABLCOMMENTS. ' where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             ($commentData) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, 'Logon', 3600, '', $sessionID) if ( $rv and $sth->rows);
  			$commentData = "$commentData\n<hr>$CcommentData\n\nUpdated by: $givenNameLoggedOn, $familyNameLoggedOn ($remoteUserLoggedOn) on $CentryDate $CentryTime";
 
-            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET commentData="' .$commentData. '" where id="' .$Cid. '"';
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", commentData="' .$commentData. '" where catalogID="' .$CcatalogID. '" and id="' .$Cid. '"';
             $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           }
 
           if ($action eq 'deleteView' or $action eq 'editView' or $action eq 'updateView') {
             my ($id, $uKey, $title, $givenName, $familyName, $instability, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $commentData);
-            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where id = '$Cid' and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser";
+            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $SERVERTABLCOMMENTS.catalogID = '$CcatalogID' and id = '$Cid' and $SERVERTABLCOMMENTS.catalogID = $SERVERTABLUSERS.catalogID and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser";
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$instability, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
-              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th><th>Persistent</th><th>Downtime</th></tr>\n";
+              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th colspan=\"9\">Catalog ID: $CcatalogID</th><th></th></tr>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th><th>Persistent</th><th>Downtime</th></tr>\n";
 
               if ( $sth->rows ) {
                 while( $sth->fetch() ) {
@@ -354,7 +355,7 @@ unless ( defined $errorUserAccessControl ) {
                   $matchingComments .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">$id</td><td>$title</td><td>$givenName, $familyName</td><td>$entryDate \@ $entryTime</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"8\">$commentData</td></tr>\n";
                 }
               } else {
-                $matchingComments .= "        <tr><td colspan=9>No records found for id: $Cid</td></tr>\n";
+                $matchingComments .= "        <tr><td colspan=9>No records found for catalog ID: $CcatalogID & id: $Cid</td></tr>\n";
               }
 
               $matchingComments .= "      </table>";
@@ -366,8 +367,8 @@ unless ( defined $errorUserAccessControl ) {
             if ($action eq 'solvedView' or $action eq 'historyView' or $action eq 'history') {
               $actionColspan = 1;
               $actionHeader  = "<th>Solved Date/Time</th>";
-              $sqlUKey       = "uKey = '$CuKey' and";
-              $sqlUKeyRows   = "uKey: $CuKey";
+              $sqlUKey       = "$SERVERTABLCOMMENTS.catalogID = '$CcatalogID' and uKey = '$CuKey' and";
+              $sqlUKeyRows   = "catalog ID: $CcatalogID & uKey: $CuKey";
               $sqlWhere      = '';
 
               if ($action eq 'history') {
@@ -380,12 +381,13 @@ unless ( defined $errorUserAccessControl ) {
               $sqlWhere .= "and problemSolved = '1' order by solvedTimeslot desc limit $pageOffset, $RECORDSONPAGE";
             } else {
               if ($action eq 'listAllView') {
-                $actionHeader = $sqlUKey = '';
-                $sqlUKeyRows  = "all plugins";
+                $actionHeader = '';
+                $sqlUKey      = "$SERVERTABLCOMMENTS.catalogID = '$CcatalogID' and";
+                $sqlUKeyRows  = "all plugins from catalog ID: $CcatalogID";
               } else {
                 $actionHeader = "<th>Action</th>" if ( $userType != 0 );
-                $sqlUKey      = "uKey = '$CuKey' and";
-                $sqlUKeyRows  = "uKey: $CuKey";
+                $sqlUKey      = "$SERVERTABLCOMMENTS.catalogID = '$CcatalogID' and uKey = '$CuKey' and";
+                $sqlUKeyRows  = "catalog ID: $CcatalogID & uKey: $CuKey";
               }
 
               $actionColspan = 0;
@@ -393,18 +395,20 @@ unless ( defined $errorUserAccessControl ) {
               $sqlWhere = "and problemSolved = '0' order by entryTimeslot limit $pageOffset, $RECORDSONPAGE";
 	  	    }
 
-            $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
+            $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.catalogID = $SERVERTABLUSERS.catalogID and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
+
             ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
             $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;action=$nextAction&amp;uKey=$CuKey");
 
     		my ($id, $uKey, $title, $givenName, $familyName, $instability, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $solvedDate, $solvedTime, $commentData);
-            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
+            $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.catalogID = $SERVERTABLUSERS.catalogID and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
+
             $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
             $sth->bind_columns( \$id, \$uKey, \$title, \$givenName, \$familyName, \$instability, \$persistent, \$downtime, \$entryDate, \$entryTime, \$activationDate, \$activationTime, \$suspentionDate, \$suspentionTime, \$solvedDate, \$solvedTime, \$commentData ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
             if ( $rv ) {
-              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th<th>Persistent</th><th>Downtime</th>$actionHeader</tr>\n";
+              $matchingComments = "\n      <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n        <tr><th colspan=\"". (10 + $actionColspan) ."\">Catalog ID: $CcatalogID</th></tr>\n        <tr><th>Id</th><th>Title</th><th>Remote User</th><th>Entry Date/Time</th><th>Activation Date/Time</th><th>Suspention Date/Time</th><th>Instability</th<th>Persistent</th><th>Downtime</th>$actionHeader</tr>\n";
 
               if ( $sth->rows ) {
                 while( $sth->fetch() ) {
@@ -416,11 +420,11 @@ unless ( defined $errorUserAccessControl ) {
                   } elsif ($action eq 'listAllView') {
 	  		        $ActionItem = '';
                   } else {
-                    my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;id=$id&amp;uKey=$uKey";
+                    my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;catalogID=$CcatalogID&amp;id=$id&amp;uKey=$uKey";
 
                     if ( $userType != 0 ) {
   	  		          $ActionItem  = "<td align=\"center\" rowspan=\"2\" valign=\"middle\">";
-	  		          $ActionItem .= "<a href=\"$urlWithAccessParametersAction&amp;action=editView&amp;problemSolved=0\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Problem\" alt=\"Edit Problem\" border=\"0\"></a>" if ( $userType >= 4);
+	  		          $ActionItem .= "<a href=\"$urlWithAccessParametersAction&amp;action=editView&amp;problemSolved=0\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Problem\" alt=\"Edit Problem\" border=\"0\"></a>" if ( $userType >= 4 );
 	  		          $ActionItem .= "<a href=\"$urlWithAccessParametersAction&amp;action=updateView&amp;problemSolved=0\"><img src=\"$IMAGESURL/$ICONSRECORD{duplicate}\" title=\"Update Problem\" alt=\"Update Problem\" border=\"0\"></a>" if ( $userType >= 1 );
 	  		          $ActionItem .= "<a href=\"$urlWithAccessParametersAction&amp;action=deleteView&amp;problemSolved=1\"><img src=\"$IMAGESURL/$ICONSRECORD{delete}\" title=\"Problem Solved\" alt=\"Problem Solved\" border=\"0\"></a>";
 	  		          $ActionItem .= "</td>";
@@ -496,7 +500,7 @@ function validateForm() {
 
   if( document.comments.uKey.options[document.comments.uKey.selectedIndex].value == 'none' ) {
     document.comments.uKey.focus();
-    alert('Please select one of the applications!');
+    alert('Please create/select one of the applications!');
     return false;
   }
 
@@ -506,7 +510,7 @@ HTML
               print <<HTML;
   if( document.comments.remoteUser.options[document.comments.remoteUser.selectedIndex].value == 'none' ) {
     document.comments.remoteUser.focus();
-    alert('Please select one of the remote users!');
+    alert('Please create/select one of the remote users!');
     return false;
   }
 
@@ -814,12 +818,17 @@ HTML
 HTML
 
         if ($action eq 'insertView' or $action eq 'historyView') {
-          my $instabilityChecked = ($Cinstability eq 'on') ? ' checked' : '';
-          my $persistentChecked  = ($Cpersistent  eq 'on') ? ' checked' : '';
-          my $downtimeChecked    = ($Cdowntime    eq 'on') ? ' checked' : '';
-	
+          my $instabilityDisabled = ($userType < 4) ? 'disabled' : '';
+
+          my $instabilityChecked  = ($Cinstability eq 'on') ? ' checked' : '';
+          my $persistentChecked   = ($Cpersistent  eq 'on') ? ' checked' : '';
+          my $downtimeChecked     = ($Cdowntime    eq 'on') ? ' checked' : '';
+
           print <<HTML;
     <tr><td><table border="0" cellspacing="0" cellpadding="0">
+      <tr><td><b>Catalog ID: </b></td><td>
+        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      </td></tr>
       <tr><td><b>Application: </b></td><td>
         $uKeySelect
       </td></tr><tr><td><b>Remote User: </b></td><td>
@@ -834,7 +843,7 @@ HTML
         <td><textarea name=commentData cols=84 rows=13>$CcommentData</textarea></td>
       </tr><tr>
         <td><b>Instability: </b></td>
-        <td><b><input type="checkbox" name="instability" $instabilityChecked></b> 'checked' means 'instability' and 'not checked' means 'not instability'</td>
+        <td><b><input type="checkbox" name="instability" $instabilityChecked $instabilityDisabled></b> 'checked' means 'instability' and 'not checked' means 'not instability'</td>
       </tr><tr>
         <td><b>Persistent: </b></td>
         <td><b><input type="checkbox" name="persistent" $persistentChecked></b> 'checked' means 'persistent' and 'not checked' means 'not persistent'</td>
@@ -912,6 +921,7 @@ HTML
         } elsif ($action eq 'deleteView' or $action eq 'editView' or $action eq 'updateView') {
           print <<HTML;
       <tr align="center"><td>
+        <input type="hidden" name="catalogID"      value="$CcatalogID">
         <input type="hidden" name="id"             value="$Cid">
         <input type="hidden" name="uKey"           value="$CuKey">
         <input type="hidden" name="problemSolved"  value="$CproblemSolved">

@@ -44,6 +44,7 @@ my $pageNo              = (defined $cgi->param('pageNo'))     ? $cgi->param('pag
 my $pageOffset          = (defined $cgi->param('pageOffset')) ? $cgi->param('pageOffset') : 0;
 my $orderBy             = (defined $cgi->param('orderBy'))    ? $cgi->param('orderBy')    : 'pagedir asc';
 my $action              = (defined $cgi->param('action'))     ? $cgi->param('action')     : 'listView';
+my $CcatalogID          = (defined $cgi->param('catalogID'))  ? $cgi->param('catalogID')  : $CATALOGID;
 my $Cpagedir            = (defined $cgi->param('pagedirs'))   ? $cgi->param('pagedirs')   : '';
 my $CgroupName          = (defined $cgi->param('groupName'))  ? $cgi->param('groupName')  : '';
 my $Cactivated          = (defined $cgi->param('activated'))  ? $cgi->param('activated')  : 'off';
@@ -59,10 +60,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Pagedirs", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&pagedirs=$Cpagedir&groupName=$CgroupName&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&pagedirs=$Cpagedir&groupName=$CgroupName&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>pagedirs          : $Cpagedir<br>groupName         : $CgroupName<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>pagedirs          : $Cpagedir<br>groupName         : $CgroupName<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingPagedirs, $navigationBar);
@@ -82,59 +83,59 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if Pagedir $Cpagedir exist before to insert";
+      $htmlTitle    = "Check if Pagedir $Cpagedir from $CcatalogID exist before to insert";
 
-      $sql = "select pagedir from $SERVERTABLPAGEDIRS WHERE pagedir='$Cpagedir'";
+      $sql = "select pagedir from $SERVERTABLPAGEDIRS WHERE catalogID = '$CcatalogID' and pagedir='$Cpagedir'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle    = "Pagedir $Cpagedir exist already";
+        $htmlTitle    = "Pagedir $Cpagedir from $CcatalogID exist already";
         $nextAction   = "insertView";
       } else {
-        $htmlTitle    = "Pagedir $Cpagedir inserted";
+        $htmlTitle    = "Pagedir $Cpagedir from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
 
-        $sql = 'INSERT INTO ' .$SERVERTABLPAGEDIRS. ' SET pagedir="' .$Cpagedir. '", groupName="' .$CgroupName. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLPAGEDIRS. ' SET catalogID="' .$CcatalogID. '", pagedir="' .$Cpagedir. '", groupName="' .$CgroupName. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Delete pagedir $Cpagedir";
+      $htmlTitle    = "Delete pagedir $Cpagedir from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where pagedir REGEXP '/$Cpagedir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by title, uKey";
-      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Plugins', 'Unique Key', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and pagedir REGEXP '/$Cpagedir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by title, uKey";
+      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Plugins from ' .$CcatalogID, 'Unique Key', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$Cpagedir/' order by email";
-      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Users', 'Remote User', 'Email', $matchingPagedirs, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select remoteUser, email from $SERVERTABLUSERS where catalogID = '$CcatalogID' and pagedir REGEXP '/$Cpagedir/' order by email";
+      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Users from ' .$CcatalogID, 'Remote User', 'Email', $matchingPagedirs, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 	
-      $sql = "select pagedir, groupName from $SERVERTABLDISPLAYDMNS where pagedir = '$Cpagedir' order by groupName";
-      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Display Daemons', 'Pagedir', 'Group Name', $matchingPagedirs, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select pagedir, groupName from $SERVERTABLDISPLAYDMNS where catalogID = '$CcatalogID' and pagedir = '$Cpagedir' order by groupName";
+      ($rv, $matchingPagedirs) = check_record_exist ($rv, $dbh, $sql, 'Display Daemons from ' .$CcatalogID, 'Pagedir', 'Group Name', $matchingPagedirs, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ($matchingPagedirs eq '') {
-        $htmlTitle = "Pagedir $Cpagedir deleted";
-        $sql = 'DELETE FROM ' .$SERVERTABLPAGEDIRS. ' WHERE pagedir="' .$Cpagedir. '"';
+        $htmlTitle = "Pagedir $Cpagedir from $CcatalogID deleted";
+        $sql = 'DELETE FROM ' .$SERVERTABLPAGEDIRS. ' WHERE catalogID="' .$CcatalogID. '" and pagedir="' .$Cpagedir. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       } else {
-        $htmlTitle = "Pagedir $Cpagedir not deleted, still used by";
+        $htmlTitle = "Pagedir $Cpagedir from $CcatalogID not deleted, still used by";
       }
 
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'displayView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Display pagedir $Cpagedir";
+      $htmlTitle    = "Display pagedir $Cpagedir from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Edit pagedir $Cpagedir";
+      $htmlTitle    = "Edit pagedir $Cpagedir from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "Pagedir $Cpagedir updated";
+      $htmlTitle    = "Pagedir $Cpagedir from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLPAGEDIRS. ' SET pagedir="' .$Cpagedir. '", groupName="' .$CgroupName. '", activated="' .$dummyActivated. '" WHERE pagedir="' .$Cpagedir. '"';
+      $sql = 'UPDATE ' .$SERVERTABLPAGEDIRS. ' SET catalogID="' .$CcatalogID. '", pagedir="' .$Cpagedir. '", groupName="' .$CgroupName. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and pagedir="' .$Cpagedir. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -145,18 +146,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select pagedir, groupName, activated from $SERVERTABLPAGEDIRS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Primary Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingPagedirs, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Pagedir', 'pagedirs', '0', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select catalogID, pagedir, groupName, activated from $SERVERTABLPAGEDIRS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Pagedir <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingPagedirs, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Pagedir', 'catalogID|pagedirs', '0|1', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select pagedir, groupName, activated from $SERVERTABLPAGEDIRS where pagedir='$Cpagedir'";
+      $sql = "select catalogID, pagedir, groupName, activated from $SERVERTABLPAGEDIRS where catalogID = '$CcatalogID' and pagedir='$Cpagedir'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($Cpagedir, $CgroupName, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $Cpagedir, $CgroupName, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -232,7 +234,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"pagedirs\" value=\"$Cpagedir\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
+    print "  <input type=\"hidden\" name=\"catalogID\" value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"pagedirs\" value=\"$Cpagedir\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -260,6 +262,9 @@ HTML
       <tr><td>&nbsp;</td></tr>
       <tr><td>
 	    <table border="0" cellspacing="0" cellpadding="0">
+          <tr><td><b>Catalog ID: </b></td><td>
+            <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          </td></tr>
           <tr><td><b>Pagedir: </b></td><td>
             <input type="text" name="pagedirs" value="$Cpagedir" size="11" maxlength="11" $formDisabledPrimaryKey>
           </td></tr>

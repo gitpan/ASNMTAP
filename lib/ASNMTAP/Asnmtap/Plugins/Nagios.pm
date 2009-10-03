@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +51,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -68,7 +68,7 @@ sub convert_from_KB_to_metric;
 sub convert_to_KB {
   my ($metric, $value) = @_;
 
-  my $result = ($metric =~ /^[Gg]$/) ? $value * (1024 * 1024) : ( ($metric =~ /^[Mm]$/) ? $value * 1024 : $value );
+  my $result = ( ($metric =~ /^[Gg]$/) ? ($value * 1024 * 1024) : ( ($metric =~ /^[Mm]$/) ? ($value * 1024) : $value ) );
   return ( $result )
 }
 
@@ -77,7 +77,7 @@ sub convert_to_KB {
 sub convert_from_KB_to_metric {
   my ($metric, $value) = @_;
 
-  my $result = ($metric eq 'GB') ? $value / (1024 * 1024) : ( ($metric eq 'MB') ? $value / 1024 : $value );
+  my $result = ( ($metric eq 'GB') ? ($value / 1024 * 1024) : ( ($metric eq 'MB') ? ($value / 1024) : $value ) );
   $result = sprintf("%.2f", $result) if ($metric ne 'kB');
   return ( $result )
 }

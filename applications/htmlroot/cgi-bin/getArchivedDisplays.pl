@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedDisplay.pl";
 my $prgtext     = "Get Archived Display";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,22 +45,23 @@ my $cgi = new CGI;
 my $pagedir       = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : 'index';    $pagedir =~ s/\+/ /g;
 my $pageset       = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : 'index-cv'; $pageset =~ s/\+/ /g;
 my $debug         = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
+my $CcatalogID    = (defined $cgi->param('catalogID'))    ? $cgi->param('catalogID')    : $CATALOGID;
 my $CcreationDate = (defined $cgi->param('creationDate')) ? $cgi->param('creationDate') : '';
 my $CcreationTime = (defined $cgi->param('creationTime')) ? $cgi->param('creationTime') : '';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
 
-my $htmlTitle = "Get Archived Display(s)";
+my $htmlTitle = "Get Archived Display(s) from $CcatalogID";
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUser, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Archive", undef);
-	
+
 # Serialize the URL Access Parameters into a string
 my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&CcreationDate=$CcreationDate&CcreationTime=$CcreationTime";
 
 # Debug information
-print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>date      : $CcreationDate<br>time      : $CcreationTime<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>date      : $CcreationDate<br>time      : $CcreationTime<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
@@ -78,7 +79,7 @@ unless ( defined $errorUserAccessControl ) {
       $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
       if ( $dbh and $rv ) {
-        $sql = "select displayDaemon from $SERVERTABLDISPLAYDMNS WHERE pagedir='$pageDir'";
+        $sql = "select displayDaemon from $SERVERTABLDISPLAYDMNS WHERE catalogID = '$CcatalogID' and pagedir='$pageDir'";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
@@ -97,7 +98,7 @@ unless ( defined $errorUserAccessControl ) {
       my $onload = (defined $creationTime) ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : '';
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', "<script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/TimeParserValidator.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/AnchorPosition.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/CalendarPopup.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/date.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\" src=\"$HTTPSURL/PopupWindow.js\"></script>\n  <script type=\"text/javascript\" language=\"JavaScript\">document.write(getCalendarStyles());</script>", $sessionID);
 
-      my $urlWithAccessParameters = "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;CcreationDate=$CcreationDate&amp;CcreationTime=$CcreationTime";
+      my $urlWithAccessParameters = "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;catalogID=$CcatalogID&CcreationDate=$CcreationDate&amp;CcreationTime=$CcreationTime";
 
       my ($offsetFirst, $offsetLast) = (-14, +1);
       my ($firstYear, $firstMonth, $firstDay) = Add_Delta_Days ($currentYear, $currentMonth, $currentDay, $offsetFirst);
@@ -216,6 +217,9 @@ EndOfHtml
     <input type="hidden" name="debug"     value="$debug">
     <input type="hidden" name="CGISESSID" value="$sessionID">
     <table border=0>
+      <tr><td><b>Catalog ID: </b></td><td>
+        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      </td></tr>
       <tr>
         <td>Display Daemon: </td>
         <td>

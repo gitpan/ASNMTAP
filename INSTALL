@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 19 April 2009
-Version      : 3.000.020
+Latest update: dd month 2009
+Version      : 3.001.000
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -17,9 +17,9 @@ fixRights.sh
 ------------
 
 vi fixRights.sh and change when needed
-AMPATH=/opt/asnmtap-3.000.xxx	       # path where ASNMTAP is installed
+AMPATH=/opt/asnmtap-3.001.xxx	       # path where ASNMTAP is installed
 ASNMTAPUSER=asnmtap                    # use for the ASNMTAP::Application
-WWWUSER=apache                                                   # nobody
+WWWUSER=apache                         # nobody
 ...
 
 chmod 755 fixRights.sh
@@ -30,7 +30,7 @@ chmod 755 fixRights.sh
 Symbolic link:
 --------------
 
-ln -s /opt/asnmtap-3.000.xxx-new asnmtap
+ln -s /opt/asnmtap-3.001.xxx-new asnmtap
 
 
 -------------------------------------------------------------------------
@@ -105,7 +105,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
      REMOTE_HOST     localhost
      REMOTE_ADDR     127.0.0.1
 
-     OPTIONS         --bodyimage /opt/asnmtap-3.000.xxx/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
+     OPTIONS         --bodyimage /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif --charset iso-8859-1 --format pdf14 --size A4 --landscape --browserwidth 1280 --top 10mm --bottom 10mm --left 10mm --right 10mm --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Helvetica --headfootsize 10.0 --headfootfont Helvetica --embedfonts --pagemode fullscreen --permissions no-copy,print --no-links --color --quiet --webpage
   </COMMON>
   ...
   <DATABASE_ACCOUNT>
@@ -137,7 +137,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
   chmod 600 /home/asnmtap/.ssh/authorized_keys
 
   vi /home/asnmtap/.ssh/authorized_keys
-  add command='/opt/asnmtap-3.000.xxx/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
+  add command='/opt/asnmtap/applications/sbin/sshWrapperASNMTAP.pl' before ssh.pub
 
 
   httpd.conf
@@ -159,8 +159,8 @@ Information about the configuration for ASNMTAP Applications can be found at:
     IndexOptions NameWidth=* FancyIndexing FoldersFirst SuppressDescription
     IndexOrderDefault Ascending Name
 
-    # when ASNMTAP is not installed into '/opt/asnmtap-3.000.xxx/' you need to add SetEnv ASNMTAP_PATH
-    # SetEnv ASNMTAP_PATH /opt/asnmtap-3.000.xxx-other/
+    # when ASNMTAP is not installed into '/opt/asnmtap/' you need to add SetEnv ASNMTAP_PATH
+    # SetEnv ASNMTAP_PATH /opt/asnmtap/
 
     Alias /asnmtap "/opt/asnmtap/applications/htmlroot"
 
@@ -213,14 +213,14 @@ Information about the configuration for ASNMTAP Applications can be found at:
   -----------------------------------------
 
   MySQL version 4.x
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020-distributed.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000-distributed.sql
 
   MySQL version 5.0.x
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x.sql
    or
-    mysql -u root -p  < /opt/asnmtap-3.000.xxx/applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x-distributed.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x-distributed.sql
 
   
   ASNMTAP Web Access is now possible
@@ -316,7 +316,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
     tar -xvf perfparse-06-mm-dd.tar
     cd perfparse-all
 
-    ./configure --prefix=/opt/asnmtap-3.000.xxx/perfparse --with-imagedir=/opt/asnmtap-3.000.xxx/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap
+    ./configure --prefix=/opt/asnmtap/perfparse --with-imagedir=/opt/asnmtap/applications/htmlroot/img/ --with-cgidir=/opt/asnmtap/applications/htmlroot/cgi-bin --with-http_image_path=/asnmtap/img --with-data-source=asnmtap
     make
     make install-strip
 
@@ -330,19 +330,19 @@ Information about the configuration for ASNMTAP Applications can be found at:
 
     MySQL 4.x
 
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020.sql
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.000.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
      or
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020.sql
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.000.sql
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
 
     MySQL 5.0.x
 
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\snmptt-3.000.020-v5.0.x.sql
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.000.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.000-v5.0.x.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
      or
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/snmptt-3.000.020-v5.0.x.sql
-     mysql -u root -p  < /opt/asnmtap-3.000.xxx/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.000-v5.0.x.sql
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
 
     ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -351,7 +351,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
 
     ... TODO ... NO PART OF NORMAL SETUP ...
 
-    more /opt/asnmtap-3.000.xxx/applications/htmlroot/snmptraps/.htaccess
+    more /opt/asnmtap/applications/htmlroot/snmptraps/.htaccess
     AuthName "CITAP's Nagios Access"
     AuthType Basic
     AuthUserFile /etc/httpd/conf/nagios-htpasswd.users
@@ -383,7 +383,7 @@ Information about the configuration for ASNMTAP Applications can be found at:
 
     perl -MCPAN -e 'install HTML::HTMLDoc'
 
-    ln -s /usr/bin/htmldoc /opt/asnmtap-3.000.xxx/applications/htmlroot/cgi-bin/htmldoc.cgi
+    ln -s /usr/bin/htmldoc /opt/asnmtap/applications/htmlroot/cgi-bin/htmldoc.cgi
 
     vi httpd.conf
     AcceptPathInfo On

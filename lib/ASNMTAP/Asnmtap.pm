@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,14 +60,14 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my %_config;
 
-our $PREFIXPATH = '/opt/asnmtap-3.000.xxx';
+our $PREFIXPATH = '/opt/asnmtap';
 my $_configfile = "$PREFIXPATH/Asnmtap.cnf";
 
 if ( -e $_configfile or ( exists $ENV{ASNMTAP_PATH} ) ) {
@@ -111,7 +111,7 @@ if ( exists $_config{SUBDIR} ) {
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} )    ? $_config{COMMON}{APPLICATION}    : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )       ? $_config{COMMON}{BUSINESS}       : 'CITAP';
 our $DEPARTMENT      = ( exists $_config{COMMON}{DEPARTMENT} )     ? $_config{COMMON}{DEPARTMENT}     : 'Development';
-our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2007';
+our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2009';
 our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} )    ? $_config{COMMON}{SENDEMAILTO}    : 'alex.peeters@citap.be';
 our $TYPEMONITORING  = ( exists $_config{COMMON}{TYPEMONITORING} ) ? $_config{COMMON}{TYPEMONITORING} : 'central';
 our $RUNCMDONDEMAND  = ( exists $_config{COMMON}{RUNCMDONDEMAND} ) ? $_config{COMMON}{RUNCMDONDEMAND} : 'localhost';

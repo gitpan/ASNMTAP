@@ -87,6 +87,7 @@ t/Templates/Plugins/Mail/check_template-mail.t
 t/Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t
 t/Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t
 t/Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring.t
+t/Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring-1.1.t
 t/Templates/Plugins/Mail/check_template-mail-xml.t
 t/Templates/Plugins/Mail/check_template-mail-without-fingerprint.t
 
@@ -106,6 +107,7 @@ t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-authoriza
 t/Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.1.t
+t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.2.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact-XML.t
 t/Templates/Plugins/WebTransact/check_template-WebTransact.t
@@ -191,6 +193,7 @@ applications/htmlroot/cgi-bin/admin/views.pl
 
 applications/htmlroot/cgi-bin/moderator/collectorCrontabSchedulingReports.pl
 applications/htmlroot/cgi-bin/moderator/collectorDaemonSchedulingReports.pl
+applications/htmlroot/cgi-bin/moderator/downtimes.pl
 applications/htmlroot/cgi-bin/moderator/generateCollectorCrontabSchedulingReport.pl
 applications/htmlroot/cgi-bin/moderator/generateCollectorDaemonSchedulingReport.pl
 applications/htmlroot/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl
@@ -376,10 +379,10 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.000.020.sql
-applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.000.020-distributed.sql
-applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.000.sql
+applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.000-distributed.sql
+applications/tools/mysql/asnmtap-3.001.000-distributed_mysql-v5.0.x.sql
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -423,6 +426,7 @@ plugins/nagios/templates/check_xml.pl
 
 plugins/nagios/templates/dtd/Monitoring-1.0.dtd
 plugins/nagios/templates/dtd/Monitoring-1.1.dtd
+plugins/nagios/templates/dtd/Monitoring-1.2.dtd
 plugins/nagios/templates/dtd/nagios-1.0.dtd
 
 plugins/nagios/templates/xml/Monitoring-1.0.xml
@@ -431,6 +435,9 @@ plugins/nagios/templates/xml/Monitoring-1.0-errorParsing.xml
 plugins/nagios/templates/xml/Monitoring-1.1.xml
 plugins/nagios/templates/xml/Monitoring-1.1-doNotValidate.xml
 plugins/nagios/templates/xml/Monitoring-1.1-errorParsing.xml
+plugins/nagios/templates/xml/Monitoring-1.2.xml
+plugins/nagios/templates/xml/Monitoring-1.2-doNotValidate.xml
+plugins/nagios/templates/xml/Monitoring-1.2-errorParsing.xml
 plugins/nagios/templates/xml/nagios-1.0.xml
 plugins/nagios/templates/xml/nagios-1.0.xml-doctype
 plugins/nagios/templates/xml/nagios-1.0.xml-dtd
@@ -452,13 +459,15 @@ plugins/templates/check_file-counter.pl
 plugins/templates/check_MySQL-database-replication.pl
 plugins/templates/check_sendAndReceiveMail.pl
 plugins/templates/check_template.pl
+plugins/templates/check_template-cluster.pl
 plugins/templates/check_template-IO.pl
 plugins/templates/check_template-mail.pl
 plugins/templates/check_template-mail-fingerprint-xml.pl
 plugins/templates/check_template-mail-xml-fingerprint-xml.pl
 plugins/templates/check_template-mail-xml-fingerprint-xml-monitoring.pl
+plugins/templates/check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
 plugins/templates/check_template-mail-xml.pl
-plugins/templates/check_template-mail-without-fingerprint.pl
+plugins/templates/check_template-mail-fingerprint.pl
 plugins/templates/check_template-modem.pl
 plugins/templates/check_template-ras.pl
 plugins/templates/check_template-SOAP.pl
@@ -471,24 +480,27 @@ plugins/templates/check_template-WebTransact-XML.pl
 plugins/templates/check_template-WebTransact-XML-Cactus-parser.pl
 plugins/templates/check_template-WebTransact-XML-Monitoring.pl
 plugins/templates/check_template-WebTransact-XML-Monitoring-1.1.pl
+plugins/templates/check_template-WebTransact-XML-Monitoring-1.2.pl
 plugins/templates/check_template-XML.pl
 
 plugins/templates/dtd/email-upgrade-1.0.dtd
 plugins/templates/dtd/FingerprintEmail-1.0.dtd
 plugins/templates/dtd/Monitoring-1.0.dtd
 plugins/templates/dtd/Monitoring-1.1.dtd
+plugins/templates/dtd/Monitoring-1.2.dtd
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
+plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.020_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.000.020_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.000_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.000_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
 plugins/templates/snmptt/snmptt-oracle.conf
-plugins/templates/snmptt/snmptt-3.000.020.sql
-plugins/templates/snmptt/snmptt-3.000.020-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.001.000.sql
+plugins/templates/snmptt/snmptt-3.001.000-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml
@@ -499,6 +511,9 @@ plugins/templates/xml/Monitoring-1.0-errorParsing.xml
 plugins/templates/xml/Monitoring-1.1.xml
 plugins/templates/xml/Monitoring-1.1-doNotValidate.xml
 plugins/templates/xml/Monitoring-1.1-errorParsing.xml
+plugins/templates/xml/Monitoring-1.2.xml
+plugins/templates/xml/Monitoring-1.2-doNotValidate.xml
+plugins/templates/xml/Monitoring-1.2-errorParsing.xml
 plugins/templates/xml/ServletTestRunner-FailureError.xml
 plugins/templates/xml/ServletTestRunner.xml
 

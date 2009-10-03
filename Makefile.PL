@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v1.20 2009/xx/xx 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v1.21 2009/xx/xx 18:27:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,25 +7,23 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# replace 'Latest update: .. ... 2009' with 'Latest update: 19 April 2009'
-# replace 'Version      : 3.000.xxx' with ...
+# copy current release '3.001.000' to '3.001.001'
 
-# replace `# 2009/../.., v` with `# 2009/mm/dd, v`
-# replace 'Gecko/2009....' with 'Gecko/yyyymmdd'
-# rename `MANIFEST-3.000.xxx` with `MANIFEST-3.000.yyy.sql`
+# replace 'Version      : 3.001.xxx'  with `3.001.yyy;`
 
-# rename `asnmtap-3.000.xxx.sql` with `asnmtap-3.000.yyy.sql`
-# replace `asnmtap-3.000.xxx` with `asnmtap-3.000.yyy`
-# replace `ASNMTAP 3.000.xxx postfix; nl-BE; rv:3.000.xxx` with `ASNMTAP 3.000.yyy postfix; nl-BE; rv:3.000.yyy`
+# rename `MANIFEST-3.001.xxx` with `MANIFEST-3.001.yyy.sql`
+# rename `asnmtap-3.001.xxx.sql` with `asnmtap-3.001.yyy.sql`
 
-# replace `(q$Revision: 3.000.xxx$ =~ /\d+/g)` with `(q$Revision: 3.000.yyy$ =~ /\d+/g)`
-# replace `v3.000.xxx;` with `v3.000.yyy;`
-# replace `'3.000.xxx'` with `'3.000.yyy'`
+# replace `asnmtap-3.001.xxx` with `asnmtap-3.001.yyy`
+
+# replace `(q$Revision: 3.001.xxx$ =~ /\d+/g)` with `(q$Revision: 3.001.yyy$ =~ /\d+/g)`
+# replace `v3.000.1xx;` with `v3.001.yyy;`
+# replace `'3.000.1xx'` with `'3.001.yyy'`
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: 19 April 2009' with 'Latest update: .. ... 2009'
+# replace 'Latest update: dd month 2009' with 'Latest update: .. ... 2009'
 # replace `# 2009/mm/dd, v` with `# 2009/../.., v`
-# replace 'Gecko/yyyymmdd' with 'Gecko/2009....'
+# replace ASNMTAP 3.001.xxx postfix; nl-BE; rv:3.001.xxx) Gecko/yyyymmdd with ASNMTAP 3.001.yyy postfix; nl-BE; rv:3.001.yyy) Gecko/2009....
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -52,14 +50,14 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
 my $ASNMTAP_PLUGINS      = exists $ENV{ASNMTAP_PLUGINS}      ? $ENV{ASNMTAP_PLUGINS}      : 0;
 my $ASNMTAP_UID          = exists $ENV{ASNMTAP_UID}          ? $ENV{ASNMTAP_UID}          : '500';
 my $ASNMTAP_GID          = exists $ENV{ASNMTAP_GID}          ? $ENV{ASNMTAP_GID}          : '500';
-my $ASNMTAP_PATH         = exists $ENV{ASNMTAP_PATH}         ? $ENV{ASNMTAP_PATH}         : '/opt/asnmtap-3.000.xxx';
+my $ASNMTAP_PATH         = exists $ENV{ASNMTAP_PATH}         ? $ENV{ASNMTAP_PATH}         : '/opt/asnmtap';
 my $ASNMTAP_PROXY        = exists $ENV{ASNMTAP_PROXY}        ? $ENV{ASNMTAP_PROXY}        : '0.0.0.0';
 
 # End Configuration - You should not have to change anything below this line

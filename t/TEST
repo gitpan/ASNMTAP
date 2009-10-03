@@ -60,7 +60,7 @@ if (@ARGV) {
         push ( @tests, (<Templates/Plugins/Mail/check_template-mail.t>, <Templates/Plugins/Mail/check_template-mail-without-fingerprint.t>) );
 
         if ( -f 'PLUGINS_XML_ENABLED' ) {
-          push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring.t>) );
+          push ( @tests, (<Templates/Plugins/Mail/check_template-mail-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring.t>, <Templates/Plugins/Mail/check_template-mail-xml-fingerprint-xml-monitoring-1.1.t>) );
         }
       }
 
@@ -80,7 +80,7 @@ if (@ARGV) {
         push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-Perfdata.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-authorization.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-with-client-certificate.t>) );
 
         if ( -f 'PLUGINS_XML_ENABLED' ) {
-          push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact-XML.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.1.t>) );
+          push ( @tests, (<Templates/Plugins/WebTransact/check_template-WebTransact-XML.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Cactus-parser.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.1.t>, <Templates/Plugins/WebTransact/check_template-WebTransact-XML-Monitoring-1.2.t>) );
         }
       }
 

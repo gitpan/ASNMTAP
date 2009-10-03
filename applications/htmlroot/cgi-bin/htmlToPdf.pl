@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, htmlToPdf.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 # Compatible with HTMLDOC v1.8.27 from http://www.htmldoc.org/ or http://www.easysw.com/htmldoc
 # ----------------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "htmlToPdf.pl";
 my $prgtext     = "HTML to PDF";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,6 +49,7 @@ my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset'
 my $sessionID    = (defined $cgi->param('CGISESSID'))    ? $cgi->param('CGISESSID')    : undef;
 my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
 my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : 'on';
+my $CcatalogID   = (defined $cgi->param('catalogID'))    ? $cgi->param('catalogID')    : $CATALOGID;
 my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
 my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
 my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
@@ -65,10 +66,12 @@ my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')   
 my $hourlyAvg    = (defined $cgi->param('hourlyAvg'))    ? $cgi->param('hourlyAvg')    : 'off';
 my $dailyAvg     = (defined $cgi->param('dailyAvg'))     ? $cgi->param('dailyAvg')     : 'off';
 my $details      = (defined $cgi->param('details'))      ? $cgi->param('details')      : 'off';
+my $comments     = (defined $cgi->param('comments'))     ? $cgi->param('comments')     : 'off';
+my $perfdata     = (defined $cgi->param('perfdata'))     ? $cgi->param('perfdata')     : 'off';
 my $topx         = (defined $cgi->param('topx'))         ? $cgi->param('topx')         : 'off';
 my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : 'off';
 
-if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ''; }
+if ( defined $cgi->param('endDate') and $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ''; }
 
 my $htmlTitle = "Convert HTML to PDF";
 my $subTitle = "HTML to PDF";
@@ -78,7 +81,7 @@ if ( ( ! defined $scriptname ) or ( ! defined $sessionID ) ) {
   $message = "Scriptname and/or CGISESSID missing";
 } else {
   # Serialize the URL Access Parameters into a string
-  my $urlAccessParameters = "pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;detailed=$selDetailed&amp;uKey1=$uKey1&amp;uKey2=$uKey2&amp;uKey3=$uKey3&amp;startDate=$startDate&amp;endDate=$endDate&amp;inputType=$inputType&amp;year=$selYear&amp;week=$selWeek&amp;month=$selMonth&amp;quarter=$selQuarter&amp;timeperiodID=$timeperiodID&amp;statuspie=$statuspie&amp;errorpie=$errorpie&amp;bar=$bar&amp;hourlyAvg=$hourlyAvg&amp;dailyAvg=$dailyAvg&amp;details=$details&amp;topx=$topx&amp;pf=$pf&amp;htmlToPdf=1";
+  my $urlAccessParameters = "pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;detailed=$selDetailed&amp;catalogID=$CcatalogID&amp;uKey1=$uKey1&amp;uKey2=$uKey2&amp;uKey3=$uKey3&amp;startDate=$startDate&amp;endDate=$endDate&amp;inputType=$inputType&amp;year=$selYear&amp;week=$selWeek&amp;month=$selMonth&amp;quarter=$selQuarter&amp;timeperiodID=$timeperiodID&amp;statuspie=$statuspie&amp;errorpie=$errorpie&amp;bar=$bar&amp;hourlyAvg=$hourlyAvg&amp;dailyAvg=$dailyAvg&amp;details=$details&amp;comments=$comments&amp;perfdata=$perfdata&amp;topx=$topx&amp;pf=$pf&amp;htmlToPdf=1";
 
   if ($HTMLtoPDFprg eq 'htmldoc') {
     my $command = "$HTMLtoPDFprg -t pdf $HTMLTOPDFOPTNS 'http://${REMOTE_HOST}$scriptname?$urlAccessParameters'";

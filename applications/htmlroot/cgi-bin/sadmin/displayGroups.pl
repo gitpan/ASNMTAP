@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, displayGroups.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, displayGroups.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "displayGroups.pl";
 my $prgtext     = "Display Groups";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,7 @@ my $pageNo              = (defined $cgi->param('pageNo'))         ? $cgi->param(
 my $pageOffset          = (defined $cgi->param('pageOffset'))     ? $cgi->param('pageOffset')     : 0;
 my $orderBy             = (defined $cgi->param('orderBy'))        ? $cgi->param('orderBy')        : 'groupTitle asc';
 my $action              = (defined $cgi->param('action'))         ? $cgi->param('action')         : 'listView';
+my $CcatalogID          = (defined $cgi->param('catalogID'))      ? $cgi->param('catalogID')      : $CATALOGID;
 my $CdisplayGroupID     = (defined $cgi->param('displayGroupID')) ? $cgi->param('displayGroupID') : 'new';
 my $CgroupTitle         = (defined $cgi->param('groupTitle'))     ? $cgi->param('groupTitle')     : '';
 my $Cactivated          = (defined $cgi->param('activated'))      ? $cgi->param('activated')      : 'off';
@@ -59,10 +60,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Groups", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&displayGroupID=$CdisplayGroupID&groupTitle=$CgroupTitle&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&displayGroupID=$CdisplayGroupID&groupTitle=$CgroupTitle&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>display group ID  : $CdisplayGroupID<br>groupTitle        : $CgroupTitle<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>display group ID  : $CdisplayGroupID<br>groupTitle        : $CgroupTitle<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($matchingDisplayGroups, $navigationBar);
@@ -83,53 +84,53 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if Display Group $CdisplayGroupID exist before to insert";
+      $htmlTitle    = "Check if Display Group $CdisplayGroupID from $CcatalogID exist before to insert";
 
-      $sql = "select displayGroupID from $SERVERTABLDISPLAYGRPS WHERE displayGroupID='$CdisplayGroupID'";
+      $sql = "select displayGroupID from $SERVERTABLDISPLAYGRPS WHERE catalogID = '$CcatalogID' and displayGroupID='$CdisplayGroupID'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle  = "Display Group $CdisplayGroupID exist already";
+        $htmlTitle  = "Display Group $CdisplayGroupID from $CcatalogID exist already";
         $nextAction = "insertView";
       } else {
-        $htmlTitle  = "Display Group $CdisplayGroupID inserted";
+        $htmlTitle  = "Display Group $CdisplayGroupID from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
 
-        $sql = 'INSERT INTO ' .$SERVERTABLDISPLAYGRPS. ' SET groupTitle="' .$CgroupTitle. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLDISPLAYGRPS. ' SET catalogID="' .$CcatalogID. '", groupTitle="' .$CgroupTitle. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Delete Display Group $CdisplayGroupID";
+      $htmlTitle    = "Delete Display Group $CdisplayGroupID from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = "select uKey, displayDaemon from $SERVERTABLVIEWS where displayGroupID = '$CdisplayGroupID' order by displayDaemon, uKey";
-      ($rv, $matchingDisplayGroups) = check_record_exist ($rv, $dbh, $sql, 'Views', 'Unique Key', 'Display Daemon', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select uKey, displayDaemon from $SERVERTABLVIEWS where catalogID = '$CcatalogID' and displayGroupID = '$CdisplayGroupID' order by displayDaemon, uKey";
+      ($rv, $matchingDisplayGroups) = check_record_exist ($rv, $dbh, $sql, 'Views from ' .$CcatalogID, 'Unique Key', 'Display Daemon', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ($matchingDisplayGroups eq '') {
-        $htmlTitle = "Display Group $CdisplayGroupID deleted";
-        $sql = 'DELETE FROM ' .$SERVERTABLDISPLAYGRPS. ' WHERE displayGroupID="' .$CdisplayGroupID. '"';
+        $htmlTitle = "Display Group $CdisplayGroupID from $CcatalogID deleted";
+        $sql = 'DELETE FROM ' .$SERVERTABLDISPLAYGRPS. ' WHERE catalogID="' .$CcatalogID. '" and displayGroupID="' .$CdisplayGroupID. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       } else {
-        $htmlTitle = "Display Group $CdisplayGroupID not deleted, still used by";
+        $htmlTitle = "Display Group $CdisplayGroupID from $CcatalogID not deleted, still used by";
       }
 
       $nextAction = "listView" if ($rv);
     } elsif ($action eq 'displayView') {
       $formDisabledPrimaryKey = $formDisabledAll = 'disabled';
-      $htmlTitle    = "Display Display Group $CdisplayGroupID";
+      $htmlTitle    = "Display Display Group $CdisplayGroupID from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Edit Display Group $CdisplayGroupID";
+      $htmlTitle    = "Edit Display Group $CdisplayGroupID from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
-      $htmlTitle    = "Display Group $CdisplayGroupID updated";
+      $htmlTitle    = "Display Group $CdisplayGroupID from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLDISPLAYGRPS. ' SET displayGroupID="' .$CdisplayGroupID. '", groupTitle="' .$CgroupTitle. '", activated="' .$dummyActivated. '" WHERE displayGroupID="' .$CdisplayGroupID. '"';
+      $sql = 'UPDATE ' .$SERVERTABLDISPLAYGRPS. ' SET catalogID="' .$CcatalogID. '", displayGroupID="' .$CdisplayGroupID. '", groupTitle="' .$CgroupTitle. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and displayGroupID="' .$CdisplayGroupID. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -140,19 +141,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
 
-      $sql = "select displayGroupID, groupTitle, activated from $SERVERTABLDISPLAYGRPS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingDisplayGroups, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Display Group', 'displayGroupID', '0', '0', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select catalogID, displayGroupID, groupTitle, activated from $SERVERTABLDISPLAYGRPS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Group Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, groupTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingDisplayGroups, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Display Group', 'catalogID|displayGroupID', '0|1', '1', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select displayGroupID, groupTitle, activated from $SERVERTABLDISPLAYGRPS where displayGroupID='$CdisplayGroupID'";
+      $sql = "select catalogID, displayGroupID, groupTitle, activated from $SERVERTABLDISPLAYGRPS where catalogID='$CcatalogID' and displayGroupID='$CdisplayGroupID'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CdisplayGroupID, $CgroupTitle, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
-        $CdisplayGroupID = 'new' if ($action eq 'duplicateView');
+        ($CcatalogID, $CdisplayGroupID, $CgroupTitle, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+
+        if ($action eq 'duplicateView') {
+          $CcatalogID = $CATALOGID;
+          $CdisplayGroupID = 'new';
+        }
+
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -205,7 +211,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"displayGroupID\" value=\"$CdisplayGroupID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
+    print "  <input type=\"hidden\" name=\"catalogID\" value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"displayGroupID\" value=\"$CdisplayGroupID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -233,6 +239,9 @@ HTML
       <tr><td>&nbsp;</td></tr>
       <tr><td>
 	    <table border="0" cellspacing="0" cellpadding="0">
+        <tr><td><b>Catalog ID: </b></td><td>
+          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        </td></tr>
         <tr><td><b>Display Group ID: </b></td><td>
           <input type="text" name="displayGroupID" value="$CdisplayGroupID" size="11" maxlength="11" $formDisabledPrimaryKey>
         <tr><td><b>Group Name: </b></td><td>

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, holidaysBundle.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, holidaysBundle.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "holidaysBundle.pl";
 my $prgtext     = "Holidays Bundle";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,6 +44,7 @@ my $pageNo             = (defined $cgi->param('pageNo'))            ? $cgi->para
 my $pageOffset         = (defined $cgi->param('pageOffset'))        ? $cgi->param('pageOffset')        : 0;
 my $orderBy            = (defined $cgi->param('orderBy'))           ? $cgi->param('orderBy')           : 'holidayBundleName asc';
 my $action             = (defined $cgi->param('action'))            ? $cgi->param('action')            : 'listView';
+my $CcatalogID         = (defined $cgi->param('catalogID'))         ? $cgi->param('catalogID')         : $CATALOGID;
 my $CholidayBundleID   = (defined $cgi->param('holidayBundleID'))   ? $cgi->param('holidayBundleID')   : 'new';
 my $CholidayBundleName = (defined $cgi->param('holidayBundleName')) ? $cgi->param('holidayBundleName') : '';
 my $CcountryIDreload   = (defined $cgi->param('countryIDreload'))   ? $cgi->param('countryIDreload')   : 0;
@@ -64,10 +65,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Holidays Bundle", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&holidayBundleID=$CholidayBundleID&holidayBundleName=$CholidayBundleName&countryIDreload=$CcountryIDreload&countryID=$CcountryID&holidayID=$CholidayID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&holidayBundleID=$CholidayBundleID&holidayBundleName=$CholidayBundleName&countryIDreload=$CcountryIDreload&countryID=$CcountryID&holidayID=$CholidayID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir            : $pagedir<br>pageset            : $pageset<br>debug              : $debug<br>CGISESSID          : $sessionID<br>page no            : $pageNo<br>page offset        : $pageOffset<br>order by           : $orderBy<br>action             : $action<br>holiday Bundle ID  : $CholidayBundleID<br>holiday Bundle Name: $CholidayBundleName<br>countryID reload   : $CcountryIDreload<br>countryID          : $CcountryID<br>holidayID          : $CholidayID<br>activated          : $Cactivated<br>URL ...            : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir            : $pagedir<br>pageset            : $pageset<br>debug              : $debug<br>CGISESSID          : $sessionID<br>page no            : $pageNo<br>page offset        : $pageOffset<br>order by           : $orderBy<br>action             : $action<br>catalog ID         : $CcatalogID<br>holiday Bundle ID  : $CholidayBundleID<br>holiday Bundle Name: $CholidayBundleName<br>countryID reload   : $CcountryIDreload<br>countryID          : $CcountryID<br>holidayID          : $CholidayID<br>activated          : $Cactivated<br>URL ...            : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($countryIDSelect, $holidaysSelect, $matchingHolidaysBundle, $matchingPlugins, $navigationBar);
@@ -98,45 +99,45 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
     } elsif ($action eq 'insert') {
-      $htmlTitle    = "Check if Holiday Bundle $CholidayBundleID exist before to insert";
+      $htmlTitle    = "Check if Holiday Bundle $CholidayBundleID from $CcatalogID exist before to insert";
 
-      $sql = "select holidayBundleID from $SERVERTABLHOLIDYSBNDL WHERE holidayBundleID = '$CholidayBundleID'";
+      $sql = "select holidayBundleID from $SERVERTABLHOLIDYSBNDL WHERE catalogID = '$CcatalogID' and holidayBundleID = '$CholidayBundleID'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
 	  if ( $numberRecordsIntoQuery ) {
-        $htmlTitle    = "Holiday Bundle $CholidayBundleID exist already";
+        $htmlTitle    = "Holiday Bundle $CholidayBundleID from $CcatalogID exist already";
         $nextAction   = "insertView";
       } else {
-        $htmlTitle    = "Holiday Bundle $CholidayBundleID inserted";
+        $htmlTitle    = "Holiday Bundle $CholidayBundleID from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLHOLIDYSBNDL. ' SET holidayBundleName="' .$CholidayBundleName. '", holidayID="' .$CholidayID. '", countryID="' .$CcountryID. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLHOLIDYSBNDL. ' SET catalogID="' .$CcatalogID. '", holidayBundleName="' .$CholidayBundleName. '", holidayID="' .$CholidayID. '", countryID="' .$CcountryID. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
     } elsif ($action eq 'deleteView') {
       $formDisabledAll = $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Delete Holiday Bundle $CholidayBundleID";
+      $htmlTitle    = "Delete Holiday Bundle $CholidayBundleID from $CcatalogID";
       $submitButton = "Delete";
       $nextAction   = "delete" if ($rv);
     } elsif ($action eq 'delete') {
-      $sql = "select uKey, test from $SERVERTABLPLUGINS where holidayBundleID = '$CholidayBundleID' order by holidayBundleID";
-      ($rv, $matchingHolidaysBundle) = check_record_exist ($rv, $dbh, $sql, 'Plugins', 'Unique Key', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select uKey, test from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' and holidayBundleID = '$CholidayBundleID' order by holidayBundleID";
+      ($rv, $matchingHolidaysBundle) = check_record_exist ($rv, $dbh, $sql, 'Plugins from ' .$CcatalogID, 'Unique Key', 'Title', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 	  
 	  if ($matchingHolidaysBundle eq '') {
-        $sql = 'DELETE FROM ' .$SERVERTABLHOLIDYSBNDL. ' WHERE holidayBundleID="' .$CholidayBundleID. '"';
+        $sql = 'DELETE FROM ' .$SERVERTABLHOLIDYSBNDL. ' WHERE catalogID="' .$CcatalogID. '" and holidayBundleID="' .$CholidayBundleID. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction = "listView" if ($rv);
-        $htmlTitle = "Holiday Bundle $CholidayBundleID deleted";
+        $htmlTitle = "Holiday Bundle $CholidayBundleID from $CcatalogID deleted";
       } else {
-        $htmlTitle = "Holiday Bundle $CholidayBundleID not deleted, still used by";
+        $htmlTitle = "Holiday Bundle $CholidayBundleID from $CcatalogID not deleted, still used by";
       }
     } elsif ($action eq 'displayView') {
       $formDisabledAll = $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Display Holiday Bundle $CholidayBundleID";
+      $htmlTitle    = "Display Holiday Bundle $CholidayBundleID from $CcatalogID";
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'editView') {
       $formDisabledPrimaryKey = 'disabled';
-      $htmlTitle    = "Edit Holiday Bundle $CholidayBundleID";
+      $htmlTitle    = "Edit Holiday Bundle $CholidayBundleID from $CcatalogID";
       $submitButton = "Edit";
       $nextAction   = "edit" if ($rv);
     } elsif ($action eq 'edit') {
@@ -144,18 +145,18 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
 
       unless ( $dummyActivated ) {
-        $sql = "select uKey, test from $SERVERTABLPLUGINS where holidayBundleID = '$CholidayBundleID' order by holidayBundleID";
-        ($rv, $matchingHolidaysBundle) = check_record_exist ($rv, $dbh, $sql, 'Plugins', 'Unique Key', 'Title', $matchingHolidaysBundle, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+        $sql = "select uKey, test from $SERVERTABLPLUGINS where catalogID='$CcatalogID' and holidayBundleID = '$CholidayBundleID' order by holidayBundleID";
+        ($rv, $matchingHolidaysBundle) = check_record_exist ($rv, $dbh, $sql, 'Plugins from ' .$CcatalogID, 'Unique Key', 'Title', $matchingHolidaysBundle, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       }
 
 	  if ($dummyActivated or $matchingHolidaysBundle eq '') {
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'UPDATE ' .$SERVERTABLHOLIDYSBNDL. ' SET holidayBundleID="' .$CholidayBundleID. '", holidayBundleName="' .$CholidayBundleName. '", holidayID="' .$CholidayID. '", countryID="' .$CcountryID. '", activated="' .$dummyActivated. '" WHERE holidayBundleID="' .$CholidayBundleID. '"';
+        $sql = 'UPDATE ' .$SERVERTABLHOLIDYSBNDL. ' SET catalogID="' .$CcatalogID. '", holidayBundleID="' .$CholidayBundleID. '", holidayBundleName="' .$CholidayBundleName. '", holidayID="' .$CholidayID. '", countryID="' .$CcountryID. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and holidayBundleID="' .$CholidayBundleID. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
-        $htmlTitle    = "Holiday Bundle $CholidayBundleID updated";
+        $htmlTitle    = "Holiday Bundle $CholidayBundleID from $CcatalogID updated";
       } else {
-        $htmlTitle    = "Holiday Bundle $CholidayBundleID not deactivated and updated, still used by";
+        $htmlTitle    = "Holiday Bundle $CholidayBundleID from $CcatalogID not deactivated and updated, still used by";
       }
     } elsif ($action eq 'listView') {
       $htmlTitle    = "All holiday bundles listed";
@@ -164,19 +165,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
  
-      $sql = "select $SERVERTABLHOLIDYSBNDL.holidayBundleID, $SERVERTABLHOLIDYSBNDL.holidayBundleName, $SERVERTABLHOLIDYSBNDL.activated from $SERVERTABLHOLIDYSBNDL order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holidayBundleName desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Holiday Bundle Name  <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingHolidaysBundle, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Holiday Bundle', 'holidayBundleID', '0', '0', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $sql = "select $SERVERTABLHOLIDYSBNDL.catalogID, $SERVERTABLHOLIDYSBNDL.holidayBundleID, $SERVERTABLHOLIDYSBNDL.holidayBundleName, $SERVERTABLHOLIDYSBNDL.activated from $SERVERTABLHOLIDYSBNDL order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holidayBundleName desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Holiday Bundle Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=holidayBundleName asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, catalogID asc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, catalogID asc, holidayBundleName asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      ($rv, $matchingHolidaysBundle, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Holiday Bundle', 'catalogID|holidayBundleID', '0|1', '1', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if (!$CcountryIDreload and ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView')) {
-      $sql = "select holidayBundleID, holidayBundleName, holidayID, countryID, activated from $SERVERTABLHOLIDYSBNDL where holidayBundleID = '$CholidayBundleID'";
+      $sql = "select catalogID, holidayBundleID, holidayBundleName, holidayID, countryID, activated from $SERVERTABLHOLIDYSBNDL where catalogID = '$CcatalogID' and holidayBundleID = '$CholidayBundleID'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CholidayBundleID, $CholidayBundleName, $CholidayID, $CcountryID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
-        $CholidayBundleID = 'new' if ($action eq 'duplicateView');
+        ($CcatalogID, $CholidayBundleID, $CholidayBundleName, $CholidayID, $CcountryID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+
+        if ($action eq 'duplicateView') {
+          $CcatalogID = $CATALOGID;
+          $CholidayBundleID = 'new';
+        }
+
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
@@ -187,32 +193,33 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $countryIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcountryID, 'countryID', 'none', '-Select-', $formDisabledAll, 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ( $CcountryID ne 'none' ) {
-        $sql = "select holidayID, holiday from $SERVERTABLHOLIDYS where countryID = '$CcountryID' or countryID = '00' order by holiday";
+        $sql = "select holidayID, holiday from $SERVERTABLHOLIDYS where catalogID = '$CcatalogID' and (countryID = '$CcountryID' or countryID = '00') order by holiday";
        ($rv, $holidaysSelect) = create_combobox_multiple_from_DBI ($rv, $dbh, $sql, $action, $CholidayID, 'holidayID', 'Country missing', 20, 64, $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
         $formDisabledNoCountryID = '';
       } else {
-        $holidaysSelect = "Country missing";
+        $holidaysSelect = 'Country missing';
         $formDisabledNoCountryID = 'disabled';
       }
     }
 
     if (!$CcountryIDreload and ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'editView')) {
-      $matchingPlugins .= "<table border=0 cellpadding=1 cellspacing=1 bgcolor=\"$COLORSTABLE{TABLE}\"><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><th colspan=\"4\">Plugins:</th></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Primary Key</td><td>Title</td><td>Status</td><td>Action</td></tr>";
-      my ($uKey, $title, $activated, $urlWithAccessParametersAction, $actionItem, $notActivated);
-      $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, activated from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where holidayBundleID = '$CholidayBundleID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+      $matchingPlugins .= "<table border=0 cellpadding=1 cellspacing=1 bgcolor=\"$COLORSTABLE{TABLE}\"><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><th colspan=\"5\">Plugins:</th></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Catalog ID</td><td>Unique Key</td><td>Title</td><td>Status</td><td>Action</td></tr>";
+      my ($catalogID, $uKey, $title, $activated, $urlWithAccessParametersAction, $actionItem, $notActivated);
+      $sql = "select catalogID, uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, activated from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and holidayBundleID = '$CholidayBundleID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$uKey, \$title, \$activated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth->bind_columns( \$catalogID, \$uKey, \$title, \$activated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
           while( $sth->fetch() ) {
-            $urlWithAccessParametersAction = "plugins.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;uKey=$uKey&amp;orderBy=uKey&amp;action";
+            my $actionSkip = ( ( $catalogID eq $CATALOGID ) ? 0 : 1 );
+            $urlWithAccessParametersAction = "plugins.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$catalogID&amp;uKey=$uKey&amp;orderBy=uKey&amp;action";
             $actionItem = "&nbsp;";
          	$actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display View\" alt=\"Display View\" border=\"0\"></a>&nbsp;" if ($iconDetails);
-            $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit View\" alt=\"Edit View\" border=\"0\"></a>&nbsp;" if ($iconEdit);
+            $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit View\" alt=\"Edit View\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
             $notActivated = ($activated) ? '' : ' not';
-            $matchingPlugins .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$uKey</td><td>$title</td><td><b>$notActivated activated</b></td><td>$actionItem</td></tr>\n";
+            $matchingPlugins .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$catalogID</td><td>$uKey</td><td>$title</td><td><b>$notActivated activated</b></td><td>$actionItem</td></tr>\n";
           }
         } else {
           $matchingPlugins .= "<tr><td>No records found</td></tr>\n";
@@ -244,7 +251,7 @@ function submitForm() {
 
   if ( document.holidaysBundle.countryID.value == null || document.holidaysBundle.countryID.value == 'none' ) {
     document.holidaysBundle.countryID.focus();
-    alert('Please select a country!');
+    alert('Please create/select a country!');
     return false;
   }
 
@@ -262,7 +269,13 @@ function validateForm() {
 
   if ( document.holidaysBundle.countryID.value == null || document.holidaysBundle.countryID.value == 'none' ) {
     document.holidaysBundle.countryID.focus();
-    alert('Please select a country!');
+    alert('Please create/select a country!');
+    return false;
+  }
+
+  if ( document.holidaysBundle.holidayID.selectedIndex == -1 ) {
+    document.holidaysBundle.holidayID.focus();
+    alert('Please create/select first a holidays for this country!');
     return false;
   }
 
@@ -296,7 +309,7 @@ HTML
       print "<br>\n";
     }
 
-    print "  <input type=\"hidden\" name=\"holidayBundleID\" value=\"$CholidayBundleID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
+    print "  <input type=\"hidden\" name=\"catalogID\" value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"holidayBundleID\" value=\"$CholidayBundleID\">\n" if ($formDisabledPrimaryKey ne '' and $action ne 'displayView');
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -324,6 +337,8 @@ HTML
     <tr><td>&nbsp;</td></tr>
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
+        <tr><td><b>Catalog ID: </b></td><td>
+          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
         <tr><td><b>Holiday Bundle ID: </b></td><td>
           <input type="text" name="holidayBundleID" value="$CholidayBundleID" size="11" maxlength="11" $formDisabledPrimaryKey>
         </td></tr>

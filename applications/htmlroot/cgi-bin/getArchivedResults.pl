@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,12 +32,13 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedResults.pl";
 my $prgtext     = "Get Archived Results";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
+my $CcatalogID  = (defined $cgi->param('catalogID')) ? $cgi->param('catalogID') : $CATALOGID;
 my $uKey        = (defined $cgi->param('uKey'))      ? $cgi->param('uKey')      : '<NIHIL>';  $uKey    =~ s/\+/ /g;
 my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : 'index';    $pagedir =~ s/\+/ /g;
 my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
@@ -52,16 +53,16 @@ my $archived    = (defined $cgi->param('archived'))  ? $cgi->param('archived')  
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
 
-my $htmlTitle   = "Get Archived Debug Report(s)";
+my $htmlTitle   = "Get Archived Result(s) from $CcatalogID";
 
 # User Session and Access Control
-my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Result Archive", "uKey=$uKey");
+my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Result Archive", "catalogID=$CcatalogID&uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&uKey=$uKey&ascending=$ascending&csvDaily=$csvDaily&csvWeekly=$csvWeekly&sqlData=$sqlData&sqlError=$sqlError&archived=$archived";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&uKey=$uKey&ascending=$ascending&csvDaily=$csvDaily&csvWeekly=$csvWeekly&sqlData=$sqlData&sqlError=$sqlError&archived=$archived";
 
 # Debug information
-print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>uKey      : $uKey<br>csvDaily  : $csvDaily<br>csvWeekly : $csvWeekly<br>sqlData   : $sqlData<br>sqlError  : $sqlError<br>archived  : $archived<br>ascending : $ascending<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>uKey      : $uKey<br>csvDaily  : $csvDaily<br>csvWeekly : $csvWeekly<br>sqlData   : $sqlData<br>sqlError  : $sqlError<br>archived  : $archived<br>ascending : $ascending<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
@@ -75,11 +76,11 @@ unless ( defined $errorUserAccessControl ) {
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
-      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+      $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ($uKey ne '<NIHIL>') {
-        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
+        $sql = "select concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), resultsdir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and uKey = '$uKey' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
@@ -95,7 +96,7 @@ unless ( defined $errorUserAccessControl ) {
 
     if ($rv) {
       if (defined $resultsdir) {
-        my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;uKey=$uKey&amp;csvDaily=$csvDaily&amp;csvWeekly=$csvWeekly&amp;sqlData=$sqlData&amp;sqlError=$sqlError&amp;archived=$archived";
+        my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;catalogID=$CcatalogID&amp;uKey=$uKey&amp;csvDaily=$csvDaily&amp;csvWeekly=$csvWeekly&amp;sqlData=$sqlData&amp;sqlError=$sqlError&amp;archived=$archived";
         $resultsSelect = "  <table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='$COLORSTABLE{TABLE}'>\n    <tr><th colspan=\"2\"><a href=\"$urlWithAccessParameters&amp;ascending=0\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Result(s) <a href=\"$urlWithAccessParameters&amp;ascending=1\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th></tr>";
 
         my $rvOpendir = opendir(RESULTS, "$RESULTSPATH/$resultsdir/");
@@ -114,17 +115,19 @@ unless ( defined $errorUserAccessControl ) {
           my $suffix = ($archived eq 'on') ? '.gz' : '';
 
           foreach my $archivedResultFile (@archivedResultFiles) {
-            if ($archivedResultFile =~ /-$uKey-/ or $archivedResultFile =~ /-$uKey./) {
+            my $catalogID_uKey = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey;
+
+            if ($archivedResultFile =~ /-$catalogID_uKey-/ or $archivedResultFile =~ /-$catalogID_uKey./) {
               my ($resultsDate, $resultsType);
 
-              if ( $csvDaily eq 'on' and $archivedResultFile =~ /-$uKey-csv.txt$suffix$/ ) {
+              if ( $csvDaily eq 'on' and $archivedResultFile =~ /-$catalogID_uKey-csv.txt$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
   			    my $resultsMonth = substr($archivedResultFile, 4, 2);
 	  		    my $resultsDay   = substr($archivedResultFile, 6, 2);
 
                 $resultsType = "CSV Daily";
                 $resultsDate = "$resultsYear/$resultsMonth/$resultsDay";
-              } elsif ( $csvWeekly eq 'on' and $archivedResultFile =~ /-$uKey-csv-week.txt$suffix$/ ) {
+              } elsif ( $csvWeekly eq 'on' and $archivedResultFile =~ /-$catalogID_uKey-csv-week.txt$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
 	  		    my $resultsWeek  = substr($archivedResultFile, 5, 2);
 
@@ -137,14 +140,14 @@ unless ( defined $errorUserAccessControl ) {
                 $t_month = sprintf ("%02d", $t_month);
                 $t_day   = sprintf ("%02d", $t_day);
                 $resultsDate = "$resultsYear, Week $resultsWeek from $f_year/$f_month/$f_day until $t_year/$t_month/$t_day";
-              } elsif ( $sqlData eq 'on' and $archivedResultFile =~ /-$uKey.sql$suffix$/ ) {
+              } elsif ( $sqlData eq 'on' and $archivedResultFile =~ /-$catalogID_uKey.sql$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
   			    my $resultsMonth = substr($archivedResultFile, 4, 2);
 	  		    my $resultsDay   = substr($archivedResultFile, 6, 2);
 
                 $resultsType = "SQL Data";
                 $resultsDate = "$resultsYear/$resultsMonth/$resultsDay";
-              } elsif ( $sqlError eq 'on' and $archivedResultFile =~ /-$uKey-sql-error.txt$suffix$/ ) {
+              } elsif ( $sqlError eq 'on' and $archivedResultFile =~ /-$catalogID_uKey-sql-error.txt$suffix$/ ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
   			    my $resultsMonth = substr($archivedResultFile, 4, 2);
 	  		    my $resultsDay   = substr($archivedResultFile, 6, 2);
@@ -206,6 +209,9 @@ EndOfHtml
     <input type="hidden" name="CGISESSID" value="$sessionID">
     <input type="hidden" name="ascending" value="$ascending">
     <table border=0>
+      <tr><td><b>Catalog ID: </b></td><td>
+        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      </td></tr>
 	  <tr align="left"><td>Application:</td><td>$uKeySelect</td></tr>
 	  <tr align="left"><td>Periode:</td><td>$checkboxCsvDaily $checkboxCsvWeekly $checkboxSqlData $checkboxSqlError $checkboxArchived</td></tr>
       <tr align="left"><td align="right"><br><input type="submit" value="Go"></td><td><br><input type="reset" value="Reset"></td></tr>

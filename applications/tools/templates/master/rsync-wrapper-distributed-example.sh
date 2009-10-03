@@ -5,8 +5,8 @@
 # rsync-wrapper-distributed.sh for asnmtap, v2.002.xxx - wrapper script for rsync
 #   execution via ssh key for use with rsync-mirror-distributed.sh & rsync-mirror.conf
 #
-#   rsync-wrapper need to be installed onto the master server into /opt/asnmtap-3.000.xxx/applications/master and
-#   rsync-mirror.sh & rsync-mirror.conf onto the slave server into /opt/asnmtap-3.000.xxx/applications/slave
+#   rsync-wrapper need to be installed onto the master server into /opt/asnmtap/applications/master and
+#   rsync-mirror.sh & rsync-mirror.conf onto the slave server into /opt/asnmtap/applications/slave
 #
 #   Accepted rsync calls are as follows:
 #     rsync --server --sender @options . $chrootDir/../../otherdir would succeed
@@ -23,10 +23,10 @@
 use strict;
 
 # Chroot Dir
-my $chrootDir = '/opt/asnmtap-3.000.xxx/results/';
+my $chrootDir = '/opt/asnmtap/results/';
 
 # Where to log successes and failures to set to /dev/null to turn off logging.
-my $filename = '/opt/asnmtap-3.000.xxx/asnmtap/log/rsync-wrapper-distributed-template.log';
+my $filename = '/opt/asnmtap/asnmtap/log/rsync-wrapper-distributed-template.log';
 
 # What you want sent if access is denied.
 my $denyString = 'Access Denied! Sorry';

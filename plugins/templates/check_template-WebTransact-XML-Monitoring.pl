@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_template-WebTransact-XML-Monitoring.pl
+# 2009/mm/dd, v3.001.000, check_template-WebTransact-XML-Monitoring.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.0";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -41,7 +41,7 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H=s', 'service|s=s', 'validation:s', 'interval|i=i', 'environment|e=s'],
+  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H=s', 'service|s=s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -69,6 +69,10 @@ if (defined $validateDTD) {
 my $resultOutOfDate = $objectPlugins->getOptionsArgv ('interval');
 
 my $environment = $objectPlugins->getOptionsArgv ('environment') ? $objectPlugins->getOptionsArgv ('environment') : 'P';
+
+my $debug = $objectPlugins->getOptionsValue ('debug');
+
+my $reverse = 0;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -106,10 +110,15 @@ if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}
   my ($checkEpochtime, $checkDate, $checkTime) = ($xml->{Monitoring}{Results}{Details}{Epochtime}, $xml->{Monitoring}{Results}{Details}{Date}, $xml->{Monitoring}{Results}{Details}{Time});
 
   # yyyy[-/]mm[-/]dd[+-]hh:mm
-  $checkDate = reverse ( $checkDate );
+  $checkDate = reverse ( $checkDate ) if ($reverse);
   (my $offsetDate, $checkDate) = split (/[+-]/, $checkDate, 2);
-  $checkDate = reverse ( $checkDate );
-  $offsetDate = reverse ( $offsetDate );
+  $checkDate = $offsetDate unless ( defined $checkDate );
+
+  if ($reverse) {
+    $checkDate = reverse ( $checkDate );
+    $offsetDate = reverse ( $offsetDate );
+  }
+
   my ($checkYear, $checkMonth, $checkDay) = split (/[\/-]/, $checkDate);
 
   # hh:mm:ss[+-]hh:mm
@@ -117,7 +126,6 @@ if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}
   my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
 
   my $xmlEpochtime = timelocal ( $checkSec, $checkMin, $checkHour, $checkDay, ($checkMonth-1), ($checkYear-1900) );
-  print "APE: $currentTimeslot - $checkEpochtime\n";
   print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > $resultOutOfDate\n"  if ( $objectPlugins->getOptionsValue ('debug') );
 
   unless ( check_date ( $checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec ) ) {

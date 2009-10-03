@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.000, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.000.020;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -48,6 +48,7 @@ my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir'
 my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : 'index-cv'; $pageset =~ s/\+/ /g;
 my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
 my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : 'on';
+my $CcatalogID   = (defined $cgi->param('catalogID'))    ? $cgi->param('catalogID')    : $CATALOGID;
 my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
 my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
 my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
@@ -74,17 +75,17 @@ my $htmlToPdf    = (defined $cgi->param('htmlToPdf'))    ? $cgi->param('htmlToPd
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
 
-if ( $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ''; }
-my $htmlTitle   = ( $selDetailed eq 'on' ) ? 'Detailed Statistics and Report Generation' : 'Compare Response Time Trends';
+if ( defined $cgi->param('endDate') and $cgi->param('endDate') ) { $endDate = $cgi->param('endDate'); } else { $endDate = ''; }
+my $htmlTitle   = ( ( $selDetailed eq 'on' ) ? 'Detailed Statistics and Report Generation' : 'Compare Response Time Trends' );
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&comments=$comments&perfdata=$perfdata&topx=$topx&pf=$pf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&catalogID=$CcatalogID&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&comments=$comments&perfdata=$perfdata&topx=$topx&pf=$pf";
 
 # Debug information
-print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>comments    : $comments<br>perfdata    : $perfdata<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>catalog ID  : $CcatalogID<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>comments    : $comments<br>perfdata    : $perfdata<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...     : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
@@ -120,7 +121,7 @@ EndOfHtml
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
+    $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
     $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
     $sth->bind_columns( \$uKey, \$title) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -137,7 +138,7 @@ EndOfHtml
 
       while( $sth->fetch() ) {
         if ($uKey eq $uKey1 and $selDetailed eq 'on') {
-          $htmlTitle = "Results for $title";
+          $htmlTitle = "Results for $title from $CcatalogID";
 	      $Title = $title;
         }
 
@@ -228,11 +229,11 @@ EndOfHtml
       $quarters .= "        </select>\n";
 
       # Section: SLA windows
-      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select SQL_NO_CACHE timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      ($rv, $slaWindows, undef) = create_combobox_from_DBI ($rv, $dbh, "select SQL_NO_CACHE timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where catalogID = '$CcatalogID' and activated = 1 order by timeperiodName", 1, '', $timeperiodID, 'timeperiodID', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $sqlPeriode = '';
 
       if ( $timeperiodID > 1 ) {
-        $sqlQuery = "select SQL_NO_CACHE timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where timeperiodID = '$timeperiodID'";
+        $sqlQuery = "select SQL_NO_CACHE timeperiodName, sunday, monday, tuesday, wednesday, thursday, friday, saturday from $SERVERTABLTIMEPERIODS where catalogID = '$CcatalogID' and timeperiodID = '$timeperiodID'";
         $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
@@ -355,7 +356,7 @@ EndOfHtml
           $sqlSelect  = "select SQL_NO_CACHE startDate as startDateQ, startTime, endDate as endDateQ, endTime, duration, status, statusMessage";
           $sqlAverage = "select SQL_NO_CACHE avg(time_to_sec(duration)) as average";
           $sqlErrors  = "select SQL_NO_CACHE statusmessage, count(statusmessage) as aantal";
-          $sqlWhere   = "WHERE uKey = '$uKey1'";
+          $sqlWhere   = "WHERE catalogID='$CcatalogID' and uKey = '$uKey1'";
           $sqlPeriode = "AND startDate BETWEEN '$sqlStartDate' AND '$sqlEndDate' $sqlPeriode " if (defined $sqlStartDate and defined $sqlEndDate);
         }
 
@@ -364,7 +365,7 @@ EndOfHtml
 
         # Short Description - - - - - - - - - - - - - - - - - - - - - - - -
         if ( $uKey1 ne 'none' ) {
-          $sqlQuery = "select SQL_NO_CACHE shortDescription from $SERVERTABLPLUGINS WHERE uKey = '$uKey1'";
+          $sqlQuery = "select SQL_NO_CACHE shortDescription from $SERVERTABLPLUGINS WHERE catalogID = '$CcatalogID' and uKey = '$uKey1'";
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
 
@@ -440,7 +441,7 @@ EndOfHtml
           my ($activationDate, $suspentionDate, $solvedDate, $activationTime, $suspentionTime, $solvedTime, $commentData, $instability, $persistent, $downtime, $problemSolved);
           $commentDetailList = "<H1>Comment Details</H1>\n";
 
-          $sqlQuery = "select SQL_NO_CACHE activationDate, suspentionDate, solvedDate, activationTime, suspentionTime, solvedTime, commentData, instability, persistent, downtime, problemSolved from $SERVERTABLCOMMENTS where uKey = '". $uKey1 ."' and activationDate <= '". $sqlEndDate ."' and ( ( problemSolved = '1' and '". $sqlStartDate ."' <= solvedDate ) or problemSolved = '0' )";
+          $sqlQuery = "select SQL_NO_CACHE activationDate, suspentionDate, solvedDate, activationTime, suspentionTime, solvedTime, commentData, instability, persistent, downtime, problemSolved from $SERVERTABLCOMMENTS where catalogID = '" .$CcatalogID. "' and uKey = '". $uKey1 ."' and activationDate <= '". $sqlEndDate ."' and ( ( problemSolved = '1' and '". $sqlStartDate ."' <= solvedDate ) or problemSolved = '0' )";
           $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
           $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
           $sth->bind_columns( \$activationDate, \$suspentionDate, \$solvedDate, \$activationTime, \$suspentionTime, \$solvedTime, \$commentData, \$instability, \$persistent, \$downtime, \$problemSolved ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -477,7 +478,7 @@ EndOfHtml
             my ($sthPERFPARSE, $metric_id, $metric, $times, $percentiles, $unit, $Unit, $periodePERFPARSE, $countPERFPARSE, $valuePERFPARSE) = ( $dbh );
 
             my $toggle = 0;
-            $sqlQuery = "select $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $PERFPARSEDATABASE.perfdata_service_metric.unit from $DATABASE.$SERVERTABLREPORTSPRFDT, $PERFPARSEDATABASE.perfdata_service_metric WHERE $DATABASE.$SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $DATABASE.$SERVERTABLREPORTSPRFDT.activated='1' and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id"; 
+            $sqlQuery = "select $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $PERFPARSEDATABASE.perfdata_service_metric.unit from $DATABASE.$SERVERTABLREPORTSPRFDT, $PERFPARSEDATABASE.perfdata_service_metric WHERE $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID='$CcatalogID' and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $DATABASE.$SERVERTABLREPORTSPRFDT.activated='1' and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id"; 
             $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
             $sth->bind_columns( \$metric_id, \$metric, \$times, \$percentiles, \$unit, \$Unit ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -518,7 +519,9 @@ EndOfHtml
                         $sqlValuePERFDATA = 'and value <= '. $value;
                       }
 
-                      my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), count(ctime) FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA $sqlValuePERFDATA group by $groupPERFDATA(ctime)";
+                      my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+
+                      my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), count(ctime) FROM $PERFPARSEDATABASE.perfdata_service_bin WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric' $sqlPeriodePERFDATA $sqlValuePERFDATA group by $groupPERFDATA(ctime)";
                       $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                       $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                       $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$countPERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -560,7 +563,9 @@ EndOfHtml
                         my $offset = $IR - 1;
                         $FR = sprintf "0.%d", $FR;
 
-                        my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), value FROM perfdata_service_bin WHERE host_name = '$Title' and service_description = '$uKey1' and metric = '$metric' $sqlPeriodePERFDATA order by value limit $offset, $limit";
+                        my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+
+                        my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), value FROM $PERFPARSEDATABASE.perfdata_service_bin WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric' $sqlPeriodePERFDATA order by value limit $offset, $limit";
                         $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                         $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                         $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$valuePERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -653,8 +658,10 @@ EndOfHtml
               if ( $formatOutput ne 'html' or $htmlToPdf ) {
                 return ($statusMessage);
               } else {
-                if (-e "$PREFIXPATH/$RESULTSDIR/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$uKey1-$status.htm") {
-                  return ("<A HREF=\"$RESULTSURL/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$uKey1-$status.htm\" target=\"_blank\">$statusMessage</A>");
+                my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+
+                if (-e "$PREFIXPATH/$RESULTSDIR/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$catalogID_uKey1-$status.htm") {
+                  return ("<A HREF=\"$RESULTSURL/$resultsdir/$DEBUGDIR/$year$month$day$hour$min$sec-$test-$catalogID_uKey1-$status.htm\" target=\"_blank\">$statusMessage</A>");
                 } else {
                   return ($statusMessage);
                 }
@@ -855,6 +862,7 @@ EndOfHtml
       }
 
       print "    <H1>$DEPARTMENT \@ $BUSINESS: '$APPLICATION'$type report</H1>\n";
+      print "    <H2>Catalog: $CcatalogID</H2>\n";
       print "    <H2>Periode: $range</H2>\n" if (defined $range);
       print "    <H2>SLA window: $slaWindow</H2>\n" if (defined $slaWindow);
     } else {
@@ -878,6 +886,9 @@ EndOfHtml
     <input type="hidden" name="CGISESSID" value="$sessionID">
     <input type="hidden" name="detailed"  value="$selDetailed">
     <table border="0">
+      <tr><td><b>Catalog ID: </b></td><td>
+        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      </td></tr>
 HTML
 
       if ( $selDetailed eq 'on' ) {

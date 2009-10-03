@@ -5,71 +5,270 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 19 April 2009
-Version      : 3.000.020
+Latest update: dd month 2009
+Version      : 3.001.000
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.000.020, 2009/xx/yy, by Alex Peeters
-                               - ASNMTAP
-	  	                         - UPDATE /plugins/templates/snmptt/
-								   - NEW check_SNMPTT_oracle.pl
-                                   - NEW snmptt-oracle.conf
-                                 - NEW %ICONSUNSTABLE = ('OK'=>'green-unstable.gif','WARNING'=>'yellow-unstable.gif','CRITICAL'=>'red-unstable.gif','UNKNOWN'=>'clear-unstable.gif','DEPENDENT'=>'','OFFLINE'=>'blue-unstable.gif','NO DATA'=>'purple-unstable.gif','IN PROGRESS'=>'running.gif','NO TEST'=>'notest-unstable.gif','TRENDLINE'=>'orange-unstable.gif');
-                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020.sql
-                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020_mysql-v5.0.x.sql
-                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020-distributed.sql
-                                 - UPDATE /applications/tools/mysql/asnmtap-3.000.020-distributed_mysql-v5.0.x.sql
-                                   - NEW TABLE `eventsChangesLogData` for MySQL'
-                                     CREATE TABLE `eventsChangesLogData` (
-                                       `uKey` varchar(11) NOT NULL default '',
-                                       `lastStatus` varchar(9) NOT NULL default '',
-                                       `lastTimeslot` varchar(10) NOT NULL default '',
-                                       `prevStatus` varchar(9) NOT NULL default '',
-                                       `prevTimeslot` varchar(10) NOT NULL default '',
-                                       PRIMARY KEY  (`uKey`)
-                                     ) ENGINE=InnoDB
-                               - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.020.SQL
-                               - UPDATE create_weblogic_configuration_database_with_SNMP-3.000.020_mysql-v5.0.x.SQL
-                                   - NEW TABLE `QUEUES` for MySQL'
-                                     CREATE TABLE `QUEUES` (
-                                       `QUEUE_NAME` varchar(64) NOT NULL default '',
-                                       `QUEUE_OID` varchar(254) default NULL,
-                                       `ENV` varchar(4) default NULL,
-                                       `ACTIVATED` tinyint(1) unsigned default '1',
-                                       `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-                                       `VIRTUAL_CLUSTER_ID` int(11) unsigned NOT NULL default '0',
-                                       `UKEY` varchar(11) default NULL,
-                                       PRIMARY KEY  (`QUEUE_OID`,`QUEUE_NAME`),
-                                       KEY `VIRTUAL_CLUSTER_ID` (`VIRTUAL_CLUSTER_ID`),
-                                       KEY `QUEUE_NAME` (`QUEUE_NAME`),
-                                       KEY `UKEY` (`UKEY`)
-                                     ) ENGINE=MyISAM
-                               - UPDATE /applications/Applications.cfg
-                                 #<TABLES>
-                                 ...
-                                 #    EVENTSCHANGESLOGDATA eventsChangesLogData
-                                 ...
-                                 #  <UNSTABLE>
-                                 #    OK              green-unstable.gif
-                                 #    WARNING         yellow-unstable.gif
-                                 #    CRITICAL        red-unstable.gif
-                                 #    UNKNOWN         clear-unstable.gif
-                                 #    DEPENDENT       
-                                 #    OFFLINE         blue-unstable.gif
-                                 #    NO_DATA         purple-unstable.gif
-                                 #    IN_PROGRESS     running.gif
-                                 #    NO_TEST         notest-unstable.gif
-                                 #    TRENDLINE       orange-unstable.gif
-                                 #  </UNSTABLE>
-                               - UPDATE Applications.pm, CGI.PM, Collector.pm & Display.pm
-                                 - NEW $SERVERTABLEVENTSCHNGSLGDT -> ´eventsChangesLogData´
-                               - NEW WebTransact XML Monitoring plugin template for testing the 'Application Monitor' for Monitoring-1.1.xml
-                                 - check_template-WebTransact-XML-Monitoring.pl
-                               - NEW common variable RUNCMDONDEMAND to Asnmtap.cnf
-                                 # RUNCMDONDEMAND  localhost # localhost or probe
+Version 3.001.000, 2009/xx/yy, by Alex Peeters
+                               - ASNMTAP: CATALOG databaseschema implementation
+                                 # `catalogID` =~ 'CID', aanpassen AUB
+                                 - UPDATE /applications/Applications.cfg
+                                   #<DATABASE>
+                                   ...
+                                   #    CATALOGID        CID
+                                   #</DATABASE>
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.001.000.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.001.000-distributed.sql
+                                 - UPDATE /applications/tools/mysql/asnmtap-3.001.000-distributed_mysql-v5.0.x.sql
+                                   - insert into `holidaysBundle` (`holidayBundleID`,`holidayBundleName`,`holidayID`,`countryID`,`activated`) values (0,'ASNMTAP','/0-0-0-0-00/','BE',0);
+                                   - manualy update holidayBundleID to '0' for holidayBundleName = 'ASNMTAP' and holidayID = '/0-0-0-0-00/' !
 
+                                   - NEW TABLE `catalog` for MySQL'
+                                     CREATE TABLE `catalog` (
+                                       `catalogID` varchar(5) NOT NULL default 'CID',
+                                       `catalogName` varchar(64) NOT NULL default '',
+                                       `catalogType` ENUM('central','federated','probe','distributed') NOT NULL DEFAULT 'probe',
+                                       `databaseFQDN` varchar(64) NOT NULL default 'localhost',
+                                       `databasePort` varchar(4) NOT NULL default '3306',
+                                       `lastEventsID` int(11) NOT NULL default '0',
+                                       `lastCommentsID` int(11) NOT NULL default '0',
+                                       `activated` tinyint(1) NOT NULL default '0',
+                                       PRIMARY KEY (`catalogID`)
+                                     ) ENGINE=InnoDB;
+
+                                     - insert into `catalog` (`catalogID`,`catalogName`,`catalogType`,`databaseFQDN`,`databasePort`,`lastEventsID`,`lastCommentsID`,`activated`) values ('CID','Central System Enterprise','central','localhost','3306',0,0,1);
+
+                                   - UPDATE TABLE `servers` for MySQL'
+                                     - ALTER TABLE `servers` ADD COLUMN `typeActiveServer` char(1) NOT NULL DEFAULT 'M' AFTER `typeMonitoring`;
+
+                                   # ------------------------------------
+                                   - ALTER TABLE `collectorDaemons` DROP FOREIGN KEY `collectorDaemons_ibfk_2`;
+                                   - ALTER TABLE `comments` DROP FOREIGN KEY `comments_ibfk_1`;
+                                   - ALTER TABLE `comments` DROP FOREIGN KEY `comments_ibfk_2`;
+                                   - ALTER TABLE `crontabs` DROP FOREIGN KEY `crontabs_ibfk_1`;
+                                   - ALTER TABLE `crontabs` DROP FOREIGN KEY `crontabs_ibfk_2`;
+                                   - ALTER TABLE `displayDaemons` DROP FOREIGN KEY `displayDaemons_ibfk_1`;
+                                   - ALTER TABLE `displayDaemons` DROP FOREIGN KEY `displayDaemons_ibfk_2`;
+                                   - ALTER TABLE `holidays` DROP FOREIGN KEY `holidays_ibfk_1`;
+                                   - ALTER TABLE `holidaysBundle` DROP FOREIGN KEY `holidaysBundle_ibfk_1`;
+                                   - ALTER TABLE `plugins` DROP FOREIGN KEY `plugins_ibfk_1`;
+                                   - ALTER TABLE `reports` DROP FOREIGN KEY `reports_ibfk_1`;
+                                   - ALTER TABLE `reports` DROP FOREIGN KEY `reports_ibfk_2`;
+                                   - ALTER TABLE `users` DROP FOREIGN KEY `users_ibfk_1`;
+                                   - ALTER TABLE `views` DROP FOREIGN KEY `views_ibfk_1`;
+                                   - ALTER TABLE `views` DROP FOREIGN KEY `views_ibfk_2`;
+                                   - ALTER TABLE `views` DROP FOREIGN KEY `views_ibfk_3`;
+
+                                   # ------------------------------------
+
+                                   - ALTER TABLE `collectorDaemons` DROP PRIMARY KEY;
+	                               - ALTER TABLE `collectorDaemons` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `collectorDaemons` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `collectorDaemons` ADD PRIMARY KEY (`catalogID`,`collectorDaemon`);
+
+                                   - ALTER TABLE `comments` ADD UNIQUE KEY `id` (`id`);
+                                   - ALTER TABLE `comments` DROP PRIMARY KEY;
+                                   - ALTER TABLE `comments` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `comments` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `comments` ADD PRIMARY KEY (`catalogID`,`id`);
+                                   - ALTER TABLE `comments` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                   - ALTER TABLE `comments` ADD INDEX `replicationStatus` (`replicationStatus`);
+
+                                   - ALTER TABLE `comments_yyyy` ADD UNIQUE KEY `id` (`id`);
+                                   - ALTER TABLE `comments_yyyy` DROP PRIMARY KEY;
+                                   - ALTER TABLE `comments_yyyy` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `comments_yyyy` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `comments_yyyy` ADD PRIMARY KEY (`catalogID`,`id`);
+                                   - ALTER TABLE `comments_yyyy` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                   - ALTER TABLE `comments_yyyy` ADD INDEX `replicationStatus` (`replicationStatus`);
+
+                                   - ALTER TABLE `crontabs` DROP PRIMARY KEY;
+                                   - ALTER TABLE `crontabs` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `crontabs` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `crontabs` ADD PRIMARY KEY (`catalogID`,`lineNumber`,`uKey`);
+
+                                   - ALTER TABLE `displayDaemons` DROP PRIMARY KEY;
+                                   - ALTER TABLE `displayDaemons` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `displayDaemons` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `displayDaemons` ADD PRIMARY KEY (`catalogID`,`displayDaemon`);
+                                   - ALTER TABLE `displayDaemons` DROP KEY `pagedir`;
+                                   - ALTER TABLE `displayDaemons` ADD UNIQUE KEY `pagedir` (`catalogID`,`pagedir`);
+
+                                   - ALTER TABLE `displayGroups` ADD UNIQUE KEY `displayGroupID` (`displayGroupID`);
+                                   - ALTER TABLE `displayGroups` DROP PRIMARY KEY;
+                                   - ALTER TABLE `displayGroups` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `displayGroups` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `displayGroups` ADD PRIMARY KEY (`catalogID`,`displayGroupID`);
+
+                                   - ALTER TABLE `eventsChangesLogData` DROP PRIMARY KEY;
+                                   - ALTER TABLE `eventsChangesLogData` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `eventsChangesLogData` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `eventsChangesLogData` ADD INDEX `uKey` (`uKey`);
+                                   - ALTER TABLE `eventsChangesLogData` ADD PRIMARY KEY (`catalogID`,`uKey`);
+                                   - ALTER TABLE `eventsChangesLogData` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                   - ALTER TABLE `eventsChangesLogData` ADD INDEX `replicationStatus` (`replicationStatus`);
+
+                                   - ALTER TABLE `holidays` DROP PRIMARY KEY;
+                                   - ALTER TABLE `holidays` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `holidays` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `holidays` ADD PRIMARY KEY (`catalogID`,`holidayID`);
+
+                                   - ALTER TABLE `holidaysBundle` ADD UNIQUE KEY `holidayBundleID` (`holidayBundleID`);
+                                   - ALTER TABLE `holidaysBundle` DROP PRIMARY KEY;
+                                   - ALTER TABLE `holidaysBundle` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `holidaysBundle` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `holidaysBundle` ADD PRIMARY KEY (`catalogID`,`holidayBundleID`);
+
+                                   - ALTER TABLE `pagedirs` DROP PRIMARY KEY;
+                                   - ALTER TABLE `pagedirs` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `pagedirs` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `pagedirs` ADD PRIMARY KEY (`catalogID`,`pagedir`);
+
+                                   - ALTER TABLE `plugins` DROP PRIMARY KEY;
+                                   - ALTER TABLE `plugins` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `plugins` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `plugins` ADD INDEX `uKey` (`uKey`);
+                                   - ALTER TABLE `plugins` ADD PRIMARY KEY (`catalogID`,`uKey`);
+
+                                   - ALTER TABLE `reports` ADD UNIQUE KEY `id` (`id`);
+                                   - ALTER TABLE `reports` DROP PRIMARY KEY;
+                                   - ALTER TABLE `reports` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `reports` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `reports` ADD PRIMARY KEY (`catalogID`,`id`);
+
+                                   - ALTER TABLE `reports_perfdata` DROP PRIMARY KEY;
+                                   - ALTER TABLE `reports_perfdata` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `reports_perfdata` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `reports_perfdata` ADD PRIMARY KEY (`catalogID`,`uKey`,`metric_id`);
+
+                                   - ALTER TABLE `resultsdir` DROP PRIMARY KEY;
+                                   - ALTER TABLE `resultsdir` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `resultsdir` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `resultsdir` ADD PRIMARY KEY (`catalogID`,`resultsdir`);
+
+                                   - ALTER TABLE `servers` DROP PRIMARY KEY;
+                                   - ALTER TABLE `servers` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `servers` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `servers` ADD PRIMARY KEY (`catalogID`,`serverID`);
+
+                                   - ALTER TABLE `timeperiods` ADD UNIQUE KEY `timeperiodID` (`timeperiodID`);
+                                   - ALTER TABLE `timeperiods` DROP PRIMARY KEY;
+                                   - ALTER TABLE `timeperiods` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `timeperiods` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `timeperiods` ADD PRIMARY KEY (`catalogID`,`timeperiodID`);
+
+                                   - ALTER TABLE `users` DROP PRIMARY KEY;
+                                   - ALTER TABLE `users` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `users` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `users` ADD PRIMARY KEY (`catalogID`,`remoteUser`);
+
+                                   - ALTER TABLE `views` DROP PRIMARY KEY;
+                                   - ALTER TABLE `views` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `views` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `views` ADD PRIMARY KEY (`catalogID`,`uKey`,`displayDaemon`);
+
+                                   # ------------------------------------
+
+                                   - ALTER TABLE `collectorDaemons` ADD CONSTRAINT `collectorDaemons_ibfk_1` FOREIGN KEY (`catalogID`,`serverID`) REFERENCES `servers` (`catalogID`,`serverID`);
+                                   - ALTER TABLE `comments` ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `comments` ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`catalogID`,`remoteUser`) REFERENCES `users` (`catalogID`,`remoteUser`);
+                                   - ALTER TABLE `crontabs` ADD CONSTRAINT `crontabs_ibfk_1` FOREIGN KEY (`catalogID`,`collectorDaemon`) REFERENCES `collectorDaemons` (`catalogID`,`collectorDaemon`);
+                                   - ALTER TABLE `crontabs` ADD CONSTRAINT `crontabs_ibfk_2` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `displayDaemons` ADD CONSTRAINT `displayDaemons_ibfk_1` FOREIGN KEY (`catalogID`,`pagedir`) REFERENCES `pagedirs` (`catalogID`,`pagedir`);
+                                   - ALTER TABLE `displayDaemons` ADD CONSTRAINT `displayDaemons_ibfk_2` FOREIGN KEY (`catalogID`,`serverID`) REFERENCES `servers` (`catalogID`,`serverID`);
+                                   - ALTER TABLE `eventsChangesLogData` ADD INDEX `eventsChangesLogData_ibfk_1` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `eventsChangesLogData` ADD CONSTRAINT `eventsChangesLogData_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `holidays` ADD CONSTRAINT `holidays_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`);
+                                   - ALTER TABLE `holidaysBundle` ADD CONSTRAINT `holidaysBundle_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`);
+                                   - ALTER TABLE `plugins` ADD CONSTRAINT `plugins_ibfk_1` FOREIGN KEY (`catalogID`,`resultsdir`) REFERENCES `resultsdir` (`catalogID`,`resultsdir`);
+                                   - ALTER TABLE `plugins` ADD INDEX `plugins_ibfk_2` (`catalogID`,`holidayBundleID`);
+                                   - ALTER TABLE `plugins` ADD CONSTRAINT `plugins_ibfk_2` FOREIGN KEY (`catalogID`,`holidayBundleID`) REFERENCES `holidaysBundle` (`catalogID`,`holidayBundleID`);
+                                   - ALTER TABLE `reports` ADD CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `reports` ADD CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`catalogID`,`timeperiodID`) REFERENCES `timeperiods` (`catalogID`,`timeperiodID`);
+                                   - ALTER TABLE `reports_perfdata` ADD CONSTRAINT `reports_perfdata_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `titles` ADD CONSTRAINT `titles_ibfk_1` FOREIGN KEY (`keyLanguage`) REFERENCES `language` (`keyLanguage`);
+                                   - ALTER TABLE `users` ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`keyLanguage`) REFERENCES `language` (`keyLanguage`);
+                                   - ALTER TABLE `views` ADD CONSTRAINT `views_ibfk_1` FOREIGN KEY (`catalogID`,`displayDaemon`) REFERENCES `displayDaemons` (`catalogID`,`displayDaemon`);
+                                   - ALTER TABLE `views` ADD CONSTRAINT `views_ibfk_2` FOREIGN KEY (`catalogID`,`displayGroupID`) REFERENCES `displayGroups` (`catalogID`,`displayGroupID`);
+                                   - ALTER TABLE `views` ADD CONSTRAINT `views_ibfk_3` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+
+                                   # ------------------------------------
+                                   # START HIGH IMPACT !
+                                   # ------------------------------------
+
+                                   - ALTER TABLE `events` ADD UNIQUE KEY `id` (`id`);
+                                   - ALTER TABLE `events` DROP PRIMARY KEY;
+                                   - ALTER TABLE `events` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                   - ALTER TABLE `events` ADD INDEX `catalogID` (`catalogID`);
+                                   - ALTER TABLE `events` ADD PRIMARY KEY (`catalogID`,`id`);
+                                   - ALTER TABLE `events` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                   - ALTER TABLE `events` ADD INDEX `replicationStatus` (`replicationStatus`);
+                                   - ALTER TABLE `events` ADD INDEX `events_ibfk_1` (`catalogID`,`uKey`);
+                                   - ALTER TABLE `events` ADD CONSTRAINT `events_ibfk_2` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`);
+
+                                   # ------------------------------------
+                                   # END HIGH IMPACT !
+                                   # ------------------------------------
+
+                                   - SELECT CONCAT('alter table ', TABLE_SCHEMA , '.', table_name, ' ADD UNIQUE INDEX `id` (`id`), DROP PRIMARY KEY, ADD COLUMN `catalogID` varchar(5) NOT NULL default \'CID\' FIRST, ADD INDEX `catalogID` (`catalogID`), ADD PRIMARY KEY (`catalogID`,`id`), ADD COLUMN `replicationStatus` ENUM(\'I\',\'U\',\'R\') NOT NULL DEFAULT \'I\' AFTER `uKey`, ADD INDEX `replicationStatus` (`replicationStatus`), ADD INDEX `events_ibfk_1` (`catalogID`,`uKey`);') FROM INFORMATION_SCHEMA.tables WHERE ENGINE = 'MYISAM' AND table_type='BASE TABLE' AND table_name regexp 'events_';
+                                     - TO GENERATE THE NEXT CODE FOR ALL YEARS
+                                       - ALTER TABLE `events_yyyy_01` ADD UNIQUE INDEX `id` (`id`);
+                                       - ALTER TABLE `events_yyyy_01` DROP PRIMARY KEY;
+                                       - ALTER TABLE `events_yyyy_01` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                       - ALTER TABLE `events_yyyy_01` ADD INDEX `catalogID` (`catalogID`);
+                                       - ALTER TABLE `events_yyyy_01` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                       - ALTER TABLE `events_yyyy_01` ADD INDEX `replicationStatus` (`replicationStatus`);
+                                       - ALTER TABLE `events_yyyy_01` ADD PRIMARY KEY (`catalogID`,`id`);
+                                       - ALTER TABLE `events_yyyy_01` ADD INDEX `events_ibfk_1` (`catalogID`,`uKey`);
+                                         ...
+                                       - ALTER TABLE `events_yyyy_12` ADD UNIQUE INDEX `id` (`id`);
+                                       - ALTER TABLE `events_yyyy_12` DROP PRIMARY KEY;
+                                       - ALTER TABLE `events_yyyy_12` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+                                       - ALTER TABLE `events_yyyy_12` ADD INDEX `catalogID` (`catalogID`);
+                                       - ALTER TABLE `events_yyyy_12` ADD COLUMN `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I' AFTER `uKey`;
+                                       - ALTER TABLE `events_yyyy_12` ADD INDEX `replicationStatus` (`replicationStatus`);
+                                       - ALTER TABLE `events_yyyy_12` ADD PRIMARY KEY (`catalogID`,`id`);
+                                       - ALTER TABLE `events_yyyy_12` ADD INDEX `events_ibfk_1` (`catalogID`,`uKey`);
+
+                                   - DROP TABLE `events_yyyy`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy` LIKE `events_yyyy_01`;
+                                   - ALTER TABLE `events_yyyy` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`, `events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`, `events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`, `events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q1`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q1` LIKE `events_yyyy_01`;
+                                   - ALTER TABLE `events_yyyy_Q1` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q2`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q2` LIKE `events_yyyy_04`;
+                                   - ALTER TABLE `events_yyyy_Q2` ENGINE=MERGE UNION=(`events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q3`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q3` LIKE `events_yyyy_07`;
+                                   - ALTER TABLE `events_yyyy_Q3` ENGINE=MERGE UNION=(`events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q4`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q4` LIKE `events_yyyy_10`;
+                                   - ALTER TABLE `events_yyyy_Q4` ENGINE=MERGE UNION=(`events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
+
+                                   # ------------------------------------
+
+                                   ArchiveCT, CollectorCT-* & DisplayCT-*
+                                   - replace '<uniqueKey>' with '[<catalogID>_]<uniqueKey>'
+
+								   Implemented catalogID to all *.pl & *.pm files
+
+                                   Plugin templates
+                                   - NEW WebTransact XML Monitoring plugin template for testing the 'Application Monitor' for Monitoring-1.2.xml
+                                     - check_template-mail-xml-fingerprint-xml-monitoring-1.2.pl
+                                     - check_template-WebTransact-XML-Monitoring-1.2.pl
+                                     - /dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
+                                     - /dtd/Monitoring-1.2.dtd
+                                     - /xml/Monitoring-1.2.xml
+                                     - /xml/Monitoring-1.2-doNotValidate.xml
+                                     - /xml/Monitoring-1.2-errorParsing.xml
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

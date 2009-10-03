@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, check_nagios-comments-cleanup.pl
+# 2009/mm/dd, v3.001.000, check_nagios-comments-cleanup.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -25,13 +25,13 @@ my $commandFile = $nagiosPath .'/var/rw/nagios.cmd';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.020;
+use ASNMTAP::Time v3.001.000;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.000.020;
+use ASNMTAP::Asnmtap::Applications v3.001.000;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -48,7 +48,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 my $objectAsnmtap = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_nagios-comments-cleanup.pl',
   _programDescription => 'Nagios v2.x Comments Cleanup',
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programUsagePrefix => '[-E|--email <boolean>]',
   _programHelpPrefix  => "-E, --email=<boolean>
     BOOLEAN: 0 = FALSE and 1 = TRUE",

@@ -6,13 +6,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::SOAP', qw(&get_soap_request) ) };
 
-use ASNMTAP::Asnmtap::Plugins v3.000.020;
+use ASNMTAP::Asnmtap::Plugins v3.001.000;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'SOAP.t ',
   _programDescription => "Testing ASNMTAP::Asnmtap::Plugins::SOAP",
-  _programVersion     => '3.000.020',
+  _programVersion     => '3.001.000',
   _programGetOptions  => ['proxy:s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);

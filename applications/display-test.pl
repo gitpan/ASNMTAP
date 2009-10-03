@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2009/mm/dd, v3.001.000, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.000.020;
+use ASNMTAP::Time v3.001.000;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.000.020;
+use ASNMTAP::Asnmtap::Applications::Display v3.001.000;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -315,10 +315,10 @@ sub do_crontab {
     my ($year, $month, $day) = split (/-/, $date);
     my ($hour, $minute, $seconds) = split (/:/, $time);
     $creationDate = timelocal ( $seconds, $minute, $hour, $day, $month-1, $year-1900 );
-    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} .' ('. scalar(localtime($creationDate)) .')' );
+    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} .' from '. $CATALOGID .' ('. scalar(localtime($creationDate)) .')' );
   } else {
     $creationDate = time();
-    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} );
+    printHtmlHeader( $APPLICATION .' - '. $ENVIRONMENT{$Cenvironment} .' from '. $CATALOGID );
   }
 
   $rv  = 1;
@@ -367,7 +367,16 @@ sub do_crontab {
       printGroepHeader($tgroep, $showGroepHeader);
 
       foreach $dtest (@stest) {
-        my ($uniqueKey, $title, $test, $help) = split(/\#/, $dtest);
+        my ($catalogID_uniqueKey, $title, $test, $help) = split(/\#/, $dtest);
+
+        my ($catalogID, $uniqueKey) = split(/_/, $catalogID_uniqueKey);
+
+        unless ( defined $uniqueKey ) {
+          $uniqueKey = $catalogID;
+          $catalogID = $CATALOGID;
+          $catalogID_uniqueKey = $catalogID .'_'. $uniqueKey unless ( $catalogID eq 'CID' );
+        }
+
         my ($command, undef) = split(/\.pl/, $test);
 
         my $environment = (($test =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
@@ -378,7 +387,7 @@ sub do_crontab {
         my $commandPopup = maskPassword ($test);
         $commandPopup =~ s/(?:\s+(--environment=[PASTDL]|--trendline=\d+))//g;
         my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
-        print "<", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
+        print "<", $CATALOGID, "><", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $catalogID, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         my $number = 1;
         my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV);
         $itemTimeslot = $itemStatusIcon = $itemInsertInMCV = 0;
@@ -395,13 +404,13 @@ sub do_crontab {
             my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
             my $solvedTime     = "$currentHour:$currentMin:$currentSec";
             my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="$CATALOGID" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
             $dbh->do ( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->do: $sql");
           }
 
           # <- end
 
-          $sql = "select SQL_NO_CACHE lastStatus, lastTimeslot, prevStatus, prevTimeslot from $SERVERTABLEVENTSCHNGSLGDT where uKey = '$uniqueKey'";
+          $sql = "select SQL_NO_CACHE lastStatus, lastTimeslot, prevStatus, prevTimeslot from $SERVERTABLEVENTSCHNGSLGDT where catalogID = '$catalogID' and uKey = '$uniqueKey'";
           $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
 
@@ -410,7 +419,7 @@ sub do_crontab {
             $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $sql");
           }
 
-          $sql = "select SQL_NO_CACHE activationTimeslot, suspentionTimeslot, instability, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
+          $sql = "select SQL_NO_CACHE activationTimeslot, suspentionTimeslot, instability, persistent, downtime, commentData, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime from $SERVERTABLCOMMENTS where catalogID = '$catalogID' and uKey = '$uniqueKey' and problemSolved = '0' order by persistent desc, entryTimeslot desc";
           $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
           $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
           my $statusOverlib = '<NIHIL>'; # $STATE{$ERRORS{'NO DATA'}};
@@ -466,7 +475,7 @@ sub do_crontab {
           $lastTimeslot  = get_timeslot ($creationDate);
           $firstTimeslot = $lastTimeslot - ($step * $NUMBEROFFTESTS);
           $timeCorrectie = 0;
-          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' where uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
 
           print "<", $findString, ">\n" if ($debug);
           $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $findString");
@@ -549,13 +558,13 @@ sub do_crontab {
             $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $findString");
           }
 
-          printItemHeader($environment, $resultsdir, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment);
+          printItemHeader($environment, $resultsdir, $catalogID_uniqueKey, $catalogID, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment);
           $playSoundPreviousStatus = $playSoundInProgress = 0;
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
             my $endTime = $itemStarttime[$number];
             $endTime .= '-'. $itemTimeslot[$number] if ($displayTimeslot);
-            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey);
+            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey);
           }
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
@@ -569,7 +578,7 @@ sub do_crontab {
           $itemInsertInMCV = ( $instability ) ? ( $persistent ? 0 : 1 ) : ( defined $inMCV{$tLastStatus}{$tPrevStatus} ? 1 : 0 );
         }
 
-        printItemFooter($uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
+        printItemFooter($catalogID_uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
       }
 
       print "\n" if ($debug);
@@ -597,7 +606,7 @@ sub do_crontab {
     @multiarrayMinimalCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayMinimalCondensedView );
     @multiarrayMinimalCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayMinimalCondensedView );
     @multiarrayMinimalCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayMinimalCondensedView );
-    @multiarrayMinimalCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayMinimalCondensedView );
+    @multiarrayMinimalCondensedView = ( sort { $a->[1] cmp $b->[1] } @multiarrayMinimalCondensedView );
 
     foreach my $arrayFullCondensedView ( @multiarrayMinimalCondensedView ) {
       print HTMLMCV @$arrayFullCondensedView[4];
@@ -796,10 +805,10 @@ sub printStatusHeader {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemHeader {
-  my ($environment, $resultsdir, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment) = @_;
+  my ($environment, $resultsdir, $catalogID_uniqueKey, $catalogID, $uniqueKey, $command, $title, $help, $popup, $statusOverlib, $comment) = @_;
 
   unless ( defined $creationTime ) {
-    my $htmlFilename = "$RESULTSPATH/$resultsdir/$command-$uniqueKey";
+    my $htmlFilename = "$RESULTSPATH/$resultsdir/$command-$catalogID_uniqueKey";
     $htmlFilename .= "-sql.html";
 
     unless ( -e "$htmlFilename" ) {
@@ -820,7 +829,7 @@ sub printItemHeader {
 <BODY>
 EOM
 
-        print PNG '<IMG SRC="', $RESULTSURL, '/', $resultsdir, '/', $command, '-', $uniqueKey, '-sql.png"></BODY></HTML>', "\n";
+        print PNG '<IMG SRC="', $RESULTSURL, '/', $resultsdir, '/', $command, '-', $catalogID_uniqueKey, '-sql.png"></BODY></HTML>', "\n";
         close(PNG);
       } else {
         print "Cannot create $htmlFilename!\n";
@@ -851,13 +860,13 @@ EOM
   }
 
   # http://www.bosrup.com/web/overlib/?Command_Reference
-  my $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR></TABLE>";
-  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+  my $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR></TABLE>";
+  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
 
   my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
-  my $comments = '<a href="'. $HTTPSURL .'/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
+  my $comments = '<a href="'. $HTTPSURL .'/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
 
-  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="'. $HTTPSURL .'/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
+  my $helpfile = (defined $help and $help eq '1') ? '<A HREF="'. $HTTPSURL .'/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
 
   $checkOk = $checkSkip = $printCondensedView = $problemSolved = $verifyNumber = 0;
   $inProgressNumber = -1;
@@ -867,7 +876,7 @@ EOM
   if ( defined $creationTime ) {
     $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep. encode_html_entities('T', $test) .'</TD>'. "\n";
   } else {
-    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command ."-". $uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
+    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command .'-'. $catalogID_uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
   }
 }
 
@@ -915,7 +924,7 @@ sub printGroepCV {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemStatus {
-  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $uniqueKey) = @_;
+  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey) = @_;
 
   my $statusIcon = ($acked and ($activationTimeslot - $step < $timeslot) and ($suspentionTimeslot > $timeslot)) ? ( $instability ? $ICONSUNSTABLE {$status} : $ICONSACK {$status} ) : $ICONS{$status};
 
@@ -994,7 +1003,7 @@ sub printItemStatus {
 
       if ( $persistent == 0 ) {
         if ( $problemSolved ) {
-          if ($solvedTimeslot > $activationTimeslot) {
+          if ($solvedTimeslot > $activationTimeslot and ! $downtime) {
   	        $sqlWhere = ' and persistent="0" and "' .$solvedTimeslot. '">activationTimeslot';
             $update = 1;
           }
@@ -1018,7 +1027,7 @@ sub printItemStatus {
       }
 
       if ($update and $instability == 0) {
-        my $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where uKey="' .$uniqueKey. '" and problemSolved="0"' .$sqlWhere;
+        my $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="' .$catalogID. '" and uKey="' .$uniqueKey. '" and problemSolved="0"' .$sqlWhere;
         $dbh->do ( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->do: $sql");
       }
     }
@@ -1037,10 +1046,10 @@ sub printItemStatus {
       $playSoundSet = 0;
 
       if ( ( $ERRORS{$status} == $ERRORS{OK} or ( $ERRORS{$status} >= $ERRORS{DEPENDENT} and $ERRORS{$status} != $ERRORS{'NO DATA'} and $ERRORS{$status} != $ERRORS{TRENDLINE} ) ) and ( ( $playSoundPreviousStatus >= $ERRORS{WARNING} and $playSoundPreviousStatus <= $ERRORS{UNKNOWN} ) or $playSoundPreviousStatus == $ERRORS{'NO DATA'} or $playSoundPreviousStatus == $ERRORS{TRENDLINE} ) ) {
-        if ( defined $tableSoundStatusCache { $uniqueKey } ) {
-          if ( $tableSoundStatusCache { $uniqueKey } ne $timeslot ) {
+        if ( defined $tableSoundStatusCache { $catalogID_uniqueKey } ) {
+          if ( $tableSoundStatusCache { $catalogID_uniqueKey } ne $timeslot ) {
             $playSoundStatus = ($playSoundStatus > $playSoundPreviousStatus) ? $playSoundStatus : $playSoundPreviousStatus; 
-            $tableSoundStatusCache { $uniqueKey } = $timeslot;
+            $tableSoundStatusCache { $catalogID_uniqueKey } = $timeslot;
             $debugInfo .= "$playSoundStatus-" if ($debug);
             $boldStart = "<b>["; $boldEnd = "]</b>";
           } else {
@@ -1048,12 +1057,12 @@ sub printItemStatus {
           }
         } else {
           $playSoundStatus = ($playSoundStatus > $playSoundPreviousStatus) ? $playSoundStatus : $playSoundPreviousStatus;
-          $tableSoundStatusCache { $uniqueKey } = $timeslot;
+          $tableSoundStatusCache { $catalogID_uniqueKey } = $timeslot;
           $debugInfo .= "$playSoundStatus-" if ($debug);
           $boldStart = "<b>["; $boldEnd = "]</b>";
         }
       } else {
-        delete $tableSoundStatusCache { $uniqueKey } if ( defined $tableSoundStatusCache { $uniqueKey } );
+        delete $tableSoundStatusCache { $catalogID_uniqueKey } if ( defined $tableSoundStatusCache { $catalogID_uniqueKey } );
       }
     }
   }
@@ -1185,12 +1194,12 @@ sub printGroepFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemFooter {
-  my ($uniqueKey, $title, $status, $timeslot, $statusIcon, $insertInMCV, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
+  my ($catalogID_uniqueKey, $title, $status, $timeslot, $statusIcon, $insertInMCV, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
 
   $itemFullCondensedView .= "</TR>\n";
 
   if (@$arrayStatusMessage) {
-    $itemFullCondensedView .= '<TR style="{height: 0;}"><TD COLSPAN="'. $colspanDisplayTime .'"><DIV id="'.$uniqueKey.'" style="display:none"><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2>'. "\n";
+    $itemFullCondensedView .= '<TR style="{height: 0;}"><TD COLSPAN="'. $colspanDisplayTime .'"><DIV id="'.$catalogID_uniqueKey.'" style="display:none"><TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2>'. "\n";
     foreach my $arrayStatusMessage ( @$arrayStatusMessage ) { $itemFullCondensedView .= printStatusMessage ( $arrayStatusMessage ); }
     $itemFullCondensedView .= "</TABLE></DIV></TD></TR>\n";
   }

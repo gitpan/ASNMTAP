@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2007 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/04/19, v3.000.020, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.000.020$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,15 +210,15 @@ sub get_soap_request {
     }
 
     $service = new WSRF::Lite
-    -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
-    -> autotype   ( 1 )
-    -> readable   ( $readable )
-    -> envprefix  ( 'soapenv' )
-    -> encprefix  ( 'soapenc' )
-    -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
-    -> uri        ( $namespace )
-    -> on_action  ( sub { sprintf "%s/%s", $_[0], ( defined $soapaction ? $soapaction : $_[1] ) } )
-    -> on_fault   ( sub { } )
+      -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
+      -> autotype   ( 1 )
+      -> readable   ( $readable )
+      -> envprefix  ( 'soapenv' )
+      -> encprefix  ( 'soapenc' )
+      -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
+      -> uri        ( $namespace )
+      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )
+      -> on_fault   ( sub { } )
     ;
   } else {
     if ( $debug >= 4 ) {
@@ -230,14 +230,14 @@ sub get_soap_request {
     }
 
     $service = new SOAP::Lite
-    -> autotype   ( 1 )
-    -> readable   ( $readable )
-    -> envprefix  ( 'soapenv' )
-    -> encprefix  ( 'soapenc' )
-    -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
-    -> uri        ( $namespace )
-    -> on_action  ( sub { sprintf "%s/%s", $_[0], ( defined $soapaction ? $soapaction : $_[1] ) } )
-    -> on_fault   ( sub { } )
+      -> autotype   ( 1 )
+      -> readable   ( $readable )
+      -> envprefix  ( 'soapenv' )
+      -> encprefix  ( 'soapenc' )
+      -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
+      -> uri        ( $namespace )
+      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )
+      -> on_fault   ( sub { } )
     ;
   }
 
