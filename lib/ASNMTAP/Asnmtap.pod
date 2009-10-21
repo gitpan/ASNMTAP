@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.001.000',
+   _programVersion     => '3.001.001',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -150,7 +150,7 @@ Is a Perl module that provides XML functions used by ASNMTAP-based plugins.
  $CHATCOMMAND       /usr/sbin/chat
  $DIFFCOMMAND       /usr/bin/diff
  $KILLALLCOMMAND    /usr/bin/killall
- $PERLCOMMAND       /usr/bin/env perl
+ $PERLCOMMAND       /usr/bin/perl
  $PPPDCOMMAND       /usr/sbin/pppd
  $ROUTECOMMAND      /sbin/route
  $RSYNCCOMMAND      /usr/bin/rsync
@@ -225,7 +225,7 @@ With the environment variable ASNMTAP_PATH you can change the default location f
      DIFF               /usr/bin/diff
      KILLALL            /usr/bin/killall
      PPPD               /usr/sbin/pppd
-     PERL               /usr/bin/env perl
+     PERL               /usr/bin/perl
      ROUTE              /sbin/route
      RSYNC              /usr/bin/rsync
      SCP                /usr/bin/scp

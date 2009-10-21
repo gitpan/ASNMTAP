@@ -6,14 +6,54 @@
 
 Author       : Alex Peeters [alex.peeters@citap.be]
 Latest update: dd month 2009
-Version      : 3.001.000
+Version      : 3.001.001
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.001.000, 2009/xx/yy, by Alex Peeters
+Version 3.001.001, 2009/xx/yy, by Alex Peeters
+                               - UPDATE /applications/tools/mysql/asnmtap-3.001.001-database-schema.png
+                               - UPDATE TABLE `events` for MySQL
+                                 - MySQL 4.x
+                                   - SELECT CONCAT('alter table ', TABLE_SCHEMA , '.', table_name, ' MODIFY `test` varchar(254) NOT NULL default \'\';') FROM INFORMATION_SCHEMA.tables WHERE ENGINE = 'MYISAM' AND table_type='BASE TABLE' AND table_name regexp 'events_';
+                                     - TO GENERATE THE NEXT CODE FOR ALL YEARS
+                                       - ALTER TABLE `events_yyyy_01` MODIFY `test` varchar(254) NOT NULL default '';
+                                         ...
+                                       - ALTER TABLE `events_yyyy_12` MODIFY `test` varchar(254) NOT NULL default '';
+                                 - MySQL 5.0.x
+                                   - SELECT CONCAT('alter table ', TABLE_SCHEMA , '.', table_name, ' MODIFY `test` varchar(512) NOT NULL default \'\';') FROM INFORMATION_SCHEMA.tables WHERE ENGINE = 'MYISAM' AND table_type='BASE TABLE' AND table_name regexp 'events_';
+                                     - TO GENERATE THE NEXT CODE FOR ALL YEARS
+                                       - ALTER TABLE `events_yyyy_01` MODIFY `test` varchar(512) NOT NULL default '';
+                                         ...
+                                       - ALTER TABLE `events_yyyy_12` MODIFY `test` varchar(512) NOT NULL default '';
+                                 - MySQL 4.x & MySQL 5.0.x
+                                   - DROP TABLE `events_yyyy`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy` LIKE `events_yyyy_01`;
+                                   - ALTER TABLE `events_yyyy` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`, `events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`, `events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`, `events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q1`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q1` LIKE `events_yyyy_01`;
+                                   - ALTER TABLE `events_yyyy_Q1` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q2`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q2` LIKE `events_yyyy_04`;
+                                   - ALTER TABLE `events_yyyy_Q2` ENGINE=MERGE UNION=(`events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q3`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q3` LIKE `events_yyyy_07`;
+                                   - ALTER TABLE `events_yyyy_Q3` ENGINE=MERGE UNION=(`events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`) INSERT_METHOD=LAST;
+
+                                   - DROP TABLE `events_yyyy_Q4`;
+                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q4` LIKE `events_yyyy_10`;
+                                   - ALTER TABLE `events_yyyy_Q4` ENGINE=MERGE UNION=(`events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
+                               - UPDATE generateConfig.pl for the autogeneration from: asnmtap-collector.sh
+                                 - when there are servers configurated in failover
+                                   - onto the active server: only the file 'Display-<pagedir>.sh' and 'Collector-<deamon>.sh' are included
+                                   - onto both servers: are both files 'CollectorCT-<deamon>.sh' included when <deamon> eq <hostname>
+
+Version 3.001.000, 2009/10/03, by Alex Peeters
                                - ASNMTAP: CATALOG databaseschema implementation
                                  # `catalogID` =~ 'CID', aanpassen AUB
                                  - UPDATE /applications/Applications.cfg
@@ -926,8 +966,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

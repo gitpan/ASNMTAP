@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Asnmtap.cnf for package ASNMTAP::Asnmtap v3.001.000
+# Asnmtap.cnf for package ASNMTAP::Asnmtap v3.001.001
 # ----------------------------------------------------------------------------------------------------------
 
 # SET ENVIRONMENT VARIABLES - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@
 #    CHAT            /usr/sbin/chat
 #    DIFF            /usr/bin/diff
 #    KILLALL         /usr/bin/killall
-#    PERL            /usr/bin/env perl
+#    PERL            /usr/bin/perl
 #    PPPD            /usr/sbin/pppd
 #    ROUTE           /sbin/route
 #    RSYNC           /usr/bin/rsync

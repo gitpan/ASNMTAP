@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, purge_table.pl for ASNMTAP
+# 2009/mm/dd, v3.001.001, purge_table.pl for ASNMTAP
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.000;
+use ASNMTAP::Time v3.001.001;
 use ASNMTAP::Time qw(&get_epoch &get_year &get_month &get_day);
 
-use ASNMTAP::Asnmtap::Applications v3.001.000;
+use ASNMTAP::Asnmtap::Applications v3.001.001;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_email_report);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &init_email_report &send_ema
 my $objectASNMTAP = ASNMTAP::Asnmtap::Applications->new (
   _programName        => 'purge_table.pl',
   _programDescription => 'Purge table',
-  _programVersion     => '3.001.000',
+  _programVersion     => '3.001.001',
   _programUsagePrefix => '-H|--host <HOST> [-P|--port <PORT>] -D|--database=<database> -T|--table=<table> [-A|--ago=<ago by STRING>] -u|--username|--loginname
  <USERNAME> -p|--password|--passwd <PASSWORD>',
   _programHelpPrefix  => "-H, --host=<HOST>

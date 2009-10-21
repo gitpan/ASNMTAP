@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                ASNMTAP
-version:             3.001000
+version:             3.001001
 abstract:            Application System Network Monitoring Toolkit Alex Peeters
 license:             perl
 author:              

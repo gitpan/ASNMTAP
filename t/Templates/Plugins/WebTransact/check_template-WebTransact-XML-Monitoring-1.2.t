@@ -2,7 +2,7 @@
 #
 # ... Tests via check_template-WebTransact-XML-Monitoring-1.2.pl
 #
-# $Id: check_template-WebTransact-XML-Monitoring-1.2.t, v 1.0 2009/01/28 Alex Peeters Exp $
+# $Id: check_template-WebTransact-XML-Monitoring-1.2.t, v 1.0 2009/10/03 Alex Peeters Exp $
 #
 
 use strict;

@@ -7,7 +7,8 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# copy current release '3.001.000' to '3.001.001'
+# copy current release '3.001.001' to '3.001.002'
+#                       3.001.xxx      3.001.yyy
 
 # replace 'Version      : 3.001.xxx'  with `3.001.yyy;`
 
@@ -17,8 +18,8 @@ use strict;
 # replace `asnmtap-3.001.xxx` with `asnmtap-3.001.yyy`
 
 # replace `(q$Revision: 3.001.xxx$ =~ /\d+/g)` with `(q$Revision: 3.001.yyy$ =~ /\d+/g)`
-# replace `v3.000.1xx;` with `v3.001.yyy;`
-# replace `'3.000.1xx'` with `'3.001.yyy'`
+# replace `v3.001.xxx;` with `v3.001.yyy;`
+# replace `'3.001.xxx'` with `'3.001.yyy'`
 
 # Upload new release ----------------------------------------------------
 # replace 'Latest update: dd month 2009' with 'Latest update: .. ... 2009'
@@ -50,7 +51,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;

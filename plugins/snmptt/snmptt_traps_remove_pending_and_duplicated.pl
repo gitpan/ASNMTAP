@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, snmptt_traps_remove_pending_and_duplicated.pl
+# 2009/mm/dd, v3.001.001, snmptt_traps_remove_pending_and_duplicated.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.000;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.001;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'snmptt_traps_remove_pending_and_duplicated.pl',
   _programDescription => 'Remove Pending and Duplicated SNMPTT Traps from Database',
-  _programVersion     => '3.001.000',
+  _programVersion     => '3.001.001',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: snmptt)",

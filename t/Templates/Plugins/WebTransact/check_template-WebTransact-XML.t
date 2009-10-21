@@ -2,7 +2,7 @@
 #
 # ... Tests via check_template-WebTransact-XML.pl
 #
-# $Id: check_template-WebTransact-XML.t, v 1.0 2006/02/01 Alex Peeters Exp $
+# $Id: check_template-WebTransact-XML.t, v 1.1 2009/10/07 Alex Peeters Exp $
 #
 
 use strict;
@@ -10,7 +10,7 @@ use Test;
 use ASNMTAP::Asnmtap::Plugins::NPTest;
 
 use vars qw($tests);
-BEGIN {$tests = 5; plan tests => $tests}
+BEGIN {$tests = 4; plan tests => $tests}
 
 my $t;
 my $prefix = '../plugins/templates';
@@ -25,7 +25,7 @@ if ( -x "$prefix/$plugin" ) {
   unless ( defined $ASNMTAP_PROXY and ( $ASNMTAP_PROXY eq '0.0.0.0' or $ASNMTAP_PROXY eq '' ) ) {
     my $proxy = ($ASNMTAP_PROXY ? "--proxy='$ASNMTAP_PROXY'" : '');
 
-    $t += checkCmd( "$prefix/$plugin $proxy", [2, 3], "/\QERROR: The XML file 'xml/Monitoring-1.0.xml' doesn't exist\E/");
+    $t += checkCmd( "$prefix/$plugin $proxy", [2, 3]);
   } else {
     $t += skipMissingCmd( "ASNMTAP_PROXY", ($tests - 3) );
   }

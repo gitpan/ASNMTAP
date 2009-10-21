@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
+# 2009/mm/dd, v3.001.001, create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `weblogicConfig`;
@@ -46,7 +46,7 @@ CREATE TABLE `CLUSTERS` (
   `CLUSTER_SERVERS` varchar(254) default NULL,
   `ENV` varchar(4) default NULL,
   `ACTIVATED` tinyint(1) unsigned default '1',
-  `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `CURRENT_TIMESTAMP` timestamp NOT NULL,
   `VIRTUAL_CLUSTER_ID` int(11) unsigned NOT NULL default '0',
   `UKEY` varchar(11) default NULL,
   PRIMARY KEY (`CLUSTER_NAME`,`ENV`(1)),
@@ -70,7 +70,7 @@ CREATE TABLE `SERVERS` (
   `EXPECTED_TO_RUN` tinyint(1) default '0',
   `ENV` varchar(4) default NULL,
   `ACTIVATED` tinyint(1) unsigned default '1',
-  `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `CURRENT_TIMESTAMP` timestamp NOT NULL,
   `VIRTUAL_SERVER_ID` int(11) unsigned NOT NULL default '0',
   `UKEY` varchar(11) default NULL,
   PRIMARY KEY (`DOMAIN_NAME`,`SERVER_NAME`,`ENV`(1)),
@@ -78,6 +78,7 @@ CREATE TABLE `SERVERS` (
   KEY `VIRTUAL_SERVER_ID` (`VIRTUAL_SERVER_ID`),
   KEY `UKEY` (`UKEY`)
 ) ENGINE=MyISAM;
+
 
 #
 # Table structure for table `QUEUES`
@@ -119,8 +120,8 @@ insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsLogNotifica
 insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsMonitorNotification','.1.3.6.1.4.1.140.625.0.75');
 insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsServerShutDown','.1.3.6.1.4.1.140.625.0.70');
 insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsServerStart','.1.3.6.1.4.1.140.625.0.65');
-insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsALSBAlert','.1.3.6.1.4.1.140.625.0.90'); 
 insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsWatchNotification','.1.3.6.1.4.1.140.625.0.85'); 
+insert into `wls_snmp_CONFIG` (`event_name`,`event_oid`) values ('wlsALSBAlert','.1.3.6.1.4.1.140.625.0.90'); 
 
 #
 # Table structure for table `wls_snmptt_CONFIG`
@@ -151,7 +152,7 @@ CREATE TABLE `wls_snmptt_CONFIG` (
   `mode` char(3) NOT NULL default '',
   `description` text,
   `activated` tinyint(1) NOT NULL default '1',
-  `CURRENT_TIMESTAMP` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `CURRENT_TIMESTAMP` timestamp NOT NULL,
   `action_on_65` varchar(255) default NULL,
   PRIMARY KEY  (`trapMBeanType`,`trapAttributeName`,`trapMonitorType`,`trapLogSeverity`,`trapLogMessage`,`event_name`,`category`,`sources_list`,`mode`,`trapMBeanType_MATCH`)
 ) ENGINE=MyISAM;

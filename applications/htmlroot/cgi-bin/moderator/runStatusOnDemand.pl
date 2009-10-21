@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.001, runStatusOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR $PERLCOMMAND $SSHCOMMAND &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runStatusOnDemand.pl";
 my $prgtext     = "Run status Collector/Display on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -237,7 +237,7 @@ EndOfHtml
             print "<tr><td colspan=\"2\" class=\"RunStatusOnDemandCaptureNotRunning\"><b>Daemon: '$daemonPidStatus ASNMTAP $daemon' running # $state</b></td></tr>\n";
           }
 
-          if (defined $daemonCaptureArrayPid {$daemon}) {
+          if ($state == 3 and defined $daemonCaptureArrayPid {$daemon}) {
             my $pidParent = $daemonCaptureArrayPid {$daemon};
             delete $daemonCaptureArrayPid {$daemon};
 
@@ -280,9 +280,9 @@ EndOfHtml
               delete $daemonProcessTableParent {$pidParent};
             }
           } else {
-            if ($state == -1) {
+            if ($state == -1 or $state == 1) {
               if ($iconDelete) {
-                my $urlAction = "<A HREF=\"$urlWithAccessParameters&amp;pid=<NIHIL>&amp;ppid=<NIHIL>&amp;command=remove $PIDPATH/${daemonPidStatus}CT-$daemon.pid&amp;action=remove\"><IMG SRC=\"$IMAGESURL/$ICONSSYSTEM{pidRemove}\" ALT=\"Remove\" BORDER=0></A>";
+                my $urlAction = "<A HREF=\"$urlWithAccessParameters&amp;pid=<NIHIL>&amp;ppid=<NIHIL>&amp;command=$PIDPATH/${daemonPidStatus}CT-$daemon.pid&amp;action=remove\"><IMG SRC=\"$IMAGESURL/$ICONSSYSTEM{pidRemove}\" ALT=\"Remove\" BORDER=0></A>";
                 print "<tr><td class=\"RunStatusOnDemandCaptureDebug\">No running process for pidfile '$PIDPATH/${daemonPidStatus}CT-$daemon.pid' found</td><td class=\"RunStatusOnDemandCaptureDebugAction\">$urlAction</td></tr>\n";
               } else {
                 print "<tr><td colspan=\"2\" class=\"RunStatusOnDemandCaptureDebug\">No running process for pidfile '$PIDPATH/${daemonPidStatus}CT-$daemon.pid' found</td></tr>\n";
@@ -294,8 +294,6 @@ EndOfHtml
               } else {
                 print "<tr><td colspan=\"2\" class=\"RunStatusOnDemandCaptureDebug\">$APPLICATIONPATH/$masterOrSlave/${daemonPidStatus}CT-$daemon.sh start</td></tr>\n";
               }
-            } elsif ($state == 1) {
-              print "<tr><td colspan=\"2\" class=\"RunStatusOnDemandCaptureDebug\">Under construction: Status: '$daemonPidStatus ASNMTAP $daemon' running and pid exist</td></tr>\n";
             } else {
               print "<tr><td colspan=\"2\" class=\"RunStatusOnDemandCaptureDebug\">Under construction: Daemon: '$daemonPidStatus ASNMTAP $daemon' running # $state</td></tr>\n";
             }
@@ -303,7 +301,7 @@ EndOfHtml
             delete $daemonCaptureArrayPid {$daemon};
           }
         }
-		
+
         print "</table><br><table width=\"100%\" bgcolor=\"#333344\" border=0><tr><th colspan=\"2\" class=\"RunStatusOnDemandCaptureHeader\">ERROR's regarding 'All ASNMTAP $status'</th></tr>\n";
 
         if (keys (%daemonCaptureArrayPid) + keys (%daemonCaptureArrayParent) + keys (%daemonProcessTableParent) + keys (%daemonProcessTableChild) + keys (%daemonProcessTableSubChild)) {
@@ -348,7 +346,7 @@ sub listAllProblems {
 
     if ($iconDelete) {
       if ($action eq 'remove') {
-        my $urlAction = "<A HREF=\"$urlWithAccessParameters&amp;pid=<NIHIL>&amp;ppid=<NIHIL>&amp;command=remove $PIDPATH/${daemonPidStatus}CT-$pid.pid&amp;action=remove\"><IMG SRC=\"$IMAGESURL/$ICONSSYSTEM{pidRemove}\" ALT=\"Remove\" BORDER=0></A>";
+        my $urlAction = "<A HREF=\"$urlWithAccessParameters&amp;pid=<NIHIL>&amp;ppid=<NIHIL>&amp;command=$PIDPATH/${daemonPidStatus}CT-$pid.pid&amp;action=remove\"><IMG SRC=\"$IMAGESURL/$ICONSSYSTEM{pidRemove}\" ALT=\"Remove\" BORDER=0></A>";
         print "<tr><td class=\"RunStatusOnDemandCapture$classType\">No running process for pidfile '$PIDPATH/${daemonPidStatus}CT-$pid.pid' found</td><td class=\"RunStatusOnDemandCapture${classType}Action\">$urlAction</td></tr>\n";
       } else {
         my $urlAction = "<A HREF=\"$urlWithAccessParameters&amp;pid=$pid&amp;ppid=$ppid&amp;command=killall&amp;action=$action\"><IMG SRC=\"$IMAGESURL/$ICONSSYSTEM{pidKill}\" ALT=\"$action\" BORDER=0></A>";

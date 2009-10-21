@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, check_template.pl
+# 2009/mm/dd, v3.001.001, check_template.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.000;
+use ASNMTAP::Asnmtap::Plugins v3.001.001;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template.pl',
   _programDescription => "General plugin template for the '$APPLICATION'",
-  _programVersion     => '3.001.000',
+  _programVersion     => '3.001.001',
   _programUsagePrefix => '-w|--warning <warning> -c|--critical <critical>',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    warning threshold with more than one type of threshold

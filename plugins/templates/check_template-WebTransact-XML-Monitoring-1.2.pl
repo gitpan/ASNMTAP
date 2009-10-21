@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, check_template-WebTransact-XML-Monitoring-1.2.pl
+# 2009/mm/dd, v3.001.001, check_template-WebTransact-XML-Monitoring-1.2.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.000;
+use ASNMTAP::Asnmtap::Plugins v3.001.001;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.2";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring-1.2.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.001.000',
+  _programVersion     => '3.001.001',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -175,21 +175,21 @@ sub validateResultOrSubResult {
 
   my ($checkEpochtime, $checkDate, $checkTime) = ($$result->{$label}{Epochtime}, $$result->{$label}{Date}, $$result->{$label}{Time});
 
-  # yyyy[-/]mm[-/]dd[+-]hh:mm
+  # yyyy[-/]mm[-/]dd[Z|[+-]hh:mm]
   $checkDate = reverse ( $checkDate ) if ($reverse);
-  (my $offsetDate, $checkDate) = split (/[+-]/, $checkDate, 2);
-  $checkDate = $offsetDate unless ( defined $checkDate );
+  ($checkDate, my $offsetDate) = split (/(Z|[+-]\d+:\d+)/, $checkDate, 2);
 
   if ($reverse) {
     $checkDate = reverse ( $checkDate );
-    $offsetDate = reverse ( $offsetDate );
+    $offsetDate = reverse ( $offsetDate ) if ( defined $offsetDate );
   }
 
+  # yyyy[-/]mm[-/]dd
   my ($checkYear, $checkMonth, $checkDay) = split (/[\/-]/, $checkDate);
   print "$checkDate, $checkYear, $checkMonth, $checkDay\n" if ( $debug );
 
-  # hh:mm:ss[+-]hh:mm
-  ($checkTime, my $offsetTime) = split (/[+-]/, $checkTime, 2);
+  # hh:mm:ss[Z|[+-]hh:mm]
+  ($checkTime, my $offsetTime) = split (/[Z+-]/, $checkTime, 2);
   my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
   print "$checkTime, $checkHour, $checkMin, $checkSec\n" if ( $debug );
 

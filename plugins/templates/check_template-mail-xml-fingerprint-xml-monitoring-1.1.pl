@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
+# 2009/mm/dd, v3.001.001, check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.000;
+use ASNMTAP::Asnmtap::Plugins v3.001.001;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ my $receivedState = 0;
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl',
   _programDescription => "XML fingerprint Mail XML monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.001.000',
+  _programVersion     => '3.001.001',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -82,7 +82,7 @@ my $reverse = 0;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.001.000;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.001.001;
 
 my $body = '
 <?xml version="1.0" encoding="UTF-8"?>
@@ -268,22 +268,21 @@ sub validateResultOrSubResult {
 
   my ($checkEpochtime, $checkDate, $checkTime) = ($$result->{$label}{Epochtime}, $$result->{$label}{Date}, $$result->{$label}{Time});
 
-  # yyyy[-/]mm[-/]dd[+-]hh:mm
+  # yyyy[-/]mm[-/]dd[Z|[+-]hh:mm]
   $checkDate = reverse ( $checkDate ) if ($reverse);
-# (my $offsetDate, $checkDate) = split (/[+-]/, $checkDate, 2);
-  (my $offsetDate, $checkDate) = split (/[+]/, $checkDate, 2); # APE #
-  $checkDate = $offsetDate unless ( defined $checkDate );
+  ($checkDate, my $offsetDate) = split (/(Z|[+-]\d+:\d+)/, $checkDate, 2);
 
   if ($reverse) {
     $checkDate = reverse ( $checkDate );
-    $offsetDate = reverse ( $offsetDate );
+    $offsetDate = reverse ( $offsetDate ) if ( defined $offsetDate );
   }
 
+  # yyyy[-/]mm[-/]dd
   my ($checkYear, $checkMonth, $checkDay) = split (/[\/-]/, $checkDate);
   print "$checkDate, $checkYear, $checkMonth, $checkDay\n" if ( $debug );
 
-  # hh:mm:ss[+-]hh:mm
-  ($checkTime, my $offsetTime) = split (/[+-]/, $checkTime, 2);
+  # hh:mm:ss[Z|[+-]hh:mm]
+  ($checkTime, my $offsetTime) = split (/[Z+-]/, $checkTime, 2);
   my ($checkHour, $checkMin, $checkSec) = split (/:/, $checkTime);
   print "$checkTime, $checkHour, $checkMin, $checkSec\n" if ( $debug );
 

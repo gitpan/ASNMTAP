@@ -226,6 +226,12 @@ this program allow you to add, modify and delete display groups through the CGI 
 
 =item generateConfig.pl
 
+when there are servers configurated in failover:
+
+- onto the active server: only the file 'Display-<pagedir>.sh' and 'Collector-<deamon>.sh' are included
+
+- onto both servers: are both files 'CollectorCT-<deamon>.sh' included when <deamon> eq <hostname>
+
 this program allow you to generate the needed ArchiveCT, DisplayCT-*, CollectorCT-* config files and all used shell scripts through the CGI Interface.
 
 =item pagedirs.pl

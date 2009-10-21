@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, package ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.001, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -187,7 +187,7 @@ sub user_session_and_access_control {
   my ($errorUserAccessControl, $sessionID, $userType, $cfhOld, $cfhNew, $password);
   $sessionID = '';
 
-  if (! $sessionControl or ( $ENV{REMOTE_ADDR} eq $REMOTE_ADDR and $ENV{HTTP_HOST} !~ /^${REMOTE_HOST}:\d+/ )) {
+  if (! $sessionControl or ( $ENV{REMOTE_ADDR} eq $REMOTE_ADDR and $ENV{HTTP_HOST} =~ /^${REMOTE_HOST}(:\d+)?/ )) {
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
     print $cgi->header;
     $| = $cfhOld; select ($cfhNew);
@@ -220,7 +220,7 @@ sub user_session_and_access_control {
   }
 
   if ( $level eq 'guest' or $level eq 'member' ) {
-    $sessionID = $cgi->cookie("asnmtap-root-cgisess") || $cgi->param("CGISESSID") || undef;
+    $sessionID = $cgi->cookie('asnmtap-root-cgisess') || $cgi->param("CGISESSID") || undef;
   } else {
     $sessionID = $cgi->param("CGISESSID") || undef;
   }
@@ -231,7 +231,8 @@ sub user_session_and_access_control {
 
   if ( $level eq 'guest' or $level eq 'member' ) {
     my $cookieID = ( defined $sessionID ) ? $sessionID : '1';
-    my $cgiCookieOutRootCgisess = $cgi->cookie(-name=>'asnmtap-root-cgisess', -value=>"$cookieID", -expires=>'+10h', -path=>"$HTTPSURL/cgi-bin", -domain=>"$HTTPSSERVER", -secure=>'0');
+    my $domain = ( ( $ENV{REMOTE_ADDR} eq $REMOTE_ADDR and $ENV{HTTP_HOST} =~ /^${REMOTE_HOST}(:\d+)?/ ) ? $REMOTE_HOST : $HTTPSSERVER );
+    my $cgiCookieOutRootCgisess = $cgi->cookie(-name=>'asnmtap-root-cgisess', -value=>"$cookieID", -expires=>'+10h', -path=>"$HTTPSURL/cgi-bin", -domain=>"$domain", -secure=>'0');
     ($cfhOld) = $|; $cfhNew = select (STDOUT); $| = 1;
     print $cgi->header(-cookie=>$cgiCookieOutRootCgisess);
     $| = $cfhOld; select ($cfhNew);

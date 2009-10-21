@@ -379,10 +379,11 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.001.000.sql
-applications/tools/mysql/asnmtap-3.001.000_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.001.000-distributed.sql
-applications/tools/mysql/asnmtap-3.001.000-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.001.sql
+applications/tools/mysql/asnmtap-3.001.001_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.001-distributed.sql
+applications/tools/mysql/asnmtap-3.001.001-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.001-database-schema.png
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -492,15 +493,15 @@ plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.000_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.000_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.001_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.001_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.000_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
 plugins/templates/snmptt/snmptt-oracle.conf
-plugins/templates/snmptt/snmptt-3.001.000.sql
-plugins/templates/snmptt/snmptt-3.001.000-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.001.001.sql
+plugins/templates/snmptt/snmptt-3.001.001-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2009/mm/dd, v3.001.001, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.000;
+use ASNMTAP::Time v3.001.001;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.000;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.001.000$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -347,7 +347,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
             $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           }
-	
+
           $sqlTmp = "drop temporary table tmp$SERVERTABLPLUGINS";
           $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -1138,12 +1138,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
                 $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/slave", $debug) if ($typeMonitoring);
-                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $slaveFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
 
                 if ( $typeServers ) {                          # Failover
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
                   $matchingCollectorCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
-                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
+                  $matchingCollectorCT .= createCollectorCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $masterFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug);
                 }
 
                 $rvOpen = open(CollectorCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon");
@@ -1216,8 +1216,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             while( $sth->fetch() ) {
               if ( $prevServerID ne $serverID ) {
                 if ( $prevServerID ne '' ) {
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevTypeActiveServer, $prevMasterFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
-                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevTypeActiveServer, $prevSlaveFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'M', $prevTypeActiveServer, $prevMasterFQDN, $prevSlaveFQDN, $prevMasterASNMTAP_PATH, $prevMasterRSYNC_PATH, $prevMasterSSH_PATH, "master", $debug);
+                  $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($prevTypeMonitoring, 'S', $prevTypeActiveServer, $prevSlaveFQDN, $prevMasterFQDN, $prevSlaveASNMTAP_PATH, $prevSlaveRSYNC_PATH, $prevSlaveSSH_PATH, "slave", $debug) if ( $prevTypeServers );
                   $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $prevServerID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   delete @matchingAsnmtapCollectorCTscript[0..@matchingAsnmtapCollectorCTscript];
                 }
@@ -1240,8 +1240,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $prevSlaveSSH_PATH      = $slaveSSH_PATH;
             }
 
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
-            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'M', $typeActiveServer, $masterFQDN, $slaveFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, "master", $debug);
+            $matchingAsnmtapCollectorCTscript .= createAsnmtapCollectorCTscript ($typeMonitoring, 'S', $typeActiveServer, $slaveFQDN, $masterFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, "slave", $debug) if ( $typeServers );
             $matchingAsnmtapCollectorCTscript .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Collector Start/Stop scripts - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
           } else {
             $matchingAsnmtapCollectorCTscript .= "        <tr><td>No records found for any CollectorCT</td></tr>\n";
@@ -1283,7 +1283,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 $matchingRsyncMirror .= "\n        <tr><th>Rsync Mirroring Setup - $serverID</th></tr>" unless ($sameServerID);
               }
 
-              $matchingRsyncMirrorConfigFailover    .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n" if ($typeServers);
+              if ($typeServers) {
+                my ($hostnameAdminCollector, undef) = split (/\./, $slaveFQDN, 2);
+
+                if ( $collectorDaemon eq $hostnameAdminCollector ) {
+                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$slaveFQDN:$slaveASNMTAP_PATH/results/$resultsdir/ $masterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                } else {
+                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                }
+              }
 
               if ($typeMonitoring) {
                 $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
@@ -1537,8 +1545,11 @@ print '</BODY>', "\n", '</HTML>', "\n";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createCollectorCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
-  
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverAdminCollectorFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $collectorDaemon, $mode, $dumphttp, $status, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile, $debug) = @_;
+
+  my ($hostnameAdminCollector, undef) = split (/\./, $serverAdminCollectorFQDN, 2);
+  return ('') if ( "CollectorCT-$collectorDaemon.sh" eq "CollectorCT-${hostnameAdminCollector}.sh" );
+
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/CollectorCT-$collectorDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/CollectorCT-template.sh >> $filename";
 
@@ -1584,7 +1595,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createAsnmtapCollectorCTscript {
-  my ($typeMonitoring, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
+  my ($typeMonitoring, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverAdminCollectorFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $subdir, $debug) = @_;
 
   my $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
 
@@ -1632,7 +1643,18 @@ $choise() {
   cd \$AMPATH
 STARTUPFILE
 
-      foreach my $matchingAsnmtapCollectorCTscript (@matchingAsnmtapCollectorCTscript) { print AsnmtapCollectorCTscript "  ./$matchingAsnmtapCollectorCTscript $choise\n"; }
+      my ($hostname, undef) = split (/\./, $serverFQDN, 2);
+      my ($hostnameAdminCollector, undef) = split (/\./, $serverAdminCollectorFQDN, 2);
+
+      if ( $typeServersCharMorS eq $typeActiveServer or $choise eq 'stop' ) {
+        foreach my $matchingAsnmtapCollectorCTscript (@matchingAsnmtapCollectorCTscript) {
+          unless ( $matchingAsnmtapCollectorCTscript eq "CollectorCT-${hostnameAdminCollector}.sh" ) {
+            print AsnmtapCollectorCTscript "  ./$matchingAsnmtapCollectorCTscript $choise\n"; 
+          }
+        }
+      } else {
+        print AsnmtapCollectorCTscript "  ./CollectorCT-${hostname}.sh $choise\n";
+      }
 
       print AsnmtapCollectorCTscript <<STARTUPFILE;
 }
@@ -1777,7 +1799,9 @@ $choise() {
   cd \$AMPATH
 STARTUPFILE
 
-      foreach my $matchingAsnmtapDisplayCTscript (@matchingAsnmtapDisplayCTscript) { print AsnmtapDisplayCTscript "  ./$matchingAsnmtapDisplayCTscript $choise\n"; }
+      if ($typeServersCharMorS eq $typeActiveServer or $choise eq 'stop') {
+        foreach my $matchingAsnmtapDisplayCTscript (@matchingAsnmtapDisplayCTscript) { print AsnmtapDisplayCTscript "  ./$matchingAsnmtapDisplayCTscript $choise\n"; }
+      }
 
       print AsnmtapDisplayCTscript <<STARTUPFILE;
 }
@@ -1832,6 +1856,9 @@ sub createRsyncMirrorScriptsFailover {
   my $statusMessage = '';
 
   if ( $typeServers ) {                                        # Failover
+    # --------------------------------------------------------------------------
+    # Failover between $masterFQDN and $slaveFQDN
+    # --------------------------------------------------------------------------
     $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-wrapper-failover-$masterFQDN.sh";
 
     unless ( -e $filename ) {
@@ -1885,6 +1912,133 @@ RSYNCMIRRORFILE
     }
 
     $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover Monitoring from $slaveFQDN for Collector Daemon '$collectorDaemon'</td></tr>";
+
+    my ($hostnameAdminCollector, undef) = split (/\./, $slaveFQDN, 2);
+
+    if ( $collectorDaemon eq $hostnameAdminCollector ) {
+      # ------------------------------------------------------------------------
+      # Failover between $slaveFQDN and $masterFQDN
+      # ------------------------------------------------------------------------
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-wrapper-failover-$slaveFQDN.sh";
+
+      unless ( -e $filename ) {
+        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover between $slaveFQDN and $masterFQDN</td></tr>";
+        $command  = "cat $APPLICATIONPATH/tools/templates/master/rsync-wrapper-failover-template.sh >> $filename";
+
+        $rvOpen = open(RsyncMirror, ">$filename");
+
+        if ($rvOpen) {
+          print RsyncMirror <<RSYNCMIRRORFILE;
+#!/usr/bin/env perl
+# ------------------------------------------------------------------------------
+# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# ------------------------------------------------------------------------------
+# rsync-wrapper-failover.sh for asnmtap, v$version, wrapper script for rsync
+#   execution via ssh key for use with rsync-mirror-failover.sh
+# ------------------------------------------------------------------------------
+
+use strict;
+
+# Chroot Dir
+my \$chrootDir = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$slaveASNMTAP_PATH' ) . '/results/';
+
+# Where to log successes and failures to set to /dev/null to turn off logging.
+my \$filename = ( \$ENV{ASNMTAP_PATH} ? \$ENV{ASNMTAP_PATH} : '$slaveASNMTAP_PATH' ) . '/log/rsync-wrapper-failover-$slaveFQDN.log';
+
+# What you want sent if access is denied.
+my \$denyString = 'Access Denied! Sorry';
+
+# The real path of rsync.
+my \$rsyncPath = '$slaveRSYNC_PATH/rsync'; # slave
+
+# 1 = rsync version 2.6.7 or higher or 0 = otherwise
+my \$rsync_version_2_6_7_or_higher = 1;
+
+# 1 = 'capture_exec("\$system_action")' or 0 = 'system ("\$system_action")'
+my \$captureOutput = $CAPTUREOUTPUT;
+
+RSYNCMIRRORFILE
+
+          close (RsyncMirror);
+        }
+
+        $statusMessage .= do_system_call ($command, $debug);
+        $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-wrapper-failover-$slaveFQDN.sh\" target=\"_blank\">rsync-wrapper-failover-$slaveFQDN.sh (slave)</a></td></tr>";
+      }
+
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>Failover Monitoring from $masterFQDN for Admin Collector Daemon '$collectorDaemon'</td></tr>";
+
+      my ($hostnameAdminCollector, undef) = split (/\./, $slaveFQDN, 2);
+      return ($statusMessage) unless ( $collectorDaemon eq $hostnameAdminCollector );
+
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-mirror-failover-$masterFQDN-$collectorDaemon.sh";
+      $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-template.sh >> $filename";
+
+      $rvOpen = open(RsyncMirror, ">$filename");
+
+      if ($rvOpen) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
+#!/bin/bash
+# ------------------------------------------------------------------------------
+# © Copyright $COPYRIGHT Alex Peeters [alex.peeters\@citap.be]
+# ------------------------------------------------------------------------------
+# rsync-mirror-failover.sh for asnmtap, v$version, mirror script for rsync
+#   execution via ssh key for use with rsync-wrapper-failover.sh
+# ------------------------------------------------------------------------------
+
+RMVersion='$RMVERSION'
+echo "rsync-mirror-failover-$masterFQDN-$collectorDaemon.sh version \$RMVersion"
+
+if [ -f ~/.profile ]; then
+  source ~/.profile
+fi
+
+if [ -f ~/.bash_profile ]; then
+  source ~/.bash_profile
+fi
+
+if [ ! "\$ASNMTAP_PATH" ]; then
+  ASNMTAP_PATH=$masterASNMTAP_PATH
+fi
+
+PidPath="\$ASNMTAP_PATH/pid"
+Rsync=$masterRSYNC_PATH/rsync                   # master
+RsyncPath=$slaveRSYNC_PATH/rsync                # remote server
+KeyRsync=$SSHKEYPATH/$SSHLOGONNAME/.ssh/$RSYNCIDENTITY
+ConfFile=rsync-mirror-failover-$masterFQDN-$collectorDaemon.conf
+ConfPath="\$ASNMTAP_PATH/applications/master"
+Delete=' '
+# AdditionalParams=''                            # --numeric-ids, -H, -v and -R
+Reverse=no                                       # 'yes' -> from master to slave
+                                                 # 'no'  -> from slave to master
+
+RSYNCMIRRORFILE
+
+        close (RsyncMirror);
+      }
+
+      $statusMessage .= do_system_call ($command, $debug);
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-mirror-failover-$masterFQDN-$collectorDaemon.sh\" target=\"_blank\">rsync-mirror-failover-$masterFQDN-$collectorDaemon.sh (master)</a></td></tr>";
+
+      $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-mirror-failover-$masterFQDN-$collectorDaemon.conf";
+
+      $rvOpen = open(RsyncMirror, ">$filename");
+
+      if ($rvOpen) {
+        print RsyncMirror <<RSYNCMIRRORFILE;
+# ------------------------------------------------------------------------------
+# Copyright $COPYRIGHT Alex Peeters [alex.peeters\\\@citap.be]
+# ------------------------------------------------------------------------------
+
+$matchingRsyncMirrorConfigFailover
+RSYNCMIRRORFILE
+
+        close (RsyncMirror);
+      }
+
+      $statusMessage .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master/rsync-mirror-failover-$masterFQDN-$collectorDaemon.conf\" target=\"_blank\">rsync-mirror-failover-$masterFQDN-$collectorDaemon.conf (master)</a></td></tr>";
+      return ($statusMessage);
+	}
 
     $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave/rsync-mirror-failover-$slaveFQDN-$collectorDaemon.sh";
     $command  = "cat $APPLICATIONPATH/tools/templates/slave/rsync-mirror-failover-template.sh >> $filename";

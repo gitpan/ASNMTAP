@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.000, asnmtap-3.001.000.sql
+# 2009/mm/dd, v3.001.001, asnmtap-3.001.001.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -557,7 +557,7 @@ CREATE TABLE `events` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
   `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `test` varchar(100) NOT NULL default '',
+  `test` varchar(254) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `status` varchar(9) NOT NULL default '',
   `startDate` date NOT NULL default '0000-00-00',
