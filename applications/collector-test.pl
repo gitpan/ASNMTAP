@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2010/01/05, v3.001.002, collector.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -23,10 +23,10 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.001.001;
+use ASNMTAP::Asnmtap::Applications::Collector v3.001.002;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +42,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -458,7 +458,7 @@ sub do_crontab {
             my $rvOpen = open(CSV,">>$tlogging-$msgCommand-$catalogID_uniqueKey-csv.txt");
 
             if ($rvOpen) {
-              print CSV '"', $catalogID, '","', $uniqueKey, '","', $command, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate,'","', $endTime, '","0","', $status, ' - Deze applicatie is niet toegankelijk","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
+              print CSV '"', $catalogID, '","","', $uniqueKey, '","I","', $command, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","0","', $status, ' - Deze applicatie is niet toegankelijk","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
               close(CSV);
             } else {
               print "Cannot open $tlogging-$msgCommand-$catalogID_uniqueKey-csv.txt to print debug information\n";
@@ -718,7 +718,8 @@ sub call_system {
   $rvOpen = open(CSV,">>$logging-$msgCommand-$catalogID_uniqueKey-csv.txt");
 
   if ($rvOpen) {
-    print CSV '"', $catalogID, '","', $uniqueKey, '","', $system_action, '","', $title, '","', $dumphttpRename, '","', $startDate, '","', $startTime, '","', $endDate,'","', $endTime, '","', $duration, '","', $returnStatus, '","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
+    print CSV '"', $catalogID, '","","', $uniqueKey, '","I","', $system_action, '","', $title, '","', $dumphttpRename, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $returnStatus, '","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
+
     close(CSV);
   } else {
     print "Cannot open $logging-$msgCommand-$catalogID_uniqueKey-csv.txt to print debug information\n";
@@ -912,7 +913,7 @@ sub errorTrapDBI {
   my $rvOpen = open(DEBUG,">>$tlogging-$msgCommand-$catalogID_uniqueKey.sql");
 
   if ($rvOpen) {
-    print DEBUG '"', $catalogID, '","","', $uniqueKey, '","', $test, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $statusMessage, '","', $interval*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","', $filename, '"', "\n";
+    print DEBUG '"', $catalogID, '","","', $uniqueKey, '","I","', $test, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $statusMessage, '","', $interval*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","', $filename, '"', "\n";
     close(DEBUG);
   } else {
     print "Cannot open $tlogging-$msgCommand-$catalogID_uniqueKey.sql to print debug information\n";
@@ -983,7 +984,7 @@ sub graphEntryDBI {
   $step          = $interval * 60;
   $lastTimeslot  = timelocal (0, (localtime)[1,2,3,4,5]);
   $firstTimeslot = $lastTimeslot - ($step * ($limitTest));
-  $findString    = "select SQL_NO_CACHE duration, startTime, status, timeslot from $SERVERTABLEVENTS where catalogID = '$catalogID' and uKey = '$uniqueKey' and step <> '0' and (timeslot between '$firstTimeslot' and '$lastTimeslot') order by id desc limit $limitTest";
+  $findString    = "select SQL_NO_CACHE duration, startTime, status, timeslot from $SERVERTABLEVENTS force index (uKey) where catalogID = '$catalogID' and uKey = '$uniqueKey' and step <> '0' and (timeslot between '$firstTimeslot' and '$lastTimeslot') order by id desc limit $limitTest";
   print "$findString\n" if ($debug eq 'T');
 
   # data en labels in array zetten

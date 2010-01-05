@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, check_SNMPTT_probe.pl
+# 2010/01/05, v3.001.002, check_SNMPTT_probe.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.001;
+use ASNMTAP::Asnmtap::Plugins v3.001.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_probe.pl',
   _programDescription => 'Control SNMPTT TRAPs',
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => '-s, --server=<hostname> (default: localhost)
 --database=<database> (default: snmptt)',
@@ -127,7 +127,7 @@ if ( $dbh and $rv ) {
         }
 
         unless ( $onDemand ) {
-          my $sqlINSERT = "INSERT INTO `$serverTarc` SELECT * FROM `$serverTact` WHERE id='$id'";
+          my $sqlINSERT = "REPLACE INTO `$serverTarc` SELECT * FROM `$serverTact` WHERE id='$id'";
           print "             + $sqlINSERT\n" if ( $debug );
           $dbh->do ( $sqlINSERT ) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->do: '. $sqlINSERT );
 

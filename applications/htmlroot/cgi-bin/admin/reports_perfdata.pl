@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBPERFPARSE :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports_perfdata.pl";
 my $prgtext     = "Reports Perfdata";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,10 +42,11 @@ my $pageset                = (defined $cgi->param('pageset'))               ? $c
 my $debug                  = (defined $cgi->param('debug'))                 ? $cgi->param('debug')                 : 'F';
 my $pageNo                 = (defined $cgi->param('pageNo'))                ? $cgi->param('pageNo')                : 1;
 my $pageOffset             = (defined $cgi->param('pageOffset'))            ? $cgi->param('pageOffset')            : 0;
-my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : 'title asc';
+my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : 'uKey';
 my $action                 = (defined $cgi->param('action'))                ? $cgi->param('action')                : 'listView';
 my $CuKeyReload            = (defined $cgi->param('uKeyReload'))            ? $cgi->param('uKeyReload')            : 0;
 my $CcatalogID             = (defined $cgi->param('catalogID'))             ? $cgi->param('catalogID')             : $CATALOGID;
+my $CcatalogIDreload       = (defined $cgi->param('catalogIDreload'))       ? $cgi->param('catalogIDreload')       : 0;
 my $CuKey                  = (defined $cgi->param('uKey'))                  ? $cgi->param('uKey')                  : 'none';
 my $Cmetric_id             = (defined $cgi->param('metric_id'))             ? $cgi->param('metric_id')             : 'none';
 my $Ctimes                 = (defined $cgi->param('times'))                 ? $cgi->param('times')                 : '';
@@ -64,15 +65,15 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports Perfdata", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKeyReload=$CuKeyReload&catalogID=$CcatalogID&uKey=$CuKey&metric_id=$Cmetric_id&times=$Ctimes&percentiles=$Cpercentiles&unit=$Cunit&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&uKeyReload=$CuKeyReload&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&metric_id=$Cmetric_id&times=$Ctimes&percentiles=$Cpercentiles&unit=$Cunit&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>uKey Reload   : $CuKeyReload<br>catalog ID    : $CcatalogID<br>uKey          : $CuKey<br>metric ID     : $Cmetric_id<br>times         : $Ctimes<br>percentiles   : $Cpercentiles<br>unit          : $Cunit<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>uKey Reload   : $CuKeyReload<br>catalog ID    : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey          : $CuKey<br>metric ID     : $Cmetric_id<br>times         : $Ctimes<br>percentiles   : $Cpercentiles<br>unit          : $Cunit<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($matchingReportsPerfdata, $navigationBar);
+  my ($catalogIDSelect, $matchingReportsPerfdata, $navigationBar);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -96,6 +97,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Insert Report Perfdata";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
+      $CcatalogID   = $CATALOGID if ($action eq 'insertView');
     } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Report Perfdata $CuKey, $Cmetric_id from $CcatalogID exist before to insert";
 
@@ -140,14 +142,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq 'listView') {
       $htmlTitle    = "All reports perfdata listed";
 
-      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLREPORTSPRFDT";
-      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
+      if ( $CcatalogIDreload ) {
+        $pageNo = 1;
+        $pageOffset = 0;
+      }
 
-      $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID, $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = $DATABASE.$SERVERTABLPLUGINS.catalogID and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLREPORTSPRFDT where catalogID = '$CcatalogID'";
+      ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;orderBy=$orderBy");
+
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLREPORTSPRFDT, 'uKey', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID, $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = '$CcatalogID' and $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = $DATABASE.$SERVERTABLPLUGINS.catalogID and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Metric <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Times <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Percentiles <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unit <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
-      ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'catalogID|uKey|metric_id', '0|1|2', '1|2', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'catalogID|uKey|metric_id', '0|1|2', '2', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if (!$CuKeyReload and ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView')) {
@@ -257,6 +269,21 @@ HTML
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="reports_perfdata" onSubmit="return validateForm();">
 HTML
+    } elsif ($action eq 'listView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, "", 'F', '', $sessionID);
+
+      print <<HTML;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.reports_perfdata.catalogIDreload.value = 1;
+  document.reports_perfdata.submit();
+  return true;
+}
+
+</script>
+
+<form action="$ENV{SCRIPT_NAME}" method="post" name="reports_perfdata">
+HTML
     } elsif ($action eq 'deleteView') {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"reports\">\n";
@@ -265,17 +292,18 @@ HTML
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print <<HTML;
-  <input type="hidden" name="pagedir"    value="$pagedir">
-  <input type="hidden" name="pageset"    value="$pageset">
-  <input type="hidden" name="debug"      value="$debug">
-  <input type="hidden" name="CGISESSID"  value="$sessionID">
-  <input type="hidden" name="pageNo"     value="$pageNo">
-  <input type="hidden" name="pageOffset" value="$pageOffset">
-  <input type="hidden" name="action"     value="$nextAction">
-  <input type="hidden" name="orderBy"    value="$orderBy">
-  <input type="hidden" name="uKeyReload" value="0">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="pageNo"          value="$pageNo">
+  <input type="hidden" name="pageOffset"      value="$pageOffset">
+  <input type="hidden" name="action"          value="$nextAction">
+  <input type="hidden" name="orderBy"         value="$orderBy">
+  <input type="hidden" name="uKeyReload"      value="0">
+  <input type="hidden" name="catalogIDreload" value="0">
 HTML
     } else {
       print "<br>\n";
@@ -317,7 +345,7 @@ HTML
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
         <tr><td><b>Catalog ID: </b></td><td>
-          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
         </td></tr>
 		<tr><td><b>Application: </b></td><td>
           $uKeySelect
@@ -346,12 +374,13 @@ HTML
       print "    <tr><td align=\"center\"><br><br><h1>Report Perfdata: $htmlTitle</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingReportsPerfdata</td></tr>" if (defined $matchingReportsPerfdata and $matchingReportsPerfdata ne '');
     } else {
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>";
       print "    <tr><td align=\"center\"><br>$matchingReportsPerfdata</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print "</form>\n";
     } else {
       print "<br>\n";

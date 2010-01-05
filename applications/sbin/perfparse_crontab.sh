@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, perfparse_crontab.sh
+# 2010/01/05, v3.001.002, perfparse_crontab.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -27,7 +27,7 @@ if [ -e "$logFilename" ]; then
   if [ -e "/usr/local/bin/date" ]; then
     epoch=`/usr/local/bin/date '+%s'`
   elif [ -e "/usr/bin/date" ]; then
-    epoch=`/usr/bin/date '+%s'`
+    epoch=`/usr/bin/date '+%y%m%d%H%M%S'`
   elif [ -e "/bin/date" ]; then
     epoch=`/bin/date '+%s'`
   else
@@ -49,4 +49,4 @@ if [ -e "$logFilename" ]; then
   fi
 fi
 
-exit $rv
+exit 0

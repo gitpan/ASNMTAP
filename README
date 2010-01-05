@@ -1,56 +1,63 @@
 # -----------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # -----------------------------------------------------------------------
 
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: dd month 2009
-Version      : 3.001.001
+Latest update: 05 January 2010
+Version      : 3.001.002
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.001.001, 2009/xx/yy, by Alex Peeters
-                               - UPDATE /applications/tools/mysql/asnmtap-3.001.001-database-schema.png
-                               - UPDATE TABLE `events` for MySQL
-                                 - MySQL 4.x
-                                   - SELECT CONCAT('alter table ', TABLE_SCHEMA , '.', table_name, ' MODIFY `test` varchar(254) NOT NULL default \'\';') FROM INFORMATION_SCHEMA.tables WHERE ENGINE = 'MYISAM' AND table_type='BASE TABLE' AND table_name regexp 'events_';
-                                     - TO GENERATE THE NEXT CODE FOR ALL YEARS
-                                       - ALTER TABLE `events_yyyy_01` MODIFY `test` varchar(254) NOT NULL default '';
-                                         ...
-                                       - ALTER TABLE `events_yyyy_12` MODIFY `test` varchar(254) NOT NULL default '';
-                                 - MySQL 5.0.x
-                                   - SELECT CONCAT('alter table ', TABLE_SCHEMA , '.', table_name, ' MODIFY `test` varchar(512) NOT NULL default \'\';') FROM INFORMATION_SCHEMA.tables WHERE ENGINE = 'MYISAM' AND table_type='BASE TABLE' AND table_name regexp 'events_';
-                                     - TO GENERATE THE NEXT CODE FOR ALL YEARS
-                                       - ALTER TABLE `events_yyyy_01` MODIFY `test` varchar(512) NOT NULL default '';
-                                         ...
-                                       - ALTER TABLE `events_yyyy_12` MODIFY `test` varchar(512) NOT NULL default '';
-                                 - MySQL 4.x & MySQL 5.0.x
-                                   - DROP TABLE `events_yyyy`;
-                                   - CREATE TABLE IF NOT EXISTS `events_yyyy` LIKE `events_yyyy_01`;
-                                   - ALTER TABLE `events_yyyy` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`, `events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`, `events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`, `events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
-
-                                   - DROP TABLE `events_yyyy_Q1`;
-                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q1` LIKE `events_yyyy_01`;
-                                   - ALTER TABLE `events_yyyy_Q1` ENGINE=MERGE UNION=(`events_yyyy_01`, `events_yyyy_02`, `events_yyyy_03`) INSERT_METHOD=LAST;
-
-                                   - DROP TABLE `events_yyyy_Q2`;
-                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q2` LIKE `events_yyyy_04`;
-                                   - ALTER TABLE `events_yyyy_Q2` ENGINE=MERGE UNION=(`events_yyyy_04`, `events_yyyy_05`, `events_yyyy_06`) INSERT_METHOD=LAST;
-
-                                   - DROP TABLE `events_yyyy_Q3`;
-                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q3` LIKE `events_yyyy_07`;
-                                   - ALTER TABLE `events_yyyy_Q3` ENGINE=MERGE UNION=(`events_yyyy_07`, `events_yyyy_08`, `events_yyyy_09`) INSERT_METHOD=LAST;
-
-                                   - DROP TABLE `events_yyyy_Q4`;
-                                   - CREATE TABLE IF NOT EXISTS `events_yyyy_Q4` LIKE `events_yyyy_10`;
-                                   - ALTER TABLE `events_yyyy_Q4` ENGINE=MERGE UNION=(`events_yyyy_10`, `events_yyyy_11`, `events_yyyy_12`) INSERT_METHOD=LAST;
-                               - UPDATE generateConfig.pl for the autogeneration from: asnmtap-collector.sh
-                                 - when there are servers configurated in failover
-                                   - onto the active server: only the file 'Display-<pagedir>.sh' and 'Collector-<deamon>.sh' are included
-                                   - onto both servers: are both files 'CollectorCT-<deamon>.sh' included when <deamon> eq <hostname>
-
+Version 3.001.002, 2010/xx/yy, by Alex Peeters
+                               - NEW record_navigation_bar_alpha
+                                 - change all record id > 0 for the 'auto_increment'
+								   '1' into this example, verify first and if needed replace '1' with correct value
+								   at 'displayGroups, holidaysBundle, reports & timeperiods'
+                                   holidaysBundle:
+                                   ---------------
+                                   ALTER TABLE `plugins`          CHANGE COLUMN `holidayBundleID` `holidayBundleID` int(11) default '1'
+                                   SET FOREIGN_KEY_CHECKS=0
+                                   UPDATE  `holidaysBundle`       SET `holidayBundleID` = '1'      where `holidayBundleID` = '0'
+                                   UPDATE  `plugins`              SET `holidayBundleID` = '1'      where `holidayBundleID` = '0'
+                                   SET FOREIGN_KEY_CHECKS=1
+                                   displayGroups:
+                                   --------------
+                                   ALTER TABLE `views`            CHANGE COLUMN `displayGroupID`  `displayGroupID` int(11) NOT NULL default '1'
+                                   UPDATE  `views`                SET `displayGroupID` = '1'       where `displayGroupID` = '0'
+                                   UPDATE  `displayGroups`        SET `displayGroupID` = '1'       where `displayGroupID` = '0'
+                                 - create new index
+                                   ALTER TABLE `catalog`          ADD INDEX `catalogName` (`catalogName`)
+                                   ALTER TABLE `collectorDaemons` ADD INDEX `collectorDaemon` (`collectorDaemon`)
+                                   ALTER TABLE `countries`        ADD INDEX `countryName` (`countryName`)
+                                   ALTER TABLE `displayDaemons`   ADD INDEX `displayDaemon` (`displayDaemon`)
+                                   ALTER TABLE `displayGroups`    ADD INDEX `groupTitle` (`groupTitle`)
+                                   ALTER TABLE `holidays`         ADD INDEX `holiday` (`holiday`)
+                                   ALTER TABLE `holidaysBundle`   ADD INDEX `holidayBundleName` (`holidayBundleName`)
+                                   ALTER TABLE `language`         ADD INDEX `languageName` (`languageName`)
+                                   ALTER TABLE `pagedirs`         ADD INDEX `pagedir` (`pagedir`)
+                                   ALTER TABLE `reports`          ADD INDEX `reportTitle` (`reportTitle`)
+                                   ALTER TABLE `resultsdir`       ADD INDEX `groupName` (`groupName`)
+                                   ALTER TABLE `servers`          ADD INDEX `serverTitle` (`serverTitle`)
+                                   ALTER TABLE `timeperiods`      ADD INDEX `timeperiodName` (`timeperiodName`)
+                                   ALTER TABLE `users`            ADD INDEX `remoteUser` (`remoteUser`)
+                               - NEW importDataThroughCatalog.sh and importDataThroughCatalog.pl
+                                   ALTER TABLE `displayGroups`  DROP INDEX `displayGroupID`,  ADD INDEX `displayGroupID` (`displayGroupID`)
+                                   ALTER TABLE `holidaysBundle` DROP INDEX `holidayBundleID`, ADD INDEX `holidayBundleID` (`holidayBundleID`)
+                                   ALTER TABLE `reports`        DROP INDEX `id`,              ADD INDEX `id` (`id`)
+                                   ALTER TABLE `timeperiods`    DROP INDEX `timeperiodID`,    ADD INDEX `timeperiodID` (`timeperiodID`)
+                               - NEW asnmtap-importDataThroughCatalog.sh and root-importDataThroughCatalog.sh
+                               - NEW integration for SDE (applications/custom/sde.pm-orig) into display.pl
+                               - NEW catalog.pl
+                               - UPDATE rsync 3.06 compatible
+                               - UPDATE autogenerated rsync *.conf with --exclude *.sql
+                               - UPDATE autogenerated 'Collector Start/Stop scripts' optimalisation
+                               - UPDATE runStatusOnDemand.pl with follow up for importDataThroughCatalog.pid
+                               - UPDATE optimalisation display.pl regarding encode html entities for the 'statusMessage'
+                               - UPDATE archive.pl, check_SNMPTT_probe.pl, check_snmptt_traps.pl, check_jUnit.pl & snmptt_traps_remove_pending_and_duplicated.pl
+							     'INSERT INTO' with 'REPLACE INTO' before 'DELETE'
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -353,7 +360,7 @@ Purpose: CronTab (CT, sysdCT),
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 COPYRIGHT
-© Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+© Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 
 ASNMTAP::Asnmtap::Plugins::WebTransact is based on 'Nagios::WebTransact', v0.14.1, Stanley.Hopcroft@IPAustralia.Gov.AU
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -678,10 +678,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "SELECT count(typeMonitoring) FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and typeMonitoring = 0 and activated = 1 group by typeMonitoring";
       ($rv, $numberCentralServers) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      unless ( defined $numberCentralServers) {
+      unless ( defined $numberCentralServers ) {
         $countErrors++;
         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>0</td><td>there is no activated central monitoring server</td><td>&nbsp;</td></tr>";
-      } elsif ( $numberCentralServers != 1) {
+      } elsif ( $numberCentralServers != 1 ) {
         $countErrors++;
         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td><td>&nbsp;</td></tr>";
       } else {
@@ -695,6 +695,27 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         $centralSlaveDatabaseFQDN = $centralMasterDatabaseFQDN unless ( $centralTypeServers );
+      }
+
+      # catalog <-> catalog - - - - - - - - - - - - - - - - - - - - - - -
+      $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Catalog <-> Catalog</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Central Monitoring Servers into the Catalog</td><td>Message</td><td align=\"center\">Action</td></tr>";
+
+      my ($numberCatalogCentralServers);
+
+      $sql = "SELECT count(catalogType) FROM $SERVERTABLCATALOG where catalogID = '$CATALOGID' and catalogType = 'Central' and activated = 1 group by catalogType";
+      ($rv, $numberCatalogCentralServers) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      unless ( defined $numberCatalogCentralServers ) {
+        $countErrors++;
+        $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>0</td><td>there is no activated central monitoring server into the catalog with catalogID '$CATALOGID'</td><td>&nbsp;</td></tr>";
+      } else {
+        $sql = "SELECT count(catalogType) FROM $SERVERTABLCATALOG where catalogType = 'Central' and activated = 1 group by catalogType";
+        ($rv, $numberCatalogCentralServers) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+	    if ( defined $numberCatalogCentralServers and $numberCatalogCentralServers != 1 ) {
+          $countErrors++;
+          $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCatalogCentralServers</td><td>there can be only one activated central monitoring server into the catalog</td><td>&nbsp;</td></tr>";
+        }
       }
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -964,93 +985,90 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         }
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS ";
-        $sql .= "where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH from $SERVERTABLSERVERS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.typeMonitoring = 0";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$catalogID, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
-          $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+          $sth->fetch();
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
-          if ( $sth->rows ) {
-            $prevTypeServers = $prevTypeActiveServer = 0;
-            $prevServerID = $prevMasterFQDN = $prevMasterASNMTAP_PATH = $prevMasterRSYNC_PATH = $prevMasterSSH_PATH = $prevSlaveFQDN = $prevSlaveASNMTAP_PATH = $prevSlaveRSYNC_PATH = $prevSlaveSSH_PATH = $prevDisplayDaemon = $prevGroupTitle = '';
+          $sql = "select distinct $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLCATALOG ";
+          $sql .= "where $SERVERTABLSERVERS.catalogID = $SERVERTABLCATALOG.catalogID and $SERVERTABLCATALOG.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth->bind_columns( \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$catalogID, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
-            while( $sth->fetch() ) {
-              if ( $prevServerID ne $serverID or $prevDisplayDaemon ne $displayDaemon ) {
-				if ( $prevDisplayDaemon ne '' ) {
-                  if ($rvOpen) {
-                    print DisplayCT "#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n# Einde DisplayCT-$prevDisplayDaemon - $prevServerID\n";
-                    close(DisplayCT);
-                    $rvOpen = 0;
-                    $typeMonitoringCharDorC = ($prevTypeMonitoring) ? 'D' : 'C';
-                    $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/DisplayCT-$prevDisplayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/DisplayCT-$prevDisplayDaemon", $debug) if ($prevTypeServers);
-                    $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$prevDisplayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
+          if ( $rv ) {
+            $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
+
+            if ( $sth->rows ) {
+              $prevDisplayDaemon = $prevGroupTitle = '';
+
+              while( $sth->fetch() ) {
+                if ( $prevDisplayDaemon ne $displayDaemon ) {
+	  			  if ( $prevDisplayDaemon ne '' ) {
+                    if ($rvOpen) {
+                      print DisplayCT "#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n# Einde DisplayCT-$prevDisplayDaemon - $serverID\n";
+                      close(DisplayCT);
+                      $rvOpen = 0;
+                      $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
+                      $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$prevDisplayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/DisplayCT-$prevDisplayDaemon", $debug) if ($typeServers);
+                      $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$prevDisplayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
+                    }
                   }
+
+                  $matchingDisplayCT .= "\n        <tr><th>DisplayCT - $serverID</th></tr>" if ( $prevDisplayDaemon ne $displayDaemon );
+
+                  $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
+                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
+                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
+                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+
+                  if ( $typeServers ) {
+                    $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
+                    $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
+                    $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  }
+
+                  $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon");
+
+                  if ($rvOpen) {
+                    $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon\" target=\"_blank\">DisplayCT-$displayDaemon</a></td></tr>";
+                    print DisplayCT "# DisplayCT-$displayDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
+                  }
+                } else {
+                  print DisplayCT "#\n" if ( $prevGroupTitle ne $groupTitle and $prevGroupTitle ne '' );
                 }
-
-                $matchingDisplayCT .= "\n        <tr><th>DisplayCT - $serverID</th></tr>" if ( $prevServerID ne $serverID and $prevDisplayDaemon ne $displayDaemon );
-
-                $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
-                $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
-                $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
-
-                if ( $typeServers ) {
-                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
-                  $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
-                }
-
-                $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon");
 
                 if ($rvOpen) {
-                  $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon\" target=\"_blank\">DisplayCT-$displayDaemon</a></td></tr>";
-                  print DisplayCT "# DisplayCT-$displayDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
+                  my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
+                  print DisplayCT "$interval#$groupTitle#$resultsdir#$catalogID_uKey#$title#$test --environment=$environment --trendline=$trendline#";
+                  (! defined $helpPluginFilename or $helpPluginFilename eq '<NIHIL>') ? print DisplayCT "0" : print DisplayCT "1";
+                  print DisplayCT "\n";
                 }
-              } else {
-                print DisplayCT "#\n" if ( $prevGroupTitle ne $groupTitle and $prevGroupTitle ne '' );
+
+                $prevDisplayDaemon      = $displayDaemon;
+                $prevGroupTitle         = $groupTitle;
               }
 
               if ($rvOpen) {
-                my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
-                print DisplayCT "$interval#$groupTitle#$resultsdir#$catalogID_uKey#$title#$test --environment=$environment --trendline=$trendline#";
-                (! defined $helpPluginFilename or $helpPluginFilename eq '<NIHIL>') ? print DisplayCT "0" : print DisplayCT "1";
-                print DisplayCT "\n";
+                print DisplayCT "#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n# Einde DisplayCT-$displayDaemon - $serverID\n";
+                close(DisplayCT);
+                $rvOpen = 0;
+                $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
+                $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/DisplayCT-$displayDaemon", $debug) if ($typeServers);
+                $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$displayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
               }
-
-              $prevServerID           = $serverID;
-              $prevTypeMonitoring     = $typeMonitoring;
-              $prevTypeServers        = $typeServers;
-              $prevTypeActiveServer   = $typeActiveServer;
-              $prevMasterFQDN         = $masterFQDN;
-              $prevMasterASNMTAP_PATH = $masterASNMTAP_PATH;
-              $prevMasterRSYNC_PATH   = $masterRSYNC_PATH;
-              $prevMasterSSH_PATH     = $masterSSH_PATH;
-              $prevSlaveFQDN          = $slaveFQDN;
-              $prevSlaveASNMTAP_PATH  = $slaveASNMTAP_PATH;
-              $prevSlaveRSYNC_PATH    = $slaveRSYNC_PATH;
-              $prevSlaveSSH_PATH      = $slaveSSH_PATH;
-              $prevDisplayDaemon      = $displayDaemon;
-              $prevGroupTitle         = $groupTitle;
+            } else {
+              $matchingDisplayCT .= "        <tr><td>No records found for any DisplayCT</td></tr>\n";
             }
 
-            if ($rvOpen) {
-              print DisplayCT "#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n# Einde DisplayCT-$displayDaemon - $serverID\n";
-              close(DisplayCT);
-              $rvOpen = 0;
-              $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-              $matchingDisplayCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/DisplayCT-$displayDaemon", $debug) if ($typeServers);
-              $matchingDisplayCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>DisplayCT-$displayDaemon, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
-            }
-          } else {
-            $matchingDisplayCT .= "        <tr><td>No records found for any DisplayCT</td></tr>\n";
+            $matchingDisplayCT .= "      </table>\n";
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           }
-
-          $matchingDisplayCT .= "      </table>\n";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1201,7 +1219,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Collector Start/Stop scripts
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sql = "select DISTINCT $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 AND $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID AND $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon AND $SERVERTABLCRONTABS.activated = 1 AND $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID AND $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey AND $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
         $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -1287,19 +1305,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                 my ($hostnameAdminCollector, undef) = split (/\./, $slaveFQDN, 2);
 
                 if ( $collectorDaemon eq $hostnameAdminCollector ) {
-                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$slaveFQDN:$slaveASNMTAP_PATH/results/$resultsdir/ $masterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$slaveFQDN:$slaveASNMTAP_PATH/results/$resultsdir/ $masterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
                 } else {
-                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                  $matchingRsyncMirrorConfigFailover .= "$SSHLOGONNAME\@$masterFQDN:$masterASNMTAP_PATH/results/$resultsdir/ $slaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
                 }
               }
 
               if ($typeMonitoring) {
-                $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
-                $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
+                $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralMasterFQDN:$centralMasterASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
 
                 if ( defined $centralSlaveFQDN and $centralSlaveFQDN ) { # and $centralTypeServers ?
-                  $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
-                  $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp\n";
+                  $matchingRsyncMirrorConfigDistributedMaster .= "$masterASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
+                  $matchingRsyncMirrorConfigDistributedSlave  .= "$slaveASNMTAP_PATH/results/$resultsdir/ $SSHLOGONNAME\@$centralSlaveFQDN:$centralSlaveASNMTAP_PATH/results/$resultsdir/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql\n";
                 }
               }
 

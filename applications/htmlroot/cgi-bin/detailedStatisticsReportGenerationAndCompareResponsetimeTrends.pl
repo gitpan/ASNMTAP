@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,33 +44,34 @@ my $endDate;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir      = (defined $cgi->param('pagedir'))      ? $cgi->param('pagedir')      : 'index'; $pagedir =~ s/\+/ /g;
-my $pageset      = (defined $cgi->param('pageset'))      ? $cgi->param('pageset')      : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug        = (defined $cgi->param('debug'))        ? $cgi->param('debug')        : 'F';
-my $selDetailed  = (defined $cgi->param('detailed'))     ? $cgi->param('detailed')     : 'on';
-my $CcatalogID   = (defined $cgi->param('catalogID'))    ? $cgi->param('catalogID')    : $CATALOGID;
-my $uKey1        = (defined $cgi->param('uKey1'))        ? $cgi->param('uKey1')        : 'none';
-my $uKey2        = (defined $cgi->param('uKey2'))        ? $cgi->param('uKey2')        : 'none';
-my $uKey3        = (defined $cgi->param('uKey3'))        ? $cgi->param('uKey3')        : 'none';
-my $startDate    = (defined $cgi->param('startDate'))    ? $cgi->param('startDate')    : "$currentYear-$currentMonth-$currentDay";
-my $inputType    = (defined $cgi->param('inputType'))    ? $cgi->param('inputType')    : 'fromto';
-my $selYear      = (defined $cgi->param('year'))         ? $cgi->param('year')         : 0;
-my $selWeek      = (defined $cgi->param('week'))         ? $cgi->param('week')         : 0;
-my $selMonth     = (defined $cgi->param('month'))        ? $cgi->param('month')        : 0;
-my $selQuarter   = (defined $cgi->param('quarter'))      ? $cgi->param('quarter')      : 0;
-my $timeperiodID = (defined $cgi->param('timeperiodID')) ? $cgi->param('timeperiodID') : 1;
-my $statuspie    = (defined $cgi->param('statuspie'))    ? $cgi->param('statuspie')    : 'off';
-my $errorpie     = (defined $cgi->param('errorpie'))     ? $cgi->param('errorpie')     : 'off';
-my $bar          = (defined $cgi->param('bar'))          ? $cgi->param('bar')          : 'off';
-my $hourlyAvg    = (defined $cgi->param('hourlyAvg'))    ? $cgi->param('hourlyAvg')    : 'off';
-my $dailyAvg     = (defined $cgi->param('dailyAvg'))     ? $cgi->param('dailyAvg')     : 'off';
-my $details      = (defined $cgi->param('details'))      ? $cgi->param('details')      : 'off';
-my $comments     = (defined $cgi->param('comments'))     ? $cgi->param('comments')     : 'off';
-my $perfdata     = (defined $cgi->param('perfdata'))     ? $cgi->param('perfdata')     : 'off';
-my $topx         = (defined $cgi->param('topx'))         ? $cgi->param('topx')         : 'off';
-my $pf           = (defined $cgi->param('pf'))           ? $cgi->param('pf')           : 'off';
-my $formatOutput = (defined $cgi->param('formatOutput')) ? $cgi->param('formatOutput') : 'html';
-my $htmlToPdf    = (defined $cgi->param('htmlToPdf'))    ? $cgi->param('htmlToPdf')    : 0;
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index'; $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $selDetailed      = (defined $cgi->param('detailed'))        ? $cgi->param('detailed')        : 'on';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $uKey1            = (defined $cgi->param('uKey1'))           ? $cgi->param('uKey1')           : 'none';
+my $uKey2            = (defined $cgi->param('uKey2'))           ? $cgi->param('uKey2')           : 'none';
+my $uKey3            = (defined $cgi->param('uKey3'))           ? $cgi->param('uKey3')           : 'none';
+my $startDate        = (defined $cgi->param('startDate'))       ? $cgi->param('startDate')       : "$currentYear-$currentMonth-$currentDay";
+my $inputType        = (defined $cgi->param('inputType'))       ? $cgi->param('inputType')       : 'fromto';
+my $selYear          = (defined $cgi->param('year'))            ? $cgi->param('year')            : 0;
+my $selWeek          = (defined $cgi->param('week'))            ? $cgi->param('week')            : 0;
+my $selMonth         = (defined $cgi->param('month'))           ? $cgi->param('month')           : 0;
+my $selQuarter       = (defined $cgi->param('quarter'))         ? $cgi->param('quarter')         : 0;
+my $timeperiodID     = (defined $cgi->param('timeperiodID'))    ? $cgi->param('timeperiodID')    : 1;
+my $statuspie        = (defined $cgi->param('statuspie'))       ? $cgi->param('statuspie')       : 'off';
+my $errorpie         = (defined $cgi->param('errorpie'))        ? $cgi->param('errorpie')        : 'off';
+my $bar              = (defined $cgi->param('bar'))             ? $cgi->param('bar')             : 'off';
+my $hourlyAvg        = (defined $cgi->param('hourlyAvg'))       ? $cgi->param('hourlyAvg')       : 'off';
+my $dailyAvg         = (defined $cgi->param('dailyAvg'))        ? $cgi->param('dailyAvg')        : 'off';
+my $details          = (defined $cgi->param('details'))         ? $cgi->param('details')         : 'off';
+my $comments         = (defined $cgi->param('comments'))        ? $cgi->param('comments')        : 'off';
+my $perfdata         = (defined $cgi->param('perfdata'))        ? $cgi->param('perfdata')        : 'off';
+my $topx             = (defined $cgi->param('topx'))            ? $cgi->param('topx')            : 'off';
+my $pf               = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
+my $formatOutput     = (defined $cgi->param('formatOutput'))    ? $cgi->param('formatOutput')    : 'html';
+my $htmlToPdf        = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -82,10 +83,10 @@ my $htmlTitle   = ( ( $selDetailed eq 'on' ) ? 'Detailed Statistics and Report G
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&catalogID=$CcatalogID&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&comments=$comments&perfdata=$perfdata&topx=$topx&pf=$pf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&detailed=$selDetailed&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey1=$uKey1&uKey2=$uKey2&uKey3=$uKey3&startDate=$startDate&endDate=$endDate&inputType=$inputType&year=$selYear&week=$selWeek&month=$selMonth&quarter=$selQuarter&timeperiodID=$timeperiodID&statuspie=$statuspie&errorpie=$errorpie&bar=$bar&hourlyAvg=$hourlyAvg&dailyAvg=$dailyAvg&details=$details&comments=$comments&perfdata=$perfdata&topx=$topx&pf=$pf";
 
 # Debug information
-print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>catalog ID  : $CcatalogID<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>comments    : $comments<br>perfdata    : $perfdata<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...     : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>detailed    : $selDetailed<br>catalog ID  : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey1       : $uKey1<br>uKey2       : $uKey2<br>uKey3       : $uKey3<br>startDate   : $startDate<br>endDate     : $endDate<br>inputType   : $inputType<br>selYear     : $selYear<br>selWeek     : $selWeek<br>selMonth    : $selMonth<br>selQuarter  : $selQuarter<br>SLA window  : $timeperiodID<br>statuspie   : $statuspie<br>errorpie    : $errorpie<br>bar         : $bar<br>hourlyAvg   : $hourlyAvg<br>dailyAvg    : $dailyAvg<br>details     : $details<br>comments    : $comments<br>perfdata    : $perfdata<br>topx        : $topx<br>pf          : $pf<br>formatOutput: $formatOutput<br>htmlToPdf   : $htmlToPdf<br>URL ...     : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   if ( $formatOutput eq 'pdf' and ! $htmlToPdf ) {
@@ -109,7 +110,7 @@ EndOfHtml
   }
 
   my ($rv, $dbh, $sth, $uKey, $sqlQuery, $sqlSelect, $sqlAverage, $sqlInfo, $sqlErrors, $sqlWhere, $sqlPeriode);
-  my ($printerFriendlyOutputBox, $formatOutputSelect, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
+  my ($printerFriendlyOutputBox, $formatOutputSelect, $catalogIDSelect, $uKeySelect1, $uKeySelect2, $uKeySelect3, $images);
   my ($subtime, $endTime, $duration, $seconden, $status, $statusMessage, $title, $Title, $shortDescription, $rest, $dummy, $count);
   my ($averageQ, $numbersOfTestsQ, $startDateQ, $stepQ, $endDateQ, $errorMessage, $chartOrTableChecked);
   my ($checkbox, $tables, $shortDescriptionTextArea, $infoTable, $topxTable, $errorList, $errorDetailList, $commentDetailList, $perfdataDetailList, $responseTable, $goodDate);
@@ -121,6 +122,9 @@ EndOfHtml
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
+    $sqlQuery = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+    ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sqlQuery, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
     $sqlQuery = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and production = '1' and activated = 1 and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
     $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlQuery", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -868,6 +872,12 @@ EndOfHtml
     } else {
       print <<HTML;
   <script language="JavaScript1.2" type="text/javascript">
+    function submitForm() {
+      document.reports.catalogIDreload.value = 1;
+      document.reports.submit();
+      return true;
+    }
+
     function validateForm() {
       if ( document.reports.formatOutput.value != null ) {
         if ( document.reports.formatOutput.value == 'html' ) { document.reports.target = '_self';  }
@@ -880,14 +890,15 @@ EndOfHtml
   </script>
 
   <form action="$ENV{SCRIPT_NAME}" method="post" name="reports" target="_self" onSubmit="return validateForm();">
-    <input type="hidden" name="pagedir"   value="$pagedir">
-    <input type="hidden" name="pageset"   value="$pageset">
-    <input type="hidden" name="debug"     value="$debug">
-    <input type="hidden" name="CGISESSID" value="$sessionID">
-    <input type="hidden" name="detailed"  value="$selDetailed">
+    <input type="hidden" name="pagedir"         value="$pagedir">
+    <input type="hidden" name="pageset"         value="$pageset">
+    <input type="hidden" name="debug"           value="$debug">
+    <input type="hidden" name="CGISESSID"       value="$sessionID">
+    <input type="hidden" name="detailed"        value="$selDetailed">
+    <input type="hidden" name="catalogIDreload" value="0">
     <table border="0">
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled> $catalogIDSelect
       </td></tr>
 HTML
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2010/01/05, v3.001.002, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.001.001;
+use ASNMTAP::Asnmtap::Applications::Display v3.001.002;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -387,7 +387,7 @@ sub do_crontab {
         my $commandPopup = maskPassword ($test);
         $commandPopup =~ s/(?:\s+(--environment=[PASTDL]|--trendline=\d+))//g;
         my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
-        print "<", $CATALOGID, "><", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $catalogID, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
+        print "<", $CATALOGID, "><", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $catalogID_uniqueKey, "><", $catalogID, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         my $number = 1;
         my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV);
         $itemTimeslot = $itemStatusIcon = $itemInsertInMCV = 0;
@@ -397,14 +397,14 @@ sub do_crontab {
         if ($dbh and $rv) {
           my ($acked, $sql, $tLastStatus, $tLastTimeslot, $tPrevStatus, $tPrevTimeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $comment);
 
-          # APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes ->
+          # TODO APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes
           my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
 
           if ( $currentHour == 0 and $currentMin <= 15 ) {
             my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
             my $solvedTime     = "$currentHour:$currentMin:$currentSec";
             my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="$CATALOGID" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+            $sql = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="'. $CATALOGID. '" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
             $dbh->do ( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->do: $sql");
           }
 
@@ -475,7 +475,7 @@ sub do_crontab {
           $lastTimeslot  = get_timeslot ($creationDate);
           $firstTimeslot = $lastTimeslot - ($step * $NUMBEROFFTESTS);
           $timeCorrectie = 0;
-          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' force index (uKey) where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
 
           print "<", $findString, ">\n" if ($debug);
           $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $findString");
@@ -531,7 +531,7 @@ sub do_crontab {
                   }
                 }
 
-                my $tstatusMessage = ($ref->{filename} eq '<NIHIL>') ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>';
+                my $tstatusMessage = ( ( $catalogID ne $CATALOGID or $ref->{filename} eq '<NIHIL>' ) ? encode_html_entities('M', $ref->{statusMessage}) : '<A HREF="'.$ref->{filename}.'" TARGET="_blank">'.encode_html_entities('M', $ref->{statusMessage}).'</A>');
                 $statusIcon = ($acked and ($activationTimeslot - $step < $ref->{timeslot}) and ($suspentionTimeslot > $ref->{timeslot})) ? ( $instability ? $ICONSUNSTABLE {$tstatus} : $ICONSACK {$tstatus} ) : $ICONS{$tstatus};
 
                 if ( $timeslot == 0 or $timeslot == 1 ) {
@@ -549,7 +549,7 @@ sub do_crontab {
 
                   if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
                     $ref->{statusMessage} =~ s/'/`/g;
-                    $popup .= '<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT VALIGN=TOP>Status</TD><TD BGCOLOR=#0000FF><IMG SRC='.$IMAGESURL.'/'.$statusIcon.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0> '.$ref->{startTime}.' '.$ref->{statusMessage}.'</TD></TR>';
+                    $popup .= '<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT VALIGN=TOP>Status</TD><TD BGCOLOR=#0000FF><IMG SRC='.$IMAGESURL.'/'.$statusIcon.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0> '.$ref->{startTime}.' '.encode_html_entities('M', $ref->{statusMessage}).'</TD></TR>';
                   }
                 }
               }
@@ -860,7 +860,14 @@ EOM
   }
 
   # http://www.bosrup.com/web/overlib/?Command_Reference
-  my $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR></TABLE>";
+  my $_exclaim = '';
+
+  if (-s "$APPLICATIONPATH/custom/sde.pm") {
+    require "$APPLICATIONPATH/custom/sde.pm";
+    $_exclaim = printRelationshipsSDE( $serverName, $checklist, $catalogID, $uniqueKey );
+  }
+
+  $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR>$_exclaim</TABLE>";
   my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
 
   my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
@@ -873,7 +880,7 @@ EOM
 
   $itemFullCondensedView = '  <TR>'."\n".'    '.$exclaim.$comments.$helpfile."\n";
 
-  if ( defined $creationTime ) {
+  if ( $catalogID ne $CATALOGID or defined $creationTime ) {
     $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep. encode_html_entities('T', $test) .'</TD>'. "\n";
   } else {
     $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command .'-'. $catalogID_uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
@@ -1041,7 +1048,7 @@ sub printItemStatus {
 	} elsif ( $number == 3 and $playSoundInProgress ) {
       $playSoundSet = 1;
     }
-	
+
     if ( $playSoundSet ) {
       $playSoundSet = 0;
 

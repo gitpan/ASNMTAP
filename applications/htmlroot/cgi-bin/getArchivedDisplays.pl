@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, getArchivedDisplay.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME &call_system);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedDisplay.pl";
 my $prgtext     = "Get Archived Display";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -58,7 +58,7 @@ my $htmlTitle = "Get Archived Display(s) from $CcatalogID";
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUser, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Archive", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&CcreationDate=$CcreationDate&CcreationTime=$CcreationTime";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&CcreationDate=$CcreationDate&CcreationTime=$CcreationTime";
 
 # Debug information
 print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>date      : $CcreationDate<br>time      : $CcreationTime<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
@@ -218,7 +218,7 @@ EndOfHtml
     <input type="hidden" name="CGISESSID" value="$sessionID">
     <table border=0>
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
       </td></tr>
       <tr>
         <td>Display Daemon: </td>

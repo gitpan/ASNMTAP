@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, collectorCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, collectorCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "collectorCrontabSchedulingReports.pl";
 my $prgtext     = "Collector Crontab Scheduling Reports";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,35 +41,36 @@ my $currentSec = 0;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir         = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
-my $pageset         = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug           = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
-my $CcatalogID      = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
-my $sqlEndDate      = (defined $cgi->param('sqlEndDate'))      ? $cgi->param('sqlEndDate')      : timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-my $sqlPeriode      = (defined $cgi->param('sqlPeriode'))      ? $cgi->param('sqlPeriode')      : 3600;
-my $width           = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
-my $xOffset         = (defined $cgi->param('xOffset'))         ? $cgi->param('xOffset')         : 300;
-my $yOffset         = (defined $cgi->param('yOffset'))         ? $cgi->param('yOffset')         : 42;
-my $labelOffset     = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 32;
-my $AreaBOffset     = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
-my $hightMin        = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
-my $currentTimeslot = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : 'off';
-my $pf              = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
-my $htmlToPdf       = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $sqlEndDate       = (defined $cgi->param('sqlEndDate'))      ? $cgi->param('sqlEndDate')      : timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
+my $sqlPeriode       = (defined $cgi->param('sqlPeriode'))      ? $cgi->param('sqlPeriode')      : 3600;
+my $width            = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
+my $xOffset          = (defined $cgi->param('xOffset'))         ? $cgi->param('xOffset')         : 300;
+my $yOffset          = (defined $cgi->param('yOffset'))         ? $cgi->param('yOffset')         : 42;
+my $labelOffset      = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 32;
+my $AreaBOffset      = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
+my $hightMin         = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
+my $currentTimeslot  = (defined $cgi->param('currentTimeslot')) ? $cgi->param('currentTimeslot') : 'off';
+my $pf               = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
+my $htmlToPdf        = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
 
-my $htmlTitle       = $prgtext;
+my $htmlTitle        = $prgtext;
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Crontabs", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&sqlEndDate=$sqlEndDate&sqlPeriode=$sqlPeriode&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&currentTimeslot=$currentTimeslot&pf=$pf&htmlToPdf=$htmlToPdf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&sqlEndDate=$sqlEndDate&sqlPeriode=$sqlPeriode&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&currentTimeslot=$currentTimeslot&pf=$pf&htmlToPdf=$htmlToPdf";
 
 # Debug information
-print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>catalog ID : $CcatalogID<br>sqlEndDate : $sqlEndDate<br>sqlPeriode : $sqlPeriode<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>catalog ID : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>sqlEndDate : $sqlEndDate<br>sqlPeriode : $sqlPeriode<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
-  my ($rv, $dbh, $sth, $sql, $errorMessage);
+  my ($rv, $dbh, $sth, $sql, $errorMessage, $catalogIDSelect);
   my @collectorDaemons = ();
 
   # open connection to database and query data
@@ -77,10 +78,13 @@ unless ( defined $errorUserAccessControl ) {
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    (undef, undef, my $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} );
+    $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+    ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+    my $hostname = '';
+    (undef, undef, $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} ) if ( $ENV{HTTP_REFERER} );
 
     my $collectorDaemon;
-
     $sql = "select distinct $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLSERVERS where $SERVERTABLCLLCTRDMNS.catalogID = '$CcatalogID' and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." order by $SERVERTABLCLLCTRDMNS.catalogID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
     $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
     $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -125,6 +129,12 @@ EndOfHtml
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.crontabs.catalogIDreload.value = 1;
+  document.crontabs.submit();
+  return true;
+}
+
 function validateForm() {
   var objectRegularExpressionSqlPeriode = /\^(12|24|36|48|60|72|84|94)00\$/;
 
@@ -173,13 +183,14 @@ function validateForm() {
 </script>
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="crontabs" onSubmit="return validateForm();">
-  <input type="hidden" name="pagedir"   value="$pagedir">
-  <input type="hidden" name="pageset"   value="$pageset">
-  <input type="hidden" name="debug"     value="$debug">
-  <input type="hidden" name="CGISESSID" value="$sessionID">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="catalogIDreload" value="0">
   <table border="0">
     <tr><td><b>Catalog ID: </b></td><td>
-      <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled> $catalogIDSelect
     </td></tr>
     <tr align="left">
       <td>Periode:</td><td><input name="sqlPeriode" type="text" value="$sqlPeriode" size="4" maxlength="4">&nbsp;&nbsp;&nbsp;</td>

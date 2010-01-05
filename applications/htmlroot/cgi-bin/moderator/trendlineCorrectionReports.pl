@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, trendlineCorrectionReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,10 +15,10 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_epoch);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "trendlineCorrectionReports.pl";
 my $prgtext     = "Trendline Correction Reports (for the Collector)";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,13 +40,14 @@ use CGI;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir    = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : '<NIHIL>';   $pagedir =~ s/\+/ /g;
-my $pageset    = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'moderator'; $pageset =~ s/\+/ /g;
-my $debug      = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
-my $action     = (defined $cgi->param('action'))    ? $cgi->param('action')    : 'listView';
-my $CsessionID = (defined $cgi->param('sessionID')) ? $cgi->param('sessionID') : '';
-
-my $shortlist  = (defined $cgi->param('shortlist')) ? $cgi->param('shortlist') : '0';
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : '<NIHIL>';   $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'moderator'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $action           = (defined $cgi->param('action'))          ? $cgi->param('action')          : 'listView';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $CsessionID       = (defined $cgi->param('sessionID'))       ? $cgi->param('sessionID')       : '';
+my $shortlist        = (defined $cgi->param('shortlist'))       ? $cgi->param('shortlist')       : '0';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,15 +60,15 @@ my ($nextAction, $matchingTrendlineCorrections);
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Trendlines", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&sessionID=$CsessionID";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&sessionID=$CsessionID&catalogID=$CcatalogID";
 
 # Debug information
-print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>action      : $action<br>session ID  : $CsessionID<br>URL ...     : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir     : $pagedir<br>pageset     : $pageset<br>debug       : $debug<br>CGISESSID   : $sessionID<br>action      : $action<br>catalog ID  : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>session ID  : $CsessionID<br>URL ...     : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($matchingSessionDetails, $matchingSessionsBlocked, $matchingSessionsActive, $matchingSessionsExpired, $matchingSessionsEmpty, $navigationBar);
+  my ($catalogIDSelect, $matchingSessionDetails, $matchingSessionsBlocked, $matchingSessionsActive, $matchingSessionsExpired, $matchingSessionsEmpty, $navigationBar);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;catalogID=$CcatalogID";
 
   if ($action eq 'listView') {
     $htmlTitle = "Trendline Correction Reports";
@@ -93,8 +94,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my $hostname = '';
       (undef, undef, $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} ) if ( $ENV{HTTP_REFERER} );
 
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
       my ($catalogID, $uKey, $title, $test, $resultsdir, $trendline, $percentage, $tolerance, $hour, $calculated);
-      $sql = "select SQL_NO_CACHE $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, hour($SERVERTABLEVENTS.startTime) as hour, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLEVENTS force index (key_startDate), $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.trendline <> 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLEVENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and ($SERVERTABLEVENTS.startDate between '$startDate' and '$yesterday') and hour($SERVERTABLEVENTS.startTime) between 9 and 17 and $SERVERTABLEVENTS.status = 'OK' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, hour order by catalogID, Title";
+      $sql = "select SQL_NO_CACHE $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, hour($SERVERTABLEVENTS.startTime) as hour, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLEVENTS force index (key_startDate), $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.trendline <> 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLEVENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and ($SERVERTABLEVENTS.startDate between '$startDate' and '$yesterday') and hour($SERVERTABLEVENTS.startTime) between 9 and 17 and $SERVERTABLEVENTS.status = 'OK' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, hour order by catalogID, Title";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
       $sth->bind_columns( \$catalogID, \$uKey, \$title, \$test, \$resultsdir, \$trendline, \$percentage, \$tolerance, \$hour, \$calculated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -125,14 +129,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           if ( $ActionItem or ! $shortlist ) {
             $test =~ s/\.pl//g;
             my $catalogID_uKey = ( ( $catalogID eq 'CID' ) ? '' : $catalogID .'_' ) . $uKey;
-            $ActionItem  = "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('/results/$resultsdir/$test-$catalogID_uKey-sql.html',912,576,null,null,'Trendline',10,false,'Trendline');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline MRTG Chart\" alt=\"Trendline MRTG Chart\" border=\"0\"></A>&nbsp;";
-            $ActionItem .= "<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/generateChart.pl?$urlAccessParameters&detailed=on&uKey1=$uKey&uKey2=none&uKey3=none&startDate=$startDate&endDate=$yesterday&inputType=fromto&chart=Bar',1016,400,null,null,'Bar',10,false,'Bar');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline Bar Chart\" alt=\"Trendline Bar Chart\" border=\"0\"></A>&nbsp;";
+            $ActionItem  = "&nbsp";
+            $ActionItem .= "<A HREF=\"#\" onclick=\"openPngImage('/results/$resultsdir/$test-$catalogID_uKey-sql.html',912,576,null,null,'Trendline',10,false,'Trendline');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline MRTG Chart\" alt=\"Trendline MRTG Chart\" border=\"0\"></A>&nbsp;" if ($catalogID eq $CATALOGID);
+            $ActionItem .= "<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/generateChart.pl?$urlAccessParameters&detailed=on&catalogID=$CcatalogID&uKey1=$uKey&uKey2=none&uKey3=none&startDate=$startDate&endDate=$yesterday&inputType=fromto&chart=Bar',1016,400,null,null,'Bar',10,false,'Bar');\"><img src=\"$IMAGESURL/$ICONSRECORD{table}\" title=\"Trendline Bar Chart\" alt=\"Trendline Bar Chart\" border=\"0\"></A>&nbsp;";
 
             my $actionSkip = ( ( $catalogID eq $CATALOGID ) ? 0 : 1 );
 
             unless ( $actionSkip ) {
               if ( $userType >= 4 ) {
-                $ActionItem .= "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/admin/plugins.pl?$urlAccessParameters&action=editView&uKey=$uKey&orderBy=uKey',1016,760,null,null,'Edit',10,false,'Edit');\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Trendline\" alt=\"Edit Trendline\" border=\"0\"></A>&nbsp;";
+                $ActionItem .= "&nbsp;<A HREF=\"#\" onclick=\"openPngImage('$HTTPSURL/cgi-bin/admin/plugins.pl?$urlAccessParameters&action=editView&catalogID=$CcatalogID&uKey=$uKey&orderBy=uKey',1016,760,null,null,'Edit',10,false,'Edit');\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Trendline\" alt=\"Edit Trendline\" border=\"0\"></A>&nbsp;";
 
                 if ( $calculatedNEW ) {
                   $ActionItem .= "<A HREF=\"#\">";
@@ -176,7 +181,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       }
 
       unless ( $shortlist ) {
-        $sql = "select $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLEVENTS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.trendline = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLEVENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey order by catalogID, Title";
+        $sql = "select $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as Title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.percentage, $SERVERTABLPLUGINS.tolerance, round(avg(time_to_sec($SERVERTABLEVENTS.duration)), 2) from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLEVENTS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.trendline = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLEVENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLEVENTS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." group by $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey order by catalogID, Title";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
         $sth->bind_columns( \$catalogID, \$uKey, \$title, \$test, \$resultsdir, \$trendline, \$percentage, \$tolerance, \$calculated ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
@@ -205,15 +210,31 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
   print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'T', '', $sessionID);
 
-  print "<br>\n";
-
   print <<HTML;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.trendlineCorrectionReport.catalogIDreload.value = 1;
+  document.trendlineCorrectionReport.submit();
+  return true;
+}
+</script>
+
+<form action="$ENV{SCRIPT_NAME}" method="post" name="trendlineCorrectionReport">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="action"          value="$nextAction">
+  <input type="hidden" name="sessionID"       value="$CsessionID">
+  <input type="hidden" name="shortlist"       value="$shortlist">
+  <input type="hidden" name="catalogIDreload" value="0">
+  <br>
   <table border="0" cellspacing="0" cellpadding="0" align="center">
+    <tr><td><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table><br></td></tr>
     <tr align="center"><td>$matchingTrendlineCorrections</td></tr>
   </table>
+  <br>
 HTML
-
-  print "<br>\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

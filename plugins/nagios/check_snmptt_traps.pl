@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2010/01/05, v3.001.002, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.001;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.002;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -F, --FQDN=<F(alse)|T(rue)>
@@ -80,7 +80,7 @@ if ( $dbh ) {
   if (! $onDemand) {
     my $rv = 1;
 
-    my $sqlINSERT = "INSERT INTO `snmptt_archive` SELECT * FROM `snmptt` WHERE trapread = '1' and $hostnameString $trapOIDsString";
+    my $sqlINSERT = "REPLACE INTO `snmptt_archive` SELECT * FROM `snmptt` WHERE trapread = '1' and $hostnameString $trapOIDsString";
     print "    $sqlINSERT\n" if ( $debug );
     $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "crontabs.pl";
 my $prgtext     = "Crontabs";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ my $pageOffset          = (defined $cgi->param('pageOffset'))      ? $cgi->param
 my $orderBy             = (defined $cgi->param('orderBy'))         ? $cgi->param('orderBy')         : 'lineNumber asc, uKey asc, groupName asc, title asc';
 my $action              = (defined $cgi->param('action'))          ? $cgi->param('action')          : 'listView';
 my $CcatalogID          = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload    = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
 my $ClineNumber         = (defined $cgi->param('lineNumber'))      ? $cgi->param('lineNumber')      : '00';
 my $CuKey               = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : 'none';
 my $CcollectorDaemon    = (defined $cgi->param('collectorDaemon')) ? $cgi->param('collectorDaemon') : 'none';
@@ -68,15 +69,15 @@ my ($rv, $dbh, $sth, $sql, $numberRecordsIntoQuery, $nextAction, $formDisabledAl
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Crontabs", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&lineNumber=$ClineNumber&uKey=$CuKey&collectorDaemon=$CcollectorDaemon&arguments=$Carguments&minute=$Cminute&hour=$Chour&dayOfTheMonth=$CdayOfTheMonth&monthOfTheYear=$CmonthOfTheYear&dayOfTheWeek=$CdayOfTheWeek&noOffline=$CnoOffline&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&lineNumber=$ClineNumber&uKey=$CuKey&collectorDaemon=$CcollectorDaemon&arguments=$Carguments&minute=$Cminute&hour=$Chour&dayOfTheMonth=$CdayOfTheMonth&monthOfTheYear=$CmonthOfTheYear&dayOfTheWeek=$CdayOfTheWeek&noOffline=$CnoOffline&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>lineNumber        : $ClineNumber<br>uKey              : $CuKey<br>collectorDaemon   : $CcollectorDaemon<br>arguments         : $Carguments<br>minute            : $Cminute<br>hour              : $Chour<br>dayOfTheMonth     : $CdayOfTheMonth<br>monthOfTheYear    : $CmonthOfTheYear<br>dayOfTheWeek      : $CdayOfTheWeek<br>noOffline         : $CnoOffline<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>lineNumber        : $ClineNumber<br>uKey              : $CuKey<br>collectorDaemon   : $CcollectorDaemon<br>arguments         : $Carguments<br>minute            : $Cminute<br>hour              : $Chour<br>dayOfTheMonth     : $CdayOfTheMonth<br>monthOfTheYear    : $CmonthOfTheYear<br>dayOfTheWeek      : $CdayOfTheWeek<br>noOffline         : $CnoOffline<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($collectorDaemonSelect, $matchingCrontabs, $navigationBar);
+  my ($catalogIDSelect, $collectorDaemonSelect, $matchingCrontabs, $navigationBar);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -90,6 +91,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Insert Crontab";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
+      $CcatalogID   = $CATALOGID if ($action eq 'insertView');
     } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Crontab $ClineNumber, $CuKey from $CcatalogID exist before to insert";
 
@@ -139,6 +141,11 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       my ($sqlWhereCount, $sqlWhereList, $urlWithAccessParametersQuery);
       $sqlWhereCount = $sqlWhereList = $urlWithAccessParametersQuery = '';
 
+      if ( $CcatalogIDreload ) {
+        $pageNo = 1;
+        $pageOffset = 0;
+      }
+
       if ($action eq 'crontab') {
         $htmlTitle      = "All selected crontabs listed";
         $nextAction     = "crontab";
@@ -156,15 +163,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $sqlWhereList  .= " and $SERVERTABLCRONTABS.collectorDaemon='$CcollectorDaemon'" if ($CcollectorDaemon ne 'none');
         $sqlWhereList  .= " and";
 
-        $urlWithAccessParametersQuery = "&amp;activated=$Cactivated&amp;uKey=$CuKey&amp;collectorDaemon=$CcollectorDaemon";
+        $urlWithAccessParametersQuery = "&amp;activated=$Cactivated&amp;catalogID=$CcatalogID&amp;uKey=$CuKey&amp;collectorDaemon=$CcollectorDaemon";
       } else {
         $htmlTitle      = "All crontabs listed";
         $nextAction     = "listView";
+
+        $sqlWhereCount  = "where $SERVERTABLCRONTABS.catalogID='$CcatalogID'";
+        $sqlWhereList   = " $SERVERTABLCRONTABS.catalogID='$CcatalogID' and";
+        $urlWithAccessParametersQuery = "&amp;catalogID=$CcatalogID";
       }
+
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       $sql = "select SQL_NO_CACHE count(lineNumber) from $SERVERTABLCRONTABS $sqlWhereCount";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
       $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=$nextAction&orderBy=$orderBy$urlWithAccessParametersQuery");
+
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLCRONTABS, 'uKey', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       my ($catalogID, $lineNumber, $uKey, $groupName, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $activated, $title);
       $sql = "select $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.uKey, $SERVERTABLCLLCTRDMNS.groupName, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline, $SERVERTABLCRONTABS.activated, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCLLCTRDMNS where $sqlWhereList $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment  order by $orderBy limit $pageOffset, $RECORDSONPAGE";
@@ -184,7 +200,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           while( $sth->fetch() ) {
             my $actionSkip = ( ( $catalogID eq $CATALOGID ) ? 0 : 1 );
             my $actionItem = ($actionPressend) ? "<td align=\"left\">&nbsp;" : '';
-            my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;catalogID=$catalogID&amp;lineNumber=$lineNumber&amp;uKey=$uKey&amp;orderBy=$orderBy&amp;action";
+            my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;catalogID=$CcatalogID&amp;lineNumber=$lineNumber&amp;uKey=$uKey&amp;orderBy=$orderBy&amp;action";
             $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Crontabs\" alt=\"Display Crontabs\" border=\"0\"></a>&nbsp;" if ($iconDetails);
             $actionItem .= "<a href=\"$urlWithAccessParametersAction=duplicateView\"><img src=\"$IMAGESURL/$ICONSRECORD{duplicate}\" title=\"Duplicate Crontabs\" alt=\"Duplicate Crontabs\" border=\"0\"></a>&nbsp;" if ($iconAdd);
 
@@ -197,7 +213,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $matchingCrontabs .= "        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$catalogID-$lineNumber-$uKey</td><td>$groupName</td><td>$title</td><td>$minute $hour $dayOfTheMonth $monthOfTheYear $dayOfTheWeek</td><td>$noOffline</td><td>$activated</td>$actionItem</tr>\n";
           }
 
-          $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0";
+          $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$CcatalogID";
         } else {
           $matchingCrontabs .= "        <tr><td colspan=\"7\">No records found for any crontab</td></tr>\n";
         }
@@ -421,6 +437,20 @@ HTML
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="crontabs" onSubmit="return validateForm();">
 HTML
+    } elsif ($action eq 'listView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
+
+      print <<HTML;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.crontabs.catalogIDreload.value = 1;
+  document.crontabs.submit();
+  return true;
+}
+</script>
+
+<form action="$ENV{SCRIPT_NAME}" method="post" name="crontabs">
+HTML
     } elsif ($action eq 'deleteView') {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"crontabs\">\n";
@@ -429,16 +459,17 @@ HTML
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'crontabView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'crontabView' or $action eq 'listView') {
       print <<HTML;
-  <input type="hidden" name="pagedir"        value="$pagedir">
-  <input type="hidden" name="pageset"        value="$pageset">
-  <input type="hidden" name="debug"          value="$debug">
-  <input type="hidden" name="CGISESSID"      value="$sessionID">
-  <input type="hidden" name="pageNo"         value="$pageNo">
-  <input type="hidden" name="pageOffset"     value="$pageOffset">
-  <input type="hidden" name="action"         value="$nextAction">
-  <input type="hidden" name="orderBy"        value="$orderBy">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="pageNo"          value="$pageNo">
+  <input type="hidden" name="pageOffset"      value="$pageOffset">
+  <input type="hidden" name="action"          value="$nextAction">
+  <input type="hidden" name="orderBy"         value="$orderBy">
+  <input type="hidden" name="catalogIDreload" value="0">
 HTML
     } else {
       print "<br>\n";
@@ -448,6 +479,8 @@ HTML
       print "  <input type=\"hidden\" name=\"catalogID\"       value=\"$CcatalogID\">\n";
       print "  <input type=\"hidden\" name=\"uKey\"            value=\"$CuKey\">\n";
       print "  <input type=\"hidden\" name=\"lineNumber\"      value=\"$ClineNumber\">\n";
+    } elsif ($action eq 'crontabView') {
+      print "  <input type=\"hidden\" name=\"catalogID\"       value=\"$CcatalogID\">\n";
     }
 
     print <<HTML;
@@ -479,7 +512,7 @@ HTML
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
         <tr><td><b>Catalog ID: </b></td><td>
-          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
         </td></tr>
         <tr><td><b>Collector Daemon: </b></td><td>
           $collectorDaemonSelect
@@ -538,12 +571,13 @@ HTML
       print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingCrontabs</td></tr>" if (defined $matchingCrontabs and $matchingCrontabs ne '');
     } else {
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>" if ($action ne 'crontab');
       print "    <tr><td align=\"center\"><br>$matchingCrontabs</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'crontabView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'crontabView' or $action eq 'listView') {
       print "</form>\n";
     } else {
       print "<br>\n";

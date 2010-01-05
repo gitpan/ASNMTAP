@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, package ASNMTAP::Asnmtap::Plugins::IO
+# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Plugins::IO
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::IO;
@@ -33,7 +33,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::IO::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::IO::EXPORT_TAGS{ALL} } );
   
-  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -154,7 +154,7 @@ sub scan_socket_info {
   $exit   = 0;
   $action = '<NIHIL>';
 
-  $SIG{ALRM} = sub { alarm ( 0 ); $exit = 1 };
+  $SIG{ALRM} = sub { alarm (0); $exit = 1 };
   alarm ( $parms{timeout} ); $exit = 0;
 
   use IO::Socket;
@@ -229,7 +229,7 @@ sub scan_socket_info {
     print 'ASNMTAP::Asnmtap::Plugins::IO::scan_socket_info: ', $$asnmtapInherited->{_programDescription}, "\n" if ($debug);
   }
 
-  alarm ( 0 ); $SIG{ALRM} = 'DEFAULT';
+  alarm (0); $SIG{ALRM} = 'DEFAULT';
   close ( $INET );
 
   $INET = ( defined $parms{request} ? $parms{request} : "${parms{service}}(${parms{port}})" );
@@ -261,7 +261,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

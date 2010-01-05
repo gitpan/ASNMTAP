@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.001.001
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.001.002
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -242,6 +242,7 @@
 #</DATABASE>
 
 #<TABLES>
+#    CATALOG              catalog
 #    COLLECTORDAEMONS     collectorDaemons
 #    COMMENTS             comments
 #    COUNTRIES            countries

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-mirror-failover.sh for asnmtap, v2.001.xxx, mirror script for rsync
 #   execution via ssh key for use with rsync-wrapper-failover.sh
@@ -87,7 +87,7 @@
 # /opt/asnmtap/applications/slave/rsync-mirror-failover-asnmtap.citap.be.sh
 # ------------------------------------------------------------------------------
 
-RMVersion='3.001.001'
+RMVersion='3.001.002'
 echo "rsync-mirror-failover version $RMVersion"
 
 if [ -f ~/.profile ]; then

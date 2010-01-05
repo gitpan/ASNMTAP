@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, check_template-cluster.pl
+# 2010/01/05, v3.001.002, check_template-cluster.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,10 +15,10 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.001.001;
+use ASNMTAP::Asnmtap::Applications v3.001.002;
 use ASNMTAP::Asnmtap::Applications qw($CATALOGID);
 
-use ASNMTAP::Asnmtap::Plugins v3.001.001;
+use ASNMTAP::Asnmtap::Plugins v3.001.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use Time::Local;
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-cluster.pl',
   _programDescription => "Cluster plugin for testing the '$APPLICATION'",
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '--message=<message> --uKeys|-K=<uKey[%weight][:uKey[%weight]]> --method=[highest-status|non-OK|percentage|weight] --outOfDate=<THRESHOLD> -w|--warning=<VALUE> -c|--critical=<VALUE> [--downgradingStatus=[F|T]] [--ignoreDependent=[F|T]] [--ignoreOffline=[F|T]] [--ignoreNoTest=[F|T]] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => '--message=<message>
    --message=message
@@ -335,7 +335,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

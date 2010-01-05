@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, generateCollectorDaemonSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +37,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateCollectorDaemonSchedulingReport.pl";
 my $prgtext     = "Collector Daemon Scheduling Report";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -107,7 +107,7 @@ if ( $rv ) {
   if ( $dbh and $rv ) {
     my $uKeysSqlWhere = '';
     $sql = "select SQL_NO_CACHE $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.catalogID = '$CcatalogID' and $SERVERTABLCRONTABS.collectorDaemon = '$CcollectorDaemon' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
-    ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, \$uKeysSqlWhere, $debug);
+    ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, $CcatalogID, \$uKeysSqlWhere, $debug);
 
     if ( $rv ) {
       my ($uKey, $startDate, $startTime, $endDate, $endTime, $status, $timeslot, $step);

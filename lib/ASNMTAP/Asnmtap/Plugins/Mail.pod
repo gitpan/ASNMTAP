@@ -14,18 +14,18 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.001.001;
+  use ASNMTAP::Asnmtap::Plugins v3.001.002;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.001.001',
+    _programVersion     => '3.001.002',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.001.001;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.001.002;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
@@ -633,7 +633,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

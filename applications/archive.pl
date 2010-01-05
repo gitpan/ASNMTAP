@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, archive.pl for ASNMTAP::Applications
+# 2010/01/05, v3.001.002, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.001.001;
+use ASNMTAP::Asnmtap::Applications v3.001.002;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -233,7 +233,7 @@ sub archiveCommentsAndEventsTables {
         ($yearMOVE, $monthMOVE, undef) = split (/-/, $ref->{endDate});
         print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{startDate}, " ", $ref->{endDate}, " ",$ref->{timeslot}, " \n" if ($debug);
 
-        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+        $sqlMOVE = 'REPLACE INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
 
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
@@ -248,7 +248,7 @@ sub archiveCommentsAndEventsTables {
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
 
-    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.catalogID, $SERVERTABLCOMMENTS.uKey from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
+    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.catalogID, $SERVERTABLCOMMENTS.uKey, $SERVERTABLCOMMENTS.commentData from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
 
     if ($debug) {
       print "\nUpdate table '$SERVERTABLCOMMENTS': <$sql>\n";
@@ -260,8 +260,13 @@ sub archiveCommentsAndEventsTables {
     $rv  = $sth->execute() or $rv = errorTrapDBI("sth->execute: $sql", $debug) if $rv;
 
     if ( $rv ) {
+      my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
+      my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
+      my $solvedTime     = "$currentHour:$currentMin:$currentSec";
+      my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
+
       while (my $ref = $sth->fetchrow_hashref()) {
-        $sqlUPDATE = "UPDATE $SERVERTABLCOMMENTS SET $SERVERTABLCOMMENTS.replicationStatus = \"U\", $SERVERTABLCOMMENTS.problemSolved = 2 WHERE $SERVERTABLCOMMENTS.catalogID = \"" .$ref->{catalogID}. "\" and $SERVERTABLCOMMENTS.uKey = \"" .$ref->{uKey}. "\" and $SERVERTABLCOMMENTS.problemSolved = 0";
+        $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '", commentData="' .$ref->{commentData}. '<br>AUTOMATICALLY CLOSED BECAUSE TEST IS DEACTIVATED" WHERE catalogID="' .$ref->{catalogID}. '" and uKey="' .$ref->{uKey}. '" and problemSolved="0"';
         print "$sqlUPDATE;\n" if ($debug);
         $dbh->do( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
       }
@@ -275,7 +280,7 @@ sub archiveCommentsAndEventsTables {
 
     $timeslot = timelocal ( 0, 0, 0, $day, ($month-1), ($year-1900) );
 
-    $sql = "select SQL_NO_CACHE catalogID, id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved >= '1' and solvedTimeslot < '" .$timeslot. "'";
+    $sql = "select SQL_NO_CACHE catalogID, id, solvedDate, solvedTimeslot, uKey from $SERVERTABLCOMMENTS force index (solvedTimeslot) where problemSolved = '1' and solvedTimeslot < '" .$timeslot. "'";
 
     if ($debug) {
       print "\nTable: '$SERVERTABLCOMMENTS', Year: '$year', Month: '$month', Day: '$day', Timeslot: '$timeslot', Date: " .scalar(localtime($timeslot)). "\n<$sql>\n";
@@ -291,7 +296,7 @@ sub archiveCommentsAndEventsTables {
         ($yearMOVE, undef, undef) = split (/-/, $ref->{solvedDate});
         print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{solvedDate}, " ", $ref->{solvedTimeslot}, "\n" if ($debug);
 
-        $sqlMOVE = 'INSERT INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+        $sqlMOVE = 'REPLACE INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
         print "$sqlMOVE\n" if ($debug);
         $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
 
@@ -305,12 +310,15 @@ sub archiveCommentsAndEventsTables {
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
 
-    # APE: Only one run a day is OK on 00:00:00 to cleanup automatically scheduled donwtimes and a extra flag ->
+    # cleanup automatically scheduled donwtimes when sheduled OFFLINE
     my ($localYear, $localMonth, $currentYear, $currentMonth, $currentDay, $currentHour, $currentMin, $currentSec) = ((localtime)[5], (localtime)[4], ((localtime)[5] + 1900), ((localtime)[4] + 1), (localtime)[3,2,1,0]);
+
     my $solvedDate     = "$currentYear-$currentMonth-$currentDay";
     my $solvedTime     = "$currentHour:$currentMin:$currentSec";
     my $solvedTimeslot = timelocal($currentSec, $currentMin, $currentHour, $currentDay, $localMonth, $localYear);
-    my $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="$CATALOGID" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+    my $sqlUPDATE = 'UPDATE ' .$SERVERTABLCOMMENTS. ' SET replicationStatus="U", problemSolved="1", solvedDate="' .$solvedDate. '", solvedTime="' .$solvedTime. '", solvedTimeslot="' .$solvedTimeslot. '" where catalogID="'. $CATALOGID. '" and problemSolved="0" and downtime="1" and persistent="0" and "' .$solvedTimeslot. '">suspentionTimeslot';
+
+    print "$sqlUPDATE\n" if ($debug);
     $dbh->do ( $sqlUPDATE ) or $rv = errorTrapDBI("Cannot dbh->do: $sqlUPDATE", $debug) unless ( $debug );
 
     $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
@@ -388,7 +396,7 @@ sub createCommentsAndEventsArchiveTables {
   `filename` varchar(254) default '',
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `key_test` (`test`),
@@ -465,7 +473,7 @@ sub createCommentsAndEventsArchiveTables {
   `filename` varchar(254) default '',
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `key_test` (`test`),
@@ -525,7 +533,7 @@ sub createCommentsAndEventsArchiveTables {
   `filename` varchar(254) default '',
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `key_test` (`test`),
@@ -582,7 +590,7 @@ sub createCommentsAndEventsArchiveTables {
   `commentData` blob NOT NULL,
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `remoteUser` (`remoteUser`),

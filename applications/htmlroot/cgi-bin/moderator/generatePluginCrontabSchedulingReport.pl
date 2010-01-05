@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, generatePluginCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, generatePluginCrontabSchedulingReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +37,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generatePluginCrontabSchedulingReport.pl";
 my $prgtext     = "Plugin Crontab Scheduling Report";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -101,7 +101,7 @@ if ( $rv ) {
   if ( $dbh and $rv ) {
     my ($startDate, $startTime, $endDate, $endTime, $status, $timeslot);
     $sql = "select $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLCRONTABS.noOffline from $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLCRONTABS.catalogID = '$CcatalogID' and $SERVERTABLCRONTABS.uKey = '$CuKey' and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.lineNumber";
-    ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, undef, $debug);
+    ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $hight, $numberOfLabels) = get_sql_crontab_scheduling_report_data ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, \%uKeys, \@labels, \@stepValue, $CcatalogID, undef, $debug);
     $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', 0, '', $sessionID) if (defined $dbh) ;
   }
   

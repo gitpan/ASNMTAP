@@ -28,7 +28,7 @@ General configuration file for the ASNMTAP Applications
 
 For testing HTML to PDF you can rename /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif
 
-You can lateron copy your wanted bodyimage picture to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPDF>OPTIONS into the Application.cnf config file.
+You can lateron copy your wanted bodyimage picture to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif or you can change te parameter <COMMON><HTMLTOPDF>OPTIONS into the Applications.cnf config file.
 
  <COMMON>
    <HTMLTOPDF>
@@ -67,7 +67,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.001 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.002 or higher
  #
  # <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
@@ -115,7 +115,7 @@ when the Application CGI module and CGI applications are installed, this config 
    ... Access Denied! Sorry
    Connection to probe closed.
 
- rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap/results/test/ asnmtap@probe.citap.be:/opt/asnmtap/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp
+ rsync -e "ssh -i /home/asnmtap/.ssh/rsync" -a /opt/asnmtap/results/test/ asnmtap@probe.citap.be:/opt/asnmtap/results/test/ -v -c -z --exclude=*-all.txt --exclude=*-nok.txt --exclude=*-KnownError --exclude=*.tmp --exclude=*.sql
    building file list ... done
    ./
    yyyymmdd-check_dummy-PROBE-01-T1-csv.txt
@@ -138,7 +138,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item standalone
 
- ln -s /opt/asnmtap/applications/master/root-display.sh   /etc/init.d/root-display
+ ln -s /opt/asnmtap/applications/master/root-display.sh /etc/init.d/root-display
 
  ln -s /etc/init.d/root-display /etc/rc3.d/S99root-display
  ln -s /etc/init.d/root-display /etc/rc3.d/K99root-display
@@ -152,12 +152,19 @@ when the Application CGI module and CGI applications are installed, this config 
  ln -s /etc/init.d/root-collector /etc/rc2.d/S99root-collector
  ln -s /etc/init.d/root-collector /etc/rc2.d/K99root-collector
 
+ ln -s /opt/asnmtap/applications/bin/root-importDataThroughCatalog.sh /etc/init.d/root-importDataThroughCatalog
+
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc3.d/S99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc3.d/K99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc2.d/S99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc2.d/K99root-importDataThroughCatalog
+
 =item failover
 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -170,6 +177,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Start: '$AMNAME' ..."
    /etc/init.d/root-display start
    /etc/init.d/root-collector start
+   /etc/init.d/root-importDataThroughCatalog start
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -179,6 +187,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Stop: '$AMNAME' ..."
    /etc/init.d/root-display stop
    /etc/init.d/root-collector stop
+   /etc/init.d/root-importDataThroughCatalog stop
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -229,12 +238,19 @@ when the Application CGI module and CGI applications are installed, this config 
  ln -s /etc/init.d/root-collector /etc/rc0.d/S99root-collector
  ln -s /etc/init.d/root-collector /etc/rc0.d/K99root-collector
 
+ ln -s /opt/asnmtap/applications/bin/root-importDataThroughCatalog.sh /etc/init.d/root-importDataThroughCatalog
+
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc3.d/S99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc3.d/K99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc2.d/S99root-importDataThroughCatalog
+ ln -s /etc/init.d/root-importDataThroughCatalog /etc/rc2.d/K99root-importDataThroughCatalog
+
 =item failover
 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2009 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -247,6 +263,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Start: '$AMNAME' ..."
    /etc/init.d/root-display start
    /etc/init.d/root-collector start
+   /etc/init.d/root-importDataThroughCatalog start
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -256,6 +273,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Stop: '$AMNAME' ..."
    /etc/init.d/root-display stop
    /etc/init.d/root-collector stop
+   /etc/init.d/root-importDataThroughCatalog stop
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -301,7 +319,7 @@ when the Application CGI module and CGI applications are installed, this config 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -314,6 +332,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Start: '$AMNAME' ..."
    /etc/init.d/root-display start
    /etc/init.d/root-collector start
+   /etc/init.d/root-importDataThroughCatalog start
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -323,6 +342,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Stop: '$AMNAME' ..."
    /etc/init.d/root-display stop
    /etc/init.d/root-collector stop
+   /etc/init.d/root-importDataThroughCatalog stop
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -362,7 +382,7 @@ when the Application CGI module and CGI applications are installed, this config 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2005 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -375,6 +395,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Start: '$AMNAME' ..."
    /etc/init.d/root-display start
    /etc/init.d/root-collector start
+   /etc/init.d/root-importDataThroughCatalog start
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -384,6 +405,7 @@ when the Application CGI module and CGI applications are installed, this config 
    echo "Stop: '$AMNAME' ..."
    /etc/init.d/root-display stop
    /etc/init.d/root-collector stop
+   /etc/init.d/root-importDataThroughCatalog stop
  }
 
  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -462,7 +484,7 @@ Shell script to run archive.pl with the default command line options
  chmod 755 archive.sh
 
  crontab -e
-  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive.sh > /dev/null
+  0  1 * * * /opt/asnmtap/applications/archive.sh > /dev/null
 
  cd /opt/asnmtap/applications/
  mv archive.sh-orig archive-apache.sh
@@ -471,7 +493,7 @@ Shell script to run archive.pl with the default command line options
 
  su - <apache>
  crontab -e
-  0  1 * * * /opt/ansmtap-3.000.xxx/applications/archive-apache.sh > /dev/null
+  0  1 * * * /opt/asnmtap/applications/archive-apache.sh > /dev/null
 
 =back
 
@@ -494,7 +516,7 @@ Shell script to run generateCollectorDaemonSchedulingReports.pl with the default
  chmod 755 generateCollectorDaemonSchedulingReports.sh
 
  crontab -e
-  0  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateCollectorDaemonSchedulingReports.sh > /dev/null
+  0  0 * * * /opt/asnmtap/applications/bin/generateCollectorDaemonSchedulingReports.sh > /dev/null
 
 =item generateReports.pl
 
@@ -509,7 +531,7 @@ Shell script to run generateReports.pl with the default command line options
  chmod 755 generateReports.sh
 
  crontab -e
- 30  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/generateReports.sh > /dev/null
+ 30  0 * * * /opt/asnmtap/applications/bin/generateReports.sh > /dev/null
 
 =item holidayBundleSetDowntimes.pl
 
@@ -524,7 +546,23 @@ Shell script to run holidayBundleSetDowntimes.pl with the default command line o
  chmod 755 holidayBundleSetDowntimes.sh
 
  crontab -e
- 15  0 * * * /opt/ansmtap-3.000.xxx/applications/bin/holidayBundleSetDowntimes.sh > /dev/null
+ 15  0 * * * /opt/asnmtap/applications/bin/holidayBundleSetDowntimes.sh > /dev/null
+
+=item importDataThroughCatalog.pl
+
+this program imports automatically the data for other distributed/federated catalog members, defined by the CGI program catalog.pl
+
+=item importDataThroughCatalog.sh
+
+Shell script to run importDataThroughCatalog.pl with the default command line options
+
+ cd /opt/asnmtap/applications/bin
+ mv generateReports.sh-orig importDataThroughCatalog.sh
+ chmod 755 importDataThroughCatalog.sh
+
+ crontab -e
+ 30  0 * * * /opt/asnmtap/applications/bin/importDataThroughCatalog.sh --type=CONFIG > /dev/null
+ */5 * * * * /opt/asnmtap/applications/bin/importDataThroughCatalog.sh --type=DATA > /dev/null
 
 =back
 
@@ -846,29 +884,29 @@ Standalone monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.001.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.001.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.001_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.001_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
 MySQL 4.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.001-distributed.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002-distributed.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.001-distributed.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002-distributed.sql
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.001-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.001-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1035,7 +1073,7 @@ MySQL 5.0.x
 
  Here you can modify all the varibales used by the ASNMTAP package !!!
 
- vi /opt/asnmtap/applications/custom/Applications.cnf
+ vi /opt/asnmtap/applications/Applications.cnf
 
  URL: http://asnmtap.citap.be/asnmtap/cgi-bin/sadmin/index.pl
 
@@ -1158,19 +1196,19 @@ Install net-snmp 5.4.x
 
  MySQL 4.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.001.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.002.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.001.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.002.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.001-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.001_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.002-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.002_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.001-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.002-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -2030,7 +2068,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

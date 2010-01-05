@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2010/01/05, v3.001.002, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.001.001;
+use ASNMTAP::Asnmtap::Applications v3.001.002;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -41,7 +41,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,7 +76,7 @@ if ($opt_D) {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, 'generateReports.txt', $debug);
+my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, 'holidayBundleSetDowntimes.txt', $debug);
 
 # Init parameters
 my ($rv, $dbh, $sth, $sql);
@@ -181,7 +181,7 @@ if ($dbh and $rv) {
                           $alert .= "\n  C + $commentData" if ($debug);
                           my $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET catalogID="' .$CATALOGID. '", uKey="' .$uKey. '", replicationStatus="I", title="' .$title. '", entryDate="' .$entryDate. '", entryTime="' .$entryTime.'", entryTimeslot="' .$entryTimeslot. '", instability="0", persistent="0", downtime="1", problemSolved="0", solvedDate="", solvedTime="", solvedTimeslot="", remoteUser="' .$RMDEFAULTUSER. '", commentData="' .$commentData. '", activationDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", activationTime="00:00:00", activationTimeslot="' .$activationTimeslot. '", suspentionDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", suspentionTime="23:59:59", suspentionTimeslot="' .$suspentionTimeslot. '"';
                           $alert .= "\n  C $sql" if ($debug >= 2);
-                          $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->do: $sql", $debug);
+                          $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->do: $sql", $debug);
 
                           my ($TremoteUser, $Temail, $Tpagedir);
                           $sql = "select remoteUser, email, pagedir from $SERVERTABLUSERS where catalogID='$CATALOGID' and activated = 1 and downtimeScheduling = 1 and userType > 0";

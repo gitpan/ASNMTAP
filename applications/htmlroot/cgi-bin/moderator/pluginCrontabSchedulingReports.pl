@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, pluginCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, pluginCrontabSchedulingReports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "pluginCrontabSchedulingReports.pl";
 my $prgtext     = "Plugin Crontab Scheduling Reports";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,42 +41,46 @@ my $currentSec = 0;
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $pagedir         = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
-my $pageset         = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug           = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
-my $CcatalogID      = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
-my $CuKey           = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '';
-my $width           = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
-my $xOffset         = (defined $cgi->param('xOffset'))         ? $cgi->param('xOffset')         : 48;
-my $yOffset         = (defined $cgi->param('yOffset'))         ? $cgi->param('yOffset')         : 42;
-my $labelOffset     = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 18;
-my $AreaBOffset     = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
-my $hightMin        = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
-my $pf              = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
-my $htmlToPdf       = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $CuKey            = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '';
+my $width            = (defined $cgi->param('width'))           ? $cgi->param('width')           : 1000;
+my $xOffset          = (defined $cgi->param('xOffset'))         ? $cgi->param('xOffset')         : 48;
+my $yOffset          = (defined $cgi->param('yOffset'))         ? $cgi->param('yOffset')         : 42;
+my $labelOffset      = (defined $cgi->param('labelOffset'))     ? $cgi->param('labelOffset')     : 18;
+my $AreaBOffset      = (defined $cgi->param('AreaBOffset'))     ? $cgi->param('AreaBOffset')     : 78;
+my $hightMin         = (defined $cgi->param('hightMin'))        ? $cgi->param('hightMin')        : 195;
+my $pf               = (defined $cgi->param('pf'))              ? $cgi->param('pf')              : 'off';
+my $htmlToPdf        = (defined $cgi->param('htmlToPdf'))       ? $cgi->param('htmlToPdf')       : 0;
 
-my $htmlTitle       = $prgtext;
+my $htmlTitle        = $prgtext;
 
 # User Session and Access Control
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Crontabs", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&pf=$pf&htmlToPdf=$htmlToPdf";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&width=$width&xOffset=$xOffset&yOffset=$yOffset&labelOffset=$labelOffset&AreaBOffset=$AreaBOffset&hightMin=$hightMin&pf=$pf&htmlToPdf=$htmlToPdf";
 
 # Debug information
-print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>catalog ID : $CcatalogID<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir    : $pagedir<br>pageset    : $pageset<br>debug      : $debug<br>CGISESSID  : $sessionID<br>catalog ID : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>width      : $width<br>xOffset    : $xOffset<br>yOffset    : $yOffset<br>labelOffset: $labelOffset<br>AreaBOffset: $AreaBOffset<br>hightMin   : $hightMin<br>pf         : $pf<br>htmlToPdf  : $htmlToPdf<br>URL ...    : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
-  my ($rv, $dbh, $sth, $sql, $errorMessage, $uKeySelect, $nextAction);
+  my ($rv, $dbh, $sth, $sql, $errorMessage, $catalogIDSelect, $uKeySelect, $nextAction);
 
   # open connection to database and query data
   $rv  = 1;
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ( $dbh and $rv ) {
-    (undef, undef, my $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} );
+    $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+    ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-    my ($uKey, $tiltle);
+    my $hostname = '';
+    (undef, undef, $hostname, undef) = split ( /\//, $ENV{HTTP_REFERER} ) if ( $ENV{HTTP_REFERER} );
+
     $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.activated = '1' and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = '1' and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and $SERVERTABLSERVERS.activated = 1". ($TYPEMONITORING eq 'central' ? '' : " and ($SERVERTABLSERVERS.masterFQDN = '$hostname' or $SERVERTABLSERVERS.slaveFQDN = '$hostname')") ." order by optionValueTitle";
     ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CuKey, 'uKey', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
@@ -106,6 +110,12 @@ EndOfHtml
 
       print <<HTML;
 <script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.crontabs.catalogIDreload.value = 1;
+  document.crontabs.submit();
+  return true;
+}
+
 function validateForm() {
   var objectRegularExpressionSqlPeriode = /\^(12|24|36|48|60|72|84|94)00\$/;
 
@@ -154,13 +164,14 @@ function validateForm() {
 </script>
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="crontabs" onSubmit="return validateForm();">
-  <input type="hidden" name="pagedir"   value="$pagedir">
-  <input type="hidden" name="pageset"   value="$pageset">
-  <input type="hidden" name="debug"     value="$debug">
-  <input type="hidden" name="CGISESSID" value="$sessionID">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="catalogIDreload" value="0">
   <table border="0">
     <tr><td><b>Catalog ID: </b></td><td>
-      <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+      <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled> $catalogIDSelect
     </td></tr>
     <tr>
 	  <td><b>Application: </b></td><td>$uKeySelect&nbsp;&nbsp;&nbsp;</td>
@@ -180,7 +191,7 @@ HTML
     if (defined $errorMessage) {
       print $errorMessage, "\n" ;
     } else {
-      if ($CuKey and $CuKey ne 'none') {
+      if (!$CcatalogIDreload and $CuKey and $CuKey ne 'none') {
         print "<br><center><img src=\"$HTTPSURL/cgi-bin/moderator/generatePluginCrontabSchedulingReport.pl?catalogID=$CcatalogID&amp;uKey=$CuKey&amp;".encode_html_entities('U', $urlAccessParameters)."\"></center>\n";
         print "<br><center><a href=\"$HTTPSURL/cgi-bin/htmlToPdf.pl?HTMLtoPDFprg=$HTMLTOPDFPRG&amp;HTMLtoPDFhow=$HTMLTOPDFHOW&amp;scriptname=", $ENV{SCRIPT_NAME}, "&amp;",encode_html_entities('U', $urlAccessParameters),"\" target=\"_blank\">[Generate PDF file]</a></center>\n" if ((! defined $errorMessage) and ($HTMLTOPDFPRG ne '<nihil>' and $HTMLTOPDFHOW ne '<nihil>') and (! $htmlToPdf));
       } else {

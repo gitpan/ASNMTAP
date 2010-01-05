@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, index.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, index.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "index.pl";
 my $prgtext     = "$APPLICATION sAdmin";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -66,7 +66,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="../moderator/sessions.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Session Console (for the Display)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
-	  <tr><td class="StatusItem"><a href="../moderator/runStatusOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Status Console (for the Collector/Display)</a></td></tr>
+	  <tr><td class="StatusItem"><a href="../moderator/runStatusOnDemand.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Status Console (for the Collector/Display/Import Data Through Catalog)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="../moderator/trendlineCorrectionReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Trendline Correction Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
@@ -103,6 +103,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><font size="+1">Server Administrator</font></td></tr>
+	  <tr><td class="StatusItem">&nbsp;</td></tr>
+	  <tr><td class="StatusItem"><a href="catalog.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Catalog (to define the application monitoring catalog)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
 	  <tr><td class="StatusItem"><a href="servers.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Servers (to define the different application monitoring servers)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>

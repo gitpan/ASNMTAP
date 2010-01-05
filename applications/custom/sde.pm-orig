@@ -1,0 +1,61 @@
+# ----------------------------------------------------------------------------------------------------------
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# ----------------------------------------------------------------------------------------------------------
+# 2010/01/05, v3.001.002, making package ASNMTAP::Asnmtap::Applications::Display
+# ----------------------------------------------------------------------------------------------------------
+
+use strict;
+use warnings;           # Must be used in test mode only. This reduces a little process speed
+#use diagnostics;       # Must be used in test mode only. This reduces a lot of process speed
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}" )'; } }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+use ASNMTAP::Asnmtap::Applications::Display v3.001.002;
+use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DBDISPLAY);
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub printRelationshipsSDE {
+  my ($serverName, $checklist, $catalogID, $uniqueKey) = @_;
+
+  my $CARTO_DATABASE = 'carto';
+  my $CARTO_TABLE = 'TestRelationships';
+
+  my $dataRelationshipsSDE = '';
+
+  my $rv  = 1;
+  my $dbh = DBI->connect("DBI:mysql:$CARTO_DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
+
+  if ($dbh and $rv) {
+    my $sql = "select SQL_NO_CACHE code, invoicedOrg, service, impact from $CARTO_TABLE where catalogID = '$catalogID' and uKey = '$uniqueKey'";
+    my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
+    $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
+
+    if ( $rv ) {
+      my ($code, $invoicedOrg, $service, $impact);
+
+      while( ($code, $invoicedOrg, $service, $impact) = $sth->fetchrow_array() ) {
+        $dataRelationshipsSDE .= "<TR><TD BGCOLOR=#000080 ALIGN=RIGHT COLSPAN=2>SDE</TD></TR>";
+        $dataRelationshipsSDE .= "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Code</TD><TD BGCOLOR=#0000FF>$code</TD></TR>";
+        $dataRelationshipsSDE .= "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Invoiced Organisation</TD><TD BGCOLOR=#0000FF>$invoicedOrg</TD></TR>";
+        $dataRelationshipsSDE .= "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Service</TD><TD BGCOLOR=#0000FF>$service</TD></TR>";
+        $dataRelationshipsSDE .= "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Impact</TD><TD BGCOLOR=#0000FF>$impact</TD></TR>";
+      }
+
+      $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $sql");
+    }
+
+    $dbh->disconnect or $rv = errorTrapDBI($checklist, "Sorry, the database was unable to add your entry.") if ($dbh and $rv);
+  }
+
+  return $dataRelationshipsSDE;
+}
+
+# End sde.pm -------------------------------------------------------------------------------------
+
+1;
+ 

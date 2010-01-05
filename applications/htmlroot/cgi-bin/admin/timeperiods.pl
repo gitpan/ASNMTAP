@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, timeperiods.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, timeperiods.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "timeperiods.pl";
 my $prgtext     = "Timeperiods";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ my $pageOffset       = (defined $cgi->param('pageOffset'))      ? $cgi->param('p
 my $orderBy          = (defined $cgi->param('orderBy'))         ? $cgi->param('orderBy')         : 'timeperiodName';
 my $action           = (defined $cgi->param('action'))          ? $cgi->param('action')          : 'listView';
 my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
 my $CtimeperiodID    = (defined $cgi->param('timeperiodID'))    ? $cgi->param('timeperiodID')    : 'new';
 my $CtimeperiodAlias = (defined $cgi->param('timeperiodAlias')) ? $cgi->param('timeperiodAlias') : '';
 my $CtimeperiodName  = (defined $cgi->param('timeperiodName'))  ? $cgi->param('timeperiodName')  : '';
@@ -68,15 +69,15 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Timeperiods", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&timeperiodID=$CtimeperiodID&timeperiodAlias=$CtimeperiodAlias&timeperiodName=$CtimeperiodName&sunday=$Csunday&monday=$Cmonday&tuesday=$Ctuesday&wednesday=$Cwednesday&thursday=$Cthursday&friday=$Cfriday&saturday=$Csaturday&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&timeperiodID=$CtimeperiodID&timeperiodAlias=$CtimeperiodAlias&timeperiodName=$CtimeperiodName&sunday=$Csunday&monday=$Cmonday&tuesday=$Ctuesday&wednesday=$Cwednesday&thursday=$Cthursday&friday=$Cfriday&saturday=$Csaturday&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>catalog ID       : $CcatalogID<br>timeperiod ID    : $CtimeperiodID<br>timeperiod Alias : $CtimeperiodAlias<br>timeperiod Name  : $CtimeperiodName<br>sunday        : $Csunday<br>monday        : $Cmonday<br>tuesday       : $Ctuesday<br>wednesday     : $Cwednesday<br>thursday      : $Cthursday<br>friday        : $Cfriday<br>saturday      : $Csaturday<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>catalog ID       : $CcatalogID<br>catalog ID reload: $CcatalogIDreload<br>timeperiod ID    : $CtimeperiodID<br>timeperiod Alias : $CtimeperiodAlias<br>timeperiod Name  : $CtimeperiodName<br>sunday        : $Csunday<br>monday        : $Cmonday<br>tuesday       : $Ctuesday<br>wednesday     : $Cwednesday<br>thursday      : $Cthursday<br>friday        : $Cfriday<br>saturday      : $Csaturday<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($matchingTimeperiods, $navigationBar);
+  my ($catalogIDSelect, $matchingTimeperiods, $navigationBar);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -90,6 +91,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Insert Timeperiod";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
+      $CcatalogID   = $CATALOGID if ($action eq 'insertView');
     } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Timeperiod $CtimeperiodID from $CcatalogID exist before to insert";
 
@@ -151,13 +153,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $htmlTitle    = "Timeperiod $CtimeperiodID from $CcatalogID not deactivated and updated, still used by";
       }
     } elsif ($action eq 'listView') {
+      $formDisabledPrimaryKey = '';
       $htmlTitle    = "All timeperiods listed";
 
-      $sql = "select SQL_NO_CACHE count(timeperiodID) from $SERVERTABLTIMEPERIODS";
+      if ( $CcatalogIDreload ) {
+        $pageNo = 1;
+        $pageOffset = 0;
+      }
+
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select SQL_NO_CACHE count(timeperiodID) from $SERVERTABLTIMEPERIODS where catalogID = '$CcatalogID'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
+      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;orderBy=$orderBy");
  
-      $sql = "select catalogID, timeperiodID, timeperiodName, activated from $SERVERTABLTIMEPERIODS order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLTIMEPERIODS, 'timeperiodName', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select catalogID, timeperiodID, timeperiodName, activated from $SERVERTABLTIMEPERIODS where $SERVERTABLTIMEPERIODS.catalogID = '$CcatalogID' order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, timeperiodID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, timeperiodID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodID desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Timeperiod ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodID asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Timeperiod Name <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, timeperiodName asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, timeperiodName asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingTimeperiods, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Timeperiod', 'catalogID|timeperiodID', '0|1', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
@@ -171,7 +184,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         ($CcatalogID, $CtimeperiodID, $CtimeperiodAlias, $CtimeperiodName, $Csunday, $Cmonday, $Ctuesday, $Cwednesday, $Cthursday, $Cfriday, $Csaturday, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
 
         if ($action eq 'duplicateView') {
-          $CcatalogID = $CATALOGID;
+          $CcatalogID    = $CATALOGID;
           $CtimeperiodID = 'new';
         }
 
@@ -297,6 +310,20 @@ function validateForm() {
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="timeperiods" onSubmit="return validateForm();">
 HTML
+    } elsif ($action eq 'listView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
+
+      print <<HTML;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.timeperiods.catalogIDreload.value = 1;
+  document.timeperiods.submit();
+  return true;
+}
+</script>
+
+<form action="$ENV{SCRIPT_NAME}" method="post" name="timeperiods">
+HTML
     } elsif ($action eq 'deleteView') {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"timeperiods\">\n";
@@ -305,16 +332,17 @@ HTML
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print <<HTML;
-  <input type="hidden" name="pagedir"    value="$pagedir">
-  <input type="hidden" name="pageset"    value="$pageset">
-  <input type="hidden" name="debug"      value="$debug">
-  <input type="hidden" name="CGISESSID"  value="$sessionID">
-  <input type="hidden" name="pageNo"     value="$pageNo">
-  <input type="hidden" name="pageOffset" value="$pageOffset">
-  <input type="hidden" name="action"     value="$nextAction">
-  <input type="hidden" name="orderBy"    value="$orderBy">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="pageNo"          value="$pageNo">
+  <input type="hidden" name="pageOffset"      value="$pageOffset">
+  <input type="hidden" name="action"          value="$nextAction">
+  <input type="hidden" name="orderBy"         value="$orderBy">
+  <input type="hidden" name="catalogIDreload" value="0">
 HTML
     } else {
       print "<br>\n";
@@ -349,7 +377,7 @@ HTML
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
         <tr><td><b>Catalog ID: </b></td><td>
-          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
         </td></tr><tr><td><b>Timeperiod ID: </b></td><td>
           <input type="text" name="timeperiodID" value="$CtimeperiodID" size="2" maxlength="2" $formDisabledPrimaryKey>
         </td></tr><tr><td><b>Timeperiod Alias: </b></td><td>
@@ -382,12 +410,13 @@ HTML
       print "    <tr><td align=\"center\"><br><br><h1>Timeperiod: $htmlTitle</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingTimeperiods</td></tr>" if (defined $matchingTimeperiods and $matchingTimeperiods ne '');
     } else {
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>";
       print "    <tr><td align=\"center\"><br>$matchingTimeperiods</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print "</form>\n";
     } else {
       print "<br>\n";

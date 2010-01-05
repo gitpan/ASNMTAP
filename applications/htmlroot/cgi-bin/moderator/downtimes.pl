@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, downtimes.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, downtimes.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "downtimes.pl";
 my $prgtext     = "Downtimes";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -166,10 +166,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ( $action eq 'insertView' ) {
         if ( defined $remoteUserLoggedOn ) {
           $CremoteUser = $remoteUserLoggedOn;
-          $sql = "select remoteUser, email from $SERVERTABLUSERS where remoteUser = '$CremoteUser'";
+          $sql = "select remoteUser, email from $SERVERTABLUSERS where catalogID = '$CcatalogID' and remoteUser = '$CremoteUser'";
         } else {
           my $andActivated = ($action eq 'insertView') ? 'and activated = 1' : '';
-          $sql = "select remoteUser, email from $SERVERTABLUSERS where pagedir REGEXP '/$pagedir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
+          $sql = "select remoteUser, email from $SERVERTABLUSERS where catalogID = '$CcatalogID' and pagedir REGEXP '/$pagedir/' and remoteUser <> 'admin' and remoteUser <> 'sadmin' $andActivated order by email";
         }
 
         ($rv, $remoteUsersSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 0, '', $CremoteUser, 'remoteUser', 'none', '-Select-', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
@@ -445,7 +445,7 @@ HTML
         print <<HTML;
     <tr><td><table border="0" cellspacing="0" cellpadding="0">
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
       </td></tr>
       <tr><td><b>Applications uKey List: </b></td><td>
         <input type="file" name="uploadFilename" size="100" accept="text/plain">

@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, archive.sh
+# 2010/01/05, v3.001.002, archive.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -27,14 +27,30 @@ fi
 # Distributed Server ASNMTAP
 # cd $AMPATH/applications; /usr/bin/env perl archive.pl -A ArchiveCT -c F -r T -d F
 
-# ----------------------------------------------------------------------------------------------------------
+# or -------------------------------------------------------------------------------------------------------
+
+# With Crontab Parameters
+# cd $AMPATH/applications; /usr/bin/env perl archive.pl "$@"
+
+# ==========================================================================================================
 
 # Central Server Apache for user <apache>
 # crontab -l
-# 0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.pl -c T -r F -d F > /dev/null
+# 0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.sh > /dev/null
 
 # Distributed Server Apache for user <apache>
 # crontab -l
-# 0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.pl -c T -r F -d F > /dev/null
+# 0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.sh > /dev/null
+
+# or -------------------------------------------------------------------------------------------------------
+
+# With Crontab Parameters 
+# crontab -l
+#
+# Central Server ASNMTAP
+#   0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.pl -A ArchiveCT -c F -r T -d T > /dev/null
+#
+# Distributed Server ASNMTAP
+#   0 1 * * * cd /opt/monitoring/asnmtap/applications; /usr/bin/env perl archive.pl -A ArchiveCT -c F -r T -d F > /dev/null
 
 # ----------------------------------------------------------------------------------------------------------

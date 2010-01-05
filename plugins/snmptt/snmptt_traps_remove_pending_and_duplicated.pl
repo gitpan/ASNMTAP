@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, snmptt_traps_remove_pending_and_duplicated.pl
+# 2010/01/05, v3.001.002, snmptt_traps_remove_pending_and_duplicated.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.001;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.002;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'snmptt_traps_remove_pending_and_duplicated.pl',
   _programDescription => 'Remove Pending and Duplicated SNMPTT Traps from Database',
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '[-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: snmptt)",
@@ -66,7 +66,7 @@ if ( $dbh ) {
 
   # Known Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  my $sqlINSERT = "INSERT INTO snmptt_archive SELECT * FROM snmptt WHERE category regexp '$CATEGORY'";
+  my $sqlINSERT = "REPLACE INTO snmptt_archive SELECT * FROM snmptt WHERE category regexp '$CATEGORY'";
   print "    $sqlINSERT\n" if ( $debug );
   $dbh->do ( $sqlINSERT ) or $rv = _ErrorTrapDBI ( \$objectNagios,  'Cannot dbh->do: '. $sqlINSERT );
 
@@ -82,7 +82,7 @@ if ( $dbh ) {
 
   # Known Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  $sqlINSERT = "INSERT INTO snmptt_archive SELECT * FROM snmptt WHERE EXISTS (
+  $sqlINSERT = "REPLACE INTO snmptt_archive SELECT * FROM snmptt WHERE EXISTS (
                      SELECT NULL
                      FROM snmptt b
                      WHERE b.eventname = snmptt.eventname
@@ -112,7 +112,7 @@ if ( $dbh ) {
 
   # Unknown Traps - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  $sqlINSERT = "INSERT INTO snmptt_unknown_archive SELECT * FROM snmptt_unknown WHERE EXISTS (
+  $sqlINSERT = "REPLACE INTO snmptt_unknown_archive SELECT * FROM snmptt_unknown WHERE EXISTS (
                   SELECT NULL
                   FROM snmptt_unknown b
                   WHERE b.trapoid = snmptt_unknown.trapoid

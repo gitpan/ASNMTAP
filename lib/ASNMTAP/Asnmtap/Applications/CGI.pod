@@ -206,6 +206,10 @@ this program allow you to view, modify and delete sessions through the CGI Inter
 
 this program make generate the sadmin menu through the CGI Interface.
 
+=item catalog.pl
+
+this program allow you to add, modify and delete the Catalog through the CGI Interface.
+
 =item collectorDaemons.pl
 
 this program allow you to add, modify and delete collector daemons through the CGI Interface.
@@ -282,7 +286,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

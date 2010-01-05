@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, asnmtap-3.001.001-distributed.sql
+# 2010/01/05, v3.001.002, asnmtap-3.001.002-distributed.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -28,7 +28,8 @@ CREATE TABLE `catalog` (
   `lastEventsID` int(11) NOT NULL default '0',
   `lastCommentsID` int(11) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY (`catalogID`)
+  PRIMARY KEY (`catalogID`),
+  KEY `catalogName` (`catalogName`)
 ) ENGINE=InnoDB;
 
 /* Data for the table catalog */
@@ -55,6 +56,7 @@ CREATE TABLE `collectorDaemons` (
   PRIMARY KEY (`catalogID`,`collectorDaemon`),
   KEY `catalogID` (`catalogID`),
   KEY `serverID` (`serverID`),
+  KEY `collectorDaemon` (`collectorDaemon`),
   KEY `collectorDaemons_ibfk_1` (`catalogID`,`serverID`),
   CONSTRAINT `collectorDaemons_ibfk_1` FOREIGN KEY (`catalogID`, `serverID`) REFERENCES `servers` (`catalogID`, `serverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -96,7 +98,7 @@ CREATE TABLE `comments` (
   `commentData` blob NOT NULL,
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `remoteUser` (`remoteUser`),
@@ -123,7 +125,8 @@ CREATE TABLE `countries` (
   `countryID` char(2) NOT NULL default '',
   `countryName` varchar(45) default NULL,
   `activated` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY (`countryID`)
+  PRIMARY KEY (`countryID`),
+  KEY `countryName` (`countryName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `countries` */
@@ -476,7 +479,8 @@ CREATE TABLE `displayDaemons` (
   PRIMARY KEY (`catalogID`,`displayDaemon`),
   KEY `catalogID` (`catalogID`),
   KEY `serverID` (`serverID`),
-  UNIQUE KEY `pagedir` (`catalogID`,`pagedir`),
+  KEY `pagedir` (`catalogID`,`pagedir`),
+  KEY `displayDaemon` (`displayDaemon`),
   KEY `displayDaemons_ibfk_2` (`catalogID`,`serverID`),
   CONSTRAINT `displayDaemons_ibfk_1` FOREIGN KEY (`catalogID`, `pagedir`) REFERENCES `pagedirs` (`catalogID`, `pagedir`),
   CONSTRAINT `displayDaemons_ibfk_2` FOREIGN KEY (`catalogID`, `serverID`) REFERENCES `servers` (`catalogID`, `serverID`)
@@ -498,7 +502,8 @@ CREATE TABLE `displayGroups` (
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`displayGroupID`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `displayGroupID` (`displayGroupID`)
+  KEY `displayGroupID` (`displayGroupID`),
+  KEY `groupTitle` (`groupTitle`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `displayGroups` */
@@ -552,7 +557,7 @@ CREATE TABLE `events` (
   `filename` varchar(254) default '',
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `replicationStatus` (`replicationStatus`),
   KEY `key_test` (`test`),
@@ -609,6 +614,7 @@ CREATE TABLE `holidays` (
   PRIMARY KEY (`catalogID`,`holidayID`),
   KEY `catalogID` (`catalogID`),
   KEY `countryID` (`countryID`),
+  KEY `holiday` (`holiday`),
   CONSTRAINT `holidays_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -645,7 +651,8 @@ CREATE TABLE `holidaysBundle` (
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`holidayBundleID`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `holidayBundleID` (`holidayBundleID`),
+  KEY `holidayBundleID` (`holidayBundleID`),
+  KEY `holidayBundleName` (`holidayBundleName`),
   KEY `holidayID` (`holidayID`),
   KEY `countryID` (`countryID`),
   CONSTRAINT `holidaysBundle_ibfk_1` FOREIGN KEY (`countryID`) REFERENCES `countries` (`countryID`)
@@ -653,8 +660,8 @@ CREATE TABLE `holidaysBundle` (
 
 /*Data for the table `holidaysBundle` */
 
-insert into `holidaysBundle` (`catalogID`,`holidayBundleID`,`holidayBundleName`,`holidayID`,`countryID`,`activated`) values ('CID',0,'ASNMTAP','//','BE',0);
-insert into `holidaysBundle` (`catalogID`,`holidayBundleID`,`holidayBundleName`,`holidayID`,`countryID`,`activated`) values ('CID',1,'ASNMTAP','/0-11-1-0-00/0-11-2-0-00/0-5-1-0-00/0-9-27-0-BE/0-7-11-0-BE/0-11-15-0-BE/0-12-25-0-00/0-12-26-0-BE/0-7-21-0-BE/0-1-1-0-00/0-8-15-0-00/1-0-0-39-00/1-0-0-1-00/1-0-0-0-00/1-0-0-49-00/1-0-0-50-00/0-11-11-0-BE/','BE',1);
+insert into `holidaysBundle` (`catalogID`,`holidayBundleID`,`holidayBundleName`,`holidayID`,`countryID`,`activated`) values ('CID',1,'None','/0-0-0-0-00/','BE',0);
+insert into `holidaysBundle` (`catalogID`,`holidayBundleID`,`holidayBundleName`,`holidayID`,`countryID`,`activated`) values ('CID',2,'ASNMTAP','/0-11-1-0-00/0-11-2-0-00/0-5-1-0-00/0-9-27-0-BE/0-7-11-0-BE/0-11-15-0-BE/0-12-25-0-00/0-12-26-0-BE/0-7-21-0-BE/0-1-1-0-00/0-8-15-0-00/1-0-0-39-00/1-0-0-1-00/1-0-0-0-00/1-0-0-49-00/1-0-0-50-00/0-11-11-0-BE/','BE',1);
 
 /*Table structure for table `language` */
 
@@ -665,7 +672,8 @@ CREATE TABLE `language` (
   `languageActive` tinyint(1) NOT NULL default '0',
   `languageName` varchar(16) default NULL,
   `languageFamily` varchar(24) default NULL,
-  PRIMARY KEY (`keyLanguage`)
+  PRIMARY KEY (`keyLanguage`),
+  KEY `languageName` (`languageName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `language` */
@@ -817,7 +825,8 @@ CREATE TABLE `pagedirs` (
   `groupName` varchar(64) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`pagedir`),
-  KEY `catalogID` (`catalogID`)
+  KEY `catalogID` (`catalogID`),
+  KEY `pagedir` (`pagedir`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `pagedirs` */
@@ -847,7 +856,7 @@ CREATE TABLE `plugins` (
   `pagedir` varchar(254) NOT NULL default '',
   `resultsdir` varchar(64) NOT NULL default '',
   `helpPluginFilename` varchar(100) default '<NIHIL>',
-  `holidayBundleID` int(11) default NULL,
+  `holidayBundleID` int(11) default '1',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`uKey`),
   KEY `catalogID` (`catalogID`),
@@ -864,44 +873,44 @@ CREATE TABLE `plugins` (
 
 /*Data for the table `plugins` */
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T1','check_dummy.pl','-r 0','','[0] DUMMY-T1','',0,25,5,2,'1','1','T','/test/','test-01',NULL,0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T2','check_dummy.pl','','-r 1','[0] DUMMY-T2','',1,25,5,2,'1','1','T','/test/','test-02',NULL,0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T3','check_dummy.pl','','-r 2','[0] DUMMY-T3','',2,25,5,2,'1','1','T','/test/','test-03',NULL,0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T4','check_dummy.pl','','-r 3','[0] DUMMY-T4','',3,25,5,2,'1','1','T','/test/','test-04',NULL,0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T1','check_dummy.pl','-r 0','','[0] DUMMY-T1','',0,25,5,2,'1','1','T','/test/','test-01','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T2','check_dummy.pl','','-r 1','[0] DUMMY-T2','',1,25,5,2,'1','1','T','/test/','test-02','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T3','check_dummy.pl','','-r 2','[0] DUMMY-T3','',2,25,5,2,'1','1','T','/test/','test-03','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T4','check_dummy.pl','','-r 3','[0] DUMMY-T4','',3,25,5,2,'1','1','T','/test/','test-04','<NIHIL>',1,1);
 insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','DUMMY-T5','check_dummy.pl','','-r 0','[0] Condenced View test','',5,25,5,2,'1','1','T','/test/','test-05','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T1','check_dummy.pl','','','[1] CLUSTER-T1','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T2','check_dummy.pl','','','[1] CLUSTER-T2','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T3','check_dummy.pl','','','[1] CLUSTER-T3','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T4','check_dummy.pl','','','[1] CLUSTER-T4','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T1','check_dummy.pl','','','[1] CLUSTER-T1','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T2','check_dummy.pl','','','[1] CLUSTER-T2','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T3','check_dummy.pl','','','[1] CLUSTER-T3','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','CLUSTER-T4','check_dummy.pl','','','[1] CLUSTER-T4','',0,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-01','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK\' --warning=0 --critical=4','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:0 - c:4','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-02','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK, ignoreOffline\' --warning=0 --critical=4 --ignoreOffline=T','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:0 - c:4 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-03','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK\' --warning=2 --critical=3','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:2 - c:3','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-04','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK, ignoreOffline\' --warning=2 --critical=3 --ignoreOffline=T','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:2 - c:3 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-01','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK\' --warning=0 --critical=4','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:0 - c:4','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-02','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK, ignoreOffline\' --warning=0 --critical=4 --ignoreOffline=T','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:0 - c:4 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-03','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK\' --warning=2 --critical=3','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:2 - c:3','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-04','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=non-OK --outOfDate=2 --message=\'non-OK, ignoreOffline\' --warning=2 --critical=3 --ignoreOffline=T','','[2] CLUSTER-T1..CLUSTER-T4 - non-OK - w:2 - c:3 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-10','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=highest-status --outOfDate=2 --message=\'highest-status\'','','[3] CLUSTER-T1..CLUSTER-T4 - highest-status','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-11','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=highest-status --outOfDate=2 --message=\'highest-status, ignoreOffline\' --ignoreOffline=T','','[3] CLUSTER-T1..CLUSTER-T4 - highest-status - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-10','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=highest-status --outOfDate=2 --message=\'highest-status\'','','[3] CLUSTER-T1..CLUSTER-T4 - highest-status','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-11','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=highest-status --outOfDate=2 --message=\'highest-status, ignoreOffline\' --ignoreOffline=T','','[3] CLUSTER-T1..CLUSTER-T4 - highest-status - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-20','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage\' --warning=25 --critical=100','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-21','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-22','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage\' --warning=50 --critical=75','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-23','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-20','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage\' --warning=25 --critical=100','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-21','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-22','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage\' --warning=50 --critical=75','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-23','check_cluster.pl','--uKeys=\'CLUSTER-T1:CLUSTER-T2:CLUSTER-T3:CLUSTER-T4\' --server=localhost --user=asnmtap --passwd=asnmtap --method=percentage --outOfDate=2 --message=\'percentage, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[4] CLUSTER-T1..CLUSTER-T4 - percentage - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-30','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=25 --critical=100','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-31','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-32','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=50 --critical=75','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-33','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-30','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=25 --critical=100','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-31','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-32','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=50 --critical=75','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-33','check_cluster.pl','--uKeys=\'CLUSTER-T1%10:CLUSTER-T2%20:CLUSTER-T3%30:CLUSTER-T4%40\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[5] CLUSTER-T1..CLUSTER-T4 - weight 10,20,30,40 - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-40','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=25 --critical=100','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-41','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-42','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=50 --critical=75','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-43','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-40','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=25 --critical=100','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:25 - c:100','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-41','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=25 --critical=100 --ignoreOffline=T','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:25 - c:100 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-42','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight\' --warning=50 --critical=75','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:50 - c:75','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','zCLUSTER-43','check_cluster.pl','--uKeys=\'CLUSTER-T1%40:CLUSTER-T2%30:CLUSTER-T3%20:CLUSTER-T4%10\' --server=localhost --user=asnmtap --passwd=asnmtap --method=weight --outOfDate=2 --message=\'weight, ignoreOffline\' --warning=50 --critical=75 --ignoreOffline=T','','[6] CLUSTER-T1..CLUSTER-T4 - weight 40,30,20,10 - w:50 - c:75 - ignoreOffline:T','',5,25,5,2,'0','1','T','/test/','test','<NIHIL>',1,1);
 
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','MYSQLS-P-01','check_MySQL-database-replication.pl','-H asnmtap01 -1 asnmtap -2 \'\' -3 events -4 S -w 900 -c 1800','','Application Monitor / Nagios Server asnmtap01 - MySQL','',0,25,5,5,'1','1','P','/index/','MySQL','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','MYSQLS-P-02','check_MySQL-database-replication.pl','-H asnmtap02 -1 asnmtap -2 \'\' -3 events -4 S -w 900 -c 1800','','Application Monitor / Nagios Server asnmtap02 - MySQL','',0,25,5,5,'1','1','P','/index/','MySQL','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','NAGIOS-P-01','check_fs-stat.pl','--message=\'Nagios Central Server -asnmtap01\' --directory=/opt/nagios/var/ --wildcard=status.sav --type=F --files=0 --wAge=300 --cAge=600','','Nagios Central Server asnmtap01','',0,25,5,5,'0','1','P','/index/','AdminCollector','<NIHIL>',0,1);
-insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','NAGIOS-P-02','check_fs-stat.pl','--message=\'Nagios Central Server -asnmtap02\' --directory=/opt/nagios/var/ --wildcard=status.sav --type=F --files=1 --wAge=300 --cAge=600','','Nagios Central Server asnmtap02','',0,25,5,5,'0','1','P','/index/','AdminCollector','<NIHIL>',0,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','MYSQLS-P-01','check_MySQL-database-replication.pl','-H asnmtap01 -1 asnmtap -2 \'\' -3 events -4 S -w 900 -c 1800','','Application Monitor / Nagios Server asnmtap01 - MySQL','',0,25,5,5,'1','1','P','/index/','MySQL','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','MYSQLS-P-02','check_MySQL-database-replication.pl','-H asnmtap02 -1 asnmtap -2 \'\' -3 events -4 S -w 900 -c 1800','','Application Monitor / Nagios Server asnmtap02 - MySQL','',0,25,5,5,'1','1','P','/index/','MySQL','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','NAGIOS-P-01','check_fs-stat.pl','--message=\'Nagios Central Server -asnmtap01\' --directory=/opt/nagios/var/ --wildcard=status.sav --type=F --files=0 --wAge=300 --cAge=600','','Nagios Central Server asnmtap01','',0,25,5,5,'0','1','P','/index/','AdminCollector','<NIHIL>',1,1);
+insert into `plugins` (`catalogID`,`uKey`,`test`,`arguments`,`argumentsOndemand`,`title`,`shortDescription`,`trendline`,`percentage`,`tolerance`,`step`,`ondemand`,`production`,`environment`,`pagedir`,`resultsdir`,`helpPluginFilename`,`holidayBundleID`,`activated`) values ('CID','NAGIOS-P-02','check_fs-stat.pl','--message=\'Nagios Central Server -asnmtap02\' --directory=/opt/nagios/var/ --wildcard=status.sav --type=F --files=1 --wAge=300 --cAge=600','','Nagios Central Server asnmtap02','',0,25,5,5,'0','1','P','/index/','AdminCollector','<NIHIL>',1,1);
 
 /*Table structure for table `reports` */
 
@@ -929,9 +938,10 @@ CREATE TABLE `reports` (
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`id`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `id` (`id`),
+  KEY `id` (`id`),
   KEY `uKey` (`uKey`),
   KEY `periode` (`periode`),
+  KEY `reportTitle` (`reportTitle`),
   KEY `timeperiodID` (`timeperiodID`),
   KEY `reports_ibfk_1` (`catalogID`,`uKey`),
   KEY `reports_ibfk_2` (`catalogID`,`timeperiodID`),
@@ -971,7 +981,8 @@ CREATE TABLE `resultsdir` (
   `groupName` varchar(64) NOT NULL default '',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`resultsdir`),
-  KEY `catalogID` (`catalogID`)
+  KEY `catalogID` (`catalogID`),
+  KEY `groupName` (`groupName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `resultsdir` */
@@ -1015,7 +1026,8 @@ CREATE TABLE `servers` (
   `slaveDatabasePort` varchar(4) NOT NULL default '3306',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`serverID`),
-  KEY `catalogID` (`catalogID`)
+  KEY `catalogID` (`catalogID`),
+  KEY `serverTitle` (`serverTitle`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `servers` */
@@ -1043,7 +1055,8 @@ CREATE TABLE `timeperiods` (
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`timeperiodID`),
   KEY `catalogID` (`catalogID`),
-  UNIQUE KEY `timeperiodID` (`timeperiodID`)
+  KEY `timeperiodID` (`timeperiodID`),
+  KEY `timeperiodName` (`timeperiodName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `timeperiods` */
@@ -1092,6 +1105,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`catalogID`,`remoteUser`),
   KEY `catalogID` (`catalogID`),
   KEY `keyLanguage` (`keyLanguage`),
+  KEY `remoteUser` (`remoteUser`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`keyLanguage`) REFERENCES `language` (`keyLanguage`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -1110,7 +1124,7 @@ CREATE TABLE `views` (
   `catalogID` varchar(5) NOT NULL default 'CID',
   `uKey` varchar(11) NOT NULL default '',
   `displayDaemon` varchar(64) NOT NULL default '',
-  `displayGroupID` int(11) NOT NULL default '0',
+  `displayGroupID` int(11) NOT NULL default '1',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`uKey`,`displayDaemon`),
   KEY `uKey` (`uKey`),

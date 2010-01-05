@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,23 +32,24 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedResults.pl";
 my $prgtext     = "Get Archived Results";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $CcatalogID  = (defined $cgi->param('catalogID')) ? $cgi->param('catalogID') : $CATALOGID;
-my $uKey        = (defined $cgi->param('uKey'))      ? $cgi->param('uKey')      : '<NIHIL>';  $uKey    =~ s/\+/ /g;
-my $pagedir     = (defined $cgi->param('pagedir'))   ? $cgi->param('pagedir')   : 'index';    $pagedir =~ s/\+/ /g;
-my $pageset     = (defined $cgi->param('pageset'))   ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug       = (defined $cgi->param('debug'))     ? $cgi->param('debug')     : 'F';
-my $ascending   = (defined $cgi->param('ascending')) ? $cgi->param('ascending') : 0;
-my $csvDaily    = (defined $cgi->param('csvDaily'))  ? $cgi->param('csvDaily')  : 'off';
-my $csvWeekly   = (defined $cgi->param('csvWeekly')) ? $cgi->param('csvWeekly') : 'off';
-my $sqlData     = (defined $cgi->param('sqlData'))   ? $cgi->param('sqlData')   : 'off';
-my $sqlError    = (defined $cgi->param('sqlError'))  ? $cgi->param('sqlError')  : 'off';
-my $archived    = (defined $cgi->param('archived'))  ? $cgi->param('archived')  : 'off';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $uKey             = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '<NIHIL>';  $uKey    =~ s/\+/ /g;
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
+my $ascending        = (defined $cgi->param('ascending'))       ? $cgi->param('ascending')       : 0;
+my $csvDaily         = (defined $cgi->param('csvDaily'))        ? $cgi->param('csvDaily')        : 'off';
+my $csvWeekly        = (defined $cgi->param('csvWeekly'))       ? $cgi->param('csvWeekly')       : 'off';
+my $sqlData          = (defined $cgi->param('sqlData'))         ? $cgi->param('sqlData')         : 'off';
+my $sqlError         = (defined $cgi->param('sqlError'))        ? $cgi->param('sqlError')        : 'off';
+my $archived         = (defined $cgi->param('archived'))        ? $cgi->param('archived')        : 'off';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -59,23 +60,28 @@ my $htmlTitle   = "Get Archived Result(s) from $CcatalogID";
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'member', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Result Archive", "catalogID=$CcatalogID&uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&uKey=$uKey&ascending=$ascending&csvDaily=$csvDaily&csvWeekly=$csvWeekly&sqlData=$sqlData&sqlError=$sqlError&archived=$archived";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$uKey&ascending=$ascending&csvDaily=$csvDaily&csvWeekly=$csvWeekly&sqlData=$sqlData&sqlError=$sqlError&archived=$archived";
 
 # Debug information
-print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>uKey      : $uKey<br>csvDaily  : $csvDaily<br>csvWeekly : $csvWeekly<br>sqlData   : $sqlData<br>sqlError  : $sqlError<br>archived  : $archived<br>ascending : $ascending<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir   : $pagedir<br>pageset   : $pageset<br>debug     : $debug<br>CGISESSID : $sessionID<br>catalog ID: $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey      : $uKey<br>csvDaily  : $csvDaily<br>csvWeekly : $csvWeekly<br>sqlData   : $sqlData<br>sqlError  : $sqlError<br>archived  : $archived<br>ascending : $ascending<br>URL ...   : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 unless ( defined $errorUserAccessControl ) {
   unless ( defined $userType ) {
     print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     print "<br>\n<table WIDTH=\"100%\" border=0><tr><td class=\"HelpPluginFilename\">\n<font size=\"+1\">$errorUserAccessControl</font>\n</td></tr></table>\n<br>\n";
   } else {
-    my ($rv, $dbh, $sth, $sql, $title, $resultsdir, $uKeySelect, $resultsSelect);
+    my ($rv, $dbh, $sth, $sql, $title, $resultsdir, $catalogIDSelect, $uKeySelect, $resultsSelect);
 
     # open connection to database and query data
     $rv  = 1;
     $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
     if ( $dbh and $rv ) {
+      $uKey = '<NIHIL>' if ( $CcatalogIDreload );
+
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
       $sql = "select distinct $SERVERTABLPLUGINS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.environment = '$environment' and $SERVERTABLPLUGINS.pagedir REGEXP '/$pageDir/' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
       ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
@@ -174,7 +180,7 @@ unless ( defined $errorUserAccessControl ) {
       # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       my $onload = ($uKey ne '<NIHIL>') ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : '';
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
-      my $urlWithAccessParameters = "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
+      my $urlWithAccessParameters = "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;catalogID=$CcatalogID";
 
       if ( $userType >= 1 ) {
         print <<EndOfHtml;
@@ -201,16 +207,24 @@ EndOfHtml
       my $checkboxArchived  = "<input type=\"checkbox\" name=\"archived\"" .(($archived eq 'on') ? ' checked' : ''). "> Archived";
   
       print <<EndOfHtml;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.getArchivedResults.catalogIDreload.value = 1;
+  document.getArchivedResults.submit();
+  return true;
+}
+</script>
   <BR>
-  <form action="$ENV{SCRIPT_NAME}" name="params">
-    <input type="hidden" name="pagedir"   value="$pagedir">
-    <input type="hidden" name="pageset"   value="$pageset">
-    <input type="hidden" name="debug"     value="$debug">
-    <input type="hidden" name="CGISESSID" value="$sessionID">
-    <input type="hidden" name="ascending" value="$ascending">
+  <form action="$ENV{SCRIPT_NAME}" method="post" name="getArchivedResults">
+    <input type="hidden" name="pagedir"         value="$pagedir">
+    <input type="hidden" name="pageset"         value="$pageset">
+    <input type="hidden" name="debug"           value="$debug">
+    <input type="hidden" name="CGISESSID"       value="$sessionID">
+    <input type="hidden" name="ascending"       value="$ascending">
+    <input type="hidden" name="catalogIDreload" value="0">
     <table border=0>
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled> $catalogIDSelect
       </td></tr>
 	  <tr align="left"><td>Application:</td><td>$uKeySelect</td></tr>
 	  <tr align="left"><td>Periode:</td><td>$checkboxCsvDaily $checkboxCsvWeekly $checkboxSqlData $checkboxSqlError $checkboxArchived</td></tr>

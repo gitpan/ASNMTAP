@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,17 +33,18 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # URL Access Parameters
 my $cgi = new CGI;
-my $CcatalogID = (defined $cgi->param('catalogID'))  ? $cgi->param('catalogID') : $CATALOGID;
-my $uKey       = (defined $cgi->param('uKey'))       ? $cgi->param('uKey')      : '<NIHIL>';  $uKey    =~ s/\+/ /g;
-my $pagedir    = (defined $cgi->param('pagedir'))    ? $cgi->param('pagedir')   : 'index';    $pagedir =~ s/\+/ /g;
-my $pageset    = (defined $cgi->param('pageset'))    ? $cgi->param('pageset')   : 'index-cv'; $pageset =~ s/\+/ /g;
-my $debug      = (defined $cgi->param('debug'))      ? $cgi->param('debug')     : 'F';
+my $CcatalogID       = (defined $cgi->param('catalogID'))       ? $cgi->param('catalogID')       : $CATALOGID;
+my $CcatalogIDreload = (defined $cgi->param('catalogIDreload')) ? $cgi->param('catalogIDreload') : 0;
+my $uKey             = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : '<NIHIL>';  $uKey    =~ s/\+/ /g;
+my $pagedir          = (defined $cgi->param('pagedir'))         ? $cgi->param('pagedir')         : 'index';    $pagedir =~ s/\+/ /g;
+my $pageset          = (defined $cgi->param('pageset'))         ? $cgi->param('pageset')         : 'index-cv'; $pageset =~ s/\+/ /g;
+my $debug            = (defined $cgi->param('debug'))           ? $cgi->param('debug')           : 'F';
 
 my ($pageDir, $environment) = split (/\//, $pagedir, 2);
 $environment = 'P' unless (defined $environment);
@@ -57,7 +58,7 @@ my $selectM = ($debug eq 'M') ? "selected" : '';
 my $selectA = ($debug eq 'A') ? "selected" : '';
 my $selectS = ($debug eq 'S') ? "selected" : '';
 
-my ($command, $serverID) = ('', '');
+my ($command, $FQDN, $typeActiveServer, $masterFQDN, $slaveFQDN) = ('', '');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,33 +66,37 @@ my ($command, $serverID) = ('', '');
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, $userType, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'guest', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "On demand", "catalogID=$CcatalogID&uKey=$uKey");
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&uKey=$uKey";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$uKey";
 
 unless ( defined $errorUserAccessControl ) {
-  my ($rv, $dbh, $sth, $sql, $uKeySelect);
+  my ($rv, $dbh, $sth, $sql, $catalogIDSelect, $uKeySelect);
 
   $rv  = 1;
   $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY", ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
 
   if ($dbh and $rv) {
+    $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+    ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
     $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CcatalogID' and ( $SERVERTABLPLUGINS.environment = '$environment' and pagedir REGEXP '/$pageDir/' and (ondemand = '1' and production = '1' and activated = 1) or (ondemand = '1' and step = '0') ) and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by optionValueTitle";
     ($rv, $uKeySelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $uKey, 'uKey', '', '', '', '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
     if ( $rv ) {
       if ($uKey ne '<NIHIL>') {
-        $sql = "select distinct test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, argumentsOndemand, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, trendline, $SERVERTABLCLLCTRDMNS.serverID from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.uKey = '$uKey'  and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sql = "select distinct test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, argumentsOndemand, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, trendline, typeActiveServer, masterFQDN, slaveFQDN from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.uKey = '$uKey'  and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID";
         $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
         if ( $rv ) {
-          my ($dCommand, $environment, $arguments, $argumentsOndemand, $title, $trendline, $dServerID) = $sth->fetchrow_array();
+          my ($dCommand, $environment, $arguments, $argumentsOndemand, $title, $trendline, $typeActiveServer, $masterFQDN, $slaveFQDN) = $sth->fetchrow_array();
           $command = $dCommand;
-          $serverID = $dServerID;
+          $FQDN = (($typeActiveServer eq 'M') ? $masterFQDN : $slaveFQDN);
+        # ($FQDN, undef) = split (/\./, $FQDN, 2);
           if ($environment ne '') { $command .= " --environment=" . $environment; }
           if ($arguments ne '') { $command .= " " . $arguments; }
           if ($argumentsOndemand ne '') { $command .= " " . $argumentsOndemand; }
           if (int($trendline) > 0) { $command .= " --trendline=" . $trendline; }
-          $htmlTitle = "Results for ". $title ." from ". $CcatalogID ." launched on $serverID";
+          $htmlTitle = 'Results for '. $title .' from '. $CcatalogID ." launched on $FQDN (?= $RUNCMDONDEMAND)";
 
           $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         }
@@ -107,14 +112,23 @@ unless ( defined $errorUserAccessControl ) {
     print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
 
     print <<EndOfHtml;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.runCmdOnDemand.catalogIDreload.value = 1;
+  document.runCmdOnDemand.submit();
+  return true;
+}
+</script>
   <BR>
-  <form action="$ENV{SCRIPT_NAME}" name="params">
-    <input type="hidden" name="pagedir"   value="$pagedir">
-    <input type="hidden" name="pageset"   value="$pageset">
-    <input type="hidden" name="CGISESSID" value="$sessionID">
+  <form action="$ENV{SCRIPT_NAME}" method="post" name="runCmdOnDemand">
+    <input type="hidden" name="pagedir"         value="$pagedir">
+    <input type="hidden" name="pageset"         value="$pageset">
+    <input type="hidden" name="CGISESSID"       value="$sessionID">
+    <input type="hidden" name="catalogIDreload" value="0">
     <table border=0>
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
+        $catalogIDSelect
       </td></tr>
 	  <tr align="left"><td>Application:</td><td>$uKeySelect</td></tr>
 	  <tr align="left"><td>Debug:</td><td>
@@ -137,14 +151,14 @@ EndOfHtml
   <HR>
 EndOfHtml
 
-    if ($uKey ne '<NIHIL>') {
+    if (!$CcatalogIDreload and $uKey ne '<NIHIL>') {
       my $commandMaskedPassword = maskPassword ($command);
       print "<P class=\"RunCmdOnDemandHtmlTitle\">$htmlTitle:<br> <font class=\"RunCmdOnDemandCommand\">$commandMaskedPassword --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F'</font></P><IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\"><table width=\"100%\">";
       my ($capture_long, $capture_html, $capture_text, $capture_debug, $capture_array, @WebTransactResponses, @capture_array);
       $capture_long = $capture_html = $capture_text = $capture_debug = $capture_array = 0;
 
-    # my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/.ssh/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/csw/bin:/opt/local/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/lib:/usr/local/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
-      my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$serverID \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/monitoring/sbin:/opt/monitoring/bin:/opt/supervision/sbin:/opt/supervision/bin:/opt/mysql/mysql/bin/:/usr/local/sbin:/usr/local/bin:/opt/csw/sbin:/opt/csw/bin:/usr/sbin:/usr/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl:/opt/supervision/cpan-shared/lib/perl5 LD_LIBRARY_PATH=/opt/csw/mysql5/lib/mysql:/opt/csw/share/perl/5.8.8/unicore/lib:/opt/csw/sparc-sun-solaris2.8/lib:/opt/csw/lib:/opt/supervision/lib:/opt/supervision/ssl/lib:/usr/local/ssl/lib:/opt/mysql/mysql/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
+    # my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/.ssh/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$FQDN \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/csw/bin:/opt/local/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl LD_LIBRARY_PATH=/opt/csw/lib:/usr/local/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
+      my $capture_exec = ( $RUNCMDONDEMAND eq 'probe' ) ? "$SSHCOMMAND -i '$SSHKEYPATH/$SSHLOGONNAME/asnmtap.id' -o 'StrictHostKeyChecking=no' $SSHLOGONNAME\@$FQDN \"if [ -d /opt/monitoring/asnmtap/plugins/ ]; then cd /opt/monitoring/asnmtap/plugins/; else cd /opt/asnmtap/plugins/; fi; PATH=/opt/monitoring/sbin:/opt/monitoring/bin:/opt/mysql/mysql/bin/:/usr/local/sbin:/usr/local/bin:/opt/csw/sbin:/opt/csw/bin:/usr/sbin:/usr/bin PERL5LIB=/opt/monitoring/lib/perl5:/opt/monitoring/lib/perl5/site_perl LD_LIBRARY_PATH=/opt/csw/mysql5/lib/mysql:/opt/csw/share/perl/5.8.8/unicore/lib:/opt/csw/sparc-sun-solaris2.8/lib:/opt/csw/lib:/usr/local/ssl/lib:/opt/mysql/mysql/lib:/usr/local/lib/mysql:/usr/local/lib:/usr/lib ./$command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1\"" : "cd $PLUGINPATH; $PERLCOMMAND $command --onDemand=Y --debug=$debug --asnmtapEnv='F|F|F' 2>&1";
 
       if ( 1 == 1 ) {
         @capture_array = `$capture_exec`;

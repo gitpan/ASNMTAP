@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, check_jUnit.pl
+# 2010/01/05, v3.001.002, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.001;
+use ASNMTAP::Asnmtap::Plugins v3.001.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.001.001;
+use ASNMTAP::Asnmtap::Plugins::XML v3.001.002;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -153,7 +153,7 @@ $rv  = 1;
 $dbh = DBI->connect("DBI:mysql:$jUnitServerDbC:$jUnitServerName:$jUnitServerPort", "$jUnitServerUser", "$jUnitServerPass") or $rv = errorTrapDBI (\$objectPlugins, "Sorry, cannot connect to the database: $jUnitServerDbC:$jUnitServerName:$jUnitServerPort");
 
 if ($dbh and $rv) {
-  $sql = "select count(UKEY) from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID";
+  $sql = "select count(UKEY) from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID and ACTIVATED = '1' and STATUS = 'ASNMTAP'";
   $sth = $dbh->prepare($sql) or $rv = errorTrapDBI (\$objectPlugins, "dbh->prepare: $sql");
   $rv  = $sth->execute() or $rv = errorTrapDBI (\$objectPlugins, "sth->execute: $sql") if $rv;
   $numberRecordsSameUkey = ($rv) ? $sth->fetchrow_array() : 0;
@@ -414,7 +414,7 @@ if ($dbh and $rv) {
         $objectPlugins->pluginValues ( { stateValue => $ERRORS{CRITICAL}, alert => "Undefined error: '$STATUS'" }, $TYPE{APPEND} );
       }
 
-      my $sqlMOVE = 'INSERT INTO `' .$jUnitServerTablDRA. '` SELECT * FROM `' .$jUnitServerTablDR. '` WHERE RESULT_ID = "' .$RESULT_ID. '"';
+      my $sqlMOVE = 'REPLACE INTO `' .$jUnitServerTablDRA. '` SELECT * FROM `' .$jUnitServerTablDR. '` WHERE RESULT_ID = "' .$RESULT_ID. '"';
       $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlMOVE");
 
       if ( $rv ) {
@@ -475,7 +475,7 @@ if ($dbh and $rv) {
       $_ACTIVATED = (defined $ref->{ACTIVATED}) ? $ref->{ACTIVATED} : 0;
       $_STATUS = (defined $ref->{STATUS}) ? $ref->{STATUS} : undef;
 
-      if ( $_ACTIVATED and $_STATUS = 'ASNMTAP' ) {
+      if ( $_ACTIVATED and $_STATUS eq 'ASNMTAP' ) {
         $testcaseServer      = (defined $ref->{NAME})        ? $ref->{NAME}        : '';
         $testcaseWlsusername = (defined $ref->{WLSUSERNAME}) ? $ref->{WLSUSERNAME} : '';
         $testcaseWlspassword = (defined $ref->{WLSPASSWORD}) ? $ref->{WLSPASSWORD} : '';
@@ -552,7 +552,7 @@ sub scan_socket_info_jUnit {
 
   if ($protocol eq 'tcp' || $protocol eq 'udp') { $socketProtocol = $protocol; } else { $socketProtocol = 'tcp'; }
 
-  $SIG{ALRM} = sub { alarm ( 0 ); $exit = 1 };
+  $SIG{ALRM} = sub { alarm (0); $exit = 1 };
   alarm ( 10 ); $exit = 0;
 
   use IO::Socket;
@@ -599,7 +599,7 @@ sub scan_socket_info_jUnit {
     print "udp : $service($port), no RFC implementation\n" if ($debug >= 2);
   }
 
-  alarm ( 0 ); $SIG{ALRM} = 'DEFAULT';
+  alarm (0); $SIG{ALRM} = 'DEFAULT';
   close ( $result );
 
   unless (defined $request) { $request = "$service($port)"; }

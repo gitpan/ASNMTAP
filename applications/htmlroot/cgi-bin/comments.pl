@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -398,7 +398,7 @@ unless ( defined $errorUserAccessControl ) {
             $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.catalogID = $SERVERTABLUSERS.catalogID and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $navigationBarSqlWhere";
 
             ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-            $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;action=$nextAction&amp;uKey=$CuKey");
+            $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, "$urlWithAccessParameters&amp;catalogID=$CcatalogID&amp;uKey=$CuKey&amp;action=$nextAction");
 
     		my ($id, $uKey, $title, $givenName, $familyName, $instability, $persistent, $downtime, $entryDate, $entryTime, $activationDate, $activationTime, $suspentionDate, $suspentionTime, $solvedDate, $solvedTime, $commentData);
             $sql = "select id, uKey, title, $SERVERTABLUSERS.givenName, $SERVERTABLUSERS.familyName, instability, persistent, downtime, entryDate, entryTime, activationDate, activationTime, suspentionDate, suspentionTime, solvedDate, solvedTime, commentData from $SERVERTABLCOMMENTS, $SERVERTABLUSERS where $sqlUKey $SERVERTABLCOMMENTS.catalogID = $SERVERTABLUSERS.catalogID and $SERVERTABLCOMMENTS.remoteUser = $SERVERTABLUSERS.remoteUser $sqlWhere";
@@ -420,7 +420,7 @@ unless ( defined $errorUserAccessControl ) {
                   } elsif ($action eq 'listAllView') {
 	  		        $ActionItem = '';
                   } else {
-                    my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;catalogID=$CcatalogID&amp;id=$id&amp;uKey=$uKey";
+                    my $urlWithAccessParametersAction = "$urlWithAccessParameters&amp;id=$id&amp;catalogID=$CcatalogID&amp;uKey=$uKey";
 
                     if ( $userType != 0 ) {
   	  		          $ActionItem  = "<td align=\"center\" rowspan=\"2\" valign=\"middle\">";
@@ -799,19 +799,19 @@ HTML
 
         if ( $userType != 0 ) {
           print <<HTML;
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView&amp;uKey=$CuKey">[Insert new comment]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView&amp;catalogID=$CcatalogID&amp;uKey=$CuKey">[Insert new comment]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
 HTML
         }
 
         print <<HTML;
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;uKey=$CuKey">[List active comments]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;catalogID=$CcatalogID&amp;uKey=$CuKey">[List active comments]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listAllView&amp;uKey=$CuKey">[List active comments for all plugins]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listAllView&amp;catalogID=$CcatalogID&amp;uKey=$CuKey">[List active comments for all plugins]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=solvedView&amp;uKey=$CuKey">[Show solved comments]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=solvedView&amp;catalogID=$CcatalogID&amp;uKey=$CuKey">[Show solved comments]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=historyView&amp;uKey=$CuKey">[Show history comments]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=historyView&amp;catalogID=$CcatalogID&amp;uKey=$CuKey">[Show history comments]</a></td>
 	  </tr></table>
 	</td></tr>
     <tr><td>&nbsp;</td></tr>
@@ -827,7 +827,7 @@ HTML
           print <<HTML;
     <tr><td><table border="0" cellspacing="0" cellpadding="0">
       <tr><td><b>Catalog ID: </b></td><td>
-        <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+        <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
       </td></tr>
       <tr><td><b>Application: </b></td><td>
         $uKeySelect
@@ -945,7 +945,11 @@ HTML
         print "  </table>\n";
 
         if ($action eq 'insertView' or $action eq 'deleteView' or $action eq 'editView' or $action eq 'historyView' or $action eq 'updateView') {
-          print "</form>\n";
+          print <<HTML;
+        <input type="hidden" name="catalogID"      value="$CcatalogID">
+        <input type="hidden" name="uKey"           value="$CuKey">
+</form>
+HTML
         } else {
           print "<br>\n";
         }

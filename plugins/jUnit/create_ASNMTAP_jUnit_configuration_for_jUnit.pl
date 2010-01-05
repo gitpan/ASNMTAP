@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+# 2010/01/05, v3.001.002, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.001;
+use ASNMTAP::Time v3.001.002;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.001.001;
+use ASNMTAP::Asnmtap::Applications v3.001.002;
 use ASNMTAP::Asnmtap::Applications qw($CATALOGID &sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.001.001;
+use ASNMTAP::Asnmtap::Plugins v3.001.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_jUnit_configuration_for_jUnit.pl',
   _programDescription => 'Create ASNMTAP jUnit configuration for jUnit',
-  _programVersion     => '3.001.001',
+  _programVersion     => '3.001.002',
   _programUsagePrefix => '[--force] [--update] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--force
 --update
@@ -112,7 +112,7 @@ my $pluginPagedir            = '/jUnit/index/';           # pagedirs: 'jUnit' an
 my $pluginTemplate = "test='$pluginTest', argumentsOndemand='$pluginArgumentsOndemand', ondemand='$pluginOndemand', production='$pluginProduction', pagedir='$pluginPagedir'";
 
 # displayDaemons: dynamically
-my @displayDaemon            = ( 'Supervisie', 'jUnit' ); # 'Supervisie' and 'jUnit' must be created
+my @displayDaemon            = ( 'index', 'jUnit' );     # 'index' and 'jUnit' must be created
 
 # collectorDaemons: dynamically
 my %hour;
@@ -269,7 +269,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
 
       my $title = $TYPE_NAME .' '. $groupName . $version .' - '. $CLUSTERNAME;
 
-      my $holidayBundleID = ( $environment eq 'P' ) ? '0' : '4';
+      my $holidayBundleID = ( $environment eq 'P' ) ? '1' : '4';
 
       my $groupTitle = $groupTitlePos .' '. $TYPE_NAME .' (jUnit) - '. $CLUSTERNAME;
       $displayGroupID = $displayGroups {$groupTitle} if ( $displayGroupID == 0 and $groupTitlePos > 0 );
@@ -289,7 +289,9 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
       $sthASNMTAP->bind_columns( \$_arguments, \$_title, \$_environment, \$_holidayBundleID, \$_resultsdir, \$_activated ) or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot dbh->bind: '. $sqlSTRING ) if $rv;
 
       if ( $rv ) {
-        my $_Activated = ( $activated and $STATUS eq 'ASNMTAP' ) ? 1 : 0;
+      # APE: hack voor wanneer er meerdere lijnen zijn met dezelfde key, waarvan er sommige de status 'ASNMTAP' en andere 'EOL' hebben!
+      # my $_Activated = ( $activated and $STATUS eq 'ASNMTAP' ) ? 1 : 0;
+        my $_Activated = ( $activated ) ? 1 : 0;
 
         if ( $sthASNMTAP->fetch() ) {
           my $sqlUPDATE = ( defined $update ) ? 1 : 0;

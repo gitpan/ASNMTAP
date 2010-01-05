@@ -124,14 +124,19 @@ applications/display.pl
 applications/display-test.pl
 applications/Applications.cnf
 
+applications/bin/asnmtap-importDataThroughCatalog.sh
 applications/bin/generateCollectorDaemonSchedulingReports.pl
 applications/bin/generateCollectorDaemonSchedulingReports.sh
 applications/bin/generateReports.pl
 applications/bin/generateReports.sh
 applications/bin/holidayBundleSetDowntimes.pl
 applications/bin/holidayBundleSetDowntimes.sh
+applications/bin/importDataThroughCatalog.pl
+applications/bin/importDataThroughCatalog.sh
+applications/bin/root-importDataThroughCatalog.sh
 
 applications/custom/display.pm-orig
+applications/custom/sde.pm-orig
 
 applications/htmlroot/AnchorPosition.js
 applications/htmlroot/asnmtap-results.css
@@ -204,6 +209,7 @@ applications/htmlroot/cgi-bin/moderator/runStatusOnDemand.pl
 applications/htmlroot/cgi-bin/moderator/sessions.pl
 applications/htmlroot/cgi-bin/moderator/trendlineCorrectionReports.pl
 
+applications/htmlroot/cgi-bin/sadmin/catalog.pl
 applications/htmlroot/cgi-bin/sadmin/collectorDaemons.pl
 applications/htmlroot/cgi-bin/sadmin/displayDaemons.pl
 applications/htmlroot/cgi-bin/sadmin/displayGroups.pl
@@ -379,11 +385,11 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.001.001.sql
-applications/tools/mysql/asnmtap-3.001.001_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.001.001-distributed.sql
-applications/tools/mysql/asnmtap-3.001.001-distributed_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.001.001-database-schema.png
+applications/tools/mysql/asnmtap-3.001.002.sql
+applications/tools/mysql/asnmtap-3.001.002_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.002-distributed.sql
+applications/tools/mysql/asnmtap-3.001.002-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.001.002-database-schema.png
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -493,15 +499,15 @@ plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.001_mysql.SQL
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.001_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.002_mysql.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.001.002_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.001_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
 plugins/templates/snmptt/snmptt-oracle.conf
-plugins/templates/snmptt/snmptt-3.001.001.sql
-plugins/templates/snmptt/snmptt-3.001.001-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.001.002.sql
+plugins/templates/snmptt/snmptt-3.001.002-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

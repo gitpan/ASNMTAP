@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, reports.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports.pl";
 my $prgtext     = "Reports";
-my $version     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,9 +42,10 @@ my $pageset                = (defined $cgi->param('pageset'))               ? $c
 my $debug                  = (defined $cgi->param('debug'))                 ? $cgi->param('debug')                 : 'F';
 my $pageNo                 = (defined $cgi->param('pageNo'))                ? $cgi->param('pageNo')                : 1;
 my $pageOffset             = (defined $cgi->param('pageOffset'))            ? $cgi->param('pageOffset')            : 0;
-my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : 'title';
+my $orderBy                = (defined $cgi->param('orderBy'))               ? $cgi->param('orderBy')               : 'reportTitle';
 my $action                 = (defined $cgi->param('action'))                ? $cgi->param('action')                : 'listView';
 my $CcatalogID             = (defined $cgi->param('catalogID'))             ? $cgi->param('catalogID')             : $CATALOGID;
+my $CcatalogIDreload       = (defined $cgi->param('catalogIDreload'))       ? $cgi->param('catalogIDreload')       : 0;
 my $Cid                    = (defined $cgi->param('id'))                    ? $cgi->param('id')                    : 'new';
 my $CuKey                  = (defined $cgi->param('uKey'))                  ? $cgi->param('uKey')                  : 'none';
 my $CreportTitle           = (defined $cgi->param('reportTitle'))           ? $cgi->param('reportTitle')           : '';
@@ -75,15 +76,15 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Reports", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&id=$Cid&uKey=$CuKey&reportTitle=$CreportTitle&periode=$Cperiode&timeperiodID=$CtimeperiodID&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showComments=$CshowComments&showPerfdata=$CshowPerfdata&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&userPassword=$CuserPassword&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&id=$Cid&uKey=$CuKey&reportTitle=$CreportTitle&periode=$Cperiode&timeperiodID=$CtimeperiodID&status=$Cstatus&errorDetails=$CerrorDetails&bar=$Cbar&hourlyAverage=$ChourlyAverage&dailyAverage=$CdailyAverage&showDetails=$CshowDetails&showComments=$CshowComments&showPerfdata=$CshowPerfdata&showTop20SlowTests=$CshowTop20SlowTests&printerFriendlyOutput=$CprinterFriendlyOutput&formatOutput=$CformatOutput&userPassword=$CuserPassword&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>catalog ID    : $CcatalogID<br>id            : $Cid<br>uKey          : $CuKey<br>report title  : $CreportTitle<br>periode       : $Cperiode<br>SLA window    : $CtimeperiodID<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>show comments : $CshowComments<br>show perfdata : $CshowPerfdata<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output : $CformatOutput<br>user password : $CuserPassword<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir       : $pagedir<br>pageset       : $pageset<br>debug         : $debug<br>CGISESSID     : $sessionID<br>page no       : $pageNo<br>page offset   : $pageOffset<br>order by      : $orderBy<br>action        : $action<br>catalog ID    : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>id            : $Cid<br>uKey          : $CuKey<br>report title  : $CreportTitle<br>periode       : $Cperiode<br>SLA window    : $CtimeperiodID<br>status        : $Cstatus<br>error details : $CerrorDetails<br>bar           : $Cbar<br>hourly average: $ChourlyAverage<br>daily average : $CdailyAverage<br>show details  : $CshowDetails<br>show comments : $CshowComments<br>show perfdata : $CshowPerfdata<br>20 slow tests : $CshowTop20SlowTests<br>printfriendly : $CprinterFriendlyOutput<br>format output : $CformatOutput<br>user password : $CuserPassword<br>activated     : $Cactivated<br>URL ...       : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
-  my ($matchingReports, $navigationBar);
+  my ($catalogIDSelect, $matchingReports, $navigationBar);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -96,6 +97,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $htmlTitle    = "Insert Report";
       $submitButton = "Insert";
       $nextAction   = "insert" if ($rv);
+      $CcatalogID   = $CATALOGID if ($action eq 'insertView');
     } elsif ($action eq 'insert') {
       $htmlTitle    = "Check if Report $Cid from $CcatalogID exist before to insert";
 
@@ -165,13 +167,25 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
       $htmlTitle    = "All reports listed";
+      $formDisabledPrimaryKey = '';
 
-      $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLREPORTS";
+      if ( $CcatalogIDreload ) {
+        $pageNo = 1;
+        $pageOffset = 0;
+      }
+
+      $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
+      ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select SQL_NO_CACHE count(id) from $SERVERTABLREPORTS where catalogID = '$CcatalogID'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;orderBy=$orderBy");
+      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;orderBy=$orderBy");
 
-      $sql = "select $SERVERTABLREPORTS.catalogID, $SERVERTABLREPORTS.id, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), $SERVERTABLREPORTS.periode, $SERVERTABLTIMEPERIODS.timeperiodName, $SERVERTABLREPORTS.formatOutput, $SERVERTABLREPORTS.activated from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLTIMEPERIODS where $SERVERTABLREPORTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLREPORTS.catalogID = $SERVERTABLTIMEPERIODS.catalogID and $SERVERTABLREPORTS.timeperiodID = $SERVERTABLTIMEPERIODS.timeperiodID and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
-      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> When <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> SLA Window <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Format Output <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLREPORTS, 'reportTitle', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
+      $sql = "select $SERVERTABLREPORTS.catalogID, $SERVERTABLREPORTS.id, $SERVERTABLREPORTS.uKey, $SERVERTABLREPORTS.reportTitle, $SERVERTABLREPORTS.periode, $SERVERTABLTIMEPERIODS.timeperiodName, $SERVERTABLREPORTS.formatOutput, $SERVERTABLREPORTS.activated from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT, $SERVERTABLTIMEPERIODS where $SERVERTABLREPORTS.catalogID = '$CcatalogID' and $SERVERTABLREPORTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLREPORTS.catalogID = $SERVERTABLTIMEPERIODS.catalogID and $SERVERTABLREPORTS.timeperiodID = $SERVERTABLTIMEPERIODS.timeperiodID and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, reportTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=reportTitle desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Report Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode desc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> When <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=periode asc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
+      $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName desc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> SLA Window <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=timeperiodName asc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Format Output <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=formatOutput asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, reportTitle asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingReports, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report', 'catalogID|id', '0|1', '1|2', '4#N=>Never|D=>Daily|W=>Weekly|M=>Monthly|Q=>Quarterly|Y=>Yearly', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
@@ -275,6 +289,20 @@ function validateForm() {
 
 <form action="$ENV{SCRIPT_NAME}" method="post" name="reports" onSubmit="return validateForm();">
 HTML
+    } elsif ($action eq 'listView') {
+      print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
+
+      print <<HTML;
+<script language="JavaScript1.2" type="text/javascript">
+function submitForm() {
+  document.reports.catalogIDreload.value = 1;
+  document.reports.submit();
+  return true;
+}
+</script>
+
+<form action="$ENV{SCRIPT_NAME}" method="post" name="reports">
+HTML
     } elsif ($action eq 'deleteView') {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
       print "<form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"reports\">\n";
@@ -283,16 +311,17 @@ HTML
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
     }
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print <<HTML;
-  <input type="hidden" name="pagedir"    value="$pagedir">
-  <input type="hidden" name="pageset"    value="$pageset">
-  <input type="hidden" name="debug"      value="$debug">
-  <input type="hidden" name="CGISESSID"  value="$sessionID">
-  <input type="hidden" name="pageNo"     value="$pageNo">
-  <input type="hidden" name="pageOffset" value="$pageOffset">
-  <input type="hidden" name="action"     value="$nextAction">
-  <input type="hidden" name="orderBy"    value="$orderBy">
+  <input type="hidden" name="pagedir"         value="$pagedir">
+  <input type="hidden" name="pageset"         value="$pageset">
+  <input type="hidden" name="debug"           value="$debug">
+  <input type="hidden" name="CGISESSID"       value="$sessionID">
+  <input type="hidden" name="pageNo"          value="$pageNo">
+  <input type="hidden" name="pageOffset"      value="$pageOffset">
+  <input type="hidden" name="action"          value="$nextAction">
+  <input type="hidden" name="orderBy"         value="$orderBy">
+  <input type="hidden" name="catalogIDreload" value="0">
 HTML
     } else {
       print "<br>\n";
@@ -344,7 +373,7 @@ HTML
     <tr><td>
 	  <table border="0" cellspacing="0" cellpadding="0">
         <tr><td><b>Catalog ID: </b></td><td>
-          <input type="text" name="catalogID" value="$CcatalogID" size="3" maxlength="3" disabled>
+          <input type="text" name="catalogID" value="$CcatalogID" size="5" maxlength="5" disabled>
         </td></tr>
         <tr><td><b>ID: </b></td><td>
           <input type="text" name="id" value="$Cid" size="11" maxlength="11" $formDisabledPrimaryKey>
@@ -412,12 +441,13 @@ HTML
       print "    <tr><td align=\"center\"><br><br><h1>Report: $htmlTitle</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingReports</td></tr>" if (defined $matchingReports and $matchingReports ne '');
     } else {
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>";
       print "    <tr><td align=\"center\"><br>$matchingReports</td></tr>";
     }
 
     print "  </table>\n";
 
-    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView') {
+    if ($action eq 'deleteView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'listView') {
       print "</form>\n";
     } else {
       print "<br>\n";

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, package ASNMTAP::Asnmtap::Applications::CGI
+# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -67,13 +67,13 @@ BEGIN {
 
                                                                            $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                            $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                           $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                           $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
 					  
                                                                            &user_session_and_access_control
                                                                            &do_action_DBI &error_trap_DBI &check_record_exist &create_sql_query_events_from_range_year_month &create_sql_query_from_range_SLA_window
                                                                            &get_title &get_sql_startDate_sqlEndDate_numberOfDays_test &get_sql_crontab_scheduling_report_data
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI 
-                                                                           &record_navigation_table &record_navigation_bar) ],
+                                                                           &record_navigation_table &record_navigation_bar &record_navigation_bar_alpha ) ],
 
                                                       APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                            $CAPTUREOUTPUT
@@ -108,7 +108,7 @@ BEGIN {
                                     	 	 					           &do_action_DBI &error_trap_DBI &check_record_exist
                                                                            &get_title
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI
-                                                                           &record_navigation_table &record_navigation_bar ) ],
+                                                                           &record_navigation_table &record_navigation_bar &record_navigation_bar_alpha ) ],
 
 
                                                       MEMBER       => [ qw(%COLORS %COLORSTABLE %ICONS %ICONSRECORD ) ],
@@ -129,7 +129,7 @@ BEGIN {
                                                       DBPERFPARSE  => [ qw($PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD ) ],
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
-                                                      DBTABLES     => [ qw($SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
+                                                      DBTABLES     => [ qw($SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
 													  
                                                       REPORTS      => [ qw(%COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %QUARTERS
 
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.001.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -170,6 +170,7 @@ sub create_combobox_multiple_from_DBI;
 
 sub record_navigation_table;
 sub record_navigation_bar;
+sub record_navigation_bar_alpha;
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Public subs without TAGS  = = = = = = = = = = = = = = = = = = = = = = =
@@ -704,15 +705,14 @@ sub get_title {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub get_sql_crontab_scheduling_report_data {
-  my ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, $uKeys, $labels, $stepValue, $uKeysSqlWhere, $debug) = @_;
+  my ($dbh, $sql, $rv, $errorMessage, $dbiErrorCode, $dbiErrorString, $sessionID, $hight, $hightMin, $uKeys, $labels, $stepValue, $catalogID, $uKeysSqlWhere, $debug) = @_;
 
-  my ($catalogID, $collectorDaemon, $uKey, $lineNumber, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $applicationTitle, $step);
+  my ($collectorDaemon, $uKey, $lineNumber, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $noOffline, $applicationTitle, $step);
   my $sth = $dbh->prepare( $sql ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot dbh->prepare: $sql", $debug, '', "", '', "", 0, '', $sessionID);
   $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
   $sth->bind_columns( \$collectorDaemon, \$uKey, \$lineNumber, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$noOffline ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
   my $numberOfLabels = 0;
-  $catalogID = $CATALOGID; # TODO # $sql aanpassen ...
 
   if ( $rv ) {
     if ( $sth->rows ) {
@@ -1060,7 +1060,7 @@ sub record_navigation_table {
 
         foreach my $keyLabels (@keyLabels) {
           $actionKeys .= "&amp;$keyLabels=$$ref[$keyNumbers[$item]]";
-          $actionSkip = 1 if ( $keyLabels eq 'catalogID' and $$ref[$keyNumbers[$item]] ne $CATALOGID );
+          $actionSkip = 1 if ( $label ne 'Catalog' and $keyLabels eq 'catalogID' and $$ref[$keyNumbers[$item]] ne $CATALOGID );
           $item++;
         }
 
@@ -1114,13 +1114,14 @@ sub record_navigation_bar {
 
   my $navigationBar;
 
-  if ( $numberRecordsIntoQuery > $RECORDSONPAGE ) {
+  if ( $numberRecordsIntoQuery > $showRecordsOnPage ) {
+    my $numberOffPagesMax = int((($numberRecordsIntoQuery - 1) / $showRecordsOnPage) + 1);
+    $currentPageNo = $numberOffPagesMax if ($currentPageNo > $numberOffPagesMax);
     my $wantedRecordFirst = (($currentPageNo - 1)  * $showRecordsOnPage) + 1;
     my $TwantedRecordLast = $wantedRecordFirst + ($showRecordsOnPage - 1);
     my $wantedRecordLast  = ($TwantedRecordLast < $numberRecordsIntoQuery) ? $TwantedRecordLast : $numberRecordsIntoQuery;
 
     my $numberOffRecords  = (($wantedRecordLast - 1) % $showRecordsOnPage) + 1;
-    my $numberOffPagesMax = int((($numberRecordsIntoQuery - 1) / $showRecordsOnPage) + 1);
 
     $navigationBar = "<table border=\"0\" width=\"100%\" bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td align=\"center\" width=\"36\">$currentPageNo/$numberOffPagesMax</td><td align=\"center\">";
 
@@ -1158,6 +1159,40 @@ sub record_navigation_bar {
   }
 
   return ($navigationBar);
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub record_navigation_bar_alpha {
+  my ($rv, $dbh, $table, $field, $where, $numberRecordsIntoQuery, $showRecordsOnPage, $urlWithAccessParameters, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug) = @_;
+
+  my $navigationBarAlpha = '';
+
+  if ( $numberRecordsIntoQuery > $showRecordsOnPage ) {
+    $navigationBarAlpha = "<table border=\"0\" width=\"100%\" bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td align=\"center\">";
+
+    my ($rownumber, $label);
+
+    my $sql = "select DISTINCT \@rownum:=\@rownum+1 AS rownumber, LEFT($table.$field, 1) as AtoZ from (select \@rownum:=0) r, `$table` force index ($field) where $where group by AtoZ order by $field asc";
+    my $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+    $sth->bind_columns( \$rownumber, \$label ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+
+    if ( $rv ) {
+      if ( $sth->rows ) {
+        while( $sth->fetch() ) {
+          my $currentPage = int ( ( $rownumber / $showRecordsOnPage ) - 0.001 );
+          my $offsetOffRecords = $currentPage * $showRecordsOnPage;
+          $currentPage++;
+          $navigationBarAlpha .= "&nbsp;<a href=\"$urlWithAccessParameters&amp;pageNo=$currentPage&amp;pageOffset=$offsetOffRecords&amp;orderBy=$field asc\">$label</a>";
+        }
+      }
+    }
+
+    $navigationBarAlpha .= "</td></tr></table>\n";
+  }
+
+  return ($navigationBarAlpha);
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

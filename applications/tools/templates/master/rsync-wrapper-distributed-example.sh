@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # ------------------------------------------------------------------------------
-# © Copyright 2003-2009 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ------------------------------------------------------------------------------
 # rsync-wrapper-distributed.sh for asnmtap, v2.002.xxx - wrapper script for rsync
 #   execution via ssh key for use with rsync-mirror-distributed.sh & rsync-mirror.conf
@@ -44,10 +44,12 @@ my $captureOutput = 1;
 # DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
 # ------------------------------------------------------------------------------
 
-my @options = ('-logDtpr',   '-nlogDtpr',   '-vlogDtpr',   '-vnlogDtpr',
-               '-logDtprz',  '-nlogDtprz',  '-vlogDtprz',  '-vnlogDtprz',
-               '-logDtprc',  '-nlogDtprc',  '-vlogDtprc',  '-vnlogDtprc',
-               '-logDtprcz', '-nlogDtprcz', '-vlogDtprcz', '-vnlogDtprcz');
+my @options = ('-logDtpr',       '-nlogDtpr',       '-vlogDtpr',       '-vnlogDtpr',
+               '-logDtprz',      '-nlogDtprz',      '-vlogDtprz',      '-vnlogDtprz',
+               '-logDtprc',      '-nlogDtprc',      '-vlogDtprc',      '-vnlogDtprc',
+               '-logDtprcz',     '-nlogDtprcz',     '-vlogDtprcz',     '-vnlogDtprcz',
+               '-logDtprcze.s',  '-nlogDtprcze.s',  '-vlogDtprcze.s',  '-vnlogDtprcze.s',
+               '-logDtprcze.is', '-nlogDtprcze.is', '-vlogDtprcze.is', '-vnlogDtprcze.is');
 
 my $TRUE  = (0 == 0);
 my $FALSE = (0 == 1);

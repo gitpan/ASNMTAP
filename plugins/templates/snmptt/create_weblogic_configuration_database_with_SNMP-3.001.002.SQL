@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2009 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2009/mm/dd, v3.001.001, create_weblogic_configuration_database_with_SNMP-3.001.001.SQL
+# 2010/01/05, v3.001.002, create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `weblogicConfig`;
@@ -23,7 +23,7 @@ CREATE TABLE `ADMIN_CONFIG` (
   `STATUS` enum('ASNMTAP','NEW','MAINTENANCE','EOL','INFORMATIONAL') default 'NEW',
   `CURRENT_TIMESTAMP` timestamp NOT NULL,
   `uKey` varchar(11) default NULL,
-  `holidayBundleID` int(11) default '0',
+  `holidayBundleID` int(11) default '1',
   `step` smallint(6) NOT NULL default '10',
   `minute` varchar(167) NOT NULL default '*/10',
   `hour` varchar(61) NOT NULL default '*',
