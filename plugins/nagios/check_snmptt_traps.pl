@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_snmptt_traps.pl drop-in replacement for NagTrap
+# 2010/03/10, v3.001.003, check_snmptt_traps.pl drop-in replacement for NagTrap
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.001.003;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,13 +27,14 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_snmptt_traps.pl',
   _programDescription => 'Nagios SNMPTT Traps Database',
-  _programVersion     => '3.001.002',
-  _programUsagePrefix => '[-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
-  _programHelpPrefix  => "-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
+  _programVersion     => '3.001.003',
+  _programUsagePrefix => '[--forceTrapread <F(alse)|T(rue)>] [-F|--FQDN <F(alse)|T(rue)>] [-o|--trapOIDs <trapoid[|<trapoid>]>] [-s|--server <hostname>] [--database=<database>]',
+  _programHelpPrefix  => "--forceTrapread=<F(alse)|T(rue)>
 -F, --FQDN=<F(alse)|T(rue)>
+-o, --trapOIDs=<SNMP trapoid>[|<SNMP trapoid>]
 -s, --server=<hostname> (default: localhost)
 --database=<database> (default: odbc)",
-  _programGetOptions  => ['host|H:s', 'FQDN|F:s', 'trapOIDs|o:s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e:s'],
+  _programGetOptions  => ['host|H:s', 'forceTrapread:s', 'FQDN|F:s', 'trapOIDs|o:s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e:s'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -41,6 +42,9 @@ my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
 
 my $hostname = $objectNagios->getOptionsArgv ('host') ? $objectNagios->getOptionsArgv ('host') : undef;
 $objectNagios->printUsage ('Missing command line argument hostname') unless (defined $hostname);
+
+my $forceTrapread = $objectNagios->getOptionsArgv ('forceTrapread') ? $objectNagios->getOptionsArgv ('forceTrapread') : 'F';
+$objectNagios->printUsage ('Invalid parameter forceTrapread') unless ($forceTrapread =~ /^[FT]$/);
 
 my $FQDN     = $objectNagios->getOptionsArgv ('FQDN') ? $objectNagios->getOptionsArgv ('FQDN') : 'T';
 $objectNagios->printUsage ('Invalid parameter FQDN') unless ($FQDN =~ /^[FT]$/);
@@ -122,6 +126,12 @@ if ( $dbh ) {
     } else {
       $alert = "OK: No Warning or Critical Traps for $hostname. $count Traps in Database";
       $returnCode = $ERRORS{OK};
+
+      if ( $forceTrapread eq 'T' ) {
+        my $sqlUPDATE = "UPDATE `snmptt` SET trapread = '1' WHERE trapread = '0' and $hostnameString $trapOIDsString";
+        print "    $sqlUPDATE\n" if ( $debug );
+        $dbh->do ( $sqlUPDATE ) or _ErrorTrapDBI ( 'dbh->do '. $prepareString, "$DBI::err ($DBI::errstr)" ) if (! $onDemand);
+      }
     }
   }
 

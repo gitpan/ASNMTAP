@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/03/10, v3.001.003, getArchivedResults.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedResults.pl";
 my $prgtext     = "Get Archived Results";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -137,6 +137,7 @@ unless ( defined $errorUserAccessControl ) {
                 my $resultsYear  = substr($archivedResultFile, 0, 4);
 	  		    my $resultsWeek  = substr($archivedResultFile, 5, 2);
 
+                $resultsYear-- if ( $resultsWeek == 53 and ((localtime)[5] + 1900) == $resultsYear );
                 my ($f_year, $f_month, $f_day) = Monday_of_Week($resultsWeek, $resultsYear);
                 my ($t_year, $t_month, $t_day) = Add_Delta_Days($f_year, $f_month, $f_day, 6);
 

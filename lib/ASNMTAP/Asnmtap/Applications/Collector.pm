@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Applications::Collector
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -29,35 +29,37 @@ BEGIN {
   @ASNMTAP::Asnmtap::Applications::Collector::ISA         = qw(Exporter ASNMTAP::Asnmtap::Applications);
 
   %ASNMTAP::Asnmtap::Applications::Collector::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
-                                                                               $CAPTUREOUTPUT
-                                                                                $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
-                                                                                %ENVIRONMENT %ERRORS %STATE %TYPE
+                                                                                  $CAPTUREOUTPUT
+                                                                                  $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
+                                                                                  $CHILD_OFF %ENVIRONMENT %ERRORS %STATE %TYPE @EVENTS %EVENTS
 
-                                                                                &sending_mail
+                                                                                  &sending_mail
 
-                                                                                $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
+                                                                                  $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
-                                                                                &_checkAccObjRef
-                                                                                &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
-                                                                                &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
-                                                                                &_dumpValue
+                                                                                  &_checkAccObjRef
+                                                                                  &_checkSubArgs0 &_checkSubArgs1 &_checkSubArgs2
+                                                                                  &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
+                                                                                  &_dumpValue
 
-                                                                                $APPLICATIONPATH $PLUGINPATH
+                                                                                  $APPLICATIONPATH $PLUGINPATH
 
-                                                                                $DATABASE $CATALOGID
-                                                                                $DEBUGDIR
-                                                                                $HTTPSPATH $RESULTSPATH $PIDPATH
-                                                                                $CHARTDIRECTORLIB
-                                                                                $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
-                                                                                $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
-                                                                                $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
-                                                                                $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT
-                                                                                %COLORSRRD
-                                                                                &read_table &get_trendline_from_test
-                                                                                &set_doIt_and_doOffline
-                                                                                &create_header &create_footer
-
-                                                                                &print_revision &usage ) ],
+                                                                                  $DATABASE $CATALOGID
+                                                                                  $DEBUGDIR
+                                                                                  $HTTPSPATH $RESULTSPATH $PIDPATH
+                                                                                  $CHARTDIRECTORLIB
+                                                                                  $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
+                                                                                  $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
+                                                                                  $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
+                                                                                  $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT
+                                                                                  %COLORSRRD
+                                                                                  &read_table &get_trendline_from_test
+                                                                                  &set_doIt_and_doOffline
+                                                                                  &create_header &create_footer
+                                                                                  &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+                                                                                  &DBI_connect &DBI_do &DBI_execute
+                                                                                  &LOG_init_log4perl
+                                                                                  &print_revision &usage) ],
 
                                                              APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                                                   $CAPTUREOUTPUT
@@ -80,18 +82,24 @@ BEGIN {
                                                                                   $CHARTDIRECTORLIB
                                                                                   $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                                   $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
-                                                                                  %COLORSRRD %ENVIRONMENT
+                                                                                  $CHILD_OFF %COLORSRRD %ENVIRONMENT @EVENTS %EVENTS
                                                                                   &read_table &get_trendline_from_test
                                                                                   &set_doIt_and_doOffline
-                                                                                  &create_header &create_footer)],
+                                                                                  &create_header &create_footer
+                                                                                  &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+                                                                                  &DBI_connect &DBI_do &DBI_execute
+                                                                                  &LOG_init_log4perl
+                                                                                  &print_revision &usage)],
 
                                                              DBCOLLECTOR  => [ qw($DATABASE $CATALOGID $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                                   $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ] );
 
-  @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
+  @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::Collector::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
+
+our $CHILD_OFF = 0;
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Public subs = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

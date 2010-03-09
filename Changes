@@ -5,15 +5,63 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 05 January 2010
-Version      : 3.001.002
+Latest update: 09 March 2010
+Version      : 3.001.003
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Version 3.001.002, 2010/xx/yy, by Alex Peeters
+TODO:                          - TODO INTEL - add CPAN module Log::Log4perl & DBIx::Log4perl
+                               - TODO INTEL - add CPAN module DBD::CSV & Text::CSV added
+
+TODO:                          - TODO ALL   -  Log::Dispatch, Log::Dispatch::FileRotate depend on Date::Manip depend on perl 5.10
+                               -               , 'Log::Dispatch' => '2.26'
+                               -               , 'Log::Dispatch::FileRotate' => '1.19'
+                               -               , 'Log::Log4perl::Layout::XMLLayout' => 'x.x'
+
+Version 3.001.003, 2010/03/10, by Alex Peeters
+                               - NEW applications/log4perl.cnf
+                               - NEW CPAN module DBD::CSV & Text::CSV added to Makefile.PL
+                               - NEW CPAN module Log::Dispatch, Log::Dispatch::FileRotate, Log::Log4perl & DBIx::Log4perl added to Makefile.PL
+                                 - tar -P -cvzf cpan-20100211.tgz /opt/monitoring/bin /opt/monitoring/lib /opt/monitoring/man
+                               - NEW applications/log4perl.cnf config file for Log::Log4perl
+                               - NEW integration for Cartography (applications/custom/cartography.pm-orig) into display.pl
+                               ASNMTAP::Asnmtap::Plugins::Nagios
+                               - NEW check_pargs.pl
+                               ASNMTAP::Asnmtap::Pluggins::WebTransact.pm
+                                 - NEW option for check () keepAlive = [01]
+                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
+                               - DEPRECATED $SERVERMYSQLVERSION = '4.x'
+                                 - Applications.cnf
+                                   #<DATABASE_ACCOUNT>
+                                   #  <SERVER>
+                                   #    VERSION         5.0.x                  # '5.0.x' or '5.1.x'
+                                   #    ...
+                                   #  </SERVER>
+                               - Applications.pm
+                                 - init_email_report()
+                                   - ADDED select((select($EMAILREPORT), $| = 1)[0]); # autoflush
+                               - archive.pl
+                                 - NEW function CSV_import_from_table
+                               - collector.pl
+                                 - NEW function CSV_prepare_table
+                                 - NEW function CSV_insert_into_table
+                                 - NEW function CSV_cleanup_table
+                                 - NEW TIMING OUT SLOW PLUGIN
+                                 - NEW ERROR NOT DEFINED - contact server administrators
+                                 - PLUGIN '$msgCommand.pl' doesn't exist - contact administrators
+                               - archive.pl collector.pl, importDataThroughCatalog.pl, generateReports.pl & holidayBundleSetDowntimes.pl
+                                 - NEW function LOG_init_log4perl
+                               - collector.pl & importDataThroughCatalog.pl
+                                 - NEW functions DBI_connect, DBI_do and DBI_execute
+                               - display.pl
+                                 - ADDED CLOSECLICK & STICKY to force users to click on "Close" to close sticky popups
+                               - RSYNC
+                                 TODO --exclude=*-status.txt
+
+Version 3.001.002, 2010/01/05, by Alex Peeters
                                - NEW record_navigation_bar_alpha
                                  - change all record id > 0 for the 'auto_increment'
 								   '1' into this example, verify first and if needed replace '1' with correct value
@@ -1016,8 +1064,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

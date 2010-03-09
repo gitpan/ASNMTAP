@@ -7,7 +7,7 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# copy current release '3.001.002' to '3.001.003'
+# copy current release '3.001.003' to '3.001.004'
 #                       3.001.xxx      3.001.yyy
 
 # replace 'Version      : 3.001.xxx'  with `3.001.yyy;`
@@ -20,11 +20,11 @@ use strict;
 # replace `(q$Revision: 3.001.xxx$ =~ /\d+/g)` with `(q$Revision: 3.001.yyy$ =~ /\d+/g)`
 # replace `v3.001.xxx;` with `v3.001.yyy;`
 # replace `'3.001.xxx'` with `'3.001.yyy'`
+# replace ASNMTAP 3.001.xxx postfix; nl-BE; rv:3.001.xxx) rv:3.001.003) Gecko/20100310 libwww-perl/5.813 with ASNMTAP 3.001.yyy postfix; nl-BE; rv:3.001.yyy) Gecko/2010....
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: 05 January 2010' with 'Latest update: .. ... 2010'
+# replace 'Latest update: 09 March 2010' with 'Latest update: .. ... 2010'
 # replace `# 2010/mm/dd, v` with `# 2010/../.., v`
-# replace ASNMTAP 3.001.xxx postfix; nl-BE; rv:3.001.xxx) Gecko/yyyymmdd with ASNMTAP 3.001.yyy postfix; nl-BE; rv:3.001.yyy) Gecko/2010....
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,7 +51,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -136,7 +136,7 @@ my @prerequisites = (
    ]
   ],
   [ '*02',     'Time',                     'ASNMTAP::Time',                       { 'ASNMTAP::Asnmtap' => '*00', 'Date::Calc' => '5.4', 'Time::Local' => '1.17' }, 2, [], [] ],
-  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004', 'Config::General' => '2.38', 'Config::General::Interpolated' => '2.07', 'Getopt::Long' => '2.37', 'HTML::Entities' => '1.35', 'Mail::Sendmail' => '0.79', 'Time::Local' => '1.17' }, 1,
+  [ '*0010',   'Subclass Applications',    'ASNMTAP::Asnmtap::Applications',      { 'ASNMTAP::Asnmtap' => '*00', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004', 'Config::General' => '2.38', 'Config::General::Interpolated' => '2.07', 'DBD::CSV' => '0.26', 'DBIx::Log4perl' => '0.18', 'Getopt::Long' => '2.37', 'HTML::Entities' => '1.35', 'Log::Log4perl' => '1.26', 'Mail::Sendmail' => '0.79', 'Text::CSV' => '1.16', 'Time::Local' => '1.17' }, 1,
    [
     [ 'fixRights.sh',                   'X' ],
 
@@ -290,7 +290,7 @@ my @prerequisites = (
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.13', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],
   [ '', 'FTP template',               'check_template-ftp.pl',                  { 'Net::FTP' => '2.75' }, 4, [], [] ],
   [ '', 'LDAP template',              'check_template-ldap.pl',                 { 'Convert::ASN1' => '0.19', 'URI::ldap' => '1.11', 'Digest::MD5' => '2.36', 'XML::Parser' => '2.36', 'Net::LDAP' => '0.34' }, 4, [], [] ],
-  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004' }, 4, [], [] ]
+  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004', 'DBIx::Log4perl' => '0.18', 'Log::Log4perl' => '1.26' }, 4, [], [] ]
 );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

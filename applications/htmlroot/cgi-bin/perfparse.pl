@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, perfparse.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/03/10, v3.001.003, perfparse.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Shell;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "perfparse.pl";
 my $prgtext     = "Launch PerfParse";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

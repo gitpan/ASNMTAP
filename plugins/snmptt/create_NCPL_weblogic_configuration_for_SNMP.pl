@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, create_NCPL_weblogic_configuration_for_SNMP.pl
+# 2010/03/10, v3.001.003, create_NCPL_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.002;
+use ASNMTAP::Time v3.001.003;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.001.002;
+use ASNMTAP::Asnmtap::Applications v3.001.003;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_NCPL_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create NCPL weblogic configuration for SNMP',
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "-s, --server=<hostname> (default: localhost)
 --database=<database> (default: weblogicConfig)

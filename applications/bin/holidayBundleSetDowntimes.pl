@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2010/03/10, v3.001.003, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,13 +22,14 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.001.002;
+use ASNMTAP::Asnmtap::Applications v3.001.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
                                       $SMTPUNIXSYSTEM $SERVERLISTSMTP $SERVERSMTP $SENDMAILFROM
                                       &init_email_report &send_email_report 
-                                      &error_Trap_DBI
+                                      &DBI_error_trap 
+                                      &LOG_init_log4perl
 
                                       $DATABASE $CATALOGID $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                       $SERVERTABLCOMMENTS $SERVERTABLENVIRONMENT $SERVERTABLHOLIDYSBNDL $SERVERTABLHOLIDYS $SERVERTABLPLUGINS $SERVERTABLUSERS);
@@ -41,7 +42,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,6 +77,10 @@ if ($opt_D) {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+my $logger = LOG_init_log4perl ( 'holiday::bundle::set::downtimes', undef, $debug );
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, 'holidayBundleSetDowntimes.txt', $debug);
 
 # Init parameters
@@ -84,14 +89,14 @@ my ($rv, $dbh, $sth, $sql);
 # open connection to database and query data
 $rv  = 1;
 
-$dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
+$dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", \$logger, $debug);
 
 if ($dbh and $rv) {
   my ($catalogID, $holidayBundleID, $holidayBundleName, $holidayID);
   $sql = "select catalogID, holidayBundleID, holidayBundleName, holidayID from $SERVERTABLHOLIDYSBNDL where catalogID='$CATALOGID' and activated = '1' order by holidayBundleName";
-  $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-  $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-  $sth->bind_columns( \$catalogID, \$holidayBundleID, \$holidayBundleName, \$holidayID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+  $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+  $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
+  $sth->bind_columns( \$catalogID, \$holidayBundleID, \$holidayBundleName, \$holidayID ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->bind_columns: $sql", \$logger, $debug) if $rv;
 
   if ( $rv ) {
     if ( $sth->rows ) {
@@ -146,18 +151,18 @@ if ($dbh and $rv) {
                   my ($holiday, $uKey, $title, $environment, $pagedirs, $commentData, $activationTimeslot, $suspentionTimeslot);
 
                   my $sql = "select holiday from $SERVERTABLHOLIDYS where catalogID = '$CATALOGID' and holidayID = '$holidayID'";
-                  my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-                  $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
+                  my $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+                  $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
 
                   if ( $rv ) {
-                    ($holiday) = $sth->fetchrow_array() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-                    $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
+                    ($holiday) = $sth->fetchrow_array() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
+                    $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug);
                   }
 
                   $sql = "select uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as title, $SERVERTABLENVIRONMENT.environment, pagedir from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where catalogID = '$CATALOGID' and holidayBundleID = '$holidayBundleID' and activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by title";
-                  $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-                  $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-                  $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+                  $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+                  $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
+                  $sth->bind_columns( \$uKey, \$title, \$environment, \$pagedirs ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->bind_columns: $sql", \$logger, $debug) if $rv;
 
                   if ( $rv ) {
                     if ( $sth->rows ) {
@@ -168,10 +173,10 @@ if ($dbh and $rv) {
                         $alert .= " Holiday: $holidayYear/$holidayMonth/$holidayDay, From: $activationTimeslot (" .scalar(localtime($activationTimeslot)). "), To: $suspentionTimeslot (" .scalar(localtime($suspentionTimeslot)). ")" if ($debug);
                         my $sql = 'SELECT count(id) from ' .$SERVERTABLCOMMENTS. ' where catalogID="' .$CATALOGID. '" and uKey="' .$uKey. '" and downtime="1" and problemSolved="0" and activationTimeslot="' .$activationTimeslot. '" and suspentionTimeslot="' .$suspentionTimeslot. '"';
                         $alert .= "\n  C $sql" if ($debug >= 2);
-                        my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-                        $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
+                        my $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+                        $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
                         my $numberRecordExist = ($rv) ? $sth->fetchrow_array() : 0;
-                        $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug) if $rv;
+                        $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug) if $rv;
 
                         if ($numberRecordExist) {
                           $alert .= "\n  C - Downtime scheduled: # exist '$numberRecordExist'" if ($debug);
@@ -181,14 +186,14 @@ if ($dbh and $rv) {
                           $alert .= "\n  C + $commentData" if ($debug);
                           my $sql = 'INSERT INTO ' .$SERVERTABLCOMMENTS. ' SET catalogID="' .$CATALOGID. '", uKey="' .$uKey. '", replicationStatus="I", title="' .$title. '", entryDate="' .$entryDate. '", entryTime="' .$entryTime.'", entryTimeslot="' .$entryTimeslot. '", instability="0", persistent="0", downtime="1", problemSolved="0", solvedDate="", solvedTime="", solvedTimeslot="", remoteUser="' .$RMDEFAULTUSER. '", commentData="' .$commentData. '", activationDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", activationTime="00:00:00", activationTimeslot="' .$activationTimeslot. '", suspentionDate="' .$holidayYear. '-' .$holidayMonth. '-' .$holidayDay. '", suspentionTime="23:59:59", suspentionTimeslot="' .$suspentionTimeslot. '"';
                           $alert .= "\n  C $sql" if ($debug >= 2);
-                          $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->do: $sql", $debug);
+                          $dbh->do ( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->do: $sql", \$logger, $debug);
 
                           my ($TremoteUser, $Temail, $Tpagedir);
                           $sql = "select remoteUser, email, pagedir from $SERVERTABLUSERS where catalogID='$CATALOGID' and activated = 1 and downtimeScheduling = 1 and userType > 0";
                           $alert .= "\n  E $sql" if ($debug >= 2);
-                          $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
-                          $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug) if $rv;
-                          $sth->bind_columns( \$TremoteUser, \$Temail, \$Tpagedir ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug) if $rv;
+                          $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
+                          $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug) if $rv;
+                          $sth->bind_columns( \$TremoteUser, \$Temail, \$Tpagedir ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug) if $rv;
 
                           if ( $rv ) {
                             while( $sth->fetch() ) {
@@ -212,7 +217,7 @@ if ($dbh and $rv) {
                               }
                             }
 
-                            $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
+                            $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
                           }
                         }
 
@@ -220,7 +225,7 @@ if ($dbh and $rv) {
                       }
                     }
 
-                    $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
+                    $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
                   }
 
                 }
@@ -249,10 +254,10 @@ if ($dbh and $rv) {
       }
     }
 
-    $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
+    $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
   }
 
-  $dbh->disconnect or $rv = error_Trap_DBI(*EMAILREPORT, "Sorry, the database was unable to add your entry.", $debug);
+  $dbh->disconnect or $rv = DBI_error_trap(*EMAILREPORT, "Sorry, the database was unable to add your entry.", \$logger, $debug);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

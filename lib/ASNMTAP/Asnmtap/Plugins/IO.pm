@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Plugins::IO
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins::IO
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::IO;
@@ -33,7 +33,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::IO::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::IO::EXPORT_TAGS{ALL} } );
   
-  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::IO::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_jUnit.pl
+# 2010/03/10, v3.001.003, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.001.002;
+use ASNMTAP::Asnmtap::Plugins::XML v3.001.003;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>

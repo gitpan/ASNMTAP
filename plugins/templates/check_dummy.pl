@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_dummy.pl
+# 2010/03/10, v3.001.003, check_dummy.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_dummy.pl',
   _programDescription => "Dummy plugin for testing the '$APPLICATION'",
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '-r|--returnCode <VALUE>',
   _programHelpPrefix  => '-r, --returnCode=<VALUE>
    VALUE = 0-3

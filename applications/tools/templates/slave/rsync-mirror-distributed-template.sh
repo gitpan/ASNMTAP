@@ -2,6 +2,8 @@
 # DON'T TOUCH BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING!
 # ------------------------------------------------------------------------------
 
+cTime='-1'
+
 if [ -f ~/.profile ]; then
   source ~/.profile
 fi
@@ -27,8 +29,9 @@ until [ -z "$1" ]; do
         echo "Nonexistant config file \"$ConfPath/$2\", exiting" >&2
         exit 1
       fi
-        ConfFile="$2"
-        shift 2	
+
+      ConfFile="$2"
+      shift 2
       ;;
     -r|-R)
       echo "Operating in reverse mode, source and destination fields will be swapped."
@@ -40,11 +43,22 @@ until [ -z "$1" ]; do
       Delete=''
       shift
       ;;
+    --cTime)
+      if [ -z "$2" ]; then
+        echo 'Operating without cTime mode.'
+        cTime=''
+        shift
+      else
+        echo 'Operating in cTime mode.'
+        cTime="$2"
+        shift 2
+      fi
+      ;;
     *)
       echo "Unrecognized parameter \"$1\", exiting." >&2
       exit 1
       ;;
-	esac
+  esac
 done
 
 if [ ! -r "$ConfPath/$ConfFile" ]; then
@@ -66,6 +80,10 @@ echo $$ >$Lockfile
 Lock='yes'
 
 (cat "$ConfPath/$ConfFile" | sed -e 's/#.*//' | grep -v '^$' ) | while read Source Target AdditionalParams; do
+  if [ "$cTime" != "" ]; then
+    Source="--files-from=<(cd ${Source}; find . -type f -ctime ${cTime}) ${Source}"
+  fi
+
   if [ "$Reverse" = "yes" ]; then
     #FIXME - both source and dest need to be single (*/) directories or single files for reverse mode.
     Temp="$Source"
@@ -73,16 +91,8 @@ Lock='yes'
     Target="$Temp"
   fi
 
-  case "$Source" in
-    */)
-      echo Mirroring directory "$Source" to "$Target"
-      $Rsync --rsync-path=$RsyncPath -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-      ;;
-    *)
-      echo Mirroring "$Source" to "$Target"
-      $Rsync --rsync-path=$RsyncPath -e "ssh -i $KeyRsync" -a $Delete $AdditionalParams $Source $Target
-      ;;
-    esac
+  Command="${Rsync} --rsync-path=${RsyncPath} -e 'ssh -i ${KeyRsync}' -a ${Delete} ${AdditionalParams} ${Source} ${Target}"
+  eval $Command
 done
 
 if [ "$Lock" = 'yes' ]; then

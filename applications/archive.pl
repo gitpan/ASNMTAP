@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, archive.pl for ASNMTAP::Applications
+# 2010/03/10, v3.001.003, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,24 +18,25 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 use DBI;
 use Time::Local;
 use Getopt::Long;
+use Date::Calc qw(Date_to_Time Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.002;
+use ASNMTAP::Time v3.001.003;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.001.002;
+use ASNMTAP::Asnmtap::Applications v3.001.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y  $opt_D $opt_V $opt_h $PROGNAME);
+use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y $opt_f  $opt_D $opt_V $opt_h $PROGNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,6 +44,7 @@ my $doCgisess   = 1;                         # default
 my $doReports   = 1;                         # default
 my $doDatabase  = 0;                         # default
 my $doYearsAgo  = -1;                        # default
+my $doForce     = 0;                         # default
 my $debug       = 0;                         # default
 
 #------------------------------------------------------------------------
@@ -69,7 +71,10 @@ my $removeWeeksEpoch     = get_epoch ('-'. $removeGzipWeeksAgo .' weeks');      
 my $removeCgisessEpoch   = get_epoch ('-'. $removeCgisessDaysAgo .' days');       # Remove files older then n days ago
 my $removeReportsEpoch   = get_epoch ('-'. $removeReportWeeksAgo .' weeks');      # Remove files older then n weeks ago
 
-my $firstDayOfWeekEpoch  = get_epoch ('-'. (get_wday ('yesterday') + 1).' days'); # First day current week epoch date
+my ( $week, $year )           = get_week('yesterday');
+( $year, my $month, my $day ) = Monday_of_Week($week, $year);
+my $firstDayOfWeekEpoch       = Date_to_Time ($year, $month, $day, 0, 0, 0);      # First day current week epoch date
+
 my $yesterdayEpoch       = get_epoch ('yesterday');                               # Yesterday epoch date
 
 my $currentEpoch         = get_epoch ('today');                                   # time() or Current epoch date
@@ -87,6 +92,7 @@ GetOptions (
   "r:s" => \$opt_r, "reports:s"     => \$opt_r,
   "d:s" => \$opt_d, "database:s"    => \$opt_d,
   "y:s" => \$opt_y, "yearsago:s"    => \$opt_y,
+  "f:s" => \$opt_f, "force:s"       => \$opt_f,
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   "D:s" => \$opt_D, "debug:s"       => \$opt_D,
   "V"   => \$opt_V, "version"       => \$opt_V,
@@ -131,6 +137,14 @@ if ($opt_y) {
   }
 }
 
+if ($opt_f) {
+  if ($opt_f eq 'F' || $opt_f eq 'T') {
+    $doForce = ($opt_f eq 'F') ? 0 : 1;
+  } else {
+    usage("Invalid force: $opt_f\n");
+  }
+}
+
 if ($opt_D) {
   if ($opt_D eq 'F' || $opt_D eq 'T' || $opt_D eq 'L') {
     $debug = 0 if ($opt_D eq 'F');
@@ -140,6 +154,10 @@ if ($opt_D) {
     usage("Invalid debug: $opt_D\n");
   }
 }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+my $logger = LOG_init_log4perl ( 'archive', undef, $debug );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -231,24 +249,33 @@ sub archiveCommentsAndEventsTables {
     if ( $rv ) {
       while (my $ref = $sth->fetchrow_hashref()) {
         ($yearMOVE, $monthMOVE, undef) = split (/-/, $ref->{endDate});
+
         print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{startDate}, " ", $ref->{endDate}, " ",$ref->{timeslot}, " \n" if ($debug);
 
         $sqlMOVE = 'REPLACE INTO `' .$SERVERTABLEVENTS. '_' .$yearMOVE. '_' .$monthMOVE. '` SELECT * FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
 
-        print "$sqlMOVE\n" if ($debug);
-        $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
-
-        if ( $rv ) {
-          $sqlMOVE = 'DELETE FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+        if ( $yearMOVE ne '0000' and  $monthMOVE ne '00' ) {
           print "$sqlMOVE\n" if ($debug);
           $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+
+          if ( $rv ) {
+            $sqlMOVE = 'DELETE FROM `' .$SERVERTABLEVENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+            print "$sqlMOVE\n" if ($debug);
+            $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+          }
+        } else {
+          if ($debug) {
+            print "DATABASE ERROR ... CRITICAL: Update table ${SERVERTABLEVENTS}_${yearMOVE}_${monthMOVE}' not possible for '$sqlMOVE'\n";
+          } else {
+            print EMAILREPORT "DATABASE ERROR ... CRITICAL: Update table ${SERVERTABLEVENTS}_${yearMOVE}_${monthMOVE}' not possible for '$sqlMOVE'\n";
+          }
         }
       }
 
       $sth->finish() or $rv = errorTrapDBI("sth->finish", $debug);
     }
 
-    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.catalogID, $SERVERTABLCOMMENTS.uKey, $SERVERTABLCOMMENTS.commentData from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or $SERVERTABLCRONTABS.activated <> 1 or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1) order by $SERVERTABLCOMMENTS.uKey";
+    $sql = "select SQL_NO_CACHE distinct $SERVERTABLCOMMENTS.catalogID, $SERVERTABLCOMMENTS.uKey, $SERVERTABLCOMMENTS.commentData from $SERVERTABLCOMMENTS, $SERVERTABLPLUGINS, $SERVERTABLVIEWS, $SERVERTABLDISPLAYDMNS, $SERVERTABLCRONTABS as crontabOutside, $SERVERTABLCLLCTRDMNS, $SERVERTABLSERVERS where $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCOMMENTS.problemSolved = 0 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon and $SERVERTABLPLUGINS.catalogID = crontabOutside.catalogID and $SERVERTABLPLUGINS.uKey = crontabOutside.uKey and crontabOutside.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and crontabOutside.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID and ( $SERVERTABLPLUGINS.activated <> 1 or $SERVERTABLDISPLAYDMNS.activated <> 1 or crontabOutside.uKey in ( SELECT SQL_NO_CACHE crontabInside.uKey FROM $SERVERTABLCRONTABS AS crontabInside where crontabOutside.catalogID = crontabInside.catalogID and crontabOutside.uKey = crontabInside.uKey GROUP by crontabInside.catalogID, crontabInside.uKey HAVING sum(crontabInside.activated) = 0 ) or $SERVERTABLCLLCTRDMNS.activated <> 1 or $SERVERTABLSERVERS.activated <> 1 ) order by $SERVERTABLCOMMENTS.uKey";
 
     if ($debug) {
       print "\nUpdate table '$SERVERTABLCOMMENTS': <$sql>\n";
@@ -297,13 +324,22 @@ sub archiveCommentsAndEventsTables {
         print "\n", $ref->{catalogID}, " ", $ref->{id}, " ", $ref->{uKey}, " ", $ref->{solvedDate}, " ", $ref->{solvedTimeslot}, "\n" if ($debug);
 
         $sqlMOVE = 'REPLACE INTO `' .$SERVERTABLCOMMENTS. '_' .$yearMOVE. '` SELECT * FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
-        print "$sqlMOVE\n" if ($debug);
-        $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
 
-        if ( $rv ) {
-          $sqlMOVE = 'DELETE FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+        if ( $yearMOVE ne '0000' ) {
           print "$sqlMOVE\n" if ($debug);
           $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+
+          if ( $rv ) {
+            $sqlMOVE = 'DELETE FROM `' .$SERVERTABLCOMMENTS. '` WHERE catalogID = "' .$ref->{catalogID}. '" and id = "' .$ref->{id}. '"';
+            print "$sqlMOVE\n" if ($debug);
+            $dbh->do( $sqlMOVE ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug) unless ( $debug );
+          }
+        } else {
+          if ($debug) {
+            print "DATABASE ERROR ... CRITICAL: Update table ${SERVERTABLCOMMENTS}_${yearMOVE}' not possible for '$sqlMOVE'\n";
+          } else {
+            print EMAILREPORT "DATABASE ERROR ... CRITICAL: Update table ${SERVERTABLCOMMENTS}_${yearMOVE}' not possible for '$sqlMOVE'\n";
+          }
         }
       }
 
@@ -371,46 +407,7 @@ sub createCommentsAndEventsArchiveTables {
 
   if ($dbh and $rv) {
     foreach $month ('01'..'12') {
-      unless ( $SERVERMYSQLVERSION eq '4.x' ) {
-        $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month .'` LIKE `'. $SERVERTABLEVENTS .'`';
-      } else {
-        $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month ."` (
-  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
-  `id` int(11) NOT NULL auto_increment,
-  `uKey` varchar(11) NOT NULL default '',
-  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `test` varchar(254) NOT NULL default '',
-  `title` varchar(75) NOT NULL default '',
-  `status` varchar(9) NOT NULL default '',
-  `startDate` date NOT NULL default '0000-00-00',
-  `startTime` time NOT NULL default '00:00:00',
-  `endDate` date NOT NULL default '0000-00-00',
-  `endTime` time NOT NULL default '00:00:00',
-  `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(254) NOT NULL default '',
-  `step` smallint(6) NOT NULL default '0',
-  `timeslot` varchar(10) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9',
-  `persistent` tinyint(1) NOT NULL default '9',
-  `downtime` tinyint(1) NOT NULL default '9',
-  `filename` varchar(254) default '',
-  PRIMARY KEY (`catalogID`,`id`),
-  KEY `catalogID` (`catalogID`),
-  KEY `id` (`id`),
-  KEY `uKey` (`uKey`),
-  KEY `replicationStatus` (`replicationStatus`),
-  KEY `key_test` (`test`),
-  KEY `key_status` (`status`),
-  KEY `key_startDate` (`startDate`),
-  KEY `key_startTime` (`startTime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_endTime` (`endTime`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `idx_downtime` (`downtime`)
-) TYPE=MyISAM";
-      }
-
+      $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_'. $month .'` LIKE `'. $SERVERTABLEVENTS .'`';
       $rv = ! checkTableDBI ($dbh, $DATABASE, $SERVERTABLEVENTS .'_'. $year .'_'. $month, 'check', 'status', 'OK');
 
       if ($rv) {
@@ -448,46 +445,7 @@ sub createCommentsAndEventsArchiveTables {
         $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
 
         if ($rv) {
-          unless ( $SERVERMYSQLVERSION eq '4.x' ) {
-            $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_01`';
-          } else {
-            $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year ."` (
-  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
-  `id` int(11) NOT NULL auto_increment,
-  `uKey` varchar(11) NOT NULL default '',
-  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `test` varchar(254) NOT NULL default '',
-  `title` varchar(75) NOT NULL default '',
-  `status` varchar(9) NOT NULL default '',
-  `startDate` date NOT NULL default '0000-00-00',
-  `startTime` time NOT NULL default '00:00:00',
-  `endDate` date NOT NULL default '0000-00-00',
-  `endTime` time NOT NULL default '00:00:00',
-  `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(254) NOT NULL default '',
-  `step` smallint(6) NOT NULL default '0',
-  `timeslot` varchar(10) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9',
-  `persistent` tinyint(1) NOT NULL default '9',
-  `downtime` tinyint(1) NOT NULL default '9',
-  `filename` varchar(254) default '',
-  PRIMARY KEY (`catalogID`,`id`),
-  KEY `catalogID` (`catalogID`),
-  KEY `id` (`id`),
-  KEY `uKey` (`uKey`),
-  KEY `replicationStatus` (`replicationStatus`),
-  KEY `key_test` (`test`),
-  KEY `key_status` (`status`),
-  KEY `key_startDate` (`startDate`),
-  KEY `key_startTime` (`startTime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_endTime` (`endTime`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `idx_downtime` (`downtime`)
-) TYPE=MyISAM";
-          }
-
+          $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_01`';
           $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
         }
 
@@ -508,46 +466,7 @@ sub createCommentsAndEventsArchiveTables {
           $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
 
           if ($rv) {
-            unless ( $SERVERMYSQLVERSION eq '4.x' ) {
-              $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 2) .'`';
-            } else {
-              $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter ."` (
-  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
-  `id` int(11) NOT NULL auto_increment,
-  `uKey` varchar(11) NOT NULL default '',
-  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `test` varchar(254) NOT NULL default '',
-  `title` varchar(75) NOT NULL default '',
-  `status` varchar(9) NOT NULL default '',
-  `startDate` date NOT NULL default '0000-00-00',
-  `startTime` time NOT NULL default '00:00:00',
-  `endDate` date NOT NULL default '0000-00-00',
-  `endTime` time NOT NULL default '00:00:00',
-  `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(254) NOT NULL default '',
-  `step` smallint(6) NOT NULL default '0',
-  `timeslot` varchar(10) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '9',
-  `persistent` tinyint(1) NOT NULL default '9',
-  `downtime` tinyint(1) NOT NULL default '9',
-  `filename` varchar(254) default '',
-  PRIMARY KEY (`catalogID`,`id`),
-  KEY `catalogID` (`catalogID`),
-  KEY `id` (`id`),
-  KEY `uKey` (`uKey`),
-  KEY `replicationStatus` (`replicationStatus`),
-  KEY `key_test` (`test`),
-  KEY `key_status` (`status`),
-  KEY `key_startDate` (`startDate`),
-  KEY `key_startTime` (`startTime`),
-  KEY `key_endDate` (`endDate`),
-  KEY `key_endTime` (`endTime`),
-  KEY `key_timeslot` (`timeslot`),
-  KEY `idx_persistent` (`persistent`),
-  KEY `idx_downtime` (`downtime`)
-) TYPE=MyISAM";
-            }
-
+            $sql = 'CREATE TABLE IF NOT EXISTS `'. $SERVERTABLEVENTS .'_'. $year .'_Q'. $quarter .'` LIKE `'. $SERVERTABLEVENTS .'_'. $year .'_'. sprintf ("%02d", ($quarter * 3 ) - 2) .'`';
             $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
           }
 
@@ -561,49 +480,7 @@ sub createCommentsAndEventsArchiveTables {
       }
     }
 
-    unless ( $SERVERMYSQLVERSION eq '4.x' ) {
-      $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` LIKE `$SERVERTABLCOMMENTS`";
-    } else {
-      $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` (
-  `catalogID` varchar(5) NOT NULL default '$CATALOGID',
-  `id` int(11) NOT NULL auto_increment,
-  `uKey` varchar(11) NOT NULL default '',
-  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `title` varchar(75) NOT NULL default '',
-  `remoteUser` varchar(11) NOT NULL default '',
-  `instability` tinyint(1) NOT NULL default '0',
-  `persistent` tinyint(1) NOT NULL default '0',
-  `downtime` tinyint(1) NOT NULL default '0',
-  `entryDate` date NOT NULL default '0000-00-00',
-  `entryTime` time NOT NULL default '00:00:00',
-  `entryTimeslot` varchar(10) NOT NULL default '0000000000',
-  `activationDate` date NOT NULL default '0000-00-00',
-  `activationTime` time NOT NULL default '00:00:00',
-  `activationTimeslot` varchar(10) NOT NULL default '0000000000',
-  `suspentionDate` date NOT NULL default '0000-00-00',
-  `suspentionTime` time NOT NULL default '00:00:00',
-  `suspentionTimeslot` varchar(10) NOT NULL default '9999999999',
-  `solvedDate` date NOT NULL default '0000-00-00',
-  `solvedTime` time NOT NULL default '00:00:00',
-  `solvedTimeslot` varchar(10) NOT NULL default '0000000000',
-  `problemSolved` tinyint(1) NOT NULL default '1',
-  `commentData` blob NOT NULL,
-  PRIMARY KEY (`catalogID`,`id`),
-  KEY `catalogID` (`catalogID`),
-  KEY `id` (`id`),
-  KEY `uKey` (`uKey`),
-  KEY `replicationStatus` (`replicationStatus`),
-  KEY `remoteUser` (`remoteUser`),
-  KEY `persistent` (`persistent`),
-  KEY `downtime` (`downtime`),
-  KEY `entryTimeslot` (`entryTimeslot`),
-  KEY `activationTimeslot` (`activationTimeslot`),
-  KEY `suspentionTimeslot` (`suspentionTimeslot`),
-  KEY `solvedTimeslot` (`solvedTimeslot`),
-  KEY `problemSolved` (`problemSolved`)
-) TYPE=MyISAM";
-    }
-
+    $sql = "CREATE TABLE IF NOT EXISTS `". $SERVERTABLCOMMENTS .'_'. $year ."` LIKE `$SERVERTABLCOMMENTS`";
     $rv = ! checkTableDBI ($dbh, $DATABASE, $SERVERTABLCOMMENTS .'_'. $year, 'check', 'status', 'OK');
 
     if ($rv) {
@@ -773,33 +650,57 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       if ($debug) {
         print "S+ <$datum><", get_yearMonthDay($gzipEpoch), "><$path><$filename>\n" if ($datum le get_yearMonthDay($gzipEpoch));
       } elsif (! $doDatabase) {
+        # APE # TODO - REMOVE
         # Init parameters
-        my ($rv, $dbh, $sql);
+        # my ($rv, $dbh, $sql);
 
         # open connection to database and query data
-        $rv  = 1;
-        $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = errorTrapDBI("Cannot connect to the database", $debug);
+        # $rv  = 1;
+        # $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = errorTrapDBI("Cannot connect to the database", $debug);
 
-        if ($dbh and $rv) {
-          $sql = "LOAD DATA LOW_PRIORITY LOCAL INFILE '$path/$filename' INTO TABLE $SERVERTABLEVENTS FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
-          $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
+        # if ($dbh and $rv) {
+        #   $sql = "LOAD DATA LOW_PRIORITY LOCAL INFILE '$path/$filename' INTO TABLE $SERVERTABLEVENTS FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
+        #   $dbh->do( $sql ) or $rv = errorTrapDBI("Cannot dbh->do: $sql", $debug);
 
-          if ( $rv ) {
-            my $mysqlInfo = $dbh->{mysql_info};
-            my ($records, $deleted, $skipped, $warnings) = ($mysqlInfo =~ /^Records:\s+(\d+)\s+Deleted:\s+(\d+)\s+Skipped:\s+(\d+)\s+Warnings: (\d+)$/);
+        #   if ( $rv ) {
+        #     my $mysqlInfo = $dbh->{mysql_info};
+        #     my ($records, $deleted, $skipped, $warnings) = ($mysqlInfo =~ /^Records:\s+(\d+)\s+Deleted:\s+(\d+)\s+Skipped:\s+(\d+)\s+Warnings: (\d+)$/);
 
-            if ($deleted eq '0' and $skipped eq '0' and $warnings eq '0') {
-              print EMAILREPORT "S+ LOAD DATA ... : $records record(s) added for $filename\n";
-              my ($status, $stdout, $stderr) = call_system ('gzip --force '.$path.'/'.$filename, $debug);
-              print EMAILREPORT "S+  E R R O R: <$stderr>\n" unless ( $status );
-            } else {
-              print EMAILREPORT "S+ LOAD DATA ... WARNING for $filename: $mysqlInfo, <$records> <$deleted> <$skipped> <$warnings>\n";
-              rename("$path/$filename", "$path/$filename-LOAD-DATA-FAILED");
-            }
+        #     if ($deleted eq '0' and $skipped eq '0' and $warnings eq '0') {
+        #       print EMAILREPORT "S+ LOAD DATA ... : $records record(s) added for $filename\n";
+        #       my ($status, $stdout, $stderr) = call_system ('gzip --force '.$path.'/'.$filename, $debug);
+        #       print EMAILREPORT "S+ E R R O R: <$stderr>\n" unless ( $status );
+        #     } else {
+        #       print EMAILREPORT "S+ LOAD DATA ... WARNING for $filename: $mysqlInfo, <$records> <$deleted> <$skipped> <$warnings>\n";
+        #       rename("$path/$filename", "$path/$filename-LOAD-DATA-FAILED");
+        #     }
+        #   }
+
+        #   $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
+        # }
+
+        my $_debug = ( ( $debug eq 'T' ) ? 1 : 0);
+        my $dbh = CSV_prepare_table ("$path/", $filename, '', $SERVERTABLEVENTS, \@EVENTS, \%EVENTS, \$logger, $_debug);
+        my $rv = CSV_import_from_table (1, $dbh, $SERVERTABLEVENTS, \@EVENTS, 'id', $doForce, \$logger, $_debug);
+
+        if ( $rv ) {
+          if ($debug) {
+            print "S+ IMPORT CSV DATA ... OK: ALL records imported from $path/$filename\n";
+          } else {
+            print EMAILREPORT "S+ IMPORT CSV DATA ... OK: ALL records imported from $path/$filename\n";
+            my ($status, $stdout, $stderr) = call_system ('gzip --force '.$path.'/'.$filename, $debug);
+            print EMAILREPORT "S+ E R R O R: <$stderr>\n" unless ( $status );
           }
-
-          $dbh->disconnect or $rv = errorTrapDBI("Sorry, the database was unable to add your entry.", $debug);
+        } else {
+          if ($debug) {
+            print "S- IMPORT CSV DATA ... CRITICAL: ZERO records imported from $path/$filename\n";
+          } else {
+            print EMAILREPORT "S- IMPORT CSV DATA ... CRITICAL: ZERO records imported from $path/$filename\n";
+            rename("$path/$filename", "$path/$filename-LOAD-DATA-FAILED");
+          }
         }
+
+        CSV_cleanup_table ($dbh, \$logger, $_debug);
       }
     } elsif ( $staart eq "$command-$catalogID_uKey.sql.gz" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
@@ -815,7 +716,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
 	    if ($debug) {
           print "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "><$path><$filename>\n";
         } else {
-          print EMAILREPORT "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "> unmink <$path><$filename>\n";
+          print EMAILREPORT "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "> unlink <$path><$filename>\n";
           unlink ($path.'/'.$filename);
         }
       }
@@ -1019,7 +920,7 @@ sub errorTrapDBI {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub print_usage () {
-  print "Usage: $PROGNAME [-A <archivelist>] [-c F|T] [-r F|T] [-d F|T] [-y <years ago>] [-D <debug>] [-V version] [-h help]\n";
+  print "Usage: $PROGNAME [-A <archivelist>] [-c F|T] [-r F|T] [-d F|T] [-y <years ago>] [-f F|T] [-D <debug>] [-V version] [-h help]\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1042,6 +943,9 @@ sub print_help () {
 -y, --yearsago=<years ago>
    YEARS AGO: c => current year or 1..9 => the number of years ago that the '$SERVERTABLEVENTS' 
               and '$SERVERTABLCOMMENTS' tables need to be created
+-f, --force=F|T
+   F(alse)  : don't force CSV import (default)
+   T(true)  : force CSV import
 -D, --debug=F|T|L
    F(alse)  : screendebugging off (default)
    T(true)  : normal screendebugging on

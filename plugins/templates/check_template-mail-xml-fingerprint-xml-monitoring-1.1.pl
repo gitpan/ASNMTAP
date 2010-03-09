@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
+# 2010/03/10, v3.001.003, check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ my $receivedState = 0;
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-mail-xml-fingerprint-xml-monitoring-1.1.pl',
   _programDescription => "XML fingerprint Mail XML monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -82,7 +82,7 @@ my $reverse = 0;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Mail v3.001.002;
+use ASNMTAP::Asnmtap::Plugins::Mail v3.001.003;
 
 my $body = '
 <?xml version="1.0" encoding="UTF-8"?>

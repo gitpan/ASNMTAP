@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_MySQL-database-replication.pl
+# 2010/03/10, v3.001.003, check_MySQL-database-replication.pl
 # ----------------------------------------------------------------------------------------------------------
 # A monitor to determine if a MySQL database server is operational
 #
@@ -31,7 +31,7 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,7 +39,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_MySQL-database-replication.pl',
   _programDescription => "MySQL database replication plugin template for the '$APPLICATION'",
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '-w|--warning=<warning> -c|--critical=<critical> [-1|--database=<database>] [-2|--binlog=<binlog>] [-3|--table=<table>] [-4|--cluster=<cluster>]',
   _programHelpPrefix  => '-w, --warning=<WARNING>
    <WARNING> = last \'Update Time from Table\' seconds ago
@@ -225,7 +225,7 @@ if ( $exist ) {
   #           }
   #  	    }
   #       } else {
-  #         $alert = "Update time for table '$table' don't exist";
+  #         $alert = "Update time for table '$table' doesn't exist";
   #         $returnCode = $ERRORS{CRITICAL};
   #       }
   #     }
@@ -235,7 +235,7 @@ if ( $exist ) {
   # }
   }
 } else {
-  $alert = "table '$table' don't exist";
+  $alert = "table '$table' doesn't exist";
   $returnCode = $ERRORS{CRITICAL};
 }
 

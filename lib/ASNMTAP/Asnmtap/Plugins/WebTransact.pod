@@ -331,6 +331,7 @@ I<Structure of the array of hash references:>
    openAppend       => 1,
    cookies          => 1,
    protocol         => 1,
+   keepAlive        => 1,
    download_images  => 0,
    fail_if_1        => 1
  )
@@ -463,6 +464,12 @@ Is an scalar, value is 0 or 1 (default)
 =item I<protocol>
 
 0 = default and 1 = force 'HTTP/1.1'
+
+Is an scalar, value is 0 or 1 (default)
+
+=item I<keepAlive>
+
+0 = default and 1 = 'Keep-Alive'
 
 Is an scalar, value is 0 or 1 (default)
 

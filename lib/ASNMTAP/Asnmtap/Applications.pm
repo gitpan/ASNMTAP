@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Applications
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -34,7 +34,7 @@ BEGIN {
   %ASNMTAP::Asnmtap::Applications::EXPORT_TAGS = (ALL          => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
                                                                        $CAPTUREOUTPUT
                                                                        $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
-                                                                       %ERRORS %STATE %TYPE
+                                                                       %ERRORS %STATE %TYPE @EVENTS %EVENTS
 
                                                                        $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
@@ -68,8 +68,10 @@ BEGIN {
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
                                                                        &init_email_report &send_email_report &sending_mail
-                                                 					   &error_Trap_DBI
 
+                                                                       &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+                                                                       &DBI_connect &DBI_do &DBI_execute &DBI_error_trap
+                                                                       &LOG_init_log4perl
                                                                        &print_revision &usage &call_system) ],
 
                                                   APPLICATIONS => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO $TYPEMONITORING $RUNCMDONDEMAND
@@ -92,8 +94,12 @@ BEGIN {
                                                                        $DEBUGDIR $REPORTDIR
                                                                        $CGISESSPATH $RESULTSPATH
                                                                        $SMTPUNIXSYSTEM $SERVERLISTSMTP $SERVERSMTP $SENDMAILFROM
+                                                                       @EVENTS %EVENTS
                                                                        &read_table &get_session_param
-                                                                       &init_email_report &send_email_report) ],
+                                                                       &init_email_report &send_email_report
+																	   &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+                                                                       &DBI_connect &DBI_do &DBI_execute
+                                                                       &LOG_init_log4perl) ],
 
                                                   DBARCHIVE    => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE $SERVERTABLEVENTS $SERVERTABLCOMMENTS)],
 
@@ -104,11 +110,13 @@ BEGIN {
                                                                        $HTTPSPATH $RESULTSPATH $PIDPATH
                                                                        $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
                                                                        $SERVERSMTP $SMTPUNIXSYSTEM $SERVERLISTSMTP $SENDMAILFROM
-                                                                       %COLORSRRD %ENVIRONMENT
+                                                                       %COLORSRRD %ENVIRONMENT @EVENTS %EVENTS
                                                                        &read_table &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer
-
+                                                                       &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+                                                                       &DBI_connect &DBI_do &DBI_execute
+                                                                       &LOG_init_log4perl
                                                                        &print_revision &usage &call_system) ],
 
                                                   DBCOLLECTOR  => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
@@ -158,7 +166,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -203,6 +211,7 @@ sub call_system {
   if ($CAPTUREOUTPUT) {
     use IO::CaptureOutput qw(capture_exec);
    ($stdout, $stderr) = capture_exec("$system_action");
+   chomp($stdout); chomp($stderr);
   } else {
     system ("$system_action"); $stdout = $stderr = '';
   }
@@ -245,7 +254,21 @@ sub sending_mail;
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-sub error_Trap_DBI;
+sub CSV_prepare_table;
+sub CSV_insert_into_table;
+sub CSV_import_from_table;
+sub CSV_cleanup_table;
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+sub DBI_connect;
+sub DBI_do;
+sub DBI_execute;
+sub DBI_error_trap;
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+sub LOG_init_log4perl;
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Public subs without TAGS  = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,7 +280,7 @@ sub error_Trap_DBI;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -358,12 +381,37 @@ our $HTMLTOPDFOPTNS    = ( exists $_config{COMMON}{HTMLTOPDF}{OPTIONS}  ? $_conf
 our $DATABASE          = ( exists $_config{DATABASE}{ASNMTAP}           ? $_config{DATABASE}{ASNMTAP}           : 'asnmtap' );
 our $CATALOGID         = ( exists $_config{DATABASE}{CATALOGID}         ? $_config{DATABASE}{CATALOGID}         : 'CID' );
 
+# SET ASNMTAP::Asnmtap::Applications::CSV VARIABLES - - - - - - - - - - -
+our @EVENTS = ('catalogID', 'id', 'uKey', 'replicationStatus', 'test', 'title', 'status', 'startDate', 'startTime', 'endDate', 'endTime', 'duration', 'statusMessage', 'step', 'timeslot', 'instability', 'persistent', 'downtime', 'filename');
+
+our %EVENTS = (
+  'catalogID'         => 'varchar(5)',
+  'id'                => 'int(11)',
+  'uKey'              => 'varchar(11)',
+  'replicationStatus' => 'char(1)',
+  'test'              => 'varchar(254)',
+  'title'             => 'varchar(75)',
+  'status'            => 'varchar(9)',
+  'startDate'         => 'char(10)',
+  'startTime'         => 'char(8)',
+  'endDate'           => 'char(10)',
+  'endTime'           => 'char(8)',
+  'duration'          => 'char(8)',
+  'statusMessage'     => 'varchar(254)',
+  'step'              => 'int(6)',
+  'timeslot'          => 'varchar(10)',
+  'instability'       => 'int(1)',
+  'persistent'        => 'int(1)',
+  'downtime'          => 'int(1)',
+  'filename'          => 'varchar(254)'
+);
+
 # CGI.pm  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # archiver.pl - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-our $SERVERMYSQLVERSION     = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     ? $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     : '4.x' );
+our $SERVERMYSQLVERSION     = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     ? $_config{DATABASE_ACCOUNT}{SERVER}{VERSION}     : '5.0.x' );
 our $SERVERMYSQLMERGE       = ( exists $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       ? $_config{DATABASE_ACCOUNT}{SERVER}{MERGE}       : '0' );
 
-$SERVERMYSQLVERSION         = '4.x' unless ( $SERVERMYSQLVERSION eq '5.0.x' );
+$SERVERMYSQLVERSION         = '5.0.x' unless ( $SERVERMYSQLVERSION eq '5.1.x' );
 $SERVERMYSQLMERGE           = '0'   unless ( $SERVERMYSQLMERGE eq '1' );
 
 # archiver.pl, collector.pl and display.pl  - - - - - - - - - - - - - - -
@@ -1432,14 +1480,13 @@ sub init_email_report {
 
   my $emailReport = $RESULTSPATH .'/'. $filename;
   my $rvOpen = ( $debug ) ? '1' : open($EMAILREPORT, "> $emailReport");
+  select((select($EMAILREPORT), $| = 1)[0]); # autoflush
 
   unless ( defined $rvOpen ) {
     $emailReport = '~/'. $filename;
     $rvOpen = open($EMAILREPORT, "> $emailReport");
-
-    unless(-e "$emailReport") {
-      print "Cannot create $emailReport to create email report information\n";
-    }
+    select((select($EMAILREPORT), $| = 1)[0]); # autoflush
+    print "Cannot create '$emailReport' for buffering email report information\n" unless (-e "$emailReport");
   }
 
   return ($emailReport, $rvOpen);
@@ -1503,12 +1550,477 @@ sub sending_mail {
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-sub error_Trap_DBI {
-  my ($EMAILREPORT, $error_message, $debug) = @_;
+sub CSV_prepare_table {
+  my ($path, $tableFilename, $extention, $tableName, $columnSequence, $tableDefinition, $logger, $debug) = @_;
 
-  my $error = "  > DBI Error:\n" .$error_message. "\nERROR: $DBI::err ($DBI::errstr)\n";
-  if ( $debug ) { print $error; } else { print $EMAILREPORT $error; }
+  my $rv = 1;
+  my $dbh = DBI->connect ("DBI:CSV:", "", "", {f_schema => undef, f_dir => $path, f_ext => $extention} ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", $logger, $debug); 
+
+  if ( $rv ) {
+    $dbh->{csv_tables}{$tableName}  = { file => $tableFilename};
+
+    $dbh->{csv_null}                = 1;
+    $dbh->{csv_allow_whitespace}    = 0;
+    $dbh->{csv_allow_loose_quotes}  = 0;
+    $dbh->{csv_allow_loose_escapes} = 0;
+
+    $dbh->{csv_eol}                 = $\;
+    $dbh->{csv_sep_char}            = ',';
+    $dbh->{csv_quote_char}          = '"';
+    $dbh->{csv_escape_char}         = '"';
+
+    if ( -e "$path$tableFilename$extention" ) {
+      @{$columnSequence} = ();
+
+      use Text::CSV;
+      my $csv = Text::CSV->new( { binary => 1 } );
+
+      if ( open my $rvOpen, "<", "$path$tableFilename$extention" ) {
+        if ( my $fields = $csv->getline ($rvOpen) ) {
+          @{$columnSequence} = @$fields;
+        } else {
+          CSV_error_message (*EMAILREPORT, 'Failed to parse line: '. $csv->error_input, $debug);
+        }
+
+        close $rvOpen;
+      } else {
+        CSV_error_message (*EMAILREPORT, "Cannot open $path$tableFilename$extention to print debug information", $debug);
+      }
+    } else {
+      my $create;
+
+      foreach my $columnName ( @{$columnSequence} ) {
+        $create .= "  $columnName " .$tableDefinition->{$columnName}. ",\n";
+      }
+
+      chomp $create; chop $create;
+      my $sql = "CREATE TABLE $tableName (\n$create\n)";
+      print "$sql\n\n" if ($debug);
+
+      $dbh->do ($sql) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->do: $sql", $logger, $debug);
+    }
+
+    if ( $debug ) {
+      foreach my $columnName ( @{$columnSequence} ) { print "$columnName\n"; };
+      print "\n";
+    }
+
+    return $dbh;
+  } else {
+    return undef;
+  }
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub CSV_insert_into_table {
+  my ($rv, $dbh, $tableName, $columnSequence, $tableValues, $columnNameAutoincrement, $logger, $debug) = @_;
+
+  if ( defined $dbh and $rv ) {
+	my ($column, $placeholders, @values);
+
+    foreach my $columnName ( @{$columnSequence} ) { 
+	  $column .= $columnName .',';
+      $placeholders .= '?,';
+	  push ( @values, ( ( $columnName eq $columnNameAutoincrement ) ? '' : $tableValues->{$columnName} ) );
+    }
+
+    if ( defined $column and defined $placeholders) {
+      chop $column; chop $placeholders;
+      my $sql = "INSERT INTO $tableName ($column) VALUES ($placeholders)";
+      print "$sql\n\n@values\n\n" if ($debug);
+      $dbh->do ($sql, undef, @values) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->do: $sql, @values", $logger, $debug);
+    }
+  }
+
+  return $rv;
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub CSV_import_from_table {
+  my ($rv, $dbh, $tableName, $columnSequence, $columnNameAutoincrement, $force, $logger, $debug) = @_;
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  sub _do_action_SQL {
+    my ($rv, $dbhASNMTAP, $tableName, $columnSequence, $columnNameCount, $columnNameAutoincrement, $ref, $logger, $debug) = @_;
+
+    my ($actionSQL, $set, $where, $sql) = ('I', ' SET ', ' WHERE ');
+
+    if ( $tableName eq $SERVERTABLEVENTS ) {
+      $where .= 'catalogID = "' .$$ref->{lc('catalogID')}. '" and uKey = "' .$$ref->{lc('uKey')}. '" and step <> "0" and timeslot = "' .$$ref->{lc('timeslot')}. '" order by id desc limit 1';
+      $sql = 'SELECT SQL_NO_CACHE status FROM ' . $SERVERTABLEVENTS . $where;
+    }
+
+    print "$sql\n\n" if ($debug);
+
+    my $sthASNMTAP = $dbhASNMTAP->prepare($sql) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->prepare: $sql", $logger, $debug);
+    $sthASNMTAP->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->execute", $logger, $debug);
+
+    if ($rv) {
+      while (my $refASNMTAP = $sthASNMTAP->fetchrow_hashref()) {
+	    $actionSQL = ( ( $refASNMTAP->{status} eq '<NIHIL>' or $refASNMTAP->{status} eq 'OFFLINE' or $refASNMTAP->{status} eq 'NO TEST' ) ? 'U' : 'S' );
+      }
+
+      if ($actionSQL eq 'S') {
+        print "SKIP\n" if ($debug);
+      } else {
+        foreach my $columnName ( @{$columnSequence} ) { 
+          if ( $$columnNameCount{lc($columnName)} == 2 and $columnNameAutoincrement ne $columnName ) {
+		    $set .= $columnName .'='. $dbhASNMTAP->quote($$ref->{lc($columnName)}) .',';
+          }
+		}
+
+        chop $set;
+
+        if ( $tableName eq $SERVERTABLEVENTS ) {
+	      if ($actionSQL eq 'I') {
+            $sql = 'INSERT INTO ' . $SERVERTABLEVENTS . $set;
+          } elsif ($actionSQL eq 'U') {
+            $sql = 'UPDATE ' . $SERVERTABLEVENTS . $set . $where;
+          }
+        }
+
+        print "$sql\n\n" if ($debug);
+        $dbhASNMTAP->do ($sql) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbhASNMTAP->do: $sql", $logger, $debug);
+      }
+
+      $sthASNMTAP->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->finish", $logger, $debug);
+    }
+
+    return $rv;
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  if ( defined $dbh and $rv ) {
+    my $sql = "SELECT * FROM $tableName";
+    print "$sql\n\n" if ($debug);
+    my $sth = $dbh->prepare($sql) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->prepare: $sql", $logger, $debug);
+    $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute", $logger, $debug);
+
+    if ( $rv ) {
+      my $dbhASNMTAP = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", $logger, $debug);
+
+      $sql = "SELECT * from $tableName limit 1";
+      my $sthASNMTAP = $dbhASNMTAP->prepare($sql) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->prepare: $sql", $logger, $debug);
+      $sthASNMTAP->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->execute", $logger, $debug);
+
+      if ( $rv ) {
+        my @columnSequenceASNMTAP = ();
+        my $columnNamesASNMTAP = $sthASNMTAP->{NAME};
+        my $NUM_OF_FIELDS = $sthASNMTAP->{NUM_OF_FIELDS};
+
+        while ( my $ref = $sthASNMTAP->fetchrow_arrayref ) {
+          for (my $item=0; $item < $NUM_OF_FIELDS; $item++) { push ( @columnSequenceASNMTAP, $$columnNamesASNMTAP[$item]); }
+        }
+
+        print "$tableName: NUM_OF_FIELDS CSV '" .@{$columnSequence}. "' & MySQL '$NUM_OF_FIELDS'\n" if ($debug);
+
+        my %columnNameCount = ();
+	    my ($errorDiff, $errorCount) = ('', 0);
+        foreach my $item (@{$columnSequence}, @columnSequenceASNMTAP) { $columnNameCount{lc($item)}++;}
+
+        foreach my $item (keys %columnNameCount) {
+          unless ($columnNameCount{$item} == 2) {
+            $errorDiff .= "    DIFF: $item\n";
+            $errorCount++;
+            $rv = 0;
+          }
+        }
+
+        if ( $force ) {
+          if ( $errorCount >= @{$columnSequence} ) {
+            CSV_error_message (*EMAILREPORT, "$tableName: HEADER ?\n$errorDiff", $debug) unless ( $rv );
+          } else {
+            $rv = 1;
+          }
+        } else {
+          CSV_error_message (*EMAILREPORT, "$tableName: NUM_OF_FIELDS CSV '" .@{$columnSequence}. "' <> MySQL '$NUM_OF_FIELDS'\n$errorDiff", $debug) unless ( $rv );
+        }
+
+        $sthASNMTAP->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthASNMTAP->finish", $logger, $debug);
+
+        if ( $rv ) {
+          while (my $ref = $sth->fetchrow_hashref) {
+            if ($debug) {
+              foreach my $columnName ( @{$columnSequence} ) { print "$columnName = ", $ref->{lc($columnName)}, "\n"; }
+            }
+
+            $rv = _do_action_SQL ($rv, $dbhASNMTAP, $tableName, $columnSequence, \%columnNameCount, $columnNameAutoincrement, \$ref, $debug);
+          }
+        }
+      }
+
+      $dbhASNMTAP->disconnect;
+    }
+
+    $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish", $logger, $debug);
+  }
+
+  return $rv;
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub CSV_cleanup_table {
+  my ($dbh, $logger, $debug) = @_;
+
+  $dbh->disconnect if (defined $dbh);
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub CSV_error_message {
+  my ($EMAILREPORT, $error_message, $logger, $debug) = @_;
+
+  use Scalar::Util qw(openhandle);
+  my $error = "  > CSV Error:\n    $error_message\n";
+  if ( ! $debug and defined $EMAILREPORT and openhandle($EMAILREPORT) ) { print $EMAILREPORT $error; } else { print $error; }
+  $$logger->info("CSV Error: $error_message") if ( defined $$logger and $$logger->is_info() );
   return 0;
+}
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+sub DBI_connect {
+  my ($database, $server, $port, $user, $passwd, $alarm, $DBI_error_trap, $DBI_error_trap_Arguments, $logger, $debug, $boolean_debug_all) = @_;
+
+  $$logger->info(" IN: DBI_connect: port: $port - alarm: $alarm") if ( defined $$logger and $$logger->is_info() );
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  sub _DBI_handle_error {
+    my ($error, $dbh) = @_;
+
+    no warnings;
+    print "     _DBI_handle_error: $error\n";
+    $$logger->error("     _DBI_handle_error: $error");
+    use warnings;
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  my ($rv, $dbh, $alarmMessage) = 1;
+
+  unless ( $alarm ) {
+    $$logger->info("     DBI_connect: NO SIGNAL") if ( defined $$logger and $$logger->is_info() );
+
+    if ( $boolean_debug_all ) {
+      $dbh = DBIx::Log4perl->connect("dbi:mysql:$database:$server:$port", "$user", "$passwd", { RaiseError => 0, PrintError => 1, ShowErrorStatement => 1 } ) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+      $dbh->dbix_l4p_getattr('dbix_l4p_logger'); # $$logger = $dbh->dbix_l4p_getattr('dbix_l4p_logger');
+    } else {
+      $dbh = DBI->connect("dbi:mysql:$database:$server:$port", "$user", "$passwd", { RaiseError => 1, PrintError => 0, ShowErrorStatement => 1 } ) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+    }
+  } else {
+    $$logger->info("     DBI_connect: SIGNAL") if ( defined $$logger and $$logger->is_info() );
+
+    use POSIX ':signal_h';
+    my $DBI_CONNECT_ALARM_OFF = 0;
+    my $_mask      = POSIX::SigAction->new ( SIGALRM ); # list of signals to mask in the handler
+    my $_actionNew = POSIX::SigAction->new ( sub { $DBI_CONNECT_ALARM_OFF = $alarm; die "DBI_CONNECT_ALARM_OFF = $alarm\n"; }, $_mask );
+    my $_actionOld = POSIX::SigAction->new ();
+    sigaction ( SIGALRM, $_actionNew, $_actionOld );
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    eval {
+      $DBI_CONNECT_ALARM_OFF = 1;
+      alarm($alarm);
+
+      if ( $boolean_debug_all ) {
+        $dbh = DBIx::Log4perl->connect("dbi:mysql:$database:$server:$port", "$user", "$passwd", { RaiseError => 0, PrintError => 1, ShowErrorStatement => 1 } ) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+        $dbh->dbix_l4p_getattr('dbix_l4p_logger'); # $$logger = $dbh->dbix_l4p_getattr('dbix_l4p_logger');
+      } else {
+        $dbh = DBI->connect("dbi:mysql:$database:$server:$port", "$user", "$passwd", { RaiseError => 1, PrintError => 0, ShowErrorStatement => 1 } ) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+      }
+
+      alarm(0);
+      $DBI_CONNECT_ALARM_OFF = 0;
+    };
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    alarm(0);
+    sigaction( SIGALRM, $_actionOld ); # restore original signal handler
+
+    if ( $DBI_CONNECT_ALARM_OFF ) {
+      $dbh = undef;
+      $rv = 0;
+      $alarmMessage = "DBI_CONNECT_ALARM_OFF = $DBI_CONNECT_ALARM_OFF";
+      $$logger->debug("     DBI_CONNECT_ALARM_OFF: Connection to '$database' timed out") if ( defined $$logger and $$logger->is_debug() );
+    }
+  }
+
+  # set up error handling
+  $dbh->{HandleError} = sub { _DBI_handle_error(@_) } if ( defined $dbh and $rv );
+
+  $$logger->info('OUT: DBI_connect') if ( defined $$logger and $$logger->is_info() );
+  return ($dbh, $rv, $alarmMessage);
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub DBI_do {
+  my ($rv, $dbh, $statement, $alarm, $DBI_error_trap, $DBI_error_trap_Arguments, $logger, $debug) = @_;
+
+  $$logger->info(" IN: DBI_do: rv: $rv - alarm: $alarm") if ( defined $$logger and $$logger->is_info() );
+  my ($affected, $alarmMessage) = (0);
+
+  if ( $rv ) {
+    unless ( $alarm ) {
+      $$logger->info("     DBI_do: NO SIGNAL") if ( defined $$logger and $$logger->is_info() );
+      $affected = $$dbh->do($statement) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+    } else {
+      $$logger->info("     DBI_do: SIGNAL") if ( defined $$logger and $$logger->is_info() );
+
+      use POSIX ':signal_h';
+      my $DBI_DO_ALARM_OFF = 0;
+      my $_mask      = POSIX::SigAction->new ( SIGALRM ); # list of signals to mask in the handler
+      my $_actionNew = POSIX::SigAction->new ( sub { $DBI_DO_ALARM_OFF = $alarm; die "DBI_DO_ALARM_OFF = $alarm\n"; }, $_mask );
+      my $_actionOld = POSIX::SigAction->new ();
+      sigaction ( SIGALRM, $_actionNew, $_actionOld );
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      eval {
+        $DBI_DO_ALARM_OFF = 1;
+        alarm($alarm);
+        $affected = $$dbh->do($statement) or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+        alarm(0);
+        $DBI_DO_ALARM_OFF = 0;
+      };
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      alarm(0);
+      sigaction( SIGALRM, $_actionOld ); # restore original signal handler
+
+      if ( $DBI_DO_ALARM_OFF ) {
+        $rv = 0;
+        $alarmMessage = "DBI_DO_ALARM_OFF = $DBI_DO_ALARM_OFF";
+        $$logger->debug("     DBI_DO_ALARM_OFF: dbh->do timed out") if ( defined $$logger and $$logger->is_debug() );
+      }
+    }
+  }
+
+  $$logger->info("OUT: DBI_do") if ( defined $$logger and $$logger->is_info() );
+  return ( $rv, $alarmMessage, $affected );
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub DBI_execute {
+  my ($rv, $sth, $alarm, $DBI_error_trap, $DBI_error_trap_Arguments, $logger, $debug) = @_;
+
+  $$logger->info(" IN: DBI_execute: rv: $rv - alarm: $alarm") if ( defined $$logger and $$logger->is_info() );
+  my $alarmMessage;
+
+  if ( $rv ) {
+    unless ( $alarm ) {
+      $$logger->info("     DBI_execute: NO SIGNAL") if ( defined $$logger and $$logger->is_info() );
+      $$sth->execute() or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+    } else {
+      $$logger->info("     DBI_execute: SIGNAL") if ( defined $$logger and $$logger->is_info() );
+
+      use POSIX ':signal_h';
+      my $DBI_EXECUTE_ALARM_OFF = 0;
+      my $_mask      = POSIX::SigAction->new ( SIGALRM ); # list of signals to mask in the handler
+      my $_actionNew = POSIX::SigAction->new ( sub { $DBI_EXECUTE_ALARM_OFF = $alarm; die "DBI_EXECUTE_ALARM_OFF = $alarm\n"; }, $_mask );
+      my $_actionOld = POSIX::SigAction->new ();
+      sigaction ( SIGALRM, $_actionNew, $_actionOld );
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      eval {
+        $DBI_EXECUTE_ALARM_OFF = 1;
+        alarm($alarm);
+        $$sth->execute() or $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
+        alarm(0);
+        $DBI_EXECUTE_ALARM_OFF = 0;
+      };
+
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      alarm(0);
+      sigaction( SIGALRM, $_actionOld ); # restore original signal handler
+
+      if ( $DBI_EXECUTE_ALARM_OFF ) {
+        $rv = 0;
+        $alarmMessage = "DBI_EXECUTE_ALARM_OFF = $DBI_EXECUTE_ALARM_OFF";
+        $$logger->debug("     DBI_EXECUTE_ALARM_OFF: sth->execute timed out") if ( defined $$logger and $$logger->is_debug() );
+      }
+    }
+  }
+
+  $$logger->info("OUT: DBI_execute") if ( defined $$logger and $$logger->is_info() );
+  return ( $rv, $alarmMessage );
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub DBI_error_trap {
+  my ($EMAILREPORT, $error_message, $logger, $debug) = @_;
+
+  use Scalar::Util qw(openhandle);
+  my $error = "  > DBI Error:\n" .$error_message. "\nERROR: $DBI::err ($DBI::errstr)\n";
+  if ( ! $debug and defined $EMAILREPORT and openhandle($EMAILREPORT) ) { print $EMAILREPORT $error; } else { print $error; }
+  $$logger->info("DBI Error:" .$error_message. "ERROR: $DBI::err ($DBI::errstr)") if ( defined $$logger and $$logger->is_info() );
+  return 0;
+}
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+sub LOG_init_log4perl {
+  my ($item, $config, $boolean_debug_all) = @_;
+
+  my $logger;
+
+  if ( $boolean_debug_all ) {
+    eval {
+      use Log::Log4perl qw(get_logger);
+      use DBIx::Log4perl;
+
+      if ( -e "$APPLICATIONPATH/log4perl.cnf" ) {
+        Log::Log4perl->init_and_watch("$APPLICATIONPATH/log4perl.cnf", 'HUP');
+      } else {
+        my $log4perl_cnf;
+
+        if ( defined $config ) {
+          $log4perl_cnf = $config;
+        } else {
+          $log4perl_cnf = qq(
+            log4perl.logger                       = TRACE, LOGFILE, LOGSCREEN
+
+            log4perl.appender.LOGFILE             = Log::Log4perl::Appender::File
+            log4perl.appender.LOGFILE.filename    = $LOGPATH/root.log
+            log4perl.appender.LOGFILE.mode        = append
+            log4perl.appender.LOGFILE.Threshold   = ERROR
+            log4perl.appender.LOGFILE.layout      = PatternLayout
+            log4perl.appender.LOGFILE.layout.ConversionPattern = [%r] %F %L %c - %m%n
+
+            log4perl.appender.LOGSCREEN           = Log::Log4perl::Appender::Screen
+            log4perl.appender.LOGSCREEN.stderr    = 0
+            log4perl.appender.LOGSCREEN.layout    = PatternLayout
+            log4perl.appender.LOGSCREEN.layout.ConversionPattern = [%r] %F %L %c - %m%n
+
+            log4perl.logger.DBIx.Log4perl         = TRACE, MySQL
+            log4perl.appender.MySQL               = Log::Log4perl::Appender::File
+            log4perl.appender.MySQL.filename      = $LOGPATH/MySQL.log
+            log4perl.appender.MySQL.mode          = append
+            log4perl.appender.MySQL.layout        = Log::Log4perl::Layout::SimpleLayout
+          );
+        }
+
+        Log::Log4perl->init( \$log4perl_cnf );
+      }
+
+      $logger = get_logger($item);
+    }
+  }
+
+  return ( $logger );
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

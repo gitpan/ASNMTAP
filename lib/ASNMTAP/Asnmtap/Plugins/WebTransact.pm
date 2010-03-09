@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -156,6 +156,7 @@ sub check {
                    openAppend       => TRUE,
                    cookies          => TRUE,
                    protocol         => TRUE,
+                   keepAlive        => TRUE,
                    download_images  => FALSE,
                    fail_if_1        => TRUE );
 
@@ -177,7 +178,13 @@ sub check {
   if ( $self->{newAgent} or ! defined $ua ) {
     $self->{newAgent} = 0;
     LWP::Debug::level('+') if ( $debug );
-    $ua = LWP::UserAgent->new ( keep_alive => 1 );
+
+    if ( $parms{keepAlive} ) {
+      $ua = LWP::UserAgent->new ( keep_alive => 1 );
+    } else {
+      $ua = LWP::UserAgent->new ( keep_alive => 0 );
+    }
+
     $self->{ua} = $ua;
     $ua->agent ( ${$self->{asnmtapInherited}}->browseragent () );
     $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
@@ -186,7 +193,7 @@ sub check {
     $ua->default_headers->push_header ( 'Accept-Charset'  => 'iso-8859-1,*,utf-8' );
     $ua->default_headers->push_header ( 'Accept-Encoding' => 'gzip, deflate' );
 
-    $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () );
+    $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () ) if ( $parms{keepAlive} );
     $ua->default_headers->push_header ( 'Connection' => 'Keep-Alive' );
 
     if ( defined $proxyServer ) {
@@ -204,7 +211,7 @@ sub check {
 
   if ( defined $parms{timeout} ) {
     $ua->timeout ( $parms{timeout} );
-    $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} );
+    $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} ) if ( $parms{keepAlive} );
   }
 
   my $returnCode = $parms{fail_if_1} ? $ERRORS{OK} : $ERRORS{CRITICAL};
@@ -223,16 +230,16 @@ sub check {
     if ( defined $url_r->{Timeout} ) {
       $statusTimeout = 1;
       $ua->timeout ( $url_r->{Timeout} );
-      $ua->default_headers->push_header ( 'Keep-Alive' => $url_r->{Timeout} );
+      $ua->default_headers->push_header ( 'Keep-Alive' => $url_r->{Timeout} ) if ( $parms{keepAlive} );
     } elsif ( defined $statusTimeout ) {
       $statusTimeout = undef;
 
       if ( defined $parms{timeout} ) {
         $ua->timeout ( $parms{timeout} );
-        $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} );
+        $ua->default_headers->push_header ( 'Keep-Alive' => $parms{timeout} ) if ( $parms{keepAlive} );
       } else {
         $ua->timeout ( ${$self->{asnmtapInherited}}->timeout () );
-        $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () );
+        $ua->default_headers->push_header ( 'Keep-Alive' => ${$self->{asnmtapInherited}}->timeout () ) if ( $parms{keepAlive} );
       }
     }
 

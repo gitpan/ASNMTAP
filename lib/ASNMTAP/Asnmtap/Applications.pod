@@ -24,6 +24,12 @@ General configuration file for the ASNMTAP Applications
 
 =over 4
 
+=item log4perl.cnf
+
+General configuration file for the log4perl integration for the ASNMTAP Applications
+
+=over 4
+
 =item HTML to PDF
 
 For testing HTML to PDF you can rename /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif-orig to /opt/asnmtap/applications/htmlroot/img/logos/bodyimage.gif
@@ -67,7 +73,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.002 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.003 or higher
  #
  # <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
@@ -882,31 +888,19 @@ DON't run the ASNMTAP Applications under the ROOT account, use one dedicated acc
 
 Standalone monitoring example
 
-MySQL 4.x
-
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002.sql
- or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002.sql
-
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.003_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.003_mysql-v5.0.x.sql
 
 Distributed monitoring example
 
-MySQL 4.x
-
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002-distributed.sql
- or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002-distributed.sql
-
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.002-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.003-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.002-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.003-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -947,6 +941,8 @@ MySQL 5.0.x
    binlog-ignore-db=mysql
    replicate-ignore-db=mysql
    report-host=slave-server.citap.com
+   auto_increment_increment = 2
+   auto_increment_offset = 1
 
  [mysql.server]
    user=mysql
@@ -1012,6 +1008,8 @@ MySQL 5.0.x
    binlog-ignore-db=mysql
    replicate-ignore-db=mysql
    report-host=master-server.citap.com
+   auto_increment_increment = 2
+   auto_increment_offset = 2
 
  [mysql.server]
    user=mysql
@@ -1194,21 +1192,13 @@ Install net-snmp 5.4.x
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
- MySQL 4.x
-
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.002.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
-  or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.002.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002.SQL
-
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.002-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.002_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.003-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.003_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.002-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.002_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.003-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.003_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -2014,10 +2004,10 @@ InnoDB does not allow you to drop a table that is referenced by a FOREIGN KEY co
 
 =item MySQL
 
- MySQL 4.x and 5.0.x are supported
+ MySQL 5.0.x and 5.1.x are supported
 
- tar -xvzf mysql-4.1.20.tar.gz or higher
- cd mysql-4.1.20
+ tar -xvzf mysql-5.0.20.tar.gz or higher
+ cd mysql-5.0.20
  ./configure --without-server --enable-local-infile 
  make
  make install

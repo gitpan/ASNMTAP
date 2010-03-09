@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               ASNMTAP
-version:            3.001002
+version:            3.001003
 abstract:           Application System Network Monitoring Toolkit Alex Peeters
 author:
     - Alex Peeters <alex.peeters@citap.com>
@@ -29,6 +29,8 @@ requires:
     DateTime:             0.37
     DateTime::Format::Epoch:  0.10
     DateTime::Format::W3CDTF:  0.04
+    DBD::CSV:             0.26
+    DBIx::Log4perl:       0.18
     Digest::MD5:          2.36
     Digest::SHA1:         2.11
     Dumpvalue:            1.11
@@ -41,6 +43,7 @@ requires:
     IO::CaptureOutput:    1.0801
     IO::Socket::SSL:      1.13
     IO::String:           1.08
+    Log::Log4perl:        1.26
     Mail::POP3Client:     2.18
     Mail::Sendmail:       0.79
     MIME::Base64:         3.07
@@ -53,6 +56,7 @@ requires:
     Sys::Hostname::Long:  1.4
     Test::Pod::Coverage:  1.08
     Test::Simple:         0.80
+    Text::CSV:            1.16
     Time::HiRes:          1.9705
     Time::Local:          1.17
     URI:                  1.36

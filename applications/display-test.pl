@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2010/03/10, v3.001.003, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.002;
+use ASNMTAP::Time v3.001.003;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.001.002;
+use ASNMTAP::Asnmtap::Applications::Display v3.001.003;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -542,6 +542,11 @@ sub do_crontab {
 
                 if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
                   $statusOverlib = ( $timeslot ? $itemStatus[1] : $itemStatus[0] );
+
+                  if ($pagedir =~ /^(?:index|test)$/ and -s "$APPLICATIONPATH/custom/cartography.pm") {
+                    require "$APPLICATIONPATH/custom/cartography.pm";
+                    createGifForCartography( $catalogID_uniqueKey, $statusOverlib );
+                  }
                 }
 
                 if ($dstatus ne 'OK' and $dstatus ne 'OFFLINE' and $dstatus ne 'NO DATA' and $dstatus ne 'NO TEST') {
@@ -864,13 +869,18 @@ EOM
 
   if (-s "$APPLICATIONPATH/custom/sde.pm") {
     require "$APPLICATIONPATH/custom/sde.pm";
-    $_exclaim = printRelationshipsSDE( $serverName, $checklist, $catalogID, $uniqueKey );
+    $_exclaim .= printRelationshipsSDE( $serverName, $checklist, $catalogID, $uniqueKey );
+  }
+
+  if (-s "$APPLICATIONPATH/custom/cartography.pm") {
+    require "$APPLICATIONPATH/custom/cartography.pm";
+    $_exclaim .= printLinkToCartography( $serverName, $checklist, $catalogID, $uniqueKey );
   }
 
   $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR>$_exclaim</TABLE>";
-  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onmousedown="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onclick="nd();" onmousedown="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
 
-  my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
+  my $_comment = ( defined $comment ? 'onclick="nd();" onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
   my $comments = '<a href="'. $HTTPSURL .'/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
 
   my $helpfile = (defined $help and $help eq '1') ? '<A HREF="'. $HTTPSURL .'/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
@@ -1403,3 +1413,4 @@ email to $SENDEMAILTO
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

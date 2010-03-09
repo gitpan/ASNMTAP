@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, views.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/03/10, v3.001.003, views.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # ----------------------------------------------------------------------------------------------------------
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # ----------------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "views.pl";
 my $prgtext     = "Views";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

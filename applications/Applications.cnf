@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.001.002
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.001.003
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,7 +72,7 @@
 
 #<DATABASE_ACCOUNT>
 #  <SERVER>
-#    VERSION         4.x                    # '4.x' or '5.0.x'
+#    VERSION         5.0.x                  # '5.0.x' or '5.1.x'
 #    MERGE           0                      # '0' or '1'
 #  </SERVER>
 

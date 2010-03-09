@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, check_template-SNMPTT.pl
+# 2010/03/10, v3.001.003, check_template-SNMPTT.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.002;
+use ASNMTAP::Asnmtap::Plugins v3.001.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-SNMPTT.pl',
   _programDescription => "SNMPTT plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.001.002',
+  _programVersion     => '3.001.003',
   _programUsagePrefix => '[--uKey|-K=<uKey>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>',
   _programGetOptions  => ['uKey|K:s', 'community|C=s', 'host|H:s', 'environment|e=s', 'timeout|t:i', 'trendline|T:i'],

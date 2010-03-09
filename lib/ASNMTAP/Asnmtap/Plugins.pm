@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -33,7 +33,7 @@ BEGIN {
   %ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS = (ALL      => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
                                                               $PREFIXPATH $LOGPATH $PIDPATH $PERL5LIB $MANPATH $LD_LIBRARY_PATH
-                                                              %ERRORS %STATE %TYPE
+                                                              $ALARM_OFF %ERRORS %STATE %TYPE
 
                                                               $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND
 
@@ -42,9 +42,7 @@ BEGIN {
                                                               &_checkReadOnly0 &_checkReadOnly1 &_checkReadOnly2
                                                               &_dumpValue
 
-                                                              $PLUGINPATH
-
-                                                              $ALARM_OFF) ],
+                                                              $PLUGINPATH) ],
 
                                              PLUGINS  => [ qw($APPLICATION $BUSINESS $DEPARTMENT $COPYRIGHT $SENDEMAILTO
                                                               $CAPTUREOUTPUT
@@ -60,7 +58,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -139,7 +137,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.001.002 postfix; nl-BE; rv:3.001.002) Gecko/yyyymmdd libwww-perl/5.813';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.001.003 postfix; nl-BE; rv:3.001.003) Gecko/20100310 libwww-perl/5.813';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -170,7 +168,6 @@ sub _getOptions {
   my ($startTimeSeconds, $startTimeMicroseconds) = gettimeofday();
   $_[0]->{_pluginValues}->{startTime}  = $startTimeSeconds .'.'. $startTimeMicroseconds;
   $_[0]->{_pluginValues}->{endTime}    = $_[0]->{_pluginValues}->{startTime};
-
 
   # Options that are unknown, ambiguous or supplied with an invalid option value are passed through in @ARGV
 

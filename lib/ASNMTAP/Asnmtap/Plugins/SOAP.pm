@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -

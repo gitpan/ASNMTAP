@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, asnmtap-3.001.002-distributed.sql
+# 2010/03/10, v3.001.003, asnmtap-3.001.003-distributed_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -540,7 +540,7 @@ CREATE TABLE `events` (
   `id` int(11) NOT NULL auto_increment,
   `uKey` varchar(11) NOT NULL default '',
   `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
-  `test` varchar(254) NOT NULL default '',
+  `test` varchar(512) NOT NULL default '',
   `title` varchar(75) NOT NULL default '',
   `status` varchar(9) NOT NULL default '',
   `startDate` date NOT NULL default '0000-00-00',
@@ -548,7 +548,7 @@ CREATE TABLE `events` (
   `endDate` date NOT NULL default '0000-00-00',
   `endTime` time NOT NULL default '00:00:00',
   `duration` time NOT NULL default '00:00:00',
-  `statusMessage` varchar(254) NOT NULL default '',
+  `statusMessage` varchar(1024) NOT NULL default '',
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
   `instability` tinyint(1) NOT NULL default '9',
@@ -1140,11 +1140,11 @@ CREATE TABLE `views` (
 
 /*Data for the table `views` */
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CID','DUMMY-T1','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CID','DUMMY-T2','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CID','DUMMY-T3','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CID','DUMMY-T4','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CID','DUMMY-T5','test',2,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T1','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T2','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T3','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T4','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T5','test',2,1);
 
 insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','MYSQLS-P-01','index',3,1);
 insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','MYSQLS-P-02','index',3,1);

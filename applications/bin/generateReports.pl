@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, generateReports.pl for ASNMTAP::Applications
+# 2010/03/10, v3.001.003, generateReports.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.001.002;
+use ASNMTAP::Asnmtap::Applications v3.001.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
 
                                       $CATALOGID
@@ -32,7 +32,8 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS &call_system
                                       $HTMLTOPDFPRG $HTMLTOPDFOPTNS
                                       &create_header &create_footer
                                       &init_email_report &send_email_report &encode_html_entities
-                                      &error_Trap_DBI
+                                      &DBI_error_trap
+                                      &LOG_init_log4perl
 
                                       $DATABASE $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
                                       $SERVERTABLENVIRONMENT $SERVERTABLPLUGINS $SERVERTABLREPORTS);
@@ -45,7 +46,7 @@ use vars qw($opt_y $opt_m $opt_d $opt_a $opt_u  $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "generateReports.pl";
 my $prgtext     = "Generate Reports for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -134,6 +135,10 @@ if ($opt_d) {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+my $logger = LOG_init_log4perl ( 'generate::reports', undef, $debug );
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 my ($emailReport, $rvOpen) = init_email_report (*EMAILREPORT, "generateReports.txt", $debug);
 
 create_dir ($RESULTSPATH);
@@ -197,14 +202,14 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
   # open connection to database and query data
   $rv  = 1;
 
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
+  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADONLY:$SERVERPORTREADONLY", "$SERVERUSERREADONLY", "$SERVERPASSREADONLY" ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", \$logger, $debug);
 
   if ($dbh and $rv) {
     my ($id, $catalogID, $uKey, $reportTitle, $periode, $status, $errorDetails, $bar, $hourlyAverage, $dailyAverage, $showDetails, $showComments, $showPerfdata, $showTop20SlowTests, $printerFriendlyOutput, $formatOutput, $userPassword, $timeperiodID, $test, $resultsdir);
     $sql = "select id, $SERVERTABLREPORTS.catalogID, $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ), periode, status, errorDetails, bar, hourlyAverage, dailyAverage, showDetails, showComments, showPerfdata, showTop20SlowTests, printerFriendlyOutput, formatOutput, userPassword, timeperiodID from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $uKeySqlWhere $SERVERTABLREPORTS.catalogID = '$CATALOGID' and $SERVERTABLREPORTS.activated = '1' and $SERVERTABLREPORTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.activated = '1' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by uKey";
-    $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-    $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-    $sth->bind_columns( \$id, \$catalogID, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showComments, \$showPerfdata, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword, \$timeperiodID ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+    $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+    $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
+    $sth->bind_columns( \$id, \$catalogID, \$uKey, \$reportTitle, \$periode, \$status, \$errorDetails, \$bar, \$hourlyAverage, \$dailyAverage, \$showDetails, \$showComments, \$showPerfdata, \$showTop20SlowTests, \$printerFriendlyOutput, \$formatOutput, \$userPassword, \$timeperiodID ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->bind_columns: $sql", \$logger, $debug) if $rv;
 
     my @commands = (); my @pdfFilenames = ();
 
@@ -257,12 +262,12 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
             $urlAccessParameters .= "&pf=on" if($printerFriendlyOutput);
 
             $sql = "select test, resultsdir from $SERVERTABLPLUGINS where catalogID = '$catalogID' and ukey = '$uKey' order by uKey";
-            my $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-            $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
+            my $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+            $sth->execute() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
 
             if ( $rv ) {
-              ($test, $resultsdir) = $sth->fetchrow_array() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-              $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug);
+              ($test, $resultsdir) = $sth->fetchrow_array() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug) if $rv;
+              $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->execute: $sql", \$logger, $debug);
             }
 
             my $logging = $RESULTSPATH .'/'. $resultsdir;
@@ -300,10 +305,10 @@ for (my $dayAfter = ( $daysAfter ) ? 1 : 0; $dayAfter <= $daysAfter; $dayAfter++
         }
       }
 
-      $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
+      $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
     }
 
-    $dbh->disconnect or $rv = error_Trap_DBI(*EMAILREPORT, "Sorry, the database was unable to add your entry.", $debug);
+    $dbh->disconnect or $rv = DBI_error_trap(*EMAILREPORT, "Sorry, the database was unable to add your entry.", \$logger, $debug);
     my $teller = 0;
     $emailMessage .= "\n";
 

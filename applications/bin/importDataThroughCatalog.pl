@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/01/05, v3.001.002, importDataThroughCatalog.pl for ASNMTAP::Applications
+# 2010/03/10, v3.001.003, importDataThroughCatalog.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,16 +20,17 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.002;
+use ASNMTAP::Time v3.001.003;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_logfiledate &get_datetime);
 
-use ASNMTAP::Asnmtap::Applications v3.001.002;
+use ASNMTAP::Asnmtap::Applications v3.001.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RESULTSPATH
                                       $SMTPUNIXSYSTEM $SERVERLISTSMTP $SERVERSMTP $SENDMAILFROM
                                       &init_email_report &send_email_report 
-                                      &error_Trap_DBI
+                                      &DBI_connect &DBI_do &DBI_execute &DBI_error_trap
+                                      &LOG_init_log4perl
 
                                       $DATABASE $CATALOGID $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                       $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS);
@@ -42,14 +43,18 @@ use vars qw($opt_T  $opt_M $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "importDataThroughCatalog.pl";
 my $prgtext     = "Import Data Through Catalog for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $debug       = 0;                                            # default 0
-my $limit       = 10000;                                        # default 10000
+my $limit       = 1000;                                         # default 1000
 my $type        = 3;                                            # default 3
 my $logging     = $RESULTSPATH .'/';                            # default $RESULTSPATH .'/', disabled by '<NIHIL>'
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+my $alarm       = 15;                                           # default 15
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -109,6 +114,10 @@ if ($opt_T) {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+my $logger = LOG_init_log4perl ( 'import::data::through::catalog', undef, $boolean_debug_all );
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 my $boolean_daemonQuit    = 0;
 my $boolean_signal_hup    = 0;
 my $boolean_daemonControl = !$booleanQuit;
@@ -116,7 +125,7 @@ my $boolean_daemonControl = !$booleanQuit;
 my $pidfile = $PIDPATH .'/importDataThroughCatalog.pid';
 
 # Init parameters
-my ($rv, $dbh, $sth, $sql);
+my ($rv, $dbh, $sth, $sql, $alarmMessage);
 
 if ($mode eq 'D') {
   printDebugAll ("Uitvoeren import data through catalog - : <$PROGNAME v$version pid: <$pidfile>");
@@ -181,13 +190,13 @@ exit;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub signal_DIE {
-  #printDebugAll ("kill -DIE <$PROGNAME v$version pid: <$pidfile>");
+  # printDebugAll ("kill -DIE <$PROGNAME v$version pid: <$pidfile>");
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub signal_WARN {
-  #printDebugAll ("kill -WARN <$PROGNAME v$version pid: <$pidfile>");
+  # printDebugAll ("kill -WARN <$PROGNAME v$version pid: <$pidfile>");
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -289,17 +298,15 @@ sub printDebugNOK {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub do_importDataThroughCatalog {
-  # open connection to database and query data
-  $rv  = 1;
-
-  $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
+  printDebugAll (" IN: do_importDataThroughCatalog <$PROGNAME v$version pid: <$pidfile>");
+  ($dbh, $rv, $alarmMessage) = DBI_connect ( $DATABASE, $SERVERNAMEREADWRITE, $SERVERPORTREADWRITE, $SERVERUSERREADWRITE, $SERVERPASSREADWRITE, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot connect to the database"], \$logger, $debug, $boolean_debug_all );
 
   if ($dbh and $rv) {
     my ($catalogID, $catalogType, $databaseFQDN, $databasePort);
     $sql = "select catalogID, catalogType, databaseFQDN, databasePort from $SERVERTABLCATALOG where catalogID <> '$CATALOGID' and catalogType <> 'central' and activated = '1'";
-    $sth = $dbh->prepare( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sql", $debug);
-    $sth->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->execute: $sql", $debug) if $rv;
-    $sth->bind_columns( \$catalogID, \$catalogType, \$databaseFQDN, \$databasePort ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->bind_columns: $sql", $debug) if $rv;
+    $sth = $dbh->prepare( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sql", \$logger, $debug);
+    ($rv, undef) = DBI_execute ($rv, \$sth, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot sth->execute: $sql"], \$logger, $debug);
+    $sth->bind_columns( \$catalogID, \$catalogType, \$databaseFQDN, \$databasePort ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->bind_columns: $sql", \$logger, $debug) if $rv;
 
     if ( $rv ) {
       my %catalog;
@@ -313,7 +320,7 @@ sub do_importDataThroughCatalog {
         }
       }
 
-      $sth->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sth->finish: $sql", $debug);
+      $sth->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sth->finish: $sql", \$logger, $debug);
 
       foreach my $catalogID ( keys %catalog ) {
         if ($debug) {
@@ -323,11 +330,9 @@ sub do_importDataThroughCatalog {
           print "  - databasePort => ". $catalog{$catalogID}{databasePort} ."\n";
         }
 
-        # Init parameters
-        $rv = 1;
-
         # Open connection to database and query data
-        my $dbhSOURCE = DBI->connect("dbi:mysql:$DATABASE:". $catalog{$catalogID}{databaseFQDN} .":". $catalog{$catalogID}{databasePort}, "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot connect to the database", $debug);
+        my $dbhSOURCE;
+        ($dbhSOURCE, $rv, $alarmMessage) = DBI_connect ( $DATABASE, $catalog{$catalogID}{databaseFQDN}, $catalog{$catalogID}{databasePort}, $SERVERUSERREADWRITE, $SERVERPASSREADWRITE, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot connect to the database"], \$logger, $debug, $boolean_debug_all );
 
         if ($dbhSOURCE and $rv) {
           print EMAILREPORT "\nCatalog ID: $catalogID\n" unless ($debug);
@@ -393,13 +398,15 @@ sub do_importDataThroughCatalog {
 
           # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-          $dbhSOURCE->disconnect or $rv = error_Trap_DBI(*EMAILREPORT, "Sorry, the database was unable to add your entry.", $debug);
+          $dbhSOURCE->disconnect or $rv = DBI_error_trap(*EMAILREPORT, "Sorry, the database was unable to add your entry.", \$logger, $debug);
         }
       }
     }
 
-    $dbh->disconnect or $rv = error_Trap_DBI(*EMAILREPORT, "Sorry, the database was unable to add your entry.", $debug);
+    $dbh->disconnect or $rv = DBI_error_trap(*EMAILREPORT, "Sorry, the database was unable to add your entry.", \$logger, $debug);
   }
+
+  printDebugAll ("OUT: do_importDataThroughCatalog <$PROGNAME v$version pid: <$pidfile>");
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -407,13 +414,14 @@ sub do_importDataThroughCatalog {
 sub importData {
   my ($EMAILREPORT, $dbhSOURCE, $dbh, $replicationStatus, $table, $whereCLAUSE, @primaryKeys) = @_;
 
+  printDebugAll ("     IN: importData <$PROGNAME v$version pid: <$pidfile>: $replicationStatus, $table, $whereCLAUSE, @primaryKeys");
   print $EMAILREPORT "  - importData: $replicationStatus, $table, $whereCLAUSE, @primaryKeys\n" unless ($debug);
 
   my $sqlSOURCE = "select * from `$table` where $whereCLAUSE limit $limit";
   print "+ $sqlSOURCE\n" if ($debug);
 
-  my $sthSOURCE = $dbhSOURCE->prepare( $sqlSOURCE ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbhSOURCE->prepare: $sqlSOURCE", $debug);
-  $sthSOURCE->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sthSOURCE->execute: $sqlSOURCE", $debug) if $rv;
+  my $sthSOURCE = $dbhSOURCE->prepare( $sqlSOURCE ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbhSOURCE->prepare: $sqlSOURCE", \$logger, $debug);
+  ($rv, undef) = DBI_execute ($rv, \$sthSOURCE, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot sthSOURCE->execute: $sqlSOURCE"], \$logger, $debug);
 
   if ( $rv ) {
     while (my $ref = $sthSOURCE->fetchrow_hashref()) {
@@ -422,12 +430,12 @@ sub importData {
 
       my $sqlVERIFY = "select count(catalogID) from `$table` $whereReplicationStatus";
       print "... $sqlVERIFY\n" if ( $debug );
-      my $sthVERIFY = $dbh->prepare( $sqlVERIFY ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->prepare: $sqlVERIFY", $debug);
-      $sthVERIFY->execute() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sthSOURCE->execute: $sqlVERIFY", $debug) if $rv;
+      my $sthVERIFY = $dbh->prepare( $sqlVERIFY ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot dbh->prepare: $sqlVERIFY", \$logger, $debug);
+     ($rv, undef) = DBI_execute ($rv, \$sthVERIFY, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot $sthVERIFY->execute: $sqlVERIFY"], \$logger, $debug);
 
       if ( $rv ) {
         my $updateRecord = $sthVERIFY->fetchrow_array();
-        $sthVERIFY->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sthVERIFY->finish: $sqlVERIFY", $debug);
+        $sthVERIFY->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthVERIFY->finish: $sqlVERIFY", \$logger, $debug);
 
         if ( $updateRecord ) {
           $action = "UPDATE `$table` SET";
@@ -445,20 +453,21 @@ sub importData {
 
         my $sql = "$action $where";
         print "  - $sql\n" if ($debug);
-        $dbh->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot dbh->do: $sql", $debug);
-
+        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $sql, $alarm, \&DBI_error_trap, [*EMAILREPORT, "Cannot dbh->do: $sql"], \$logger, $debug);
+		
         if ( $rv and $replicationStatus ) {
           $sql = "UPDATE `$table` SET replicationStatus = 'R' $whereReplicationStatus";
           print "  + $sql\n" if ($debug);
-          $dbhSOURCE->do ( $sql ) or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot $dbhSOURCE->do: $sql", $debug);
+          $dbhSOURCE->do ( $sql ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot $dbhSOURCE->do: $sql", \$logger, $debug);
         }
       }
     }
 
-    $sthSOURCE->finish() or $rv = error_Trap_DBI(*EMAILREPORT, "Cannot sthSOURCE->finish: $sqlSOURCE", $debug);
+    $sthSOURCE->finish() or $rv = DBI_error_trap(*EMAILREPORT, "Cannot sthSOURCE->finish: $sqlSOURCE", \$logger, $debug);
   }
 
   print $EMAILREPORT "  ERROR: DBH/STH\n" unless ($debug or $rv);
+  printDebugAll ("    OUT: importData <$PROGNAME v$version pid: <$pidfile>");
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
