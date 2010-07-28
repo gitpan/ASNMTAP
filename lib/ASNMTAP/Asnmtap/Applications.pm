@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Applications
+# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -63,7 +63,7 @@ BEGIN {
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
+                                                                       $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS
                                                                        &read_table &get_session_param &get_trendline_from_test
                                                                        &set_doIt_and_doOffline
                                                                        &create_header &create_footer &encode_html_entities &decode_html_entities &print_header &print_legend
@@ -120,7 +120,7 @@ BEGIN {
                                                                        &print_revision &usage &call_system) ],
 
                                                   DBCOLLECTOR  => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
+                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT) ],
  
                                                   DISPLAY      => [ qw($APPLICATIONPATH
 
@@ -136,7 +136,7 @@ BEGIN {
                                                                        &print_revision &usage &call_system) ],
  
                                                   DBDISPLAY    => [ qw($DATABASE $CATALOGID $SERVERMYSQLVERSION $SERVERMYSQLMERGE $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE 
-                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT) ],
+                                                                       $SERVERTABLCOMMENTS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT) ],
 									   
                                                   CGI          => [ qw($APPLICATIONPATH
 
@@ -166,7 +166,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -280,7 +280,7 @@ sub LOG_init_log4perl;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -454,6 +454,7 @@ our $SERVERTABLDISPLAYGRPS     = 'displayGroups';
 our $SERVERTABLENVIRONMENT     = 'environment';
 our $SERVERTABLEVENTS          = 'events';
 our $SERVERTABLEVENTSCHNGSLGDT = 'eventsChangesLogData';
+our $SERVERTABLEVENTSDISPLAYDT = 'eventsDisplayData';
 our $SERVERTABLHOLIDYS         = 'holidays';
 our $SERVERTABLHOLIDYSBNDL     = 'holidaysBundle';
 our $SERVERTABLLANGUAGE        = 'language';
@@ -478,6 +479,7 @@ if ( exists $_config{TABLES} ) {
   $SERVERTABLENVIRONMENT       = $_config{TABLES}{ENVIRONMENT}          if ( exists $_config{TABLES}{ENVIRONMENT} );
   $SERVERTABLEVENTS            = $_config{TABLES}{EVENTS}               if ( exists $_config{TABLES}{EVENTS} );
   $SERVERTABLEVENTSCHNGSLGDT   = $_config{TABLES}{EVENTSCHANGESLOGDATA} if ( exists $_config{TABLES}{EVENTSCHANGESLOGDATA} );
+  $SERVERTABLEVENTSDISPLAYDT   = $_config{TABLES}{EVENTSDISPLAYDATA}    if ( exists $_config{TABLES}{EVENTSDISPLAYDATA} );
   $SERVERTABLHOLIDYS           = $_config{TABLES}{HOLIDAYS}             if ( exists $_config{TABLES}{HOLIDAYS} );
   $SERVERTABLHOLIDYSBNDL       = $_config{TABLES}{HOLIDAYSBUNDLE}       if ( exists $_config{TABLES}{HOLIDAYSBUNDLE} );
   $SERVERTABLLANGUAGE          = $_config{TABLES}{LANGUAGE}             if ( exists $_config{TABLES}{LANGUAGE} );

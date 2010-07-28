@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, importDataThroughCatalog.pl for ASNMTAP::Applications
+# 2010/mm/dd, v3.002.001, importDataThroughCatalog.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.003;
+use ASNMTAP::Time v3.002.001;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_logfiledate &get_datetime);
 
-use ASNMTAP::Asnmtap::Applications v3.001.003;
+use ASNMTAP::Asnmtap::Applications v3.002.001;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RESULTSPATH
@@ -33,7 +33,7 @@ use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
                                       &LOG_init_log4perl
 
                                       $DATABASE $CATALOGID $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
-                                      $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS);
+                                      $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,7 +43,7 @@ use vars qw($opt_T  $opt_M $opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "importDataThroughCatalog.pl";
 my $prgtext     = "Import Data Through Catalog for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,7 +54,7 @@ my $logging     = $RESULTSPATH .'/';                            # default $RESUL
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $alarm       = 15;                                           # default 15
+my $alarm       = 30;                                           # default 15
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -366,6 +366,7 @@ sub do_importDataThroughCatalog {
             # 4 - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             importData (*EMAILREPORT, $dbhSOURCE, $dbh, 1, $SERVERTABLEVENTS,          "catalogID = '$catalogID' and replicationStatus <> 'R'", 'uKey', 'timeslot');
             importData (*EMAILREPORT, $dbhSOURCE, $dbh, 1, $SERVERTABLEVENTSCHNGSLGDT, "catalogID = '$catalogID' and replicationStatus <> 'R'", 'uKey');
+            importData (*EMAILREPORT, $dbhSOURCE, $dbh, 1, $SERVERTABLEVENTSDISPLAYDT, "catalogID = '$catalogID' and replicationStatus <> 'R'", 'uKey', 'posTimeslot');
             importData (*EMAILREPORT, $dbhSOURCE, $dbh, 1, $SERVERTABLCOMMENTS,        "catalogID = '$catalogID' and replicationStatus <> 'R'", 'uKey', 'entryTimeslot');
           }
 

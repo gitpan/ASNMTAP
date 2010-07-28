@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.001, crontabs.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "crontabs.pl";
 my $prgtext     = "Crontabs";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -535,7 +535,7 @@ HTML
 
         print <<HTML;
         <tr><td><b>Arguments: </b></td><td>
-          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="254" $formDisabledAll>
+          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="1024" $formDisabledAll>
         </td></tr>
         <tr><td><b>Minute: </b></td><td>
           <input type="text" name="minute" value="$Cminute" size="100" maxlength="167" $formDisabledAll>&nbsp;&nbsp;format: 0,1,2-29,30-58/2,59|*|*/n&nbsp;&nbsp;value: 0-59

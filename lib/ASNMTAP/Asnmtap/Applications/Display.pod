@@ -85,11 +85,11 @@ when the Application CGI module and CGI applications are installed, these config
 
 =item format
 
- Format: <Interval>#<Groep Title>#<Pagedir>#[<catalogID>_]<uniqueKey>#<Title nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<Title mmm>#check_mmm#<help 0|1>]
+ Format: <Interval>#<Groep Title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<Title nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<Title mmm>#check_mmm#<help 0|1>]
 
    <Interval>		:
    <Groep Title>	:
-   <Pagedir>		: results subdir where the data from the collector is located
+   <resultsdir>		: result subdir where the data from the collector is located
    <catalogID>      : unique catalogID
    <uniqueKey>		: unique key for this plugin
    <Title nnn>		:
@@ -100,7 +100,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap/applications/etc/DisplayCT-test
 
- # DisplayCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.001.003 or higher
+ # DisplayCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.001 or higher
  #
  # <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
  #

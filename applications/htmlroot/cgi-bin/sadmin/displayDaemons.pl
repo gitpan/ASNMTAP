@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.001, displayDaemons.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "displayDaemons.pl";
 my $prgtext     = "Display Daemons";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,6 +51,7 @@ my $CgroupName          = (defined $cgi->param('groupName'))       ? $cgi->param
 my $Cpagedir            = (defined $cgi->param('pagedirs'))        ? $cgi->param('pagedirs')        : 'none';
 my $CserverID           = (defined $cgi->param('serverID'))        ? $cgi->param('serverID')        : 'none';
 my $Cloop               = (defined $cgi->param('loop'))            ? $cgi->param('loop')            : 'T';
+my $Ctrigger            = (defined $cgi->param('trigger'))         ? $cgi->param('trigger')         : 'F';
 my $CdisplayTime        = (defined $cgi->param('displayTime'))     ? $cgi->param('displayTime')     : 'T';
 my $ClockMySQL          = (defined $cgi->param('lockMySQL'))       ? $cgi->param('lockMySQL')       : 'F';
 my $CdebugDaemon        = (defined $cgi->param('debugDaemon'))     ? $cgi->param('debugDaemon')     : 'F';
@@ -67,10 +68,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Display Daemon", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&displayDaemon=$CdisplayDaemon&groupName=$CgroupName&pagedirs=$Cpagedir&serverID=$CserverID&loop=$Cloop&displayTime=$CdisplayTime&lockMySQL=$ClockMySQL&debugDaemon=$CdebugDaemon&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&displayDaemon=$CdisplayDaemon&groupName=$CgroupName&pagedirs=$Cpagedir&serverID=$CserverID&loop=$Cloop&trigger=$Ctrigger&displayTime=$CdisplayTime&lockMySQL=$ClockMySQL&debugDaemon=$CdebugDaemon&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>displayDaemon     : $CdisplayDaemon<br>groupName         : $CgroupName<br>pagedirs          : $Cpagedir<br>serverID          : $CserverID<br>loop              : $Cloop<br>displayTime       : $CdisplayTime<br>lockMySQL         : $ClockMySQL<br>debugDaemon       : $CdebugDaemon<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>displayDaemon     : $CdisplayDaemon<br>groupName         : $CgroupName<br>pagedirs          : $Cpagedir<br>serverID          : $CserverID<br>loop              : $Cloop<br>trigger           : $Ctrigger<br>displayTime       : $CdisplayTime<br>lockMySQL         : $ClockMySQL<br>debugDaemon       : $CdebugDaemon<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($catalogIDSelect, $pagedirsSelect, $serversSelect, $matchingDisplayDaemon, $navigationBar);
@@ -109,7 +110,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         } else {
           $htmlTitle  = "Display Daemon $CdisplayDaemon from $CcatalogID inserted";
           my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-          $sql = 'INSERT INTO ' .$SERVERTABLDISPLAYDMNS. ' SET catalogID="' .$CcatalogID. '", displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
+          $sql = 'INSERT INTO ' .$SERVERTABLDISPLAYDMNS. ' SET catalogID="' .$CcatalogID. '", displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", `trigger`="' .$Ctrigger. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '"';
           $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
           $nextAction   = "listView" if ($rv);
         }
@@ -145,7 +146,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq 'edit') {
       $htmlTitle    = "Display Daemon $CdisplayDaemon from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLDISPLAYDMNS. ' SET catalogID="' .$CcatalogID. '", displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and displayDaemon="' .$CdisplayDaemon. '"';
+      $sql = 'UPDATE ' .$SERVERTABLDISPLAYDMNS. ' SET catalogID="' .$CcatalogID. '", displayDaemon="' .$CdisplayDaemon. '", groupName="' .$CgroupName. '", pagedir="' . $Cpagedir. '", serverID="' .$CserverID. '", `loop`="' .$Cloop. '", `trigger`="' .$Ctrigger. '", displayTime="' .$CdisplayTime. '", lockMySQL="' .$ClockMySQL. '", debugDaemon="' .$CdebugDaemon. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and displayDaemon="' .$CdisplayDaemon. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
@@ -171,12 +172,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select catalogID, displayDaemon, groupName, pagedir, serverID, `loop`, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDISPLAYDMNS where catalogID = '$CcatalogID' and displayDaemon='$CdisplayDaemon'";
+      $sql = "select catalogID, displayDaemon, groupName, pagedir, serverID, `loop`, `trigger`, displayTime, lockMySQL, debugDaemon, activated from $SERVERTABLDISPLAYDMNS where catalogID = '$CcatalogID' and displayDaemon='$CdisplayDaemon'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CcatalogID, $CdisplayDaemon, $CgroupName, $Cpagedir, $CserverID, $Cloop, $CdisplayTime, $ClockMySQL, $CdebugDaemon, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CdisplayDaemon, $CgroupName, $Cpagedir, $CserverID, $Cloop, $Ctrigger, $CdisplayTime, $ClockMySQL, $CdebugDaemon, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
         $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
@@ -254,6 +255,20 @@ HTML
     if ( ! objectRegularExpressionLoopValue.test(document.displayDaemon.loop.value) ) {
       document.displayDaemon.loop.focus();
       alert('Please re-enter loop: Bad loop value!');
+      return false;
+    }
+  }
+
+  var objectRegularExpressionTriggerValue = /\^[F|T]\$/;
+
+  if ( document.displayDaemon.trigger.value == null || document.displayDaemon.trigger.value == '' ) {
+    document.displayDaemon.trigger.focus();
+    alert('Please enter a trigger!');
+    return false;
+  } else {
+    if ( ! objectRegularExpressionTriggerValue.test(document.displayDaemon.trigger.value) ) {
+      document.displayDaemon.trigger.focus();
+      alert('Please re-enter trigger: Bad trigger value!');
       return false;
     }
   }
@@ -392,6 +407,8 @@ HTML
             $serversSelect
           <tr><td><b>Loop: </b></td><td>
             <input type="text" name="loop" value="$Cloop" size="1" maxlength="1" $formDisabledAll> value: F(alse) or T(rue)
+          <tr><td><b>Trigger: </b></td><td>
+            <input type="text" name="trigger" value="$Ctrigger" size="1" maxlength="1" $formDisabledAll> value: F(alse) or T(rue)
           <tr><td><b>Display Time: </b></td><td>
             <input type="text" name="displayTime" value="$CdisplayTime" size="1" maxlength="1" $formDisabledAll> value: F(alse) or T(rue)
           <tr><td><b>Lock MySQL: </b></td><td>

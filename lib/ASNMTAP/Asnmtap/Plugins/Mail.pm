@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -45,54 +45,71 @@ sub new (@) {
   unless ( defined $classname ) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
   if ( ref $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
 
-  use fields;
+  my $self = {};
 
-  my $self = fields::phash ( _asnmtapInherited   => undef,
-                             _SMTP               => 
-                               { 
-                                 smtp            => 'localhost',
-                                 port            => 25,
-                                 retries         => 3,
-                                 delay           => 1,
-                                 mime            => 0,
-                                 tz              => undef,
-                                 debug           => 0
-							   },
-                             _IMAP4              =>
-                               {
-                                 imap4           => undef,
-                                 port            => 143,
-                                 username        => undef,
-                                 password        => undef,
-                                 timeout         => 120,
-                                 debug           => 0
-                               },
-                             _POP3               =>
-                               {
-                                 pop3            => undef,
-                                 port            => 110,
-                                 username        => undef,
-                                 password        => undef,
-                                 timeout         => 120,
-                                 debug           => 0
-                               },
-                             _mailType           => 0,
-                             _text               => 
-                               {
-                                 SUBJECT         => 'uKey=ASNMTAP',
-                                 from            => 'From:',
-                                 to              => 'To:',
-                                 subject         => 'Subject:',
-                                 status          => 'Status'
-                               },
-                             _mail               => 
-                               {
-                                 from            => undef,
-                                 to              => undef,
-                                 status          => undef,
-                                 body            => undef
-                               }
-                             );
+  my @parameters = (_asnmtapInherited   => undef,
+                    _SMTP               => 
+                      { 
+                        smtp            => 'localhost',
+                        port            => 25,
+                        retries         => 3,
+                        delay           => 1,
+                        mime            => 0,
+                        tz              => undef,
+                        debug           => 0
+					  },
+                    _IMAP4              =>
+                      {
+                        imap4           => undef,
+                        port            => 143,
+                        username        => undef,
+                        password        => undef,
+                        timeout         => 120,
+                        debug           => 0
+                      },
+                    _POP3               =>
+                      {
+                        pop3            => undef,
+                        port            => 110,
+                        username        => undef,
+                        password        => undef,
+                        timeout         => 120,
+                        debug           => 0
+                      },
+                    _mailType           => 0,
+                    _text               => 
+                      {
+                        SUBJECT         => 'uKey=ASNMTAP',
+                        from            => 'From:',
+                        to              => 'To:',
+                        subject         => 'Subject:',
+                        status          => 'Status'
+                      },
+                    _mail               => 
+                      {
+                        from            => undef,
+                        to              => undef,
+                        status          => undef,
+                        body            => undef
+                      }
+                    );
+
+  if ( $] < 5.010000 ) {
+    eval "use fields";
+    $self = fields::phash (@parameters);
+  } else {
+    use ASNMTAP::PseudoHash;
+
+    $self = do {
+      my @array = undef;
+
+      while (my ($k, $v) = splice(@parameters, 0, 2)) {
+        $array[$array[0]{$k} = @array] = $v;
+      }
+
+      bless(\@array, $classname);
+    };
+  }
 
   my %args = @_;
 

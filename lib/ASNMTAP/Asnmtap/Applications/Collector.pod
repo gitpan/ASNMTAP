@@ -50,9 +50,9 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2009/mm/dd 17:58:16, ASNMTAP v3.001.003 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.001 or higher
  #
- # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]
+ # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultsdir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultsdir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  #

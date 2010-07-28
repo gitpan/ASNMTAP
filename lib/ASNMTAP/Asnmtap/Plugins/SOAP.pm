@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,6 +49,8 @@ sub get_soap_request {
                    soapaction           => undef,
                    xmlContent           => undef,
                    params               => undef,
+                   envprefix            => 'soapenv',
+                   encprefix            => 'soapenc',
                    readable             => 1,
                    cookies              => undef,
                    perfdataLabel        => undef,
@@ -97,6 +99,10 @@ sub get_soap_request {
   my $params = $parms{params};
 
   my $readable = $parms{readable};
+
+  my $envprefix = $parms{envprefix};
+
+  my $encprefix = $parms{envprefix};
 
   unless ( $readable =~ /^[01]$/ ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter readable must be 0 or 1' }, $TYPE{APPEND} );
@@ -213,8 +219,8 @@ sub get_soap_request {
       -> wsaddress  ( WSRF::WS_Address->new()->Address( $parms{proxy} ) )
       -> autotype   ( 1 )
       -> readable   ( $readable )
-      -> envprefix  ( 'soapenv' )
-      -> encprefix  ( 'soapenc' )
+      -> envprefix  ( $envprefix )
+      -> encprefix  ( $encprefix )
       -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
       -> uri        ( $namespace )
       -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )
@@ -232,8 +238,8 @@ sub get_soap_request {
     $service = new SOAP::Lite
       -> autotype   ( 1 )
       -> readable   ( $readable )
-      -> envprefix  ( 'soapenv' )
-      -> encprefix  ( 'soapenc' )
+      -> envprefix  ( $envprefix )
+      -> encprefix  ( $encprefix )
       -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
       -> uri        ( $namespace )
       -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )

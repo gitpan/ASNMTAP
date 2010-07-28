@@ -62,9 +62,9 @@ when the Application CGI module and CGI applications are installed, this config 
 
 =item format
 
- format: <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
+ format: <resultsdir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
 
-   <Pagedir>	: results subdir where the data from the collector is located
+   <resultsdir>	: results subdir where the data from the collector is located
    <catalogID>  : unique catalogID
    <uniqueKey>	: unique key for this plugin
    check_nnn	: plugin name
@@ -73,9 +73,9 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2009/dd/mm 17:58:36, ASNMTAP v3.001.003 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2010/dd/mm 17:58:36, ASNMTAP v3.002.001 or higher
  #
- # <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
+ # <resultsdir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
  #
@@ -890,17 +890,33 @@ Standalone monitoring example
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.003_mysql-v5.0.x.sql
- or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.003_mysql-v5.0.x.sql
+ database:
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x.sql
+  or
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x.sql
+
+ triggers to make fast display possible for heavy environment:
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x-trigger-events.sql
+  or
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-events.sql
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsUpdate.sql
+  or
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsUpdate.sql
+
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
+  or
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
 
 Distributed monitoring example
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.001.003-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.001.003-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1194,11 +1210,11 @@ Install net-snmp 5.4.x
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.001.003-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.001.003_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.001-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.001.003-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.001.003_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.001-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 

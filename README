@@ -5,8 +5,8 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 09 March 2010
-Version      : 3.001.003
+Latest update: dd month 2010
+Version      : 3.002.001
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,44 +19,57 @@ TODO:                          - TODO ALL   -  Log::Dispatch, Log::Dispatch::Fil
                                -               , 'Log::Dispatch::FileRotate' => '1.19'
                                -               , 'Log::Log4perl::Layout::XMLLayout' => 'x.x'
 
-Version 3.001.003, 2010/03/10, by Alex Peeters
-                               - NEW CPAN module DBD::CSV & Text::CSV added to Makefile.PL
-                               - NEW CPAN module Log::Dispatch, Log::Dispatch::FileRotate, Log::Log4perl & DBIx::Log4perl added to Makefile.PL
-                                 - tar -P -cvzf cpan-20100211.tgz /opt/monitoring/bin /opt/monitoring/lib /opt/monitoring/man
-                               - NEW applications/log4perl.cnf config file for Log::Log4perl
-                               - NEW integration for Cartography (applications/custom/cartography.pm-orig) into display.pl
-                               ASNMTAP::Asnmtap::Plugins::Nagios
-                               - NEW check_pargs.pl
-                               ASNMTAP::Asnmtap::Pluggins::WebTransact.pm
-                                 - NEW option for check () keepAlive = [01]
-                               ASNMTAP::Asnmtap::Applications::CGI.pm & archiver.pl
-                               - DEPRECATED $SERVERMYSQLVERSION = '4.x'
-                                 - Applications.cnf
-                                   #<DATABASE_ACCOUNT>
-                                   #  <SERVER>
-                                   #    VERSION         5.0.x                  # '5.0.x' or '5.1.x'
-                                   #    ...
-                                   #  </SERVER>
-                               - Applications.pm
-                                 - init_email_report()
-                                   - ADDED select((select($EMAILREPORT), $| = 1)[0]); # autoflush
-                               - archive.pl
-                                 - NEW function CSV_import_from_table
-                               - collector.pl
-                                 - NEW function CSV_prepare_table
-                                 - NEW function CSV_insert_into_table
-                                 - NEW function CSV_cleanup_table
-                                 - NEW TIMING OUT SLOW PLUGIN
-                                 - NEW ERROR NOT DEFINED - contact server administrators
-                                 - PLUGIN '$msgCommand.pl' doesn't exist - contact administrators
-                               - archive.pl collector.pl, importDataThroughCatalog.pl, generateReports.pl & holidayBundleSetDowntimes.pl
-                                 - NEW function LOG_init_log4perl
-                               - collector.pl & importDataThroughCatalog.pl
-                                 - NEW functions DBI_connect, DBI_do and DBI_execute
-                               - display.pl
-                                 - ADDED CLOSECLICK & STICKY to force users to click on "Close" to close sticky popups
-                               - RSYNC
-                                 TODO --exclude=*-status.txt
+Version 3.002.001, 2010/xx/yy, by Alex Peeters
+                               ASNMTAP
+                               - NEW 'filter-option' to search
+                               - UPDATE cpan module SOAP::Lite to 0.710.08 (reported problems with 0.710.09 and later)
+                               - UPDATE cpan module WSRF::Lite to 0.8.2.7
+                               - UPDATE /applications/tools/mysql/asnmtap-3.002.001-database-schema.png
+                               - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+                               - NEW autoinstall.sh
+                               - UPDATE Applications.cfg
+                                 - NEW 'EVENTSDISPLAYDATA    eventsDisplayData' between <TABLES>...</TABLES>
+                               - NEW module ASNMTAP::PseudoHash for making perl 5.10 compatibility
+                                     replace 'use fields' with 'use ASNMTAP::PseudoHash'
+                                     replace 'fields::phash' with 'ASNMTAP::PseudoHash'
+                               - UPDATE comments.pl -> html code optimalisation
+                               - UPDATE display.pl -> debug: toggleDiv(), pop-up: overlib() & pop-down: nd()
+                                 - NEW $trigger, to speedup the display generation: fase I
+                               - UPDATE trendlineCorrectionReports.pl -> faster SQL queries
+                               - UPDATE TABLE `displayDaemons` for MySQL'
+                                 - ALTER TABLE `displayDaemons` ADD COLUMN `trigger` char(1) NOT NULL default 'F' AFTER `loop`;
+                               - UPDATE TABLE `eventsChangesLogData` for MySQL'
+                                 - ALTER TABLE `eventsChangesLogData` ADD COLUMN `posTimeslot` INT(11) NOT NULL default '9' AFTER prevTimeslot;
+                               - NEW TABLE `eventsDisplayData` for MySQL'
+                                 - CREATE TABLE `eventsDisplayData` (
+                                 -   `catalogID` varchar(5) NOT NULL default 'CID',
+                                 -   `posTimeslot` int(11) NOT NULL DEFAULT '0',
+                                 -   `uKey` varchar(11) NOT NULL default '',
+                                 -   `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
+                                 -   `test` varchar(512) NOT NULL default '',
+                                 -   `title` varchar(75) NOT NULL default '',
+                                 -   `status` varchar(9) NOT NULL default '',
+                                 -   `startDate` date NOT NULL default '0000-00-00',
+                                 -   `startTime` time NOT NULL default '00:00:00',
+                                 -   `endDate` date NOT NULL default '0000-00-00',
+                                 -   `endTime` time NOT NULL default '00:00:00',
+                                 -   `duration` time NOT NULL default '00:00:00',
+                                 -   `statusMessage` varchar(1024) NOT NULL default '',
+                                 -   `step` smallint(6) NOT NULL default '0',
+                                 -   `timeslot` varchar(10) NOT NULL default '',
+                                 -   `instability` tinyint(1) NOT NULL default '9',
+                                 -   `persistent` tinyint(1) NOT NULL default '9',
+                                 -   `downtime` tinyint(1) NOT NULL default '9',
+                                 -   `filename` varchar(254) default '',
+                                 -   PRIMARY KEY (`catalogID`,`uKey`,`posTimeslot`),
+                                 -   KEY `catalogID` (`catalogID`),
+                                 -   KEY `uKey` (`uKey`),
+                                 -   KEY `posTimeslot` (`posTimeslot`),
+                                 -   KEY `replicationStatus` (`replicationStatus`),
+                                 -   KEY `eventsDisplayData_ibfk_1` (`catalogID`,`uKey`),
+                                 -   CONSTRAINT `eventsDisplayData_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`)
+                                 - ) ENGINE=InnoDB;
+                               - NEW TRIGGER `eventsDisplayData` for MySQL: asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
 
 # INSTALLATION  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

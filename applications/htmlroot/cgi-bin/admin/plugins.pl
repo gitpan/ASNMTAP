@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.001, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,6 +42,7 @@ my $pageset             = (defined $cgi->param('pageset'))            ? $cgi->pa
 my $debug               = (defined $cgi->param('debug'))              ? $cgi->param('debug')              : 'F';
 my $pageNo              = (defined $cgi->param('pageNo'))             ? $cgi->param('pageNo')             : 1;
 my $pageOffset          = (defined $cgi->param('pageOffset'))         ? $cgi->param('pageOffset')         : 0;
+my $filter              = (defined $cgi->param('filter'))             ? $cgi->param('filter')             : '';
 my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : 'title';
 my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : 'listView';
 my $CcatalogID          = (defined $cgi->param('catalogID'))          ? $cgi->param('catalogID')          : $CATALOGID;
@@ -79,10 +80,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Plugins", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&test=$Ctest&environment=$Cenvironment&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&shortDescription=$CshortDescription&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginTextname=$ChelpPluginTextname&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&filter=$filter&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&test=$Ctest&environment=$Cenvironment&arguments=$Carguments&argumentsOndemand=$CargumentsOndemand&title=$Ctitle&shortDescription=$CshortDescription&trendline=$Ctrendline&percentage=$Cpercentage&tolerance=$Ctolerance&step=$Cstep&ondemand=$Condemand&production=$Cproduction&pagedirs=$Cpagedir&resultsdir=$Cresultsdir&helpPluginTextname=$ChelpPluginTextname&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>shortDescription  : $CshortDescription<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>filter            : $filter<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>test              : $Ctest<br>environment       : $Cenvironment<br>arguments         : $Carguments<br>arguments ondemand: $CargumentsOndemand<br>title             : $Ctitle<br>shortDescription  : $CshortDescription<br>trendline         : $Ctrendline<br>percentage        : $Cpercentage<br>tolerance         : $Ctolerance<br>step              : $Cstep<br>on demand         : $Condemand<br>production        : $Cproduction<br>pagedirs          : $Cpagedir<br>resultsdir        : $Cresultsdir<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   if ( $ChelpPluginFilename eq '' or $ChelpPluginFilename eq '<NIHIL>' ) {
@@ -129,7 +130,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
   my ($catalogIDSelect, $environmentSelect, $holidayBundleSelect, $pagedirsSelect, $resultsdirSelect, $matchingPlugins, $navigationBar, $matchingViewsCrontabs, $generatePluginCrontabSchedulingReport);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;catalogID=$CcatalogID";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;filter=$filter&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -150,7 +151,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "select title from $SERVERTABLPLUGINS WHERE catalogID='$CcatalogID' and uKey='$CuKey'";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ( $numberRecordsIntoQuery ) {
+   if ( $numberRecordsIntoQuery ) {
         $htmlTitle  = "Plugin $CuKey from $CcatalogID exist already";
         $nextAction = "insertView";
       } else {
@@ -180,7 +181,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $sql = "select $SERVERTABLREPORTS.uKey, concat( LTRIM(SUBSTRING_INDEX($SERVERTABLPLUGINS.title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as title from $SERVERTABLREPORTS, $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLREPORTS.catalogID = '$CcatalogID' and $SERVERTABLREPORTS.uKey = '$CuKey' and $SERVERTABLREPORTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLREPORTS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by title, uKey";
       ($rv, $matchingPlugins) = check_record_exist ($rv, $dbh, $sql, 'Reports from ' .$CcatalogID, 'Unique Key', 'Title', $matchingPlugins, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-	  if ($matchingPlugins eq '') {
+   if ($matchingPlugins eq '') {
         $htmlTitle = "Plugin $CuKey from $CcatalogID deleted";
         $sql = 'DELETE FROM ' .$SERVERTABLPLUGINS. ' WHERE catalogID="' .$CcatalogID. '" and uKey="' .$CuKey. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
@@ -207,26 +208,29 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
-      $htmlTitle    = "All plugins listed";
+      my $doFilter  = ( ( defined $filter and $filter ne '' ) ? 1 : 0 );
+      $htmlTitle    = ( $doFilter ) ? "All plugins matching filter: $filter" : "All plugins listed";
 
       if ( $CcatalogIDreload ) {
         $pageNo = 1;
         $pageOffset = 0;
       }
 
+      my $andFilter = ( ( $doFilter ) ? "AND title regexp '$filter'" : '' );
+
       $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
       ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLPLUGINS where catalogID = '$CcatalogID'";
+      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' $andFilter";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;orderBy=$orderBy");
+      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;filter=$filter&amp;orderBy=$orderBy");
 
-      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLPLUGINS, 'title', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLPLUGINS, 'title', "catalogID = '$CcatalogID' $andFilter", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;filter=$filter", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select catalogID, uKey, title, environment, ondemand, production, pagedir, resultsdir, activated from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select catalogID, uKey, title, environment, ondemand, production, pagedir, resultsdir, activated from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' $andFilter order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header  = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Environment <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> On Demand <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=ondemand asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=production desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Production <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=production asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Views <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=pagedir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=resultsdir desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Results <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=resultsdir asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>\n";
-      ($rv, $matchingPlugins, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Plugin', 'catalogID|uKey', '0|1', '', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      ($rv, $matchingPlugins, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Plugin', 'catalogID|uKey', '0|1', '', '', "&amp;catalogID=$CcatalogID&amp;filter=$filter", $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
@@ -278,7 +282,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             if ($prevSserverID eq '' or $prevSserverID ne $SserverID) {
               $urlWithAccessParametersAction = "../sadmin/servers.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;serverID=$SserverID&amp;orderBy=serverID asc&amp;action";
               $actionItem = "&nbsp;";
-			  $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Server\" alt=\"Display Server\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+              $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Server\" alt=\"Display Server\" border=\"0\"></a>&nbsp;" if ($iconDetails);
               $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Server\" alt=\"Edit Server\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
               $notActivated = ($Sactivated) ? '' : ' not';
               $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"2\"><b>Server: $SserverTitle ($SserverID) -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -295,7 +299,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             if ($prevDDdisplayDaemon eq '' or $prevDDdisplayDaemon ne $DDdisplayDaemon) {
               $urlWithAccessParametersAction = "../sadmin/displayDaemons.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;displayDaemon=$DDdisplayDaemon&amp;orderBy=displayDaemon asc&amp;action";
               $actionItem = "&nbsp;";
-			  $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Display Daemon\" alt=\"Display Display Daemon\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+              $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Display Daemon\" alt=\"Display Display Daemon\" border=\"0\"></a>&nbsp;" if ($iconDetails);
               $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Display Daemon\" alt=\"Edit Display Daemon\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
               $notActivated = ($DDactivated) ? '' : ' not';
               $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td colspan=\"2\"><b>Display daemon: DisplayCT-$DDdisplayDaemon -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -304,7 +308,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
             $urlWithAccessParametersAction = "views.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;displayDaemon=$VdisplayDaemon;uKey=$CuKey&amp;orderBy=groupName asc, groupTitle asc, title asc&amp;action";
             $actionItem = "&nbsp;";
-         	$actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display View\" alt=\"Display View\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+            $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display View\" alt=\"Display View\" border=\"0\"></a>&nbsp;" if ($iconDetails);
             $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit View\" alt=\"Edit View\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
             $notActivated = ($Vactivated) ? '' : ' not';
             $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td colspan=\"2\"><b>View: $HTTPSURL/nav/$VdisplayDaemon -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -312,7 +316,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             $matchingViewsCrontabs .= "<tr><td bgcolor=\"$COLORSTABLE{NOBLOCK}\">Display group title</td><td>$DGgroupTitle -<b>$notActivated activated</b></td><td>&nbsp;</td></tr>\n";
 
             $prevSserverID       = $SserverID;
-			$prevDDdisplayDaemon = $DDdisplayDaemon;
+            $prevDDdisplayDaemon = $DDdisplayDaemon;
           }
         } else {
           $matchingViewsCrontabs .= "<tr><td>No records found</td></tr>\n";
@@ -337,7 +341,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             if ($prevSserverID eq '' or $prevSserverID ne $SserverID) {
               $urlWithAccessParametersAction = "../sadmin/servers.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;serverID=$SserverID&amp;orderBy=serverID asc&amp;action";
               $actionItem = "&nbsp;";
-			  $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Server\" alt=\"Display Server\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+              $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Server\" alt=\"Display Server\" border=\"0\"></a>&nbsp;" if ($iconDetails);
               $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Server\" alt=\"Edit Server\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
               $notActivated = ($Sactivated) ? '' : ' not';
               $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"2\"><b>Server: $SserverTitle ($SserverID) -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -354,7 +358,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             if ($prevCDcollectorDaemon eq '' or $prevCDcollectorDaemon ne $CDcollectorDaemon) {
               $urlWithAccessParametersAction = "../sadmin/collectorDaemons.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;collectorDaemon=$CDcollectorDaemon&amp;orderBy=collectorDaemon asc&amp;action";
               $actionItem = "&nbsp;";
-			  $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Collector Daemon\" alt=\"Display Collector Daemon\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+              $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Collector Daemon\" alt=\"Display Collector Daemon\" border=\"0\"></a>&nbsp;" if ($iconDetails);
               $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Collector Daemon\" alt=\"Edit Collector Daemon\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
               $notActivated = ($CDactivated) ? '' : ' not';
               $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td colspan=\"2\"><b>Collector daemon: CollectorCT-$CDcollectorDaemon -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -363,7 +367,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
             $urlWithAccessParametersAction = "crontabs.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=1&amp;pageOffset=0&amp;catalogID=$ScatalogID&amp;lineNumber=$CTlinenumber&amp;uKey=$CuKey&amp;orderBy=lineNumber asc, uKey asc, groupName asc, title asc&amp;action";
             $actionItem = "&nbsp;";
-         	$actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Crontab\" alt=\"Display Crontab\" border=\"0\"></a>&nbsp;" if ($iconDetails);
+            $actionItem .= "<a href=\"$urlWithAccessParametersAction=displayView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{details}\" title=\"Display Crontab\" alt=\"Display Crontab\" border=\"0\"></a>&nbsp;" if ($iconDetails);
             $actionItem .= "<a href=\"$urlWithAccessParametersAction=editView\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Crontab\" alt=\"Edit Crontab\" border=\"0\"></a>&nbsp;" if ($iconEdit and ! $actionSkip);
             $notActivated = ($CTactivated) ? '' : ' not';
             $matchingViewsCrontabs .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td colspan=\"2\"><b>Crontab: $CuKey-$CTlinenumber -$notActivated activated&nbsp;</b></td><td>$actionItem</td></tr>\n";
@@ -496,9 +500,18 @@ function submitForm() {
   document.plugins.submit();
   return true;
 }
+
+function validateForm() {
+  if ( document.plugins.filter.value != null || document.plugins.filter.value != "") {
+    document.plugins.pageNo.value = 1;
+    document.plugins.pageOffset.value = 0 ;
+  }
+
+  return true;
+}
 </script>
 
-<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" enctype="multipart/form-data">
+<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" enctype="multipart/form-data" onSubmit="return validateForm();">
 HTML
     } elsif ($action eq 'deleteView') {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
@@ -525,11 +538,11 @@ HTML
     }
 
     print "  <input type=\"hidden\" name=\"catalogID\" value=\"$CcatalogID\">\n  <input type=\"hidden\" name=\"uKey\"      value=\"$CuKey\">\n" if ($formDisabledUniqueKey ne '' and $action ne 'displayView');
-	
+ 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr align="center"><td>
-	  <table border="0" cellspacing="0" cellpadding="0"><tr>
+    <tr align="center"><td colspan="2">
+      <table border="0" cellspacing="0" cellpadding="0"><tr>
 HTML
 
     if ( $iconAdd ) {
@@ -540,7 +553,7 @@ HTML
     }
 
     print <<HTML;
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;orderBy=$orderBy">[List all plugins]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;orderBy=$orderBy">[List all/filtered plugins]</a></td>
 	  </tr></table>
 	</td></tr>
 HTML
@@ -566,11 +579,11 @@ HTML
         <tr><td><b>Plugin Filename: </b></td><td>
           <input type="text" name="test" value="$Ctest" size="100" maxlength="100" $formDisabledAll>
         <tr><td><b>Environment: </b></td><td>
-    	  $environmentSelect
+       $environmentSelect
         <tr><td>Common Arguments: </td><td>
-          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="254" $formDisabledAll>
+          <input type="text" name="arguments" value="$Carguments" size="100" maxlength="1024" $formDisabledAll>
         <tr><td>On Demand Arguments: </td><td>
-          <input type="text" name="argumentsOndemand" value="$CargumentsOndemand" size="100" maxlength="254" $formDisabledAll>
+          <input type="text" name="argumentsOndemand" value="$CargumentsOndemand" size="100" maxlength="1024" $formDisabledAll>
         <tr><td><b>Trendline: </b></td><td>
           <input type="text" name="trendline" value="$Ctrendline" size="6" maxlength="6" $formDisabledAll>
         <tr><td><b>Percentage: </b></td><td>
@@ -584,14 +597,14 @@ HTML
         <tr><td><b>Into Production: </b></td><td>
           <input type="checkbox" name="production" $productionChecked $formDisabledAll>
         <tr><td valign="top"><b>View Pagedirs: </b></td><td>
-    	  $pagedirsSelect
+       $pagedirsSelect
         <tr><td><b>Results Subdir: </b></td><td>
           $resultsdirSelect
         <tr><td valign="top">Help Plugin Filename: </td><td>
           <input type="text" name="helpPluginTextname" value="$ChelpPluginFilename" size="100" maxlength="100" $formDisabledAll><br>
           <input type="file" name="helpPluginFilename" size="100" accept="application/pdf" $formDisabledAll>
         <tr><td>Holiday Bundle: </td><td>
-    	  $holidayBundleSelect
+       $holidayBundleSelect
         <tr><td><b>Activated: </b></td><td>
           <input type="checkbox" name="activated" $activatedChecked $formDisabledAll>
         </td></tr>
@@ -604,7 +617,7 @@ HTML
       print "    <tr><td align=\"center\"><br><br><h1>Unique Key: $htmlTitle$ChelpPluginTextname</h1></td></tr>";
       print "    <tr><td align=\"center\">$matchingPlugins</td></tr>" if (defined $matchingPlugins and $matchingPlugins ne '');
     } else {
-      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>";
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td><td>&nbsp;<input type=\"text\" name=\"filter\" size=\"25\" maxlength=\"50\">&nbsp;<input type=\"submit\" value=\"Filter\"></td></tr></table></td></tr>";
       print "    <tr><td align=\"center\"><br>$matchingPlugins</td></tr>";
     }
 

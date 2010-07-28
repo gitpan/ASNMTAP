@@ -21,7 +21,7 @@ This module that provides a nice object oriented interface for building ASNMTAP 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template.pl',
    _programDescription => "General plugin template for the '$APPLICATION'",
-   _programVersion     => '3.001.003',
+   _programVersion     => '3.002.001',
    _programUsagePrefix => '-H <host> -w <warning> -c <critical>',
    _programHelpPrefix  => "-H, --hostname=HOST
     Name or IP address of host to check
@@ -419,7 +419,7 @@ when performanceData defined
 
 specifies the name that your application should use when it presents itself on the network.
 
-scalar, default 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.001.003 postfix; nl-BE; rv:3.001.003) Gecko/20100310 libwww-perl/5.813'
+scalar, default 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.002.001 postfix; nl-BE; rv:3.002.001) Gecko/yyyymmdd libwww-perl/5.813'
 
 =item _SSLversion
 
@@ -891,19 +891,19 @@ scalar, exit value
 
 0 = abnormal exit,
 
-1 = with Performance Data for 'Status'
+1 = abnormal exit with Performance Data for 'Status'
 
-2 = with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
+2 = abnormal exit with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
 
-3 = with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
+3 = abnormal exit with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
 
 4 = normal exit,
 
-5 = with Performance Data for 'Status'
+5 = normal exit with Performance Data for 'Status'
 
-6 = with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
+6 = normal exit with Performance Data for 'Compilation', 'Duration/Trendline' and 'Execution'
 
-7 = with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
+7 = normal exit with Performance Data for 'Status', 'Compilation', 'Duration/Trendline' and 'Execution'
 
 =back
 

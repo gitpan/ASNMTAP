@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2010/mm/dd, v3.002.001, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,21 +22,21 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.003;
+use ASNMTAP::Time v3.002.001;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.001.003;
+use ASNMTAP::Asnmtap::Applications::Display v3.002.001;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_c $opt_T $opt_l $PROGNAME);
+use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_t $opt_c $opt_T $opt_l $PROGNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,6 +46,7 @@ my $pagedir     = 'index';                                      # default
 my $pageset     = 'index';                                      # default
 my $debug       = 0;                                            # default
 my $loop        = 0;                                            # default
+my $trigger     = 0;                                            # default
 my $creationTime;                                               # default
 my $displayTime = 1;                                            # default
 my $lockMySQL   = 0;                                            # default
@@ -69,6 +70,7 @@ GetOptions (
   "P:s" => \$opt_P, "pagedir:s"      => \$opt_P,
   "D:s" => \$opt_D, "debug:s"        => \$opt_D,
   "L:s" => \$opt_L, "loop:s"         => \$opt_L,
+  "t:s" => \$opt_t, "trigger:s"      => \$opt_t,
   "c:s" => \$opt_c, "creationTime:s" => \$opt_c,
   "T:s" => \$opt_T, "displayTime:s"  => \$opt_T,
   "l:s" => \$opt_l, "lockMySQL:s"    => \$opt_l
@@ -105,6 +107,14 @@ if ($opt_L) {
     }
   } else {
     usage("Invalid loop: $opt_L\n");
+  }
+}
+
+if ($opt_t) {
+  if ($opt_t eq 'F' || $opt_t eq 'T') {
+    $trigger = ($opt_t eq 'F') ? 0 : 1;
+  } else {
+    usage("Invalid trigger: $opt_t\n");
   }
 }
 
@@ -475,7 +485,12 @@ sub do_crontab {
           $lastTimeslot  = get_timeslot ($creationDate);
           $firstTimeslot = $lastTimeslot - ($step * $NUMBEROFFTESTS);
           $timeCorrectie = 0;
-          $findString    = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' force index (uKey) where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+
+          if ( $trigger ) {
+            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTSDISPLAYDT.' where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by timeslot desc';
+          } else {
+            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' force index (uKey) where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+          }
 
           print "<", $findString, ">\n" if ($debug);
           $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $findString");
@@ -877,10 +892,13 @@ EOM
     $_exclaim .= printLinkToCartography( $serverName, $checklist, $catalogID, $uniqueKey );
   }
 
-  $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR>$_exclaim</TABLE>";
-  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onclick="nd();" onmousedown="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onmouseover="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+  # debug: toggleDiv(), pop-up: overlib() & pop-down: nd()
+  # onClick: overlib(), onDblClick: nd() & toggleDiv()
 
-  my $_comment = ( defined $comment ? 'onclick="nd();" onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 1, OFFSETY, 1);" onmouseout="return nd();"' : '' );
+  $_exclaim = "<TABLE WIDTH=100% BORDER=0 CELLSPACING=1 CELLPADDING=2 BGCOLOR=#000000><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Plugin</TD><TD BGCOLOR=#0000FF>$test</TD></TR>$popup<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Unique Key</TD><TD BGCOLOR=#0000FF>$uniqueKey from $catalogID on $CATALOGID</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Executed on</TD><TD BGCOLOR=#0000FF>$serverID</TD></TR>$_exclaim</TABLE>";
+  my $exclaim  = '<TD WIDTH="56"><a href="javascript:void(0);" onDblClick="nd(); return toggleDiv(\''.$catalogID_uniqueKey.'\');" onClick="return overlib(\''.$_exclaim.'\', CAPTION, \'Exclaim\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 16, OFFSETY, 16);" onmouseout="return nd();"><IMG SRC="'.$IMAGESURL.'/'.$environment.'.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></a> ';
+
+  my $_comment = ( defined $comment ? 'onmouseover="return overlib(\''.$comment.'\', CAPTION, \'Comments\', STICKY, CLOSECLICK, CAPCOLOR, \'#000000\', FGCOLOR, \'#000000\', BGCOLOR, \''.$COLORS{$statusOverlib}.'\', HAUTO, VAUTO, WIDTH, 692, OFFSETX, 16, OFFSETY, 16);" onmouseout="return nd();"' : '' );
   my $comments = '<a href="'. $HTTPSURL .'/cgi-bin/comments.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;action=listView&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self" '.$_comment.'><IMG SRC="'.$IMAGESURL.'/'.$ICONSRECORD{maintenance}.'" WIDTH="15" HEIGHT="15" title="'.(defined $comment ? '' : 'Comments').'" alt="'.(defined $comment ? '' : 'Comments').'" BORDER=0></A> ';
 
   my $helpfile = (defined $help and $help eq '1') ? '<A HREF="'. $HTTPSURL .'/cgi-bin/getHelpPlugin.pl?pagedir='.$pagedir.'&amp;pageset='.$pageset.'&amp;debug=F&amp;CGICOOKIE=1&amp;catalogID='.$catalogID.'&amp;uKey='.$uniqueKey.'" target="_self"><IMG SRC="'.$IMAGESURL.'/question.gif" WIDTH="15" HEIGHT="15" title="Help" alt="Help" BORDER=0></A></TD>' : '<IMG SRC="'.$IMAGESURL.'/spacer.gif" WIDTH="15" HEIGHT="15" title="" alt="" BORDER=0></TD>';
@@ -893,7 +911,7 @@ EOM
   if ( $catalogID ne $CATALOGID or defined $creationTime ) {
     $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep. encode_html_entities('T', $test) .'</TD>'. "\n";
   } else {
-    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onclick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command .'-'. $catalogID_uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
+    $itemFullCondensedView .= '    <TD class="ItemHeader">'.$groep.'<A HREF="#" class="ItemHeaderTest" onClick="openPngImage(\''. $RESULTSURL .'/'. $resultsdir .'/'. $command .'-'. $catalogID_uniqueKey ."-sql.html',912,576,null,null,'ChartDirector',10,false,'ChartDirector');\">". encode_html_entities('T', $test) .'</A></TD>'. "\n";
   }
 }
 
@@ -1373,7 +1391,7 @@ sub maskPassword {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub print_usage () {
-  print "Usage: $PROGNAME -H <MySQL hostname> [-C <Checklist>] [-P <pagedir>] [-L <loop>] [-c <YYYY-MM-DD HH:MM:SS> ] [-T <displayTime>] [-l <lockMySQL>] [-D <debug>] [-V version] [-h help]\n";
+  print "Usage: $PROGNAME -H <MySQL hostname> [-C <Checklist>] [-P <pagedir>] [-L <loop>] [-t <trigger>] [-c <YYYY-MM-DD HH:MM:SS> ] [-T <displayTime>] [-l <lockMySQL>] [-D <debug>] [-V version] [-h help]\n";
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1391,6 +1409,9 @@ sub print_help () {
 -L, --loop=F|T
    F(alse)  : loop off (default)
    T(rue)   : loop on
+-t, --trigger=F|T
+   F(alse)  : trigger off (default)
+   T(rue)   : trigger on
 -c, --creationTime=<YYYY-MM-DD HH:MM:SS>
    YYYY-MM-DD HH:MM:SS: year, month, day, hours, minutes and seconds to use instead of the current time when --loop = F
 -T, --displayTime=F|T
@@ -1413,4 +1434,3 @@ email to $SENDEMAILTO
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

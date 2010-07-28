@@ -127,6 +127,7 @@ I<Structure of the array of hash references:>
    Exp_Return     => { var_label_1 => EXP_VAR_LABEL_1, ... },
    Msg            => 'Status error when not all Exp found',
    Msg_Fault      => 'Status error when Exp_Fault found',
+   Timeout        => 30,
    Perfdata_Label => 'Label x'
  }
 
@@ -385,8 +386,8 @@ equals to:
 
   $startTime = $objectPlugins->setEndTime_and_getResponsTime ( $objectPlugins->pluginValue ('endTime') );
   $returnCode = $objectWebTransact->check ( { }, custom => \&customWebTransact );
-  $responseTime = $objectWebTransact->setEndTime_and_getResponsTime ( $startTime );
-  $objectWebTransact->appendPerformanceData ( 'homepage='. $responseTime .'ms;'. ($trendline*1000) .';;;' );
+  $responseTime = $objectPlugins->setEndTime_and_getResponsTime ( $startTime );
+  $objectPlugins->appendPerformanceData ( 'homepage='. $responseTime .'ms;'. ($trendline*1000) .';;;' );
 
 =back
 
@@ -540,7 +541,7 @@ Set the return keys and values from all next urls to download
 =item $objectWebTransact->urls()
 
 Set and/or get the urls
- 
+
 =item $objectWebTransact->get_urls()
 
 Get the urls
@@ -738,14 +739,14 @@ equals to:
   my ($valNavigationToken, $valTicketnummer, undef) = @$matches[0..$#$matches];
   print "Navigation Token: ", $valNavigationToken, "\n" if (defined $valNavigationToken);
   print "Ticketnummer    : ", $valTicketnummer, "\n" if (defined $valTicketnummer);
+
+  and
+
+  my $matches = $objectWebTransact->matches();
   foreach my $match ( @$matches ) { print "-> $match <-"; }
 
   equals to:
 
-  my @matches = @{ $objectWebTransact->matches() };
-  my ($valNavigationToken, $valTicketnummer, undef) = @matches[0..$#matches];
-  print "Navigation Token: ", $valNavigationToken, "\n" if (defined $valNavigationToken);
-  print "Ticketnummer    : ", $valTicketnummer, "\n" if (defined $valTicketnummer);
   foreach my $match ( @{ $objectWebTransact->matches() } ) { print "-> $match <-\n"; }
 
 =item Example 5

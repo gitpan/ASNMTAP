@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v3.1.1 2010/xx/xx 18:27:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v3.2.1 2010/xx/xx 18:14:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,23 +7,23 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# copy current release '3.001.003' to '3.001.004'
-#                       3.001.xxx      3.001.yyy
+# copy current release '3.002.001' to '3.002.002'
+#                       3.002.xxx      3.001.yyy
 
-# replace 'Version      : 3.001.xxx'  with `3.001.yyy;`
+# replace 'Version      : 3.002.xxx'  with `3.002.yyy;`
 
-# rename `MANIFEST-3.001.xxx` with `MANIFEST-3.001.yyy.sql`
-# rename `asnmtap-3.001.xxx.sql` with `asnmtap-3.001.yyy.sql`
+# rename `MANIFEST-3.002.xxx` with `MANIFEST-3.002.yyy.sql`
+# rename `asnmtap-3.002.xxx.sql` with `asnmtap-3.002.yyy.sql`
 
-# replace `asnmtap-3.001.xxx` with `asnmtap-3.001.yyy`
+# replace `asnmtap-3.002.xxx` with `asnmtap-3.002.yyy`
 
-# replace `(q$Revision: 3.001.xxx$ =~ /\d+/g)` with `(q$Revision: 3.001.yyy$ =~ /\d+/g)`
-# replace `v3.001.xxx;` with `v3.001.yyy;`
-# replace `'3.001.xxx'` with `'3.001.yyy'`
-# replace ASNMTAP 3.001.xxx postfix; nl-BE; rv:3.001.xxx) rv:3.001.003) Gecko/20100310 libwww-perl/5.813 with ASNMTAP 3.001.yyy postfix; nl-BE; rv:3.001.yyy) Gecko/2010....
+# replace `(q$Revision: 3.002.xxx$ =~ /\d+/g)` with `(q$Revision: 3.002.yyy$ =~ /\d+/g)`
+# replace `v3.002.xxx;` with `v3.002.yyy;`
+# replace `'3.002.xxx'` with `'3.002.yyy'`
+# replace ASNMTAP 3.002.xxx postfix; nl-BE; rv:3.002.xxx) Gecko/yyyymmdd with ASNMTAP 3.002.yyy postfix; nl-BE; rv:3.002.yyy) Gecko/2010....
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: 09 March 2010' with 'Latest update: .. ... 2010'
+# replace 'Latest update: dd month 2010' with 'Latest update: .. ... 2010'
 # replace `# 2010/mm/dd, v` with `# 2010/../.., v`
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +51,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -67,6 +67,9 @@ my $ASNMTAP_PROXY        = exists $ENV{ASNMTAP_PROXY}        ? $ENV{ASNMTAP_PROX
 
 # This hash will contain a list of all Application System Network Monitoring Toolkit Alex Peeters files
 my %PM;
+
+$PM{'lib/ASNMTAP/PseudoHash.pm'}                      = '$(INST_LIBDIR)/ASNMTAP/PseudoHash.pm';
+$PM{'lib/ASNMTAP/PseudoHash.pod'}                     = '$(INST_LIBDIR)/ASNMTAP/PseudoHash.pod';
 
 $PM{'lib/ASNMTAP/Time.pm'}                            = '$(INST_LIBDIR)/ASNMTAP/Time.pm';
 $PM{'lib/ASNMTAP/Time.pod'}                           = '$(INST_LIBDIR)/ASNMTAP/Time.pod';
@@ -271,7 +274,7 @@ my @prerequisites = (
    ]
   ],
   [ '*011101', 'IO support',          'ASNMTAP::Asnmtap::Plugins::IO',          { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.23' }, 1, [], [] ],
-  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '2.003', 'IO::String' => '1.08', 'Mail::POP3Client' => '2.18', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.07', 'MIME::Tools' => '5.420', 'Net::IMAP::Simple' => '1.17', 'Time::Local' => '1.17' }, 1, [], [] ],
+  [ '*001102', 'Mail support',        'ASNMTAP::Asnmtap::Plugins::Mail',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Date::Calc' => '5.4', 'Email::Simple' => '2.003', 'IO::String' => '1.08', 'Mail::POP3Client' => '2.18', 'Mail::Sendmail' => '0.79', 'MIME::Base64' => '3.08', 'MIME::Tools' => '5.420', 'Net::IMAP::Simple' => '1.17', 'Time::Local' => '1.17' }, 1, [], [] ],
   [ '*001103', 'Modem support',       'ASNMTAP::Asnmtap::Plugins::Modem',       { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'IO' => '1.23', ( $^O eq 'MSWin32' ? ('Win32::SerialPort' => '0.19', 'Win32::API' => '0.41', 'Win32::RASE' => '1.01') : ('Device::SerialPort' => '1.002', 'Net::Ifconfig::Wrapper' => '0.09') ), 'Device::Modem' => '1.47' }, 0,
    [
     [ '/etc/chatscripts/ASNMTAP', 'R' ],
@@ -283,8 +286,8 @@ my @prerequisites = (
     [ '/usr/bin/pon',             'R' ],
    ]
   ],
-  [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.710.05', 'WSRF::Lite' => '0.8.2.2', 'DateTime' => '0.37', 'DateTime::Format::Epoch' => '0.10', 'DateTime::Format::W3CDTF' => '0.04', 'Digest::SHA1' => '2.11', 'Crypt::OpenSSL::RSA' => '0.25', 'Crypt::OpenSSL::X509' => '0.5', 'HTTP::Daemon::SSL' => '1.04', 'Sys::Hostname::Long' => '1.4', 'MIME::Base64' => '3.07', 'XML::CanonicalizeXML' => '0.03', 'XML::DOM' => '1.44' }, 1, [], [] ],
-  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.37', 'Compress::Zlib' => '2.010', 'Crypt::SSLeay' => '0.56', 'Digest::MD5' => '2.36', 'IO::Socket::SSL' => '1.13', 'MIME::Base64' => '3.07', 'Net::FTP' => '2.75', 'Net::SSLeay' => '1.32', 'URI' => '1.36' }, 1, [], [] ],
+  [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.710.08', 'WSRF::Lite' => '0.8.2.7', 'DateTime' => '0.37', 'DateTime::Format::Epoch' => '0.10', 'DateTime::Format::W3CDTF' => '0.04', 'Digest::SHA1' => '2.12', 'Crypt::OpenSSL::RSA' => '0.26', 'Crypt::OpenSSL::X509' => '1.2', 'HTTP::Daemon::SSL' => '1.04', 'Sys::Hostname::Long' => '1.4', 'MIME::Base64' => '3.08', 'XML::CanonicalizeXML' => '0.03', 'XML::DOM' => '1.44' }, 1, [], [] ],
+  [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.37', 'Compress::Zlib' => '2.010', 'Crypt::SSLeay' => '0.56', 'Digest::MD5' => '2.36', 'IO::Socket::SSL' => '1.33', 'MIME::Base64' => '3.08', 'Net::FTP' => '2.75', 'Net::SSLeay' => '1.32', 'URI' => '1.36' }, 1, [], [] ],
   [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.36', 'XML::LibXML' => '1.66', 'XML::Simple' => '2.18' }, 2, [], [] ],
   [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.25', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.23' }, 1, [], [] ],
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.13', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],

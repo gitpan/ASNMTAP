@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, check_SNMPTT_probe.pl
+# 2010/mm/dd, v3.002.001, check_SNMPTT_probe.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.001.003;
+use ASNMTAP::Asnmtap::Plugins v3.002.001;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,11 +28,11 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_probe.pl',
   _programDescription => 'Control SNMPTT TRAPs',
-  _programVersion     => '3.001.003',
+  _programVersion     => '3.002.001',
   _programUsagePrefix => '[-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => '-s, --server=<hostname> (default: localhost)
 --database=<database> (default: snmptt)',
-  _programGetOptions  => ['community|C:s', 'host|H=s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e=s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['community|C=s', 'host|H=s', 'server|s:s', 'port|P:i', 'database:s', 'username|u|loginname:s', 'password|p|passwd:s', 'environment|e=s', 'proxy:s', 'timeout|t:i', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -40,11 +40,13 @@ my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
 # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $hostname     = $objectPlugins->getOptionsArgv ('host');
 my $community    = $objectPlugins->getOptionsArgv ('community') ? $objectPlugins->getOptionsArgv ('community') : '';
+$objectPlugins->printUsage ('Missing command line argument community') unless ( defined $community);
+
+my $hostname     = $objectPlugins->getOptionsArgv ('host');
 my $eventname    = 'ucdStart';
 my $category     = 'Status Events';
-my $severity     = 'INFORMATIONAL';
+my $severity     = 'OK';
 my $formatline   = 'This trap could in principle be sent when the agent start (ASNMTAP-CONTROL-SNMPTT-TRAP)';
 
 my $environment  = $objectPlugins->getOptionsArgv ('environment');
@@ -71,7 +73,7 @@ $objectPlugins->pluginValue ( message => $message );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $snmptrap = 'snmptrap -v 2c -c public '. $hostname .':162 "" ucdStart sysContact.0 s "ASNMTAP-CONTROL-SNMPTT-TRAP"';
+my $snmptrap = 'snmptrap -v 2c -c '. $community .' '. $hostname .':162 "" ucdStart sysContact.0 s "ASNMTAP-CONTROL-SNMPTT-TRAP"';
 print "$snmptrap\n" if ( $debug );
 
 if ( $objectPlugins->call_system ( $snmptrap, 1 ) ) {
@@ -92,7 +94,8 @@ $dbh = DBI->connect ( "dbi:mysql:$serverDb:$serverHost:$serverPort", "$serverUse
 if ( $dbh and $rv ) {
   my ($id, $eventid, $trapoid, $enterprise, $agentip, $uptime, $traptime, $system_running_SNMPTT, $trapread);
 
-  $query = "SELECT SQL_NO_CACHE id, eventid, trapoid, enterprise, agentip, uptime, traptime, system_running_SNMPTT, trapread FROM `$serverTact` WHERE system_running_SNMPTT='$hostname' and community='$community' and eventname='$eventname' and category='$category' and severity='$severity' and formatline='$formatline' order by id desc";
+# $query = "SELECT SQL_NO_CACHE id, eventid, trapoid, enterprise, agentip, uptime, traptime, system_running_SNMPTT, trapread FROM `$serverTact` WHERE system_running_SNMPTT='$hostname' and community='$community' and eventname='$eventname' and category='$category' and severity='$severity' and formatline='$formatline' order by id desc";
+  $query = "SELECT SQL_NO_CACHE id, eventid, trapoid, enterprise, agentip, uptime, traptime, system_running_SNMPTT, trapread FROM `$serverTact` WHERE system_running_SNMPTT='$hostname' and community='' and eventname='$eventname' and category='$category' and severity='$severity' and formatline='$formatline' order by id desc";
   print $query, "\n" if ( $debug );
   $sth = $dbh->prepare($query) or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot dbh->prepare: '. $query ) if ( $rv );
   $rv  = $sth->execute() or $rv = errorTrapDBI ( \$objectPlugins,  'Cannot sth->execute: '. $query ) if ( $rv );

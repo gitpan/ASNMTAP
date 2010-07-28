@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, check_nagiosv3-comments-cleanup.pl
+# 2010/mm/dd, v3.002.001, check_nagiosv3-comments-cleanup.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -18,19 +18,15 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 my $echo        = 1;
 my $cleanupChar = '\*';   # we don't cleanup comments that start with ...
 
-my $nagiosPath  = '/opt/monitoring/nagios';
-my $statusFile  = $nagiosPath .'/var/status.dat';
-my $commandFile = $nagiosPath .'/var/rw/nagios.cmd';
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.003;
+use ASNMTAP::Time v3.002.001;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.001.003;
+use ASNMTAP::Asnmtap::Applications v3.002.001;
 use ASNMTAP::Asnmtap::Applications qw(&sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.001.003;
+use ASNMTAP::Asnmtap::Plugins v3.002.001;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,20 +43,34 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 my $objectAsnmtap = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_nagiosv3-comments-cleanup.pl',
   _programDescription => 'Nagios v3.x Comments Cleanup',
-  _programVersion     => '3.001.003',
-  _programUsagePrefix => '[-E|--email <boolean>]',
-  _programHelpPrefix  => "-E, --email=<boolean>
+  _programVersion     => '3.002.001',
+  _programUsagePrefix => '[--nagiosPath <nagios path>] [--statusFile <status file>] [--commandFile <command file>] [-E|--email <boolean>]',
+  _programHelpPrefix  => "--nagiosPath=<nagios path>
+--statusFile=<status file>
+--commandFile=<command file>
+-E, --email=<boolean>
     BOOLEAN: 0 = FALSE and 1 = TRUE",
-  _programGetOptions  => ['email|E:f'],
+  _programGetOptions  => ['nagiosPath:s', 'statusFile:s', 'commandFile:s', 'email|E:f'],
   _timeout            => 30,
   _debug              => 0);
+
+my $nagiosPath = $objectAsnmtap->getOptionsArgv ('nagiosPath');
+$nagiosPath = '/opt/monitoring/nagios' unless ( defined $nagiosPath );
+
+my $statusFile = $objectAsnmtap->getOptionsArgv ('statusFile');
+$statusFile = '/var/status.dat' unless ( defined $statusFile );
+$statusFile = $nagiosPath . $statusFile;
+
+my $commandFile = $objectAsnmtap->getOptionsArgv ('commandFile');
+$commandFile = '/var/rw/nagios.cmd' unless ( defined $commandFile );
+$commandFile = $nagiosPath . $commandFile;
 
 my $email = $objectAsnmtap->getOptionsArgv ('email');
 
 if ( defined $email ) {
   $objectAsnmtap->printUsage ('Invalid email value!') unless ($email =~ /^0|1$/);
 } else {
-  $email = 0 unless ( defined $email );
+  $email = 0;
 }
 
 my $debug = $objectAsnmtap->getOptionsValue ('debug');

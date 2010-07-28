@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, check_pargs.pl
+# 2010/mm/dd, v3.001.003, check_pargs.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -78,10 +78,10 @@ foreach my $process ( @{$tProcessTable->table} ) {
     print 'cmnd  : ', $process->cmndline, "\n";
     print 'state : ', $process->state, "\n"; # run, onprocessor, sleep, defunct, ...
 
-    print 'pargs : /usr/bin/pargs -a -l '. $process->pid, "\n";
+    print 'pargs : /usr/bin/pfexec /usr/bin/pargs -a -l '. $process->pid, "\n";
   }
 
-  $objectNagios->exit (5) if ( $objectNagios->call_system ( '/usr/bin/pargs -a -l '. $process->pid ) );
+  $objectNagios->exit (5) if ( $objectNagios->call_system ( '/usr/bin/pfexec /usr/bin/pargs -a -l '. $process->pid ) );
   my $result = $objectNagios->pluginValue ('result');
   print "filter: $filter\nresult: $result\n" if ( $debug );
   $processCount++ if ( $result !~ /\Qcheck_pargs.pl\E/ and $result =~ /$filter/ );

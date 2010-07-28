@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -58,7 +58,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -137,7 +137,7 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.001.003 postfix; nl-BE; rv:3.001.003) Gecko/20100310 libwww-perl/5.813';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.002.001 postfix; nl-BE; rv:3.002.001) Gecko/yyyymmdd libwww-perl/5.813';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -585,6 +585,20 @@ sub write_debugfile {
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+sub printUsage {
+  $_[0]->_getOptions () if ( exists $_[0]->{_getOptionsArgv}->{usage} );
+  $_[0]->SUPER::printUsage ($_[1]);
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub printHelp {
+  $_[0]->_getOptions ();
+  $_[0]->SUPER::printHelp ();
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 sub call_system {
   &_checkAccObjRef ( $_[0] ); &_checkReadOnly2;
 
@@ -614,6 +628,8 @@ sub call_system {
 
 sub exit {
   &_checkAccObjRef ( $_[0] ); &_checkSubArgs1;
+
+  exit $ERRORS { $_[0]->{_pluginValues}->{stateError} } if ( exists $_[0]->{_exit_} and $_[0]->{_exit_} == 1 );
 
   # Timing Out Slow Plugins - part 2/2  - - - - - - - - - - - - - - - - -
 
@@ -755,6 +771,9 @@ sub DESTROY {
       $_[0]->exit(0);
     }
   }
+
+  $_[0]->{_exit_} = 1;
+  $_[0]->exit(0);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

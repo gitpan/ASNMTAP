@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,17 +156,34 @@ sub new (@) {
   unless ( defined $classname ) { my @c = caller; die "Syntax error: Class name expected after new at $c[1] line $c[2]\n" }
   if ( ref $classname) { my @c = caller; die "Syntax error: Can't construct new ".ref($classname)." from another object at $c[1] line $c[2]\n" }
 
-  use fields;
+  my $self = {};
 
-  my $self = fields::phash (_programName        => 'NOT DEFINED', 
-                            _programDescription => 'NOT DEFINED', 
-                            _programVersion     => '0.000.000', 
-                            _programUsagePrefix => undef, 
-                            _programUsageSuffix => undef, 
-                            _programHelpPrefix  => undef, 
-                            _programHelpSuffix  => undef, 
-                            _programGetOptions  => undef, 
-                            _debug              => 0);
+  my @parameters = (_programName        => 'NOT DEFINED', 
+                    _programDescription => 'NOT DEFINED', 
+                    _programVersion     => '0.000.000', 
+                    _programUsagePrefix => undef, 
+                    _programUsageSuffix => undef, 
+                    _programHelpPrefix  => undef, 
+                    _programHelpSuffix  => undef, 
+                    _programGetOptions  => undef, 
+                    _debug              => 0);
+
+  if ( $] < 5.010000 ) {
+    eval "use fields";
+    $self = fields::phash (@parameters);
+  } else {
+    use ASNMTAP::PseudoHash;
+
+    $self = do {
+      my @array = undef;
+
+      while (my ($k, $v) = splice(@parameters, 0, 2)) {
+        $array[$array[0]{$k} = @array] = $v;
+      }
+
+      bless(\@array, $classname);
+    };
+  }
 
   my %args = @_;
  

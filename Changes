@@ -5,21 +5,70 @@
 # General - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Author       : Alex Peeters [alex.peeters@citap.be]
-Latest update: 09 March 2010
-Version      : 3.001.003
+Latest update: dd month 2010
+Version      : 3.002.001
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # general - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-TODO:                          - TODO INTEL - add CPAN module Log::Log4perl & DBIx::Log4perl
-                               - TODO INTEL - add CPAN module DBD::CSV & Text::CSV added
-
 TODO:                          - TODO ALL   -  Log::Dispatch, Log::Dispatch::FileRotate depend on Date::Manip depend on perl 5.10
                                -               , 'Log::Dispatch' => '2.26'
                                -               , 'Log::Dispatch::FileRotate' => '1.19'
                                -               , 'Log::Log4perl::Layout::XMLLayout' => 'x.x'
+
+Version 3.002.001, 2010/xx/yy, by Alex Peeters
+                               ASNMTAP
+                               - NEW 'filter-option' to search
+                               - UPDATE cpan module SOAP::Lite to 0.710.08 (reported problems with 0.710.09 and later)
+                               - UPDATE cpan module WSRF::Lite to 0.8.2.7
+                               - UPDATE /applications/tools/mysql/asnmtap-3.002.001-database-schema.png
+                               - UPDATE create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+                               - NEW autoinstall.sh
+                               - UPDATE Applications.cfg
+                                 - NEW 'EVENTSDISPLAYDATA    eventsDisplayData' between <TABLES>...</TABLES>
+                               - NEW module ASNMTAP::PseudoHash for making perl 5.10 compatibility
+                                     replace 'use fields' with 'use ASNMTAP::PseudoHash'
+                                     replace 'fields::phash' with 'ASNMTAP::PseudoHash'
+                               - UPDATE comments.pl -> html code optimalisation
+                               - UPDATE display.pl -> debug: toggleDiv(), pop-up: overlib() & pop-down: nd()
+                                 - NEW $trigger, to speedup the display generation: fase I
+                               - UPDATE trendlineCorrectionReports.pl -> faster SQL queries
+                               - UPDATE TABLE `displayDaemons` for MySQL'
+                                 - ALTER TABLE `displayDaemons` ADD COLUMN `trigger` char(1) NOT NULL default 'F' AFTER `loop`;
+                               - UPDATE TABLE `eventsChangesLogData` for MySQL'
+                                 - ALTER TABLE `eventsChangesLogData` ADD COLUMN `posTimeslot` INT(11) NOT NULL default '9' AFTER prevTimeslot;
+                               - NEW TABLE `eventsDisplayData` for MySQL'
+                                 - CREATE TABLE `eventsDisplayData` (
+                                 -   `catalogID` varchar(5) NOT NULL default 'CID',
+                                 -   `posTimeslot` int(11) NOT NULL DEFAULT '0',
+                                 -   `uKey` varchar(11) NOT NULL default '',
+                                 -   `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
+                                 -   `test` varchar(512) NOT NULL default '',
+                                 -   `title` varchar(75) NOT NULL default '',
+                                 -   `status` varchar(9) NOT NULL default '',
+                                 -   `startDate` date NOT NULL default '0000-00-00',
+                                 -   `startTime` time NOT NULL default '00:00:00',
+                                 -   `endDate` date NOT NULL default '0000-00-00',
+                                 -   `endTime` time NOT NULL default '00:00:00',
+                                 -   `duration` time NOT NULL default '00:00:00',
+                                 -   `statusMessage` varchar(1024) NOT NULL default '',
+                                 -   `step` smallint(6) NOT NULL default '0',
+                                 -   `timeslot` varchar(10) NOT NULL default '',
+                                 -   `instability` tinyint(1) NOT NULL default '9',
+                                 -   `persistent` tinyint(1) NOT NULL default '9',
+                                 -   `downtime` tinyint(1) NOT NULL default '9',
+                                 -   `filename` varchar(254) default '',
+                                 -   PRIMARY KEY (`catalogID`,`uKey`,`posTimeslot`),
+                                 -   KEY `catalogID` (`catalogID`),
+                                 -   KEY `uKey` (`uKey`),
+                                 -   KEY `posTimeslot` (`posTimeslot`),
+                                 -   KEY `replicationStatus` (`replicationStatus`),
+                                 -   KEY `eventsDisplayData_ibfk_1` (`catalogID`,`uKey`),
+                                 -   CONSTRAINT `eventsDisplayData_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`)
+                                 - ) ENGINE=InnoDB;
+                               - NEW TRIGGER `eventsDisplayData` for MySQL: asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
 
 Version 3.001.003, 2010/03/10, by Alex Peeters
                                - NEW applications/log4perl.cnf
@@ -1064,8 +1113,8 @@ Version 3.000.012, 2006/12/20, Central and Distributed support
                                Windows Internet Explorer 7.0
                                - tested and did look OK
                                ASNMTAP::Asnmtap
-                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
-                               - replace `my $version = '3.000.xxx'` with `my $version = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `::VERSION = 3.000.xxx` with `::VERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
+                               - replace `my $version = '3.000.xxx'` with `my $VERSION = do { my @r = (q$Revision: 3.000.012$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };`
                                ASNMTAP::Asnmtap::Applications
                                - NEW purge_table.pl
                                - add Environment after the Plugin Titles

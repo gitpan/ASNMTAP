@@ -14,7 +14,7 @@ TODO: {
   my $objectDisplay = ASNMTAP::Asnmtap::Applications::Display->new (
     _programName        => 'Display.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Applications::Display',
-    _programVersion     => '3.001.003',
+    _programVersion     => '3.002.001',
     _debug             => 0);
 
   isa_ok( $objectDisplay, 'ASNMTAP::Asnmtap::Applications::Display' );

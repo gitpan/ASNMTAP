@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, asnmtap-3.001.003_mysql-v5.0.x.sql
+# 2010/mm/dd, v3.002.001, asnmtap-3.002.001_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 create database if not exists `asnmtap`;
@@ -392,7 +392,7 @@ CREATE TABLE `crontabs` (
   `lineNumber` char(2) NOT NULL default '',
   `uKey` varchar(11) NOT NULL default '',
   `collectorDaemon` varchar(64) NOT NULL default '',
-  `arguments` varchar(254) default '',
+  `arguments` varchar(1024) default '',
   `minute` varchar(167) NOT NULL default '*',
   `hour` varchar(61) NOT NULL default '*',
   `dayOfTheMonth` varchar(83) NOT NULL default '*',
@@ -483,6 +483,7 @@ CREATE TABLE `displayDaemons` (
   `pagedir` varchar(11) NOT NULL default '',
   `serverID` varchar(11) NOT NULL default '',
   `loop` char(1) NOT NULL default 'T',
+  `trigger` char(1) NOT NULL default 'T',
   `displayTime` char(1) NOT NULL default 'T',
   `lockMySQL` char(1) NOT NULL default 'F',
   `debugDaemon` char(1) NOT NULL default 'F',
@@ -501,8 +502,8 @@ CREATE TABLE `displayDaemons` (
 # Data for the table displayDaemons
 #
 
-insert into `displayDaemons` values ('CID','index','Production Daemon','index','CTP-CENTRAL','T','T','F','F',0);
-insert into `displayDaemons` values ('CID','test','Test Daemon','test','CTP-CENTRAL','T','T','F','F',1);
+insert into `displayDaemons` values ('CID','index','Production Daemon','index','CTP-CENTRAL','T','F','T','F','F',0);
+insert into `displayDaemons` values ('CID','test','Test Daemon','test','CTP-CENTRAL','T','F','T','F','F',1);
 
 #
 # Table structure for table displayGroups
@@ -609,6 +610,7 @@ CREATE TABLE `eventsChangesLogData` (
   `lastTimeslot` varchar(10) NOT NULL default '',
   `prevStatus` varchar(9) NOT NULL default '',
   `prevTimeslot` varchar(10) NOT NULL default '',
+  `posTimeslot` int(11) NOT NULL DEFAULT '9',
   PRIMARY KEY (`catalogID`,`uKey`),
   KEY `catalogID` (`catalogID`),
   KEY `uKey` (`uKey`),
@@ -616,6 +618,41 @@ CREATE TABLE `eventsChangesLogData` (
   KEY `eventsChangesLogData_ibfk_1` (`catalogID`,`uKey`),
   CONSTRAINT `eventsChangesLogData_ibfk_1` FOREIGN KEY (`catalogID`,`uKey`) REFERENCES `plugins` (`catalogID`,`uKey`)
 ) ENGINE=InnoDB;
+
+#
+# Table structure for table eventsDisplayData
+#
+
+DROP TABLE IF EXISTS `eventsDisplayData`;
+
+CREATE TABLE `eventsDisplayData` (
+  `catalogID` varchar(5) NOT NULL default 'CID',
+  `posTimeslot` int(11) NOT NULL DEFAULT '0',
+  `uKey` varchar(11) NOT NULL default '',
+  `replicationStatus` ENUM('I','U','R') NOT NULL DEFAULT 'I',
+  `test` varchar(512) NOT NULL default '',
+  `title` varchar(75) NOT NULL default '',
+  `status` varchar(9) NOT NULL default '',
+  `startDate` date NOT NULL default '0000-00-00',
+  `startTime` time NOT NULL default '00:00:00',
+  `endDate` date NOT NULL default '0000-00-00',
+  `endTime` time NOT NULL default '00:00:00',
+  `duration` time NOT NULL default '00:00:00',
+  `statusMessage` varchar(1024) NOT NULL default '',
+  `step` smallint(6) NOT NULL default '0',
+  `timeslot` varchar(10) NOT NULL default '',
+  `instability` tinyint(1) NOT NULL default '9',
+  `persistent` tinyint(1) NOT NULL default '9',
+  `downtime` tinyint(1) NOT NULL default '9',
+  `filename` varchar(254) default '',
+  PRIMARY KEY (`catalogID`,`uKey`,`posTimeslot`),
+  KEY `catalogID` (`catalogID`),
+  KEY `uKey` (`uKey`),
+  KEY `posTimeslot` (`posTimeslot`),
+  KEY `replicationStatus` (`replicationStatus`)
+) ENGINE=InnoDB;
+
+/*Data for the table `eventsDisplayData` */
 
 #
 # Table structure for table holidays
@@ -889,8 +926,8 @@ CREATE TABLE `plugins` (
   `catalogID` varchar(5) NOT NULL default 'CID',
   `uKey` varchar(11) NOT NULL default '',
   `test` varchar(100) NOT NULL default '',
-  `arguments` varchar(254) default '',
-  `argumentsOndemand` varchar(254) default '',
+  `arguments` varchar(1024) default '',
+  `argumentsOndemand` varchar(1024) default '',
   `title` varchar(75) NOT NULL default '',
   `trendline` smallint(6) NOT NULL default '0',
   `shortDescription` text,

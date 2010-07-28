@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, archive.pl for ASNMTAP::Applications
+# 2010/mm/dd, v3.002.001, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Date::Calc qw(Date_to_Time Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.003;
+use ASNMTAP::Time v3.002.001;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.001.003;
+use ASNMTAP::Asnmtap::Applications v3.002.001;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y $opt_f  $opt_D $opt_V $opt_h $PRO
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,18 +54,18 @@ my $debug       = 0;                         # default
 my $archivelist;
 
 my $gzipDaysAgo          = 8;                                                     # GZIP files older then n date
+my $gzipDebugDaysAgo     = 3;                                                     # GZIP files older then n days ago
 my $removeGzipDaysAgo    = 31;                                                    # Remove files older then n days ago
 my $removeAllNokDaysAgo  = 8;                                                     # Remove files older then n days ago
-my $gzipDebugDaysAgo     = 3;                                                     # Remove files older then n days ago
 my $removeDebugDaysAgo   = 31;                                                    # Remove files older then n days ago
 my $removeGzipWeeksAgo   = 53;                                                    # Remove files older then n weeks ago
 my $removeCgisessDaysAgo = 2;                                                     # Remove files older then n days ago
 my $removeReportWeeksAgo = 53;                                                    # Remove files older then n weeks ago
 
 my $gzipEpoch            = get_epoch ('-'. $gzipDaysAgo .' days');                # GZIP files older then n date
+my $gzipDebugEpoch       = get_epoch ('-'. $gzipDebugDaysAgo .' days');           # GZIP files older then n date
 my $removeAllNokEpoch    = get_epoch ('-'. $removeAllNokDaysAgo .' days');        # Remove files older then n days ago
 my $removeGzipEpoch      = get_epoch ('-'. $removeGzipDaysAgo .' days');          # Remove files older then n days ago
-my $gzipDebugEpoch       = get_epoch ('-'. $gzipDebugDaysAgo .' days');           # GZIP files older then n date
 my $removeDebugEpoch     = get_epoch ('-'. $removeDebugDaysAgo .' days');         # Remove files older then n days ago
 my $removeWeeksEpoch     = get_epoch ('-'. $removeGzipWeeksAgo .' weeks');        # Remove files older then n weeks ago
 my $removeCgisessEpoch   = get_epoch ('-'. $removeCgisessDaysAgo .' days');       # Remove files older then n days ago
@@ -780,7 +780,10 @@ sub gzipOrRemoveHttpDumpDebug {
 
   print "<$debugFilename>\n" if ($debug);
 
-  ($suffix, $extentie) = split(/\./, $debugFilename, 2);
+  my $_debugFilename = reverse $debugFilename;
+  my ($_suffix, $_extentie) = reverse split(/\./, $_debugFilename, 2);
+  $suffix = reverse $_suffix;
+  $extentie = reverse $_extentie;
   ($datum, $restant) = split(/\-/, $suffix, 2);
 
   if (defined $restant) {

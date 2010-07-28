@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/03/10, v3.001.003, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.001, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,11 +21,11 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.001.003;
+use ASNMTAP::Time v3.002.001;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.001.003;
-use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND);
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.001.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ my $pagedir = (defined $cgi->param('pagedir')) ? $cgi->param('pagedir') : '<NIHI
 my $pageset = (defined $cgi->param('pageset')) ? $cgi->param('pageset') : 'admin';   $pageset =~ s/\+/ /g;
 my $debug   = (defined $cgi->param('debug'))   ? $cgi->param('debug')   : 'F';
 my $action  = (defined $cgi->param('action'))  ? $cgi->param('action')  : 'menuView';
+my $Cauto   = (defined $cgi->param('auto'))    ? $cgi->param('auto')    : 0;
 
 my ($Cplugin, $ChelpPluginFilename, $Ctodo);
 
@@ -66,10 +67,10 @@ my (@matchingAsnmtapCollectorCTscript, @matchingAsnmtapDisplayCTscript, %ASNMTAP
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Generate Config", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&action=$action&auto=$Cauto";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>action            : $action<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>action            : $action<br>auto              : $Cauto<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID";
@@ -85,7 +86,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   } elsif ($action eq 'compareView') {
     $htmlTitle = "Compare Configurations";
   } elsif ($action eq 'installView') {
-    $htmlTitle = "Install Configuration";
+    $htmlTitle = ( ( $Cauto == 1 ) ? "Install" : "Dry Run" ) ." Configuration";
   } elsif ($action eq 'install') {
     $htmlTitle = "Configuration Installed";
   } elsif ($action eq 'updateView') {
@@ -97,11 +98,17 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $htmlTitle = "Configuration Menu";
   }
 
+  # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  my $onload = ( ( $action =~ /^(check|generate|compare|install)View$/ ) ? "ONLOAD=\"if (document.images) document.Progress.src='".$IMAGESURL."/spacer.gif';\"" : '' );
+  print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, $onload, 'F', '', $sessionID);
+  print "        <br>\n";
+  print "<IMG SRC=\"".$IMAGESURL."/gears.gif\" HSPACE=\"0\" VSPACE=\"0\" BORDER=\"0\" NAME=\"Progress\" title=\"Please Wait ...\" alt=\"Please Wait ...\">" if ( $onload );
+
   $rv  = 1;
 
   if ($action eq 'checkView' or $action eq 'generateView') {
     # open connection to database and query data
-    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
     if ($dbh and $rv) {
       my ($serverID, $displayDaemon, $collectorDaemon, $resultsdir, $groupTitle, $pagedirs, $catalogID, $uKey, $test, $interval, $title, $helpPluginFilename, $environment, $trendline, $minute, $hour, $dayOfTheMonth, $monthOfTheYear, $dayOfTheWeek, $argumentsCommon, $argumentsCrontab, $noOffline);
@@ -118,9 +125,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # displayDaemons <-> views  - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLDISPLAYDMNS.displayDaemon, count($SERVERTABLVIEWS.displayDaemon) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.displayDaemon";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -132,14 +139,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLVIEWS.displayDaemon, count($SERVERTABLDISPLAYDMNS.displayDaemon) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLVIEWS.displayDaemon = $SERVERTABLDISPLAYDMNS.displayDaemon where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayDaemon";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -151,15 +158,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # displayGroups <-> views - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLDISPLAYGRPS.groupTitle, count($SERVERTABLVIEWS.displayGroupID) FROM $SERVERTABLDISPLAYGRPS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLDISPLAYGRPS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYGRPS.displayGroupID = $SERVERTABLVIEWS.displayGroupID where $SERVERTABLDISPLAYGRPS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYGRPS.activated = 1 group by $SERVERTABLDISPLAYGRPS.displayGroupID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -171,14 +178,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Display Daemons <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Display Group</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLVIEWS.displayGroupID, count($SERVERTABLDISPLAYGRPS.displayGroupID) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLDISPLAYGRPS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.displayGroupID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -190,15 +197,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # collectorDaemons <-> crontabs - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLCLLCTRDMNS.collectorDaemon, count($SERVERTABLCRONTABS.collectorDaemon) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon where $SERVERTABLCLLCTRDMNS.catalogID = '$CATALOGID' and $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.collectorDaemon";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -210,14 +217,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Collector Daemons <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Collector Daemon</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLCRONTABS.collectorDaemon, count($SERVERTABLCLLCTRDMNS.collectorDaemon) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon where $SERVERTABLCRONTABS.catalogID = '$CATALOGID' and $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.collectorDaemon";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -229,15 +236,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # pagedirs <-> displayDaemons - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count($SERVERTABLDISPLAYDMNS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLPAGEDIRS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLPAGEDIRS.pagedir = $SERVERTABLDISPLAYDMNS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -249,14 +256,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLDISPLAYDMNS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLPAGEDIRS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLPAGEDIRS.catalogID and $SERVERTABLDISPLAYDMNS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.pagedir";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -268,28 +275,28 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # pagedirs <-> plugins  - - - - - - - - - - - - - - - - - - - - - -
       $sqlTmp = "drop temporary table if exists tmp$SERVERTABLPLUGINS";
-      $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
         $sqlTmp = "create temporary table `tmp$SERVERTABLPLUGINS`(`catalogID` varchar(5) NOT NULL default '$CATALOGID', `pagedir` varchar(11) default '') TYPE=InnoDB";
-        $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
         if ( $rv ) {
-          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           $sql = "SELECT $SERVERTABLPLUGINS.pagedir FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID'";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             if ( $sth->rows ) {
@@ -300,21 +307,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 foreach my $pagedirTmp (@pagedirs) {
                   $sqlTmp = "insert into tmp$SERVERTABLPLUGINS set catalogID = '$CATALOGID', pagedir = '$pagedirTmp'";
-                  $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-                  $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-                  $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+                  $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+                  $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+                  $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
                 }
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
           $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLPLUGINS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLPLUGINS ON $SERVERTABLPAGEDIRS.catalogID = tmp$SERVERTABLPLUGINS.catalogID and $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLPLUGINS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ($rv) {
             if ( $sth->rows ) {
@@ -326,14 +333,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
           $sql = "SELECT tmp$SERVERTABLPLUGINS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLPLUGINS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLPLUGINS.catalogID = $SERVERTABLPAGEDIRS.catalogID and tmp$SERVERTABLPLUGINS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLPLUGINS.pagedir";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ($rv) {
             if ( $sth->rows ) {
@@ -345,35 +352,35 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $sqlTmp = "drop temporary table tmp$SERVERTABLPLUGINS";
-          $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
         }
       }
 
       # pagedirs <-> users  - - - - - - - - - - - - - - - - - - - - - - -
       $sqlTmp = "drop temporary table if exists tmp$SERVERTABLUSERS";
-      $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
         $sqlTmp = "create temporary table `tmp$SERVERTABLUSERS`(`catalogID` varchar(5) NOT NULL default '$CATALOGID', `pagedir` varchar(11) default '') TYPE=InnoDB";
-        $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
         if ( $rv ) {
-          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           $sql = "SELECT $SERVERTABLUSERS.pagedir FROM $SERVERTABLUSERS where catalogID = '$CATALOGID'";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$pagedirs ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             if ( $sth->rows ) {
@@ -384,21 +391,21 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 foreach my $pagedirTmp (@pagedirs) {
                   $sqlTmp = "insert into tmp$SERVERTABLUSERS set catalogID = '$CATALOGID', pagedir = '$pagedirTmp'";
-                  $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-                  $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-                  $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+                  $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+                  $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+                  $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
                 }
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
           $sql = "SELECT $SERVERTABLPAGEDIRS.pagedir, count(tmp$SERVERTABLUSERS.pagedir) FROM $SERVERTABLPAGEDIRS LEFT JOIN tmp$SERVERTABLUSERS ON $SERVERTABLPAGEDIRS.catalogID = tmp$SERVERTABLUSERS.catalogID and $SERVERTABLPAGEDIRS.pagedir = tmp$SERVERTABLUSERS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by $SERVERTABLPAGEDIRS.pagedir";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ($rv) {
             if ( $sth->rows ) {
@@ -410,14 +417,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Pagedirs <-> Users</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Pagedir</td><td>Message</td><td align=\"center\">Action</td></tr>";
           $sql = "SELECT tmp$SERVERTABLUSERS.pagedir, count($SERVERTABLPAGEDIRS.pagedir) FROM tmp$SERVERTABLUSERS LEFT JOIN $SERVERTABLPAGEDIRS ON tmp$SERVERTABLUSERS.catalogID = $SERVERTABLPAGEDIRS.catalogID and tmp$SERVERTABLUSERS.pagedir = $SERVERTABLPAGEDIRS.pagedir where $SERVERTABLPAGEDIRS.catalogID = '$CATALOGID' and $SERVERTABLPAGEDIRS.activated = 1 group by tmp$SERVERTABLUSERS.pagedir";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ($rv) {
             if ( $sth->rows ) {
@@ -429,22 +436,22 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               }
             }
 
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
 
           $sqlTmp = "drop temporary table tmp$SERVERTABLUSERS";
-          $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sthTmp = $dbh->prepare( $sqlTmp ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sthTmp->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sthTmp->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sqlTmp", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
         }
       }
 
       # plugins <-> comments  - - - - - - - - - - - - - - - - - - - - - -
       # $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLCOMMENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCOMMENTS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
-      # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      # $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      # $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCOMMENTS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCOMMENTS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLCOMMENTS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCOMMENTS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 group by $SERVERTABLPLUGINS.uKey";
+      # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      # $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       # if ($rv) {
       #   if ( $sth->rows ) {
@@ -456,14 +463,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       #     }
       #   }
       #
-      #   $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      #   $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       # }
 
       # $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Comments</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
       # $sql = "SELECT $SERVERTABLCOMMENTS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCOMMENTS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLCOMMENTS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCOMMENTS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCOMMENTS.catalogID = '$CATALOGID' and $SERVERTABLCOMMENTS.activated = 1 group by $SERVERTABLCOMMENTS.uKey";
-      # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      # $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      # $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      # $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      # $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       # if ($rv) {
       #   if ( $sth->rows ) {
@@ -475,15 +482,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       #     }
       #   }
       #
-      #   $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      #   $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       # }
 
       # plugins <-> crontabs  - - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCRONTABS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey where $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLCRONTABS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLCRONTABS ON $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey where $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 group by $SERVERTABLPLUGINS.uKey";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -495,14 +502,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Crontabs</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLCRONTABS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLCRONTABS LEFT JOIN $SERVERTABLPLUGINS ON  $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLCRONTABS.catalogID = '$CATALOGID' and $SERVERTABLCRONTABS.activated = 1 group by $SERVERTABLCRONTABS.uKey";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -514,15 +521,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # plugins <-> views - - - - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.uKey";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sql = "SELECT $SERVERTABLPLUGINS.uKey, count($SERVERTABLVIEWS.uKey) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLVIEWS ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLVIEWS.uKey where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 group by $SERVERTABLPLUGINS.uKey";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -534,14 +541,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Views</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLVIEWS.uKey, count($SERVERTABLPLUGINS.uKey) FROM $SERVERTABLVIEWS LEFT JOIN $SERVERTABLPLUGINS ON $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and  $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey where $SERVERTABLVIEWS.catalogID = '$CATALOGID' and $SERVERTABLVIEWS.activated = 1 group by $SERVERTABLVIEWS.uKey";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -553,15 +560,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # resultsdir <-> plugins  - - - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLRESULTSDIR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRESULTSDIR LEFT JOIN $SERVERTABLPLUGINS ON  $SERVERTABLRESULTSDIR.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLRESULTSDIR.resultsdir = $SERVERTABLPLUGINS.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLRESULTSDIR.resultsdir";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sql = "SELECT $SERVERTABLRESULTSDIR.resultsdir, count($SERVERTABLPLUGINS.resultsdir) FROM $SERVERTABLRESULTSDIR LEFT JOIN $SERVERTABLPLUGINS ON  $SERVERTABLRESULTSDIR.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLRESULTSDIR.resultsdir = $SERVERTABLPLUGINS.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 group by $SERVERTABLRESULTSDIR.resultsdir";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -573,14 +580,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Resultsdir <-> Plugins</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Resultsdir</td><td>Message</td><td align=\"center\">Action</td></tr>";
-      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRESULTSDIR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRESULTSDIR ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLRESULTSDIR.catalogID and $SERVERTABLPLUGINS.resultsdir = $SERVERTABLRESULTSDIR.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 group by $SERVERTABLPLUGINS.resultsdir";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sql = "SELECT $SERVERTABLPLUGINS.resultsdir, count($SERVERTABLRESULTSDIR.resultsdir) FROM $SERVERTABLPLUGINS LEFT JOIN $SERVERTABLRESULTSDIR ON $SERVERTABLPLUGINS.catalogID = $SERVERTABLRESULTSDIR.catalogID and $SERVERTABLPLUGINS.resultsdir = $SERVERTABLRESULTSDIR.resultsdir where $SERVERTABLPLUGINS.catalogID = '$CATALOGID' and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 group by $SERVERTABLPLUGINS.resultsdir";
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -592,15 +599,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # servers <-> collectorDaemons  - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLCLLCTRDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLCLLCTRDMNS ON $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -612,14 +619,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Collector Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLCLLCTRDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLCLLCTRDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLCLLCTRDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLCLLCTRDMNS.catalogID = '$CATALOGID' and $SERVERTABLCLLCTRDMNS.activated = 1 group by $SERVERTABLCLLCTRDMNS.serverID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -631,15 +638,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # servers <-> displayDaemons  - - - - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLSERVERS.serverID, count($SERVERTABLDISPLAYDMNS.serverID) FROM $SERVERTABLSERVERS LEFT JOIN $SERVERTABLDISPLAYDMNS ON $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 group by $SERVERTABLSERVERS.serverID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -651,14 +658,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Servers <-> Display Daemons</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Server ID</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT $SERVERTABLDISPLAYDMNS.serverID, count($SERVERTABLSERVERS.serverID) FROM $SERVERTABLDISPLAYDMNS LEFT JOIN $SERVERTABLSERVERS ON $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLSERVERS.catalogID and $SERVERTABLDISPLAYDMNS.serverID = $SERVERTABLSERVERS.serverID where $SERVERTABLDISPLAYDMNS.catalogID = '$CATALOGID' and $SERVERTABLDISPLAYDMNS.activated = 1 group by $SERVERTABLDISPLAYDMNS.serverID";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$error, \$count) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -670,7 +677,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # servers <-> servers - - - - - - - - - - - - - - - - - - - - - - -
@@ -686,12 +693,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$numberCentralServers</td><td>there can be only one activated central monitoring server</td><td>&nbsp;</td></tr>";
       } else {
         $sql = "SELECT serverID, typeMonitoring, typeServers, typeActiveServer, masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, masterDatabaseFQDN, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH, slaveDatabaseFQDN FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and typeMonitoring = 0 and activated = 1";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ($rv) {
-          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID); }
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          if ( $sth->rows ) { ($centralServerID, $centralTypeMonitoring, $centralTypeServers, $centralTypeActiveServer, $centralMasterFQDN, $centralMasterASNMTAP_PATH, $centralMasterRSYNC_PATH, $centralMasterSSH_PATH, $centralMasterDatabaseFQDN, $centralSlaveFQDN, $centralSlaveASNMTAP_PATH, $centralSlaveRSYNC_PATH, $centralSlaveSSH_PATH, $centralSlaveDatabaseFQDN) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID); }
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
         }
 
         $centralSlaveDatabaseFQDN = $centralMasterDatabaseFQDN unless ( $centralTypeServers );
@@ -725,9 +732,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # plugins uploaded <-> plugins configurated - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Uploaded <-> Plugins Configurated</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID' and activated = 1";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -756,7 +763,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # plugins configurated <-> plugins uploaded - - - - - - - - - - - -
@@ -764,9 +771,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $matchingErrors .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins Configurated <-> Plugins Uploaded</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Plugin</td><td>Message</td><td align=\"center\">Action</td></tr>";
 
       $sql = "SELECT DISTINCT test FROM $SERVERTABLPLUGINS where catalogID = '$CATALOGID' and activated = 1";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$test) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -787,7 +794,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -797,9 +804,9 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # help plugin filenames <-> plugin  - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Help Plugin Filenames <-> Plugin</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Help Plugin Filename</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT DISTINCT helpPluginFilename FROM $SERVERTABLPLUGINS WHERE catalogID = '$CATALOGID' and helpPluginFilename != '<NIHIL>'";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -828,15 +835,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # plugins <-> help plugin filename  - - - - - - - - - - - - - - - -
       $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td align=\"center\" colspan=\"3\">Plugins <-> Help Plugin Filename</td></tr><tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>Unique Key</td><td>Message</td><td align=\"center\">Action</td></tr>";
       $sql = "SELECT uKey, LTRIM(SUBSTRING_INDEX(title, ']', -1)) as shortTitle, helpPluginFilename FROM $SERVERTABLPLUGINS WHERE catalogID = '$CATALOGID' and activated = 1 order by shortTitle";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$warning, \$title, \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$warning, \$title, \$helpPluginFilename) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ( $rv ) {
         if ( $sth->rows ) {
@@ -853,7 +860,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
       }
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -864,7 +871,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       if ($action eq 'generateView') {
-        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $mode, $dumphttp, $status, $loop, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
+        my ($rvOpen, $typeMonitoringCharDorC, $typeMonitoring, $typeServers, $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $mode, $dumphttp, $status, $loop, $trigger, $displayTime, $lockMySQL, $debugDaemon, $debugAllScreen, $debugAllFile, $debugNokFile);
 
         $initializeGenerateView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><th>Initialize Generate Configs</th></tr>";
 
@@ -895,10 +902,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
         $rvOpen = 0;
 
         # ArchiveCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir, \$catalogID, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.catalogID, $SERVERTABLCRONTABS.uKey, $SERVERTABLPLUGINS.test from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLCRONTABS.uKey";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir, \$catalogID, \$uKey, \$test ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $matchingArchiveCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -939,7 +946,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 if ($rvOpen) {
                   $matchingArchiveCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/ArchiveCT\" target=\"_blank\">ArchiveCT</a></td></tr>";
-                  print ArchiveCT "# ArchiveCT - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <Pagedir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n_ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl\n";
+                  print ArchiveCT "# ArchiveCT - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <resultsdir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n_ASNMTAP#_ASNMTAP#collectorDaemonSchedulingReports.pl\n";
                 }
               }
 
@@ -981,24 +988,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingArchiveCT .= "\n      </table>";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
         }
 
         # DisplayCT - - - - - - - - - - - - - - - - - - - - - - - - - - -
         $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH from $SERVERTABLSERVERS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.typeMonitoring = 0";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $sth->fetch();
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
-          $sql = "select distinct $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLCATALOG ";
-          $sql .= "where $SERVERTABLSERVERS.catalogID = $SERVERTABLCATALOG.catalogID and $SERVERTABLCATALOG.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
-          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-          $sth->bind_columns( \$displayDaemon, \$pagedirs, \$loop, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$catalogID, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+          $sql = "select distinct $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYDMNS.pagedir, $SERVERTABLDISPLAYDMNS.loop, $SERVERTABLDISPLAYDMNS.trigger, $SERVERTABLDISPLAYDMNS.displayTime, $SERVERTABLDISPLAYDMNS.lockMySQL, $SERVERTABLDISPLAYDMNS.debugDaemon, $SERVERTABLPLUGINS.step, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.uKey, concat( $SERVERTABLPLUGINS.title, ' {', $SERVERTABLCLLCTRDMNS.serverID, '}'), $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.trendline, $SERVERTABLPLUGINS.helpPluginFilename from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS, $SERVERTABLVIEWS, $SERVERTABLPLUGINS, $SERVERTABLDISPLAYGRPS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLCATALOG ";
+          $sql .= "where $SERVERTABLSERVERS.catalogID = $SERVERTABLCATALOG.catalogID and $SERVERTABLCATALOG.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID and $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon and $SERVERTABLDISPLAYDMNS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLVIEWS.activated = 1 and $SERVERTABLVIEWS.catalogID = $SERVERTABLDISPLAYGRPS.catalogID and $SERVERTABLVIEWS.displayGroupID = $SERVERTABLDISPLAYGRPS.displayGroupID and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 and $SERVERTABLDISPLAYGRPS.activated = 1 and $SERVERTABLPLUGINS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLPLUGINS.uKey = $SERVERTABLCRONTABS.uKey and $SERVERTABLCRONTABS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLCRONTABS.collectorDaemon = $SERVERTABLCLLCTRDMNS.collectorDaemon and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLCLLCTRDMNS.activated = 1 order by $SERVERTABLDISPLAYDMNS.displayDaemon, $SERVERTABLDISPLAYGRPS.groupTitle, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLVIEWS.uKey";
+          $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+          $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+          $sth->bind_columns( \$displayDaemon, \$pagedirs, \$loop, \$trigger, \$displayTime, \$lockMySQL, \$debugDaemon, \$interval, \$groupTitle, \$resultsdir, \$catalogID, \$uKey, \$title, \$test, \$environment, \$trendline, \$helpPluginFilename ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
           if ( $rv ) {
             $matchingDisplayCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1025,12 +1032,12 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN", $debug);
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc", $debug);
                   $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/master", $debug);
-                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                  $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'M', $typeActiveServer, $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $centralMasterDatabaseFQDN, "master", $displayDaemon, $pagedirs, $loop, $trigger, $displayTime, $lockMySQL, $debugDaemon, $debug);
 
                   if ( $typeServers ) {
                     $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN", $debug);
                     $matchingDisplayCT .= system_call ("mkdir", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/slave", $debug);
-                    $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug);
+                    $matchingDisplayCT .= createDisplayCTscript ($typeMonitoringCharDorC, 'S', $typeActiveServer, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH, $centralSlaveDatabaseFQDN, "slave", $displayDaemon, $pagedirs, $loop, $trigger, $displayTime, $lockMySQL, $debugDaemon, $debug);
                   }
 
                   $rvOpen = open(DisplayCT, ">$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/DisplayCT-$displayDaemon");
@@ -1067,16 +1074,16 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
             }
 
             $matchingDisplayCT .= "      </table>\n";
-            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+            $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
           }
         }
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Display Start/Stop scripts
         $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLDISPLAYDMNS.displayDaemon from $SERVERTABLSERVERS, $SERVERTABLDISPLAYDMNS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLDISPLAYDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLDISPLAYDMNS.serverID and $SERVERTABLDISPLAYDMNS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLDISPLAYDMNS.displayDaemon";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$displayDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $matchingAsnmtapDisplayCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1120,14 +1127,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingAsnmtapDisplayCTscript .= "      </table>\n";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
         }
 
         # CollectorCT - - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$catalogID, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sql = "select $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCLLCTRDMNS.mode, $SERVERTABLCLLCTRDMNS.dumphttp, $SERVERTABLCLLCTRDMNS.status, $SERVERTABLCLLCTRDMNS.debugDaemon, $SERVERTABLCLLCTRDMNS.debugAllScreen, $SERVERTABLCLLCTRDMNS.debugAllFile, $SERVERTABLCLLCTRDMNS.debugNokFile, $SERVERTABLCRONTABS.minute, $SERVERTABLCRONTABS.hour, $SERVERTABLCRONTABS.dayOfTheMonth, $SERVERTABLCRONTABS.monthOfTheYear, $SERVERTABLCRONTABS.dayOfTheWeek, $SERVERTABLPLUGINS.step, $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, $SERVERTABLPLUGINS.resultsdir, $SERVERTABLPLUGINS.title, $SERVERTABLPLUGINS.test, $SERVERTABLPLUGINS.environment, $SERVERTABLPLUGINS.arguments, $SERVERTABLCRONTABS.arguments, $SERVERTABLPLUGINS.trendline, $SERVERTABLCRONTABS.noOffline from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLCRONTABS.uKey, $SERVERTABLCRONTABS.linenumber";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$mode, \$dumphttp, \$status, \$debugDaemon, \$debugAllScreen, \$debugAllFile, \$debugNokFile, \$minute, \$hour, \$dayOfTheMonth, \$monthOfTheYear, \$dayOfTheWeek, \$interval, \$catalogID, \$uKey, \$resultsdir, \$title, \$test, \$environment, \$argumentsCommon, \$argumentsCrontab, \$trendline, \$noOffline ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $matchingCollectorCT .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1144,7 +1151,20 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
                     close(CollectorCT);
                     $rvOpen = 0;
                     $typeMonitoringCharDorC = ($prevTypeMonitoring) ? 'D' : 'C';
-                    $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/CollectorCT-$prevCollectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/CollectorCT-$prevCollectorDaemon", $debug) if ($prevTypeServers);
+
+                    if ($prevTypeServers) {
+                      $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/CollectorCT-$prevCollectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/CollectorCT-$prevCollectorDaemon", $debug);
+
+                      my ($hostnameAdminCollector, undef) = split (/\./, $prevMasterFQDN, 2);
+
+                      if ( $prevCollectorDaemon eq $hostnameAdminCollector ) {
+                        unlink ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$prevTypeActiveServer-$prevSlaveFQDN/etc/CollectorCT-$prevCollectorDaemon");
+                      } else {
+                        my ($hostnameAdminCollector, undef) = split (/\./, $prevSlaveFQDN, 2);
+                        unlink ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$prevTypeActiveServer-$prevMasterFQDN/etc/CollectorCT-$prevCollectorDaemon") if ( $prevCollectorDaemon eq $hostnameAdminCollector );
+                      }
+                    }
+
                     $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>CollectorCT-$prevCollectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
                   }
                 }
@@ -1168,7 +1188,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
                 if ($rvOpen) {
                   $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><a href=\"/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon\" target=\"_blank\">CollectorCT-$collectorDaemon</a></td></tr>";
-                  print CollectorCT "# CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultDir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultDir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
+                  print CollectorCT "# CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher\n#\n# <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultsdir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultsdir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]\n#\n# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n#\n";
 
                 }
               } else {
@@ -1206,7 +1226,20 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               close(CollectorCT);
               $rvOpen = 0;
               $typeMonitoringCharDorC = ($typeMonitoring) ? 'D' : 'C';
-              $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/CollectorCT-$collectorDaemon", $debug) if ($typeServers);
+
+              if ($prevTypeServers) {
+                $matchingCollectorCT .= system_call ("cp", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon $APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/CollectorCT-$collectorDaemon", $debug);
+
+                my ($hostnameAdminCollector, undef) = split (/\./, $masterFQDN, 2);
+
+                if ( $collectorDaemon eq $hostnameAdminCollector ) {
+                  unlink ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "M-$typeActiveServer-$masterFQDN/etc/CollectorCT-$collectorDaemon");
+                } else {
+                  my ($hostnameAdminCollector, undef) = split (/\./, $slaveFQDN, 2);
+                  unlink ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/" .$typeMonitoringCharDorC. "S-$typeActiveServer-$slaveFQDN/etc/CollectorCT-$collectorDaemon") if ( $collectorDaemon eq $hostnameAdminCollector );
+                }
+              }
+
               $matchingCollectorCT .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>CollectorCT-$collectorDaemon - $serverID, generated on $configDateTime, ASNMTAP v$version or higher</td></tr>";
             }
           } else {
@@ -1214,15 +1247,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingCollectorCT .= "      </table>\n";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
         }
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Collector Start/Stop scripts
-        $sql = "select DISTINCT $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 AND $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID AND $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon AND $SERVERTABLCRONTABS.activated = 1 AND $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID AND $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey AND $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sql = "select DISTINCT $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLCLLCTRDMNS.activated = 1 AND $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID AND $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon AND $SERVERTABLCRONTABS.activated = 1 AND $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID AND $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey AND $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 order by $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $matchingAsnmtapCollectorCTscript .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1266,14 +1299,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingAsnmtapCollectorCTscript .= "      </table>\n";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
         }
 
         # rsync-mirror  - - - - - - - - - - - - - - - - - - - - - - - - -
-        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
-        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sql = "select distinct $SERVERTABLSERVERS.serverID, $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.typeServers, $SERVERTABLSERVERS.typeActiveServer, $SERVERTABLSERVERS.masterFQDN, $SERVERTABLSERVERS.masterASNMTAP_PATH, $SERVERTABLSERVERS.masterRSYNC_PATH, $SERVERTABLSERVERS.masterSSH_PATH, $SERVERTABLSERVERS.slaveFQDN, $SERVERTABLSERVERS.slaveASNMTAP_PATH, $SERVERTABLSERVERS.slaveRSYNC_PATH, $SERVERTABLSERVERS.slaveSSH_PATH, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir from $SERVERTABLSERVERS, $SERVERTABLCLLCTRDMNS, $SERVERTABLCRONTABS, $SERVERTABLPLUGINS where $SERVERTABLSERVERS.catalogID = '$CATALOGID' and $SERVERTABLSERVERS.catalogID = $SERVERTABLCLLCTRDMNS.catalogID and $SERVERTABLSERVERS.serverID = $SERVERTABLCLLCTRDMNS.serverID and $SERVERTABLSERVERS.activated = 1 and $SERVERTABLCLLCTRDMNS.catalogID = $SERVERTABLCRONTABS.catalogID and $SERVERTABLCLLCTRDMNS.collectorDaemon = $SERVERTABLCRONTABS.collectorDaemon and $SERVERTABLCLLCTRDMNS.activated = 1 and $SERVERTABLCRONTABS.catalogID = $SERVERTABLPLUGINS.catalogID and $SERVERTABLCRONTABS.uKey = $SERVERTABLPLUGINS.uKey and $SERVERTABLCRONTABS.activated = 1 and $SERVERTABLPLUGINS.activated = 1 and $SERVERTABLPLUGINS.production = 1 order by $SERVERTABLSERVERS.typeMonitoring, $SERVERTABLSERVERS.serverID, $SERVERTABLCLLCTRDMNS.collectorDaemon, $SERVERTABLPLUGINS.resultsdir";
+        $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+        $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+        $sth->bind_columns( \$serverID, \$typeMonitoring, \$typeServers, \$typeActiveServer, \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH, \$collectorDaemon, \$resultsdir ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
         if ( $rv ) {
           $matchingRsyncMirror .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1346,24 +1379,24 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
 
           $matchingRsyncMirror .= "\n      </table>";
-          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+          $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
         }
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       }
 
-      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
     }
   } elsif ($action eq 'compareView') {
     # open connection to database and query data
-    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
     if ($dbh and $rv) {
       my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
       $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and activated = 1";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -1373,10 +1406,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
       }
 
-      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
     }
 
     $compareView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1393,14 +1426,14 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     $compareView .= "\n      </table>";
   } elsif ($action eq 'installView') {
     # open connection to database and query data
-    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+    $dbh = DBI->connect("dbi:mysql:$DATABASE:$SERVERNAMEREADWRITE:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE" ) or $rv = error_trap_DBI(*STDOUT, "Cannot connect to the database", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
 
     if ($dbh and $rv) {
       my ( $masterFQDN, $masterASNMTAP_PATH, $masterRSYNC_PATH, $masterSSH_PATH, $slaveFQDN, $slaveASNMTAP_PATH, $slaveRSYNC_PATH, $slaveSSH_PATH );
       $sql = "SELECT masterFQDN, masterASNMTAP_PATH, masterRSYNC_PATH, masterSSH_PATH, slaveFQDN, slaveASNMTAP_PATH, slaveRSYNC_PATH, slaveSSH_PATH FROM $SERVERTABLSERVERS where catalogID = '$CATALOGID' and activated = 1";
-      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
-      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
-      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+      $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
+      $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
+      $sth->bind_columns( \$masterFQDN, \$masterASNMTAP_PATH, \$masterRSYNC_PATH, \$masterSSH_PATH, \$slaveFQDN, \$slaveASNMTAP_PATH, \$slaveRSYNC_PATH, \$slaveSSH_PATH ) or $rv = error_trap_DBI(*STDOUT, "Cannot sth->bind_columns: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
 
       if ($rv) {
         if ( $sth->rows ) {
@@ -1410,10 +1443,10 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
           }
         }
 
-        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
+        $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID) if $rv;
       }
 
-      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
+      $dbh->disconnect or $rv = error_trap_DBI(*STDOUT, "Sorry, the database was unable to add your entry.", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, -1, '', $sessionID);
     }
 
     $installView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1425,19 +1458,16 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       if ($compareDiff eq '') {
         $installView .= "\n		   <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>The generated and installed configurations are identical.</td></tr>";
       } else {
-        $installView .= "\n        <tr><td align=\"center\">Under construction:</td></tr>";
-        $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{ENDBLOCK}\">$compareDiff</table></td></tr>";
+        $installView .= "\n        <tr><td align=\"center\"><b>Under construction:</b></td></tr>";
+        $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{NOBLOCK}\">$compareDiff</table></td></tr>";
         $installView .= "\n        <tr><td align=\"center\">&nbsp;</td></tr>";
-        $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>We only move $APPLICATIONPATH/tmp/$CONFIGDIR/generated to $APPLICATIONPATH/tmp/$CONFIGDIR/installed</td></tr>";
-
-        $installView .= "\n        <tr align=\"left\"><td align=\"right\"><input type=\"submit\" value=\"Install\"><input type=\"reset\" value=\"Reset\"></td></tr>\n";
+        $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>We only are allowed to press the <b>MOVE</b> button when all commands are successfully executed!</td></tr>" if ( $Cauto == 1 );
+        $installView .= "\n        <tr align=\"left\"><td align=\"right\"><input type=\"submit\" value=\"". ( ( $Cauto == 1 ) ? 'MOVE' : 'INSTALL' ) ."\"> <input type=\"reset\" value=\"Reset\"></td></tr>\n";
       }
-
     } else {
-      $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Under construction:</td></tr>";
       $installView .= "\n        <tr><td>The generated configuration doesn't exist.</td></tr>";
     }
-	
+
     $installView .= "\n      </table>";
   } elsif ($action eq 'install') {
     $installView .= "\n      <table width=\"100%\" align=\"center\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">";
@@ -1446,10 +1476,8 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     if ( -e "$APPLICATIONPATH/tmp/$CONFIGDIR/generated" ) {
       $installView .= system_call ("rm -rf", "$APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
       $installView .= system_call ("mv", "$APPLICATIONPATH/tmp/$CONFIGDIR/generated $APPLICATIONPATH/tmp/$CONFIGDIR/installed", $debug);
-      $installView .= "\n        <tr><td align=\"center\">Under construction:</td></tr>";
-      $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>We moved $APPLICATIONPATH/tmp/$CONFIGDIR/generated to $APPLICATIONPATH/tmp/$CONFIGDIR/installed</td></tr>";
+      $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>We <b>moved</b> $APPLICATIONPATH/tmp/$CONFIGDIR/generated to $APPLICATIONPATH/tmp/$CONFIGDIR/installed</td></tr>";
     } else {
-      $installView .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>Under construction:</td></tr>";
       $installView .= "\n        <tr><td>The generated configuration doesn't exist.</td></tr>";
     }
 
@@ -1457,21 +1485,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   }
 
   if ( $rv ) {
-    # HTML  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
-
     if ($action eq 'installView') {
       print "        <form action=\"" . $ENV{SCRIPT_NAME} . "\" method=\"post\" name=\"generateConfig\">\n";
+      my $_action = ( ( $Cauto == 1 ) ? 'install' : $action );
 
       print <<HTML;
         <input type="hidden" name="pagedir"   value="$pagedir">
         <input type="hidden" name="pageset"   value="$pageset">
         <input type="hidden" name="debug"     value="$debug">
         <input type="hidden" name="CGISESSID" value="$sessionID">
-        <input type="hidden" name="action"    value="install">
+        <input type="hidden" name="action"    value="$_action">
+        <input type="hidden" name="auto"      value="1">
 HTML
-    } else {
-      print "        <br>\n";
+
     }
 
     if ($action eq 'updateView' or $action eq 'update') {
@@ -1488,13 +1514,15 @@ HTML
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr align="center"><td>
 	  <table border="0" cellspacing="0" cellpadding="0"><tr>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=checkView">[Check Configuration]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=checkView&amp;auto=0">[Check Configuration]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=generateView">[Generate Configuration]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=generateView&amp;auto=0">[Generate Configuration]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=compareView">[Compare Configurations]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=compareView&amp;auto=0">[Compare Configurations]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=installView">[Install Generated Configuration]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=installView&amp;auto=0">[Dry Run Generated Configuration]</a></td>
+        <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=installView&amp;auto=1">[Install Generated Configuration]</a></td>
   	  </tr></table>
 	</td></tr>
 HTML
@@ -1720,7 +1748,7 @@ STARTUPFILE
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub createDisplayCTscript {
-  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
+  my ($typeMonitoringCharDorC, $typeServersCharMorS, $typeActiveServer, $serverFQDN, $serverASNMTAP_PATH , $serverRSYNC_PATH , $serverSSH_PATH, $databaseFQDN, $subdir, $displayDaemon, $pagedirs, $loop, $trigger, $displayTime, $lockMySQL, $debugDaemon, $debug) = @_;
 
   my $filename = "$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$typeMonitoringCharDorC$typeServersCharMorS-$typeActiveServer-$serverFQDN/$subdir/DisplayCT-$displayDaemon.sh";
   my $command  = "cat $APPLICATIONPATH/tools/templates/DisplayCT-template.sh >> $filename";
@@ -1738,7 +1766,7 @@ sub createDisplayCTscript {
 AMNAME=\"Display ASNMTAP $displayDaemon\"
 AMPATH=$serverASNMTAP_PATH/applications
 AMCMD=display.pl
-AMPARA=\"--hostname=$databaseFQDN --checklist=DisplayCT-$displayDaemon --pagedir=$pagedirs --loop=$loop --displayTime=$displayTime --lockMySQL=$lockMySQL --debug=$debugDaemon\"
+AMPARA=\"--hostname=$databaseFQDN --checklist=DisplayCT-$displayDaemon --pagedir=$pagedirs --loop=$loop --trigger=$trigger --displayTime=$displayTime --lockMySQL=$lockMySQL --debug=$debugDaemon\"
 PIDPATH=$serverASNMTAP_PATH/pid
 PIDNAME=DisplayCT-$displayDaemon.pid
 SOUNDCACHENAME=DisplayCT-$displayDaemon-sound-status.cache
@@ -2497,6 +2525,10 @@ sub do_compare_view {
 
   my @compareView = `$command 2>&1`;
 
+  my %commands;
+  my $_id = 0;
+  my $connectArguments = "-o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=$WWWKEYPATH/.ssh/known_hosts' -i '$WWWKEYPATH/.ssh/$SSHIDENTITY'";
+
   foreach my $compareView (@compareView) {
     chomp ($compareView);
     $compareView =~ s/^\s+//g;
@@ -2513,6 +2545,8 @@ sub do_compare_view {
           $compareText = "File '$path/$generated' added to the generated configuration.";
         } else {
           ($type, $activeServer, $server) = split (/-/, $path, 3);
+          my $active = ( ( $type =~ /^[CD]${activeServer}$/ ) ? 1 : 0 );
+
           ($server, $subpath) = split (/\//, $server, 2);
           $subpath .= ($subpath eq '') ? '' : '/';
           # Copy '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/DM-[MS]-distributed.citap.com/etc/DisplayCT-distributed' to 'distributed.citap.com:/opt/asnmtap/applications/etc/DisplayCT-distributed'
@@ -2520,19 +2554,38 @@ sub do_compare_view {
           # or
           # Copy '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/CM-[MS]-asnmtap.citap.be/master/CollectorCT-index.sh' to 'asnmtap.citap.be:/opt/asnmtap/applications/master/CollectorCT-index.sh'
           #       $APPLICATIONPATH/tmp/      /generated/<------- $path -------->/<----------------- $generated ---------------->      <------ $server ----->:$APPLICATIONPATH/$subpath/<------------ $generated ----------->
-          $compareText = "Copy '$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated' to '$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated'";
+          $commands {$server} {SCP} {++$_id} {auto} = 1;
+          $commands {$server} {SCP} {$_id} {label} = '+a';
+          $commands {$server} {SCP} {$_id} {active} = $active;
+          $commands {$server} {SCP} {$_id} {command} = "$SCPCOMMAND $connectArguments $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$path/$generated $SSHLOGONNAME\@$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {SCP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
 
 		  if (($generated =~ /^DisplayCT-[\w-]+.sh$/) or ($generated =~ /^CollectorCT-[\w-]+.sh$/)) {
-            $compareText .= '<br>';
-            $compareText .= "chmod 755 $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated";
-            $compareText .= '<br>';
-            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated start";
+            $commands {$server} {CHMOD} {++$_id} {auto} = 1;
+            $commands {$server} {CHMOD} {$_id} {label} = '+b';
+            $commands {$server} {CHMOD} {$_id} {active} = $active;
+            $commands {$server} {CHMOD} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server chmod 755 ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {CHMOD} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+            $commands {$server} {START} {++$_id} {auto} = 1;
+            $commands {$server} {START} {$_id} {label} = '+c';
+            $commands {$server} {START} {$_id} {active} = $active;
+            $commands {$server} {START} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$subpath$generated start";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {START} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
           } elsif (($generated =~ /rsync-wrapper-distributed-[\w\-.]+.sh$/) or ($generated =~ /rsync-wrapper-failover-[\w\-.]+.sh$/)) {
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '+d';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "'$generated' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
             $todo = 1;
           } elsif (($generated =~ /rsync-mirror-failover-[\w\-.]+.sh$/) or ($generated =~ /rsync-mirror-distributed-[\w\-.]+.sh$/)) {
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '+e';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "Add 'n-59/5 * * * * $APPLICATIONPATH/$path/$generated > /dev/null' to crontab ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
             $todo = 1;
-            $compareText .= '<br>';
-            $compareText .= "Add 'n-59/5 * * * * $APPLICATIONPATH/$path/$generated > /dev/null' to crontab";
           }
         }
       } elsif ( $compareView =~ /^Only in generated:/ ) {
@@ -2541,13 +2594,32 @@ sub do_compare_view {
         } else {
           my (undef, $servername) = split (/: /, $compareView, 2);
           ($type, $activeServer, $server) = split (/-/, $servername, 3);
-          $compareText  = "Copy $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername to $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications<br>";
-          $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername", '', '', '<br>', $debug);
+          my $active = ( ( $type =~ /^[CD]${activeServer}$/ ) ? 1 : 0 );
 
-		  if (defined $activeServer and $type =~ /^[CD]${activeServer}$/) {
-            $compareText .= "Now 'DisplayCT-*.sh start' and 'CollectorCT-*.sh start' and add 'rsync-mirror-*.sh' to crontab!!!";
+          $commands {$server} {SCP} {++$_id} {auto} = 1;
+          $commands {$server} {SCP} {$_id} {label} = '+f';
+          $commands {$server} {SCP} {$_id} {active} = $active;
+          $commands {$server} {SCP} {$_id} {command} = "$SCPCOMMAND $connectArguments $APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications';
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {SCP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {TODO} {++$_id} {auto} = 0;
+          $commands {$server} {TODO} {$_id} {label} = '+g';
+          $commands {$server} {TODO} {$_id} {active} = $active;
+          $commands {$server} {TODO} {$_id} {command} = read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/generated/$servername", '', '', '<br>', $debug) ." ?";
+          $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+		  if ($type =~ /^[CD]${activeServer}$/) {
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '+h';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "Now 'DisplayCT-*.sh start' and 'CollectorCT-*.sh start' and add 'rsync-mirror-*.sh' to crontab '$compareView' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
           } else {
-            $compareText .= "Now add 'rsync-mirror-*.sh' to crontab!!!";
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '+i';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "Now add 'rsync-mirror-*.sh' to crontab '$compareView' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
           }
 
 		  $todo = 1;
@@ -2560,37 +2632,52 @@ sub do_compare_view {
         } else {
           my ($servername, $directory) = split (/\//, $path, 2);
           ($type, $activeServer, $server) = split (/-/, $servername, 3);
-  
+          my $active = ( ( $type =~ /^[CD]${activeServer}$/ ) ? 1 : 0 );
+
 		  if (($installed =~ /^DisplayCT-[\w-]+.sh$/) or ($installed =~ /^CollectorCT-[\w-]+.sh$/)) {
-            $compareText  = "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
-            $compareText .= "/$directory" if (defined $directory);
-            $compareText .= "/$installed stop";
-            $compareText .= '<br>';
+            $commands {$server} {STOP} {++$_id} {auto} = 0;
+            $commands {$server} {STOP} {$_id} {label} = '-a';
+            $commands {$server} {STOP} {$_id} {active} = $active;
+            $commands {$server} {STOP} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications'. ( (defined $directory) ? "/$directory" : '' ) ."/$installed stop";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {STOP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
           } elsif ((($type eq 'CS' or $type eq 'DS') and ($installed =~ /^rsync-mirror-failover-[\w\-.]+.sh$/))
                 or (($type eq 'DM' or $type eq 'DS') and ($installed =~ /^rsync-mirror-distributed-[\w\-.]+.sh$/))) {
-            $compareText  = "Remove $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
-            $compareText .= "/$directory" if (defined $directory);
-            $compareText .= "/$installed from crontab";
-            $compareText .= '<br>';
-            my ($installedConf, undef) = split (/.sh/, $installed);
-            $compareText .= "Remove also $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
-            $compareText .= "/$directory" if (defined $directory);
-            $compareText .= "/$installedConf.conf";
-            $compareText .= '<br>';
+            $commands {$server} {CRONTAB} {++$_id} {auto} = 0;
+            $commands {$server} {CRONTAB} {$_id} {label} = '-b';
+            $commands {$server} {CRONTAB} {$_id} {active} = $active;
+            $commands {$server} {CRONTAB} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server DELETE ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications'. ( (defined $directory) ? "/$directory" : '' ) ."/$installed";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {CRONTAB} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          # my ($installedConf, undef) = split (/.sh/, $installed);
+          # $commands {$server} {REMOVE} {++$_id} {auto} = 0;
+          # $commands {$server} {REMOVE} {$_id} {label} = '-c';
+          # $commands {$server} {REMOVE} {$_id} {active} = $active;
+          # $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications'. ( (defined $directory) ? "/$directory" : '' ) ."/$installedConf.conf";
+          # $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
             $todo = 1;
           } elsif ((($type eq 'CM' or $type eq 'DM') and ($installed =~ /^rsync-wrapper-failover-[\w\-.]+.sh$/))
                 or (($type eq 'CM' or $type eq 'CS') and ($installed =~ /^rsync-wrapper-distributed-[\w\-.]+.sh$/))) {
-            $compareText  = '';
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '-d';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "'$installed' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
             $todo = 1;
           } else {
-            $compareText  = '';
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '-e';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "UNKNOWN '$path' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
           }
 
           # Remove 'distributed.citap.com:/opt/asnmtap/applications/etc/DisplayCT-distributed-magweg'
           #         <----- $server ----->:$APPLICATIONPATH/<------- $installed ------->
-          $compareText .= "Remove '$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications";
-          $compareText .= "/$directory" if (defined $directory);
-          $compareText .= "/$installed'";
+          $commands {$server} {REMOVE} {++$_id} {auto} = 1;
+          $commands {$server} {REMOVE} {$_id} {label} = '-f';
+          $commands {$server} {REMOVE} {$_id} {active} = $active;
+          $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications'. ( (defined $directory) ? "/$directory" : '' ) ."/$installed";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
         }
       } elsif ( $compareView =~ /^Only in installed:/ ) {
         if ($details) {
@@ -2598,9 +2685,56 @@ sub do_compare_view {
         } else {
           my (undef, $servername) = split (/: /, $compareView, 2);
           ($type, $activeServer, $server) = split (/-/, $servername, 3);
-          $compareText .= read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/installed", '', '', '<br>', $debug);
-          $compareText .= "First 'DisplayCT-*.sh stop', 'CollectorCT-*.sh stop' and remove 'rsync-mirror-*.sh' from crontab!!!<br>";
-  # APE # $compareText .= "Remove $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/master and/or $server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/slave";
+          my $active = ( ( $type =~ /^[CD]${activeServer}$/ ) ? 1 : 0 );
+
+          $commands {$server} {TODO} {++$_id} {auto} = 0;
+          $commands {$server} {TODO} {$_id} {label} = '-g';
+          $commands {$server} {TODO} {$_id} {active} = $active;
+          $commands {$server} {TODO} {$_id} {command} = read_directory ("$APPLICATIONPATH/tmp/$CONFIGDIR/installed", '', '', '', $debug) ." ?";
+          $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {STOP} {++$_id} {auto} = 0;
+          $commands {$server} {STOP} {$_id} {label} = '-h';
+          $commands {$server} {STOP} {$_id} {active} = $active;
+          $commands {$server} {STOP} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/asnmtap-collector.sh stop";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {STOP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {REMOVE} {++$_id} {auto} = 0;
+          $commands {$server} {REMOVE} {$_id} {label} = '-i';
+          $commands {$server} {REMOVE} {$_id} {active} = $active;
+          $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/CollectorCT-*";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {STOP} {++$_id} {auto} = 0;
+          $commands {$server} {STOP} {$_id} {label} = '-j';
+          $commands {$server} {STOP} {$_id} {active} = $active;
+          $commands {$server} {STOP} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/asnmtap-display.sh stop";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {STOP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {REMOVE} {++$_id} {auto} = 0;
+          $commands {$server} {REMOVE} {$_id} {label} = '-k';
+          $commands {$server} {REMOVE} {$_id} {active} = $active;
+          $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/DisplayCT-*";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {CRONTAB} {++$_id} {auto} = 0;
+          $commands {$server} {CRONTAB} {$_id} {label} = '-l';
+          $commands {$server} {CRONTAB} {$_id} {active} = $active;
+          $commands {$server} {CRONTAB} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server DELETE ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/rsync-mirror-failover-*.sh";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {CRONTAB} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {REMOVE} {++$_id} {auto} = 0;
+          $commands {$server} {REMOVE} {$_id} {label} = '-m';
+          $commands {$server} {REMOVE} {$_id} {active} = $active;
+          $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/rsync-mirror-failover-*.sh";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
+          $commands {$server} {REMOVE} {++$_id} {auto} = 0;
+          $commands {$server} {REMOVE} {$_id} {label} = '-n';
+          $commands {$server} {REMOVE} {$_id} {active} = $active;
+          $commands {$server} {REMOVE} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server rm ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/rsync-mirror-failover-*.conf";
+          $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {REMOVE} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
           $todo = 1;
         }
       } elsif ( $compareView =~ /^Files generated\// ) {
@@ -2611,24 +2745,37 @@ sub do_compare_view {
         } else {
           my (undef, $servername, $filename) = split (/\//, $generated, 3);
           ($type, $activeServer, $server) = split (/-/, $servername, 3);
+          my $active = ( ( $type =~ /^[CD]${activeServer}$/ ) ? 1 : 0 );
 
           # Replace 'distributed.citap.be:/opt/asnmtap/applications/slave/asnmtap-display.sh' with '/opt/asnmtap/applications/tmp/$CONFIGDIR/generated/DS-[SM]-distributed.citap.be/slave/asnmtap-display.sh'
           #          <----- $server ---->:$APPLICATIONPATH/<------ $filename ----->        $APPLICATIONPATH/tmp/      /<---------------------- $generated ---------------------->
-          $compareText = "<FONT COLOR=\"#99CC99\">scp -i ~/.ssh/</FONT>&lt;nagios&gt;<FONT COLOR=\"#99CC99\"> $APPLICATIONPATH/tmp/$CONFIGDIR/$generated </FONT>&lt;username&gt;\@<FONT COLOR=\"#99CC99\">$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$filename</FONT>";
-  
+          $commands {$server} {SCP} {++$_id} {auto} = 1;
+          $commands {$server} {SCP} {$_id} {label} = '=a';
+          $commands {$server} {SCP} {$_id} {active} = $active;
+          $commands {$server} {SCP} {$_id} {command} = "$SCPCOMMAND $connectArguments $APPLICATIONPATH/tmp/$CONFIGDIR/$generated $SSHLOGONNAME\@$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$filename";
+          $compareText .= '<FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {SCP} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+
 		  if (($filename =~ /^etc\/DisplayCT-[\w-]+$/) or ($filename =~ /^etc\/CollectorCT-[\w-]+$/)) {
             $filename =~ s/etc\///g;
-            $compareText .= '<br><FONT COLOR="#99CC99">';
-            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/";
-            $compareText .= ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave';
-            $compareText .= "/$filename.sh reload</FONT>";
-#		  } elsif (($filename =~ /^(slave|master)\/asnmtap-display.sh$/)   or ($filename =~ /^(slave|master)\/asnmtap-collector.sh$/)
-#              or ($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
+            $commands {$server} {RELOAD} {++$_id} {auto} = 1;
+            $commands {$server} {RELOAD} {$_id} {label} = '=b';
+            $commands {$server} {RELOAD} {$_id} {active} = $active;
+            $commands {$server} {RELOAD} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/$filename.sh reload";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {RELOAD} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+ 		  } elsif (($filename =~ /^(slave|master)\/asnmtap-display.sh$/)   or ($filename =~ /^(slave|master)\/asnmtap-collector.sh$/)) {
+            $commands {$server} {TODO} {++$_id} {auto} = 0;
+            $commands {$server} {TODO} {$_id} {label} = '=c';
+            $commands {$server} {TODO} {$_id} {active} = $active;
+            $commands {$server} {TODO} {$_id} {command} = "'$filename' ?";
+            $compareText .= '<br><FONT COLOR="yellow"> ['. $_id .'] '. $commands {$server} {TODO} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
 		  } elsif (($filename =~ /^(slave|master)\/DisplayCT-[\w-]+\.sh$/) or ($filename =~ /^(slave|master)\/CollectorCT-[\w-]+\.sh$/)) {
-            $compareText .= '<br>';
-            $compareText .= "$server:". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } ."/applications/$filename restart";
-          } elsif ( $filename =~ /^master\/rsync-mirror-failover-[\w\-.]+.conf$/ or $filename =~ /^slave\/rsync-mirror-failover-[\w\-.]+.conf$/) {
-            $todo = 1;
+            $commands {$server} {START} {++$_id} {auto} = 0;
+            $commands {$server} {START} {$_id} {label} = '=d';
+            $commands {$server} {START} {$_id} {active} = $active;
+            $commands {$server} {START} {$_id} {command} = "$SSHCOMMAND $connectArguments $SSHLOGONNAME\@$server ". $ASNMTAP_PATH { substr ($type, -1, 1) } { $server } .'/applications/'. ( ($type eq 'CM' or $type eq 'DM') ? 'master' : 'slave' ) ."/$filename.sh restart";
+            $compareText .= '<br><FONT COLOR="#99CC99"> ['. $_id .'] '. $commands {$server} {START} {$_id} {command} .'</FONT>' if ( $debug eq 'T' );
+        # } elsif ( $filename =~ /^master\/rsync-mirror-failover-[\w\-.]+.conf$/ or $filename =~ /^slave\/rsync-mirror-failover-[\w\-.]+.conf$/) {
+            # deze bestanden worden reeds gecopieerd door middel van bovenstaande SCP in deze sectie
           }
         }
       } elsif ( $compareView =~ /^diff: installed: No such file or directory/ ) {
@@ -2636,16 +2783,144 @@ sub do_compare_view {
       } elsif ( $compareView =~ /^diff: generated: No such file or directory/ ) {
         $compareText = "The generated configuration doesn't exist.";
       } else {
-        $compareText = "Under construction < $compareView >";
+        $compareText = "<b>Under construction:</b> < $compareView >";
       }
 
-      unless ( $details) { $compareText = "<b>$compareText</b>" if ($todo or (defined $activeServer and $type =~ /^[CD]${activeServer}$/)); $compareText .= '<HR>'; }
+      unless ( $details ) { $compareText = "<b>$compareText</b>" if (defined $compareText and ($todo or (defined $activeServer and $type =~ /^[CD]${activeServer}$/))); }
 
       $statusMessage .= "\n		   <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$compareView</td></tr>" if ($details or $debug eq 'T');
       $statusMessage .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$compareDiff</td></tr>" if (defined $compareDiff);
-      $statusMessage .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>$compareText</td></tr>";
+      $statusMessage .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td>$compareText</td></tr>" if (defined $compareText);
     }
   }
+
+  my ($commandsToExecute, $commandsExecuted, $commandsTODO) = ( $_id, 0 );
+
+  foreach my $_servers ( sort keys %commands ) {
+    my $_server = $commands {$_servers};
+    $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$_servers</td></tr>";
+
+    my $exitCurrentServer = 0;
+
+    foreach my $type ( 'TODO', 'SCP', 'CHMOD', 'RELOAD', 'STOP', 'START', 'CRONTAB', 'REMOVE' ) {
+      next if ( $exitCurrentServer );
+      $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td>$type</td></tr>";
+      my $_type = $_server->{$type};
+
+      foreach my $_id ( keys %$_type ) {
+        next if ( $exitCurrentServer );
+        my $auto    = ( ( exists $_type->{$_id}{auto} and $_type->{$_id}{auto} ) ? $_type->{$_id}{auto} : 0 );
+        my $label   = ( ( exists $_type->{$_id}{label} and $_type->{$_id}{label} ) ? $_type->{$_id}{label} : '??' );
+        my $active  = ( ( exists $_type->{$_id}{active} and $_type->{$_id}{active} ) ? $_type->{$_id}{active} : 0 );
+        my $command = ( ( exists $_type->{$_id}{command} and $_type->{$_id}{command} ) ? $_type->{$_id}{command} : '' );
+
+        unless ( defined $command ) {
+          my $prefix = ( ( $debug eq 'T' ) ? "E) '$label' [$_id] " : '' );
+          $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><FONT COLOR=\"red\">${prefix}${command}</FONT></td></tr>";
+        } elsif ( $type !~ /^(?:RELOAD|STOP|START)$/ or ( $type =~ /^(?:RELOAD|STOP|START)$/ and $active ) ) {
+          if ( $Cauto == 1 and $auto == 1 ) {
+            my $color = 'red';
+
+            my @capture = `$command 2>&1`;
+            my $exit_value  = $? >> 8;
+            my $signal_num  = $? & 127;
+            my $dumped_core = $? & 128;
+            $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td><FONT COLOR=\"white\">$exit_value - $signal_num - $dumped_core - ". join('<br>', @capture) ."</FONT></td></tr>" if ( $debug eq 'T' );
+
+            if ( $exit_value == 0 && $signal_num == 0 && $dumped_core == 0 ) {
+              my ($lineNumber, $proccessNextLine) = (0, 0);
+
+              foreach my $capture ( @capture ) {
+                $capture =~ s/\r$//g;
+                $capture =~ s/\n$//g;
+                next unless ( defined $capture and ! $exitCurrentServer );
+
+                $lineNumber++;
+                $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td><FONT COLOR=\"cyaan\">$capture</FONT></td></tr>";
+
+                if ( $lineNumber == 1 ) {
+                  for ( $type ) {
+                    /^SCP$/     && do { last; };
+                    /^CHMOD$/   && do { last; };
+                    /^RELOAD$/  && do {
+                      $exitCurrentServer = ( ( $capture =~ /^Reload:(?:\s)*'(Collector|Display)(?:\s)*(.)*'(?:\s)*...$/ ) ? 0 : 1 );
+                      last; };
+                    /^STOP$/    && do {
+                      $exitCurrentServer = ( ( $capture =~ /^(Stop:(?:\s)*'(Collector|Display)(?:\s)*(.)*'(?:\s)*...|'(Collector|Display)(?:\s)*(.)*'(?:\s)*already stopped)$/ ) ? 0 : 1 );
+                      last; };
+                    /^START$/   && do {
+                      $exitCurrentServer = ( ( $capture =~ /^Start:(?:\s)*'(Collector|Display)(?:\s)*(.)*'(?:\s)*...$/ ) ? 0 : 1 );
+                      $proccessNextLine++ unless ( $exitCurrentServer );
+                      last; };
+                    /^CRONTAB$/ && do { last; };
+                    /^REMOVE$/  && do { last; };
+                    $exitCurrentServer = 1;
+                  }
+                } elsif ( $proccessNextLine ) {
+                  $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td><FONT COLOR=\"cyaan\">proccess next line: $proccessNextLine - $capture</FONT></td></tr>";
+                } else {
+                  my $match = 0;
+
+                  if ( $debug eq 'T' ) {
+                    for ( $capture ) {
+                      /kill:(?:\s)*\((?:\d)*\)(?:\s)*-(?:\s)*No such process$/ && do { $match = 1; $exitCurrentServer = 1; last; };
+                      /^cat:(?:\s)*cannot(?:\s)*open(?:\s)*(.)*\.pid$/         && do { $match = 2; $exitCurrentServer = 1; last; };
+                    }
+                  } else {
+                    $exitCurrentServer = 1;
+                  }
+
+                  $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td><FONT COLOR=\"cyaan\">match rule: $match - $capture</FONT></td></tr>";
+                }
+              }
+
+              $color = '#99CC99' unless ( $exitCurrentServer );
+            } else {
+              $exitCurrentServer = 1;
+
+              foreach my $capture ( @capture ) {
+                $capture =~ s/\r$//g;
+                $capture =~ s/\n$//g;
+                next unless ( defined $capture );
+
+                my $match = '0';
+
+                if ( $debug eq 'T' ) {
+                  for ( $capture ) {
+                    /^ksh:(?:\s)*(.)*:(?:\s)*not found$/                  && do { $match = 127; last; }; # exit_value = 127
+                    /^ksh:(?:\s)*(.)*:(?:\s)*cannot execute$/             && do { $match = 126; last; }; # exit_value = 126
+                    /^scp:(?:\s)*(.)*:(?:\s)*No such file or directory$/  && do { $match = 1;   last; }; # exit_value = 1
+                    $match = '?';
+                  }
+                }
+
+                $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td><FONT COLOR=\"cyaan\">match rule: $match = exit_value: $exit_value - $capture</FONT></td></tr>";
+              }
+            }
+
+            my $prefix = ( ( $debug eq 'T' ) ? "A) '$label' [$_id] " : '' );
+            $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><b><FONT COLOR=\"$color\">${prefix}${command}</FONT></b></td></tr>";
+          } else { # implementatie moet nog gebeuren
+            my $color = ( ( $auto == 1 ) ? '#99CC99' : 'white');
+            my $prefix = ( ( $debug eq 'T' ) ? "I) '$label' [$_id] " : '' );
+            $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><b><FONT COLOR=\"$color\">${prefix}${command}</FONT></b></td></tr>";
+          }
+        } else { # no action required
+          my $prefix = ( ( $debug eq 'T' ) ? "N) '$label' [$_id] " : '' );
+          $commandsTODO .= "\n        <tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td><FONT COLOR=\"#99CC99\">${prefix}${command}</FONT></td></tr>";
+        }
+
+        $commandsExecuted++ unless ( $exitCurrentServer );
+      }
+    }
+  }
+
+  $statusMessage .= $commandsTODO if (defined $commandsTODO);
+
+# APE #
+# unless ($details)
+#   $action = 'errorView' unless ( $commandsToExecute eq $commandsExecuted );
+# }
 
   return ($statusMessage);
 }
