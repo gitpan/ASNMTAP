@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.001;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.002;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 

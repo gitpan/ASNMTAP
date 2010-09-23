@@ -14,18 +14,18 @@ Sending and receiving fingerprinted (TXT or XML) mails. It are Mail::Sendmail (a
 
 =head1 EXAMPLE
 
-  use ASNMTAP::Asnmtap::Plugins v3.002.001;
+  use ASNMTAP::Asnmtap::Plugins v3.002.002;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'check_template.pl',
     _programDescription => "General plugin template for the '$APPLICATION'",
-    _programVersion     => '3.002.001',
+    _programVersion     => '3.002.002',
     _programGetOptions  => ['timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 1);
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.002.001;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.002.002;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,
@@ -375,8 +375,6 @@ Returns a status for $returnCode (OK..UNKNOWN).
 
 =over 4
 
-=item
-
 =item perfdataLabel
 
 This means that there performance data for the sending time will be created and the name for the label equals the value from perfdataLabel.
@@ -484,7 +482,7 @@ A new Net::POP3 object is created and all POP3 commands are accessed via method 
 =back
 
 =item $msgnum:
- 
+
   sub actionOnReceivingFingerprintMail {
     my ($self, $asnmtapInherited, $email, $msgnum) = @_;
 

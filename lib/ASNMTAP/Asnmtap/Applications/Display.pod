@@ -95,12 +95,12 @@ when the Application CGI module and CGI applications are installed, these config
    <Title nnn>		:
    check_nnn		: plugin name
    <help 0|1>		:
-		
+
 =item example
 
  more /opt/asnmtap/applications/etc/DisplayCT-test
 
- # DisplayCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.001 or higher
+ # DisplayCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.002 or higher
  #
  # <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
  #
@@ -147,6 +147,8 @@ shell script to start, stop, reload, restart or get status for all the Display d
 =item ...
 
 ...
+
+=back
 
 =back
 

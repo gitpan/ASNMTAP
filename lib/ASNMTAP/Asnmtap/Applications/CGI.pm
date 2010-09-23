@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -986,7 +986,7 @@ sub create_combobox_multiple_from_DBI {
         }
 
         $comboboxSelectSize = ($comboboxSelectSize > $selectSize) ? $selectSize : $comboboxSelectSize;
-        $comboboxSelect =  "<select name=\"$selectName\" size=\"$comboboxSelectSize\" multiple $onChange>" .$comboboxSelect. "</select>";
+        $comboboxSelect =  "<select name=\"$selectName\" id=\"${selectName}_id\" size=\"$comboboxSelectSize\" multiple $onChange>" .$comboboxSelect. "</select>";
       } else {
         while( $sth->fetch() ) {
           if ($Ckey =~ /\/$key\//) {

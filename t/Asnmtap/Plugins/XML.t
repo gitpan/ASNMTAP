@@ -7,13 +7,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(:ALL) ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::XML', qw(&extract_XML) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.002.001;
+  use ASNMTAP::Asnmtap::Plugins v3.002.002;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'XML.t',
     _programDescription => 'Testing ASNMTAP::Asnmtap::Plugins::XML',
-    _programVersion     => '3.002.001',
+    _programVersion     => '3.002.002',
     _timeout            => 30,
     _debug              => 0);
 

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               ASNMTAP
-version:            3.002001
+version:            3.002002
 abstract:           Application System Network Monitoring Toolkit Alex Peeters
 author:
     - Alex Peeters <alex.peeters@citap.com>
@@ -70,7 +70,7 @@ no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.56
+generated_by:       ExtUtils::MakeMaker version 6.55_02
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4

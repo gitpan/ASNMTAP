@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, index.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, index.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "index.pl";
 my $prgtext     = "$APPLICATION Moderator";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -74,6 +74,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 	  <tr><td class="StatusItem"><a href="collectorCrontabSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Collector Crontab Scheduling Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem"><a href="collectorDaemonSchedulingReports.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Collector Daemon Scheduling Reports (for the Collector)</a></td></tr>
 	  <tr><td class="StatusItem">&nbsp;</td></tr>
+	  <tr><td class="StatusItem"><a href="comments.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Comments (to set the comments for a group of related tests)</a></td></tr>
 	  <tr><td class="StatusItem"><a href="downtimes.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Downtimes (to set the downtime for a group of related tests)</a></td></tr>
 	  <tr><td class="StatusItem"><a href="plugins.pl?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=F&amp;CGISESSID=$sessionID">Plugins (to edit short description, trendline, holiday bundle and uploading plugindoc)</a></td></tr>
 	</table>

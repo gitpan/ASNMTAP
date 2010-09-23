@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, check_jUnit.pl
+# 2010/mm/dd, v3.002.002, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.001;
+use ASNMTAP::Asnmtap::Plugins v3.002.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.002.001;
+use ASNMTAP::Asnmtap::Plugins::XML v3.002.002;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.002.001',
+  _programVersion     => '3.002.002',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -462,7 +462,7 @@ $rv  = 1;
 $dbh = DBI->connect("DBI:mysql:$jUnitServerDbC:$jUnitServerName:$jUnitServerPort", "$jUnitServerUser", "$jUnitServerPass") or $rv = errorTrapDBI (\$objectPlugins, "Sorry, cannot connect to the database: $jUnitServerDbC:$jUnitServerName:$jUnitServerPort");
 
 if ($dbh and $rv) {
-  $sql = "select ACTIVATED, STATUS, NAME, WLSUSERNAME, WLSPASSWORD, APPNAME, EJBNAME, VERSION, PARAMETERS, TESTCLASS, TIMEWAIT from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID";
+  $sql = "select ACTIVATED, STATUS, NAME, WLSUSERNAME, WLSPASSWORD, APPNAME, EJBNAME, VERSION, PARAMETERS, TESTCLASS, TIMEWAIT, MAXTIME from $jUnitServerTablBS, $jUnitServerTablS where UKEY = '$jUnitUkey' and $jUnitServerTablBS.SERV_ID = $jUnitServerTablS.SERV_ID";
   print "$sql\n" if ( $debug );
 
   $sth = $dbh->prepare($sql) or $rv = errorTrapDBI (\$objectPlugins, "dbh->prepare: $sql");
@@ -487,6 +487,8 @@ if ($dbh and $rv) {
         $testcaseTestclass   = (defined $ref->{TESTCLASS})   ? '<testclass>'. $ref->{TESTCLASS} .'</testclass>' : '';
 
         $testcaseTimewait    = (defined $ref->{TIMEWAIT} and $ref->{TIMEWAIT} > 0) ? '<timewait>'. $ref->{TIMEWAIT} .'</timewait>' : '';
+
+        $jUnitMaxtime        = $ref->{MAXTIME} if (defined $ref->{MAXTIME} and $ref->{MAXTIME} > 0 and ! defined $maxtime);
 
         $testcases .= "
   <testcase>

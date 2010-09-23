@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, perfparse_debug.sh
+# 2010/mm/dd, v3.002.002, perfparse_debug.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then 
@@ -43,7 +43,7 @@ exec 0<$FILE
 
 while read line 
 do 
-  echo $line | $PERFPARSEPATH/bin/perfparse-log2mysql
+  echo "$line" | $PERFPARSEPATH/bin/perfparse-log2mysql
 done
 
 exec 0<&3

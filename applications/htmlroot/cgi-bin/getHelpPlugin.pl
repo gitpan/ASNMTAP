@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, getHelpPlugin.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Shell;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getHelpPlugin.pl";
 my $prgtext     = "Get help for one '$APPLICATION' plugin";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -79,15 +79,19 @@ unless ( defined $errorUserAccessControl ) {
 
       $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlHelpPluginTitle, $subTitle, 3600, '', $sessionID);
 
-      if ($htmlHelpPluginFilename ne '<NIHIL>') {
-        $fileHelpPluginFilename = $PDPHELPPATH .'/'. $htmlHelpPluginFilename;
-        $htmlHelpPluginFilename = $PDPHELPURL .'/'. $htmlHelpPluginFilename;
-		
-        if (open(PDF, "$fileHelpPluginFilename")) {
-          close(PDF);
+      if (defined $htmlHelpPluginFilename and $htmlHelpPluginFilename ne '<NIHIL>') {
+        if ($htmlHelpPluginFilename =~ /^http(s)?\:\/\//) {
+          $fileHelpPluginFilename = $htmlHelpPluginFilename;
         } else {
-          $fileHelpPluginFilename = '<NIHIL>';
-          $htmlHelpPluginFilename = "Wanted helpfile: '$htmlHelpPluginFilename'";
+          $fileHelpPluginFilename = $PDPHELPPATH .'/'. $htmlHelpPluginFilename;
+          $htmlHelpPluginFilename = $PDPHELPURL .'/'. $htmlHelpPluginFilename;
+
+          if (open(PDF, "$fileHelpPluginFilename")) {
+            close(PDF);
+          } else {
+            $fileHelpPluginFilename = '<NIHIL>';
+            $htmlHelpPluginFilename = "Wanted helpfile: '$htmlHelpPluginFilename'";
+          }		
         }		
       } else {
         $htmlHelpPluginFilename = "There is no helpfile defined into the plugin database!";
@@ -97,8 +101,19 @@ unless ( defined $errorUserAccessControl ) {
 
       print '<br>', "\n", '<table WIDTH="100%" border=0><tr><td class="HelpPluginFilename">', "\n";
 
-      if ($fileHelpPluginFilename eq '<NIHIL>') {
+      if (! defined $fileHelpPluginFilename or $fileHelpPluginFilename eq '<NIHIL>') {
         print '<IMG SRC="', $IMAGESURL, '/404.jpg"><br><br>', $htmlHelpPluginFilename, "\n";
+#     } elsif ($fileHelpPluginFilename =~ /^http(s)?\:\/\//) {
+#        print <<HTML
+#  <script type="text/javascript">
+#    <!--
+#    function openHelpPluginFilename(theUrl){
+#      location.href = theUrl;
+#    }
+#    //-->
+#  </script>
+#  <a href="javascript:openHelpPluginFilename('$htmlHelpPluginFilename');" target="_blank">$htmlHelpPluginFilename</a>
+#HTML
       } else {
         print '<iframe src="', $htmlHelpPluginFilename, '" width="100%" height="1214" more="" ATTRIBUTES=""></iframe>', "\n";
       }

@@ -204,6 +204,7 @@ applications/htmlroot/cgi-bin/admin/views.pl
 
 applications/htmlroot/cgi-bin/moderator/collectorCrontabSchedulingReports.pl
 applications/htmlroot/cgi-bin/moderator/collectorDaemonSchedulingReports.pl
+applications/htmlroot/cgi-bin/moderator/comments.pl
 applications/htmlroot/cgi-bin/moderator/downtimes.pl
 applications/htmlroot/cgi-bin/moderator/generateCollectorCrontabSchedulingReport.pl
 applications/htmlroot/cgi-bin/moderator/generateCollectorDaemonSchedulingReport.pl
@@ -234,8 +235,12 @@ applications/htmlroot/img/1arrowDown.gif
 applications/htmlroot/img/1arrowLeft.gif
 applications/htmlroot/img/1arrowRight.gif
 applications/htmlroot/img/1arrowUp.gif
+applications/htmlroot/img/1moveLeft.png
+applications/htmlroot/img/1moveRight.png
 applications/htmlroot/img/2arrowLeft.gif
 applications/htmlroot/img/2arrowRight.gif
+applications/htmlroot/img/2moveLeft.png
+applications/htmlroot/img/2moveRight.png
 applications/htmlroot/img/404.jpg
 applications/htmlroot/img/awstats.gif
 applications/htmlroot/img/blue.gif
@@ -391,12 +396,12 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-events.sql
-applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsUpdate.sql
-applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
-applications/tools/mysql/asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.002.001-database-schema.png
+applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
+applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
+applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
+applications/tools/mysql/asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.002.002-database-schema.png
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -507,12 +512,12 @@ plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.002.001_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.002.002_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
 plugins/templates/snmptt/snmptt-oracle.conf
-plugins/templates/snmptt/snmptt-3.002.001-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.002.002-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

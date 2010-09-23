@@ -6,7 +6,7 @@
 
 Author       : Alex Peeters [alex.peeters@citap.be]
 Latest update: dd month 2010
-Version      : 3.002.001
+Version      : 3.002.002
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -18,7 +18,41 @@ TODO:                          - TODO ALL   -  Log::Dispatch, Log::Dispatch::Fil
                                -               , 'Log::Dispatch::FileRotate' => '1.19'
                                -               , 'Log::Log4perl::Layout::XMLLayout' => 'x.x'
 
-Version 3.002.001, 2010/xx/yy, by Alex Peeters
+TODO: Version 3.002.003, 2010/xx/yy, by Alex Peeters
+                               ASNMTAP
+                               - UPDATE asnmtap-3.002.003_mysql-v5.0.x-trigger-events.sql
+                                 replace: REPLACE INTO `eventsDisplayData` (catalogID, uKey, replicationStatus, test, title, `status`, startDate, startTime, endDate, endTime, duration, statusMessage, step, timeslot, instability, persistent, downtime, filename) SELECT catalogID, uKey, replicationStatus, test, title, `status`, startDate, startTime, endDate, endTime, duration, statusMessage, step, timeslot, instability, persistent, downtime, filename FROM `events` WHERE catalogID = NEW.catalogID AND id = NEW.id;
+                                 with   : REPLACE INTO `eventsDisplayData` (catalogID, uKey, replicationStatus, test, title, `status`, startDate, startTime, endDate, endTime, duration, statusMessage, perfdata, step, timeslot, instability, persistent, downtime, filename) SELECT catalogID, uKey, replicationStatus, test, title, `status`, startDate, startTime, endDate, endTime, duration, statusMessage, perfdata, step, timeslot, instability, persistent, downtime, filename FROM `events` WHERE catalogID = NEW.catalogID AND id = NEW.id;
+                               - splice 'statusMessage' between 'statusMessage' and 'perfdata'
+                               - change code to use 'perfdata'
+
+Version 3.002.002, 2010/09/22, by Alex Peeters
+                               ASNMTAP
+                               - UPDATE asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
+                               - optimalisatie DBI connection problems
+                               - NEW /cgi-bin/moderator/comments.pl
+                                 Set multiple comments by drag and drop list
+                               Database schema v3.002.002
+                               - UPDATE /applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
+                               - UPDATE /applications/tools/mysql/asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
+                                 - ALTER TABLE `events` ADD COLUMN `perfdata` text AFTER `statusMessage`;
+                                 - ALTER TABLE `eventsDisplayData` ADD COLUMN `perfdata` text AFTER `statusMessage`;
+                                 - ALTER TABLE `views` ADD COLUMN `timeperiodID` INT(11) NOT NULL DEFAULT '1' AFTER `displayGroupID`;
+                                 - ALTER TABLE `views` ADD INDEX `timeperiodID` (`timeperiodID`);
+                                 - ALTER TABLE `views` ADD INDEX `views_ibfk_4` (`catalogID`, `timeperiodID`);
+                                 - ALTER TABLE `views` ADD CONSTRAINT `views_ibfk_4` FOREIGN KEY (`catalogID`,`timeperiodID`) REFERENCES `timeperiods` (`catalogID`,`timeperiodID`);
+                               Help Plugin docs
+                               - update new help plugin doc file type 'http(s)://'
+                               SNMPTraps-Frontend for Nagios & ASNMTAP
+                               - UPDATE class.mysqlDB.php: replace 'INSERT INTO' with 'REPLACE INTO'
+                               XML plugin templates
+                               - UPDATE new command line option 'uKey'
+                               ASNMTAP::Asnmtap::Applications::CSV VARIABLES
+                               - UPDATE our @EVENTS = ('catalogID', 'id', 'uKey', 'replicationStatus', 'test', 'title', 'status', 'startDate', 'startTime', 'endDate', 'endTime', 'duration', 'statusMessage', 'perfdata', 'step', 'timeslot', 'instability', 'persistent', 'downtime', 'filename');
+                               views.pl
+                               - added 'Incident Monitoring Window'
+
+Version 3.002.001, 2010/07/28, by Alex Peeters
                                ASNMTAP
                                - NEW 'filter-option' to search
                                - UPDATE cpan module SOAP::Lite to 0.710.08 (reported problems with 0.710.09 and later)
@@ -254,7 +288,7 @@ Version 3.001.000, 2009/10/03, by Alex Peeters
                                    # ------------------------------------
 
                                    - ALTER TABLE `collectorDaemons` DROP PRIMARY KEY;
-	                               - ALTER TABLE `collectorDaemons` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
+	                                 - ALTER TABLE `collectorDaemons` ADD COLUMN `catalogID` varchar(5) NOT NULL default 'CID' FIRST;
                                    - ALTER TABLE `collectorDaemons` ADD INDEX `catalogID` (`catalogID`);
                                    - ALTER TABLE `collectorDaemons` ADD PRIMARY KEY (`catalogID`,`collectorDaemon`);
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, views.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, views.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # ----------------------------------------------------------------------------------------------------------
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES);
 
 # ----------------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "views.pl";
 my $prgtext     = "Views";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,6 +49,7 @@ my $CcatalogIDreload    = (defined $cgi->param('catalogIDreload')) ? $cgi->param
 my $CuKey               = (defined $cgi->param('uKey'))            ? $cgi->param('uKey')            : 'none';
 my $CdisplayDaemon      = (defined $cgi->param('displayDaemon'))   ? $cgi->param('displayDaemon')   : 'none';
 my $CdisplayGroupID     = (defined $cgi->param('displayGroupID'))  ? $cgi->param('displayGroupID')  : 'none';
+my $CtimeperiodID       = (defined $cgi->param('timeperiodID'))    ? $cgi->param('timeperiodID')    : 'none';
 my $Cactivated          = (defined $cgi->param('activated'))       ? $cgi->param('activated')       : 'off';
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,10 +63,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'admin', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Views", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&displayDaemon=$CdisplayDaemon&displayGroupID=$CdisplayGroupID&activated=$Cactivated";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&displayDaemon=$CdisplayDaemon&displayGroupID=$CdisplayGroupID&timeperiodID=$CtimeperiodID&activated=$Cactivated";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>displayDaemon     : $CdisplayDaemon<br>group title       : $CdisplayGroupID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>displayDaemon     : $CdisplayDaemon<br>group title       : $CdisplayGroupID<br>Support window    : $CtimeperiodID<br>activated         : $Cactivated<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 if ( defined $sessionID and ! defined $errorUserAccessControl ) {
   my ($catalogIDSelect, $displayDaemonSelect, $displayGroupSelect, $matchingViews, $navigationBar);
@@ -97,7 +98,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       } else {
         $htmlTitle    = "View $CdisplayDaemon, $CuKey from $CcatalogID inserted";
         my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-        $sql = 'INSERT INTO ' .$SERVERTABLVIEWS. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", displayDaemon="' .$CdisplayDaemon. '", displayGroupID="' .$CdisplayGroupID. '", activated="' .$dummyActivated. '"';
+        $sql = 'INSERT INTO ' .$SERVERTABLVIEWS. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", displayDaemon="' .$CdisplayDaemon. '", displayGroupID="' .$CdisplayGroupID. '", timeperiodID="' .$CtimeperiodID. '", activated="' .$dummyActivated. '"';
         $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
         $nextAction   = "listView" if ($rv);
       }
@@ -127,7 +128,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     } elsif ($action eq 'edit') {
       $htmlTitle    = "View $CdisplayDaemon, $CuKey from $CcatalogID updated";
       my $dummyActivated = ($Cactivated eq 'on') ? 1 : 0;
-      $sql = 'UPDATE ' .$SERVERTABLVIEWS. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", displayDaemon="' .$CdisplayDaemon. '", displayGroupID="' .$CdisplayGroupID. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and displayDaemon="' .$CdisplayDaemon. '" and uKey="' .$CuKey. '"';
+      $sql = 'UPDATE ' .$SERVERTABLVIEWS. ' SET catalogID="' .$CcatalogID. '", uKey="' .$CuKey. '", displayDaemon="' .$CdisplayDaemon. '", displayGroupID="' .$CdisplayGroupID. '", timeperiodID="' .$CtimeperiodID. '", activated="' .$dummyActivated. '" WHERE catalogID="' .$CcatalogID. '" and displayDaemon="' .$CdisplayDaemon. '" and uKey="' .$CuKey. '"';
       $dbh->do ( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->do: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView' or $action eq 'view') {
@@ -187,14 +188,15 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
     }
 
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView') {
-      $sql = "select catalogID, uKey, displayDaemon, displayGroupID, activated from $SERVERTABLVIEWS where catalogID='$CcatalogID' and displayDaemon='$CdisplayDaemon' and uKey='$CuKey'";
+      $sql = "select catalogID, uKey, displayDaemon, displayGroupID, timeperiodID, activated from $SERVERTABLVIEWS where catalogID='$CcatalogID' and displayDaemon='$CdisplayDaemon' and uKey='$CuKey'";
       $sth = $dbh->prepare( $sql ) or $rv = error_trap_DBI(*STDOUT, "Cannot dbh->prepare: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       $sth->execute() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->execute: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if $rv;
 
       if ( $rv ) {
-        ($CcatalogID, $CuKey, $CdisplayDaemon, $CdisplayGroupID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
+        ($CcatalogID, $CuKey, $CdisplayDaemon, $CdisplayGroupID, $CtimeperiodID, $Cactivated) = $sth->fetchrow_array() or $rv = error_trap_DBI(*STDOUT, "Cannot $sth->fetchrow_array: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID) if ($sth->rows);
         $CcatalogID = $CATALOGID if ($action eq 'duplicateView');
         $Cactivated = ($Cactivated == 1) ? 'on' : 'off';
+      # $CtimeperiodID = 
         $sth->finish() or $rv = error_trap_DBI(*STDOUT, "Cannot sth->finish: $sql", $debug, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', $sessionID);
       }
     }
@@ -252,6 +254,12 @@ HTML
   if ( document.views.displayGroupID.options[document.views.displayGroupID.selectedIndex].value == 'none' ) {
     document.views.displayGroupID.focus();
     alert('Please create/select a view display group!');
+    return false;
+  }
+
+  if ( document.views.timeperiodID.value == null || document.views.timeperiodID.value == 'none' ) {
+    document.views.timeperiodID.focus();
+    alert('Please create/select one of the Support windows!');
     return false;
   }
 HTML
@@ -335,6 +343,9 @@ HTML
     if ($action eq 'deleteView' or $action eq 'displayView' or $action eq 'duplicateView' or $action eq 'editView' or $action eq 'insertView' or $action eq 'viewView') {
       my $activatedChecked = ($Cactivated eq 'on') ? ' checked' : '';
 
+      my $supportWindowSelect = '';
+      ($rv, $supportWindowSelect, undef) = create_combobox_from_DBI ($rv, $dbh, "select timeperiodID, timeperiodName from $SERVERTABLTIMEPERIODS where catalogID = '$CcatalogID' and activated = 1 order by timeperiodName", 1, '', $CtimeperiodID, 'timeperiodID', 'none', '-Select-', $formDisabledAll, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+
       print <<HTML;
     <tr><td>&nbsp;</td></tr>
     <tr><td>
@@ -347,6 +358,9 @@ HTML
         </td></tr>
         <tr><td><b>Application: </b></td><td>
           $uKeySelect
+        </td></tr>
+        <tr><td><b>Incident Monitoring Window: </b></td><td>
+          $supportWindowSelect
         </td></tr>
 HTML
 

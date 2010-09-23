@@ -73,7 +73,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2010/dd/mm 17:58:36, ASNMTAP v3.002.001 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2010/dd/mm 17:58:36, ASNMTAP v3.002.002 or higher
  #
  # <resultsdir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
@@ -439,6 +439,8 @@ when the Application CGI module and CGI applications are installed, this config 
  /etc/rc3.d/K99asnmtap /etc/init.d/asnmtap
  /etc/rc0.d/S99asnmtap /etc/init.d/asnmtap
  /etc/rc0.d/K99asnmtap /etc/init.d/asnmtap
+
+=back
 
 =back
 
@@ -892,31 +894,31 @@ MySQL 5.0.x
 
  database:
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
 
  triggers to make fast display possible for heavy environment:
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x-trigger-events.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-events.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsUpdate.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsUpdate.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-trigger-eventsDisplayData.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
 
 Distributed monitoring example
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\applications\tools\mysql\asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1210,11 +1212,11 @@ Install net-snmp 5.4.x
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.001-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.002-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.001-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.002-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -1305,7 +1307,7 @@ Install net-snmp 5.4.x
 =back
 
 =item NagTrap integration
-  
+
  ... TODO ... NO PART OF NORMAL SETUP ...
 
 =over 4
@@ -1450,6 +1452,8 @@ Click on the Update License button to add a license to your system
     http://localhost:8080/asnmtap/cgi-bin/sadmin/index.pl
 
 =back
+
+=over 4
 
 =item Install Awstats
 
@@ -1802,7 +1806,7 @@ Deletes all binary logs listed in the index file, resetting the binlog index fil
 Makes the slave forget its replication position in the master's binlogs. This statement is meant to be used for a clean start: it deletes the `master.info' and `relay-log.info' files, all the relay logs, and starts a new relay log. 
 
 Note: All relay logs are deleted, even if they had not been totally executed by the slave SQL thread. (This is a condition likely to exist on a replication slave that is highly loaded, or if you have issued a STOP SLAVE statement.) Connection information stored in the `master.info' file is immediately reset to the values specified in the corresponding startup options, if they were specified. This information includes values such as master host, master port, master user, and master password. If the slave SQL thread was in the middle of replicating temporary tables when it was stopped, and RESET SLAVE is issued, these replicated temporary tables are deleted on the slave.
-   
+
 =item How do I configure a slave if the master is already running and I do not want to stop it?
 
 There are several options. If you have taken a backup of the master at some point and recorded the binlog name and offset ( from the output of SHOW MASTER STATUS ) corresponding to the snapshot, do the following:

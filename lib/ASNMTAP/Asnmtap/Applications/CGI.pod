@@ -152,6 +152,10 @@ this program allow you to create all the collector crontab scheduling reports th
 
 this program allow you to create all the collector daemon scheduling reports through the CGI Interface.
 
+=item comments.pl
+
+this program allow you to set comments by selecting a uKey from a drop and drag list for one ore more tests through the CGI Interface.
+
 =item downtimes.pl
 
 this program allow you to set downtimes by uploading a uKey list for a group of tests through the CGI Interface.

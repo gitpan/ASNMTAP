@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, asnmtap-3.002.001-distributed_mysql-v5.0.x.sql
+# 2010/mm/dd, v3.002.002, asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
 # ---------------------------------------------------------------------------------------------------------
 
 SET NAMES utf8;
@@ -550,6 +550,7 @@ CREATE TABLE `events` (
   `endTime` time NOT NULL default '00:00:00',
   `duration` time NOT NULL default '00:00:00',
   `statusMessage` varchar(1024) NOT NULL default '',
+  `perfdata` text,
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
   `instability` tinyint(1) NOT NULL default '9',
@@ -619,6 +620,7 @@ CREATE TABLE `eventsDisplayData` (
   `endTime` time NOT NULL default '00:00:00',
   `duration` time NOT NULL default '00:00:00',
   `statusMessage` varchar(1024) NOT NULL default '',
+  `perfdata` text,
   `step` smallint(6) NOT NULL default '0',
   `timeslot` varchar(10) NOT NULL default '',
   `instability` tinyint(1) NOT NULL default '9',
@@ -1162,59 +1164,63 @@ CREATE TABLE `views` (
   `uKey` varchar(11) NOT NULL default '',
   `displayDaemon` varchar(64) NOT NULL default '',
   `displayGroupID` int(11) NOT NULL default '1',
+  `timeperiodID` INT(11) NOT NULL DEFAULT '1',
   `activated` tinyint(1) NOT NULL default '0',
   PRIMARY KEY (`catalogID`,`uKey`,`displayDaemon`),
-  KEY `uKey` (`uKey`),
   KEY `displayDaemon` (`displayDaemon`),
   KEY `displayGroupID` (`displayGroupID`),
+  KEY `uKey` (`uKey`),
+  KEY `timeperiodID` (`timeperiodID`),
   KEY `views_ibfk_1` (`catalogID`,`displayDaemon`),
   KEY `views_ibfk_2` (`catalogID`,`displayGroupID`),
   KEY `views_ibfk_3` (`catalogID`,`uKey`),
+  KEY `views_ibfk_4` (`catalogID`,`timeperiodID`),
   CONSTRAINT `views_ibfk_1` FOREIGN KEY (`catalogID`, `displayDaemon`) REFERENCES `displayDaemons` (`catalogID`, `displayDaemon`),
   CONSTRAINT `views_ibfk_2` FOREIGN KEY (`catalogID`, `displayGroupID`) REFERENCES `displayGroups` (`catalogID`, `displayGroupID`),
-  CONSTRAINT `views_ibfk_3` FOREIGN KEY (`catalogID`, `uKey`) REFERENCES `plugins` (`catalogID`, `uKey`)
+  CONSTRAINT `views_ibfk_3` FOREIGN KEY (`catalogID`, `uKey`) REFERENCES `plugins` (`catalogID`, `uKey`),
+  CONSTRAINT `views_ibfk_4` FOREIGN KEY (`catalogID`, `timeperiodID`) REFERENCES `timeperiods` (`catalogID`, `timeperiodID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `views` */
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T1','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T2','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T3','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T4','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','DUMMY-T5','test',2,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','DUMMY-T1','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','DUMMY-T2','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','DUMMY-T3','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','DUMMY-T4','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','DUMMY-T5','test',2,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','MYSQLS-P-01','index',3,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','MYSQLS-P-02','index',3,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','NAGIOS-P-01','index',3,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','NAGIOS-P-02','index',3,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','MYSQLS-P-01','index',3,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','MYSQLS-P-02','index',3,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','NAGIOS-P-01','index',3,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','NAGIOS-P-02','index',3,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CLUSTER-T1','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CLUSTER-T2','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CLUSTER-T3','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','CLUSTER-T4','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','CLUSTER-T1','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','CLUSTER-T2','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','CLUSTER-T3','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','CLUSTER-T4','test',1,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-01','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-02','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-03','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-04','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-01','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-02','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-03','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-04','test',1,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-10','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-11','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-10','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-11','test',1,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-20','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-21','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-22','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-23','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-20','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-21','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-22','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-23','test',1,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-30','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-31','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-32','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-33','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-30','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-31','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-32','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-33','test',1,1,1);
 
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-40','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-41','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-42','test',1,1);
-insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`activated`) values ('CID','zCLUSTER-43','test',1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-40','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-41','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-42','test',1,1,1);
+insert into `views` (`catalogID`,`uKey`,`displayDaemon`,`displayGroupID`,`timeperiodID`,`activated`) values ('CID','zCLUSTER-43','test',1,1,1);
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

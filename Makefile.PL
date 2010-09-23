@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v3.2.1 2010/xx/xx 18:14:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v3.2.2 2010/xx/xx 18:14:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,7 +7,7 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# copy current release '3.002.001' to '3.002.002'
+# copy current release '3.002.002' to '3.002.003'
 #                       3.002.xxx      3.001.yyy
 
 # replace 'Version      : 3.002.xxx'  with `3.002.yyy;`
@@ -51,7 +51,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -187,6 +187,7 @@ my @prerequisites = (
 
     [ 'applications/htmlroot/img/*.gif',               'r' ],
     [ 'applications/htmlroot/img/*.jpg',               'r' ],
+    [ 'applications/htmlroot/img/*.png',               'r' ],
     [ 'applications/htmlroot/img/fw0/*.gif',           'r' ],
     [ 'applications/htmlroot/img/logos/bodyimage.gif', 'R' ],
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
+# 2010/mm/dd, v3.002.002, create_ASNMTAP_weblogic_configuration_for_SNMP.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.001;
+use ASNMTAP::Time v3.002.002;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.002.001;
+use ASNMTAP::Asnmtap::Applications v3.002.002;
 use ASNMTAP::Asnmtap::Applications qw($CATALOGID &sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.002.001;
+use ASNMTAP::Asnmtap::Plugins v3.002.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_weblogic_configuration_for_SNMP.pl',
   _programDescription => 'Create ASNMTAP weblogic configuration for SNMP',
-  _programVersion     => '3.002.001',
+  _programVersion     => '3.002.002',
   _programUsagePrefix => '[--update] [--hostname] [--domain=<domain>] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--update
 --hostname
@@ -233,7 +233,7 @@ if ( $dbhWEBLOGIC and $dbhASNMTAP ) {
           }
 
           if ( $sqlUPDATE ) {
-            $sqlUPDATE = "UPDATE `views` SET displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated' WHERE catalogID='$CATALOGID' and uKey='$uKey'";
+            $sqlUPDATE = "UPDATE `views` SET displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated='$activated' WHERE catalogID='$CATALOGID' and uKey='$uKey' and displayDaemon='$displayDaemon'";
             $actions .= "  ASNMTAP: $sqlUPDATE\n";
             unless ( $debug ) { $dbhASNMTAP->do( $sqlUPDATE ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlUPDATE") };
           }

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, module cartography.pm for ASNMTAP::Asnmtap::Applications::Display
+# 2010/mm/dd, v3.002.002, module cartography.pm for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -14,10 +14,10 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.002.001;
+use ASNMTAP::Asnmtap::Applications v3.002.002;
 use ASNMTAP::Asnmtap::Applications qw($IMAGESPATH %ICONS);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.002.001;
+use ASNMTAP::Asnmtap::Applications::Display v3.002.002;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DBDISPLAY);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

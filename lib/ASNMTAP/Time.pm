@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, package ASNMTAP::Time
+# 2010/mm/dd, v3.002.002, package ASNMTAP::Time
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Time;
@@ -48,7 +48,7 @@ BEGIN {
 
   @ASNMTAP::Time::EXPORT_OK   = ( @{ $ASNMTAP::Time::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Time::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Time::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

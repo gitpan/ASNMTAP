@@ -9,7 +9,7 @@ ASNMTAP::Asnmtap is an object-oriented Base Class to build modules that provides
  my $objectAsnmtap = ASNMTAP::Asnmtap->new (
    _programName        => 'test-asnmtap.pl',
    _programDescription => "Test ASNMTAP::Asnmtap",
-   _programVersion     => '3.002.001',
+   _programVersion     => '3.002.002',
    _programUsagePrefix => '[--commandLineOption]',
    _programHelpPrefix  => "--commandLineOption ...",
    _programGetOptions  => ['commandLineOption=s'],
@@ -599,7 +599,7 @@ ASNMTAP
   %ERRORS %STATE %TYPE
 
 =item *
- 
+
 COMMANDS
 
   $CHATCOMMAND $DIFFCOMMAND $KILLALLCOMMAND $PERLCOMMAND $PPPDCOMMAND $ROUTECOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND

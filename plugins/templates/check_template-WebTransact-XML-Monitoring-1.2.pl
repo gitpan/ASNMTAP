@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, check_template-WebTransact-XML-Monitoring-1.2.pl
+# 2010/mm/dd, v3.002.002, check_template-WebTransact-XML-Monitoring-1.2.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -32,16 +32,17 @@ my $schema = "1.2";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring-1.2.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.002.001',
-  _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
+  _programVersion     => '3.002.002',
+  _programUsagePrefix => '--message=<message> [-H|--hostname <hostname> -s|--service <service>]|[--uKey <uKey>] [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
 -H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
+--uKey=<uKey>
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H=s', 'service|s=s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s', 'trendline|T:i'],
+  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H:s', 'service|s:s', 'uKey:s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -53,11 +54,16 @@ my $message = $objectPlugins->getOptionsArgv ('message');
 $objectPlugins->printUsage ('Missing command line argument message') unless (defined $message);
 $objectPlugins->pluginValue ( message => $message );
 
-my $hostname = $objectPlugins->getOptionsArgv ('hostname') ? $objectPlugins->getOptionsArgv ('hostname') : undef;
-$objectPlugins->printUsage ('Missing command line argument hostname') unless (defined $hostname);
+my ($uKey, $hostname, $service);
+$uKey = $objectPlugins->getOptionsArgv ('uKey') ? $objectPlugins->getOptionsArgv ('uKey') : undef;
 
-my $service = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
-$objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
+unless ( defined $uKey ) {
+  $hostname = $objectPlugins->getOptionsArgv ('hostname') ? $objectPlugins->getOptionsArgv ('hostname') : undef;
+  $objectPlugins->printUsage ('Missing command line argument uKey or hostname') unless (defined $hostname);
+
+  $service = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
+  $objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
+}
 
 my $validateDTD = $objectPlugins->getOptionsArgv ('validation') ? $objectPlugins->getOptionsArgv ('validation') : 'F';
 
@@ -133,7 +139,15 @@ $objectPlugins->exit (3);
 sub processAllResult {
   my ($debugfileMessage, $firstResults, $result, $reverse, $debug) = @_;
 
-  if (! $firstResults or ($$result->{Details}{Host} eq $hostname and $$result->{Details}{Service} eq $service and $$result->{Details}{Environment} =~ /^$environment{$environment}$/i)) {
+  my $match = 0;
+
+  if ( defined $$result->{Results}{Extension}{Element}{eName} and $$result->{Extension}{Element}{eName} eq 'uKey') {
+    $match = 1 if ( defined $$result->{Extension}{Element}{eValue} and $$result->{Extension}{Element}{eValue} eq $uKey );
+  } else {
+    $match = 1 if ( $$result->{Details}{Host} eq $hostname and $$result->{Details}{Service} eq $service );
+  }
+
+  if (! $firstResults or ($match and $$result->{Details}{Environment} =~ /^$environment{$environment}$/i)) {
     $$debugfileMessage .= "\n<TABLE WIDTH=\"100%\"><TR><TD>\n<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Environment: $environmentText</H3></TD></TR></TABLE>\n";
     $$debugfileMessage .= "\n<TABLE WIDTH=\"100%\">";
 
@@ -153,8 +167,14 @@ sub processAllResult {
     $debugfileMessage .= "<P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on: " .scalar(localtime()). "</P>\n</BODY>\n</HTML>";
   } else {
     my $tError = 'Content Error:';
-    $tError .= ' - Host: '. $$result->{Details}{Host} ." ne $hostname" if ($$result->{Details}{Host} ne $hostname);
-    $tError .= ' - Service: '. $$result->{Details}{Service} ." ne $service" if ($$result->{Details}{Service} ne $service);
+
+    if ( $$result->{Extension}{Element}{eName} eq 'uKey') {
+      $tError .= ' - uKey: '. $$result->{Extension}{Element}{eValue} ." ne $uKey" if ($$result->{Extension}{Element}{eValue} ne $uKey);
+    } else {	
+      $tError .= ' - Host: '. $$result->{Details}{Host} ." ne $hostname" if ($$result->{Details}{Host} ne $hostname);
+      $tError .= ' - Service: '. $$result->{Details}{Service} ." ne $service" if ($$result->{Details}{Service} ne $service);
+    }
+
     $tError .= ' - Environment: ' .$$result->{Details}{Environment} ." ne ". $environment{$environment} if ($$result->{Details}{Environment} !~ /^$environment{$environment}$/i);
     $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
   }

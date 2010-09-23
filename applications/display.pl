@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, display.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2010/mm/dd, v3.002.002, display.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,14 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.001;
-use ASNMTAP::Time qw(&get_datetimeSignal &get_timeslot);
+use ASNMTAP::Time v3.002.002;
+use ASNMTAP::Time qw(&get_datetimeSignal &get_hour &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.002.001;
+# because it is not yet exported by the ASNMTAP::Asnmtap::Applications::Display module
+use ASNMTAP::Asnmtap::Applications v3.002.002;
+use ASNMTAP::Asnmtap::Applications qw($SERVERTABLDISPLAYDMNS $SERVERTABLPLUGINS $SERVERTABLTIMEPERIODS $SERVERTABLVIEWS);
+
+use ASNMTAP::Asnmtap::Applications::Display v3.002.002;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +40,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_t $opt_c $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -143,6 +147,7 @@ my ($rv, $dbh, $sth, $lockString, $findString, $unlockString, $doChecklist, $tim
 my ($groupFullView, $groupCondensedView, $emptyFullView, $emptyCondencedView, $emptyMinimalCondencedView, $itemFullCondensedView);
 my ($checkOk, $checkSkip, $configNumber, $printCondensedView, $problemSolved, $verifyNumber, $inProgressNumber);
 my ($playSoundInProgress, $playSoundPreviousStatus, $playSoundStatus, %tableSoundStatusCache);
+my ($prevHour, $currHour, %timeperiodID_days, %catalogID_uKey_timeperiodID) = (-1, -1);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -157,6 +162,9 @@ my $pidfile = $PIDPATH .'/'. $checklist .'.pid';
 
 my @checklisttable = read_table($prgtext, $checklist, $loop, $debug);
 resultsdirCreate();
+
+build_hash_timeperiodID_days ($checklist, $pagedir, \%timeperiodID_days, $debug);
+build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedir, \%catalogID_uKey_timeperiodID, $debug);
 
 my $directory = $HTTPSPATH .'/nav/'. $pagedir;
 create_dir ($directory) unless ( -e "$directory" );
@@ -186,6 +194,10 @@ unless (fork) {                                  # unless ($pid = fork) {
       if ($boolean_signal_hup) {
         @checklisttable = read_table($prgtext, $checklist, ( $loop ? 2 : 0 ), $debug);
         resultsdirCreate();
+
+        build_hash_timeperiodID_days ($checklist, $pagedirOrig, \%timeperiodID_days, $debug);
+        build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirOrig, \%catalogID_uKey_timeperiodID, $debug);
+
         $boolean_signal_hup = 0;
       }
 
@@ -205,6 +217,14 @@ unless (fork) {                                  # unless ($pid = fork) {
           $prevSecs = $currSecs;
           $currSecs = int((localtime)[0]);
         } until ($currSecs < $prevSecs);
+
+        $currHour = get_hour();
+
+        if ( $prevHour != $currHour ) {
+          build_hash_timeperiodID_days ($checklist, $pagedirOrig, \%timeperiodID_days, $debug);
+          build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirOrig, \%catalogID_uKey_timeperiodID, $debug);
+          $prevHour = $currHour;
+        }
       }
 
       write_tableSoundStatusCache ($checklist, $debug);
@@ -399,8 +419,9 @@ sub do_crontab {
         my $popup = "<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Command</TD><TD BGCOLOR=#0000FF>$commandPopup</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Environment</TD><TD BGCOLOR=#0000FF>".$ENVIRONMENT{$environment}."</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Interval</TD><TD BGCOLOR=#0000FF>$tinterval</TD></TR><TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT>Trendline</TD><TD BGCOLOR=#0000FF>$trendline</TD></TR>";
         print "<", $CATALOGID, "><", $environment, "><", $trendline, "><", $tgroep, "><", $resultsdir, "><", $catalogID_uniqueKey, "><", $catalogID, "><", $uniqueKey, "><", $title, "><", $test, ">\n" if ($debug);
         my $number = 1;
-        my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV);
+        my ($statusIcon, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $inIMW);
         $itemTimeslot = $itemStatusIcon = $itemInsertInMCV = 0;
+        $inIMW = 1;
 
         my @arrayStatusMessage = ();
 
@@ -510,6 +531,7 @@ sub do_crontab {
           }
 
           $timeValue = $lastTimeslot;
+          $inIMW = 1;
 
           if ($rv) {
             while (my $ref = $sth->fetchrow_hashref()) {
@@ -518,12 +540,12 @@ sub do_crontab {
 
               if ($timeslot >= 0) {
                 my $dstatus = ($ref->{status} eq '<NIHIL>') ? 'UNKNOWN' : $ref->{status};
-	  	        $tstatus = $dstatus;
+	  	          $tstatus = $dstatus;
 
                 if ($dstatus eq 'OK' and $trendline) {
                   my $tSeconden = int(substr($ref->{duration}, 6, 2)) + int(substr($ref->{duration}, 3, 2)*60) + int(substr($ref->{duration}, 0, 2)*3600);
-			      $tstatus = 'TRENDLINE' if ($tSeconden > $trendline);
-	  		    }
+			            $tstatus = 'TRENDLINE' if ($tSeconden > $trendline);
+	  		        }
 
                 $itemStatus[$timeslot] = $tstatus;
                 $itemStarttime[$timeslot] = $ref->{startTime};
@@ -562,6 +584,8 @@ sub do_crontab {
                     require "$APPLICATIONPATH/custom/cartography.pm";
                     createGifForCartography( $catalogID_uniqueKey, $statusOverlib );
                   }
+
+                  $inIMW = inIncidentMonitoringWindow ($catalogID, $uniqueKey, $ref->{timeslot}, $ref->{startTime}, $ref->{endTime}, $ref->{endDate}, \%timeperiodID_days, \%catalogID_uKey_timeperiodID, $debug);
                 }
 
                 if ($dstatus ne 'OK' and $dstatus ne 'OFFLINE' and $dstatus ne 'NO DATA' and $dstatus ne 'NO TEST') {
@@ -584,7 +608,7 @@ sub do_crontab {
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
             my $endTime = $itemStarttime[$number];
             $endTime .= '-'. $itemTimeslot[$number] if ($displayTimeslot);
-            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey);
+            printItemStatus($tinterval, $number+1, $itemStatus[$number], $endTime, $acked, $itemTimeslot[$number], $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey, $inIMW);
           }
 
           for ($number = 0; $number < $NUMBEROFFTESTS; $number++) {
@@ -598,7 +622,7 @@ sub do_crontab {
           $itemInsertInMCV = ( $instability ) ? ( $persistent ? 0 : 1 ) : ( defined $inMCV{$tLastStatus}{$tPrevStatus} ? 1 : 0 );
         }
 
-        printItemFooter($catalogID_uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage);
+        printItemFooter($catalogID_uniqueKey, $catalogID, $uniqueKey, $itemTitle, $itemStatus, $itemTimeslot, $itemStatusIcon, $itemInsertInMCV, $inIMW, $itemFullCondensedView, $printCondensedView, \@arrayStatusMessage, \%catalogID_uKey_timeperiodID);
       }
 
       print "\n" if ($debug);
@@ -628,12 +652,22 @@ sub do_crontab {
     @multiarrayMinimalCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayMinimalCondensedView );
     @multiarrayMinimalCondensedView = ( sort { $a->[1] cmp $b->[1] } @multiarrayMinimalCondensedView );
 
+    my $currPriorityGroup = '-MVM-P01-';
+
     foreach my $arrayFullCondensedView ( @multiarrayMinimalCondensedView ) {
+      # print @$arrayFullCondensedView[2], "-", @$arrayFullCondensedView[0], "-", @$arrayFullCondensedView[3], "-", @$arrayFullCondensedView[1], "\n" if ($debug);
+
+      if ( $currPriorityGroup ne @$arrayFullCondensedView[1] ) {
+        $currPriorityGroup = @$arrayFullCondensedView[1];
+        my (undef, undef, $priorityGroup) = split( /-/, $currPriorityGroup );
+        print HTMLMCV '<TR><TD class="GroupHeader" COLSPAN=', $colspanDisplayTime, '>', 'Priority: '. $priorityGroup, '</TD></TR>', "\n";
+      }
+
       print HTMLMCV @$arrayFullCondensedView[4];
     }
 
     print HTMLMCV '<tr style="{height: 4;}"><TD></TD></TR>', "\n";
- 	delete @multiarrayMinimalCondensedView[0..@multiarrayMinimalCondensedView];
+ 	  delete @multiarrayMinimalCondensedView[0..@multiarrayMinimalCondensedView];
   }
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -738,6 +772,147 @@ sub errorTrapDBI {
   }
 
   return 0;
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub build_hash_timeperiodID_days {
+  my ($checklist, $pagedir, $hash_timeperiodID_days, $debug) = @_;
+
+  print "build_hash_timeperiodID_days\n" if ($debug);
+
+  my $rv  = 1;
+  my $dbh = DBI->connect("DBI:mysql:$DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
+  return () unless ($dbh and $rv);
+
+  # (localtime)[6]: weekday Number of days since Sunday (0 - 6)
+  my %WDAYS = ('sunday'=>'0','monday'=>'1','tuesday'=>'2','wednesday'=>'3','thursday'=>'4','friday'=>'5','saturday'=>'6');
+
+  my $sql = "SELECT SQL_NO_CACHE DISTINCT $SERVERTABLVIEWS.catalogID, $SERVERTABLVIEWS.timeperiodID, $SERVERTABLTIMEPERIODS.sunday, $SERVERTABLTIMEPERIODS.monday, $SERVERTABLTIMEPERIODS.tuesday, $SERVERTABLTIMEPERIODS.wednesday, $SERVERTABLTIMEPERIODS.thursday, $SERVERTABLTIMEPERIODS.friday, $SERVERTABLTIMEPERIODS.saturday FROM `$SERVERTABLDISPLAYDMNS`, `$SERVERTABLVIEWS`, `$SERVERTABLPLUGINS`, `$SERVERTABLTIMEPERIODS` WHERE $SERVERTABLDISPLAYDMNS.pagedir = '$pagedir' AND $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID AND $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon AND $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID AND $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey AND $SERVERTABLVIEWS.timeperiodID = $SERVERTABLTIMEPERIODS.timeperiodID";
+  print "<", $sql, ">\n" if ($debug);
+
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
+  $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
+
+  if ($rv) {
+    if ( $sth->rows ) {
+      while (my $ref = $sth->fetchrow_hashref()) {
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{sunday}}    = ( $ref->{sunday}    ) ? $ref->{sunday}    : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{monday}}    = ( $ref->{monday}    ) ? $ref->{monday}    : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{tuesday}}   = ( $ref->{tuesday}   ) ? $ref->{tuesday}   : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{wednesday}} = ( $ref->{wednesday} ) ? $ref->{wednesday} : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{thursday}}  = ( $ref->{thursday}  ) ? $ref->{thursday}  : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{friday}}    = ( $ref->{friday}    ) ? $ref->{friday}    : '';
+        $$hash_timeperiodID_days{$ref->{catalogID}}->{$ref->{timeperiodID}}->{$WDAYS{saturday}}  = ( $ref->{saturday}  ) ? $ref->{saturday}  : '';
+      }
+    }
+
+    $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $sql");
+  }
+
+  $dbh->disconnect or $rv = errorTrapDBI($checklist, "Sorry, the database was unable to add your entry.") if ($dbh and $rv);
+
+  if ($debug) {
+    use Data::Dumper;
+    print Dumper ( $hash_timeperiodID_days ), "\n\n";
+  }
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub build_hash_catalogID_uKey_timeperiodID {
+  my ($checklist, $pagedir, $hash_catalogID_uKey_timeperiodID, $debug) = @_;
+
+  print "build_hash_catalogID_uKey_timeperiodID\n" if ($debug);
+
+  my $rv  = 1;
+  my $dbh = DBI->connect("DBI:mysql:$DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
+  return () unless ($dbh and $rv);
+
+  my $sql = "SELECT SQL_NO_CACHE $SERVERTABLPLUGINS.catalogID, $SERVERTABLPLUGINS.uKey, $SERVERTABLVIEWS.timeperiodID FROM `$SERVERTABLDISPLAYDMNS`, `$SERVERTABLVIEWS`, `$SERVERTABLPLUGINS` WHERE $SERVERTABLDISPLAYDMNS.pagedir = '$pagedir' AND $SERVERTABLDISPLAYDMNS.catalogID = $SERVERTABLVIEWS.catalogID AND $SERVERTABLDISPLAYDMNS.displayDaemon = $SERVERTABLVIEWS.displayDaemon AND $SERVERTABLVIEWS.catalogID = $SERVERTABLPLUGINS.catalogID AND $SERVERTABLVIEWS.uKey = $SERVERTABLPLUGINS.uKey";
+  print "<", $sql, ">\n" if ($debug);
+
+  my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($checklist, "Cannot dbh->prepare: $sql");
+  $sth->execute or $rv = errorTrapDBI($checklist, "Cannot sth->execute: $sql") if $rv;
+
+  if ($rv) {
+    while (my $ref = $sth->fetchrow_hashref()) {
+      $$hash_catalogID_uKey_timeperiodID{$ref->{catalogID}}->{$ref->{uKey}}->{ASNMTAP} = $ref->{timeperiodID};
+    }
+
+    $sth->finish() or $rv = errorTrapDBI($checklist, "Cannot sth->finish: $sql");
+  }
+
+  $dbh->disconnect or $rv = errorTrapDBI($checklist, "Sorry, the database was unable to add your entry.") if ($dbh and $rv);
+
+  if (-s "$APPLICATIONPATH/custom/sde.pm") {
+    require "$APPLICATIONPATH/custom/sde.pm";
+    getTimeperiodRelationshipsSDE( $serverName, $checklist, $hash_catalogID_uKey_timeperiodID, $debug );
+  }
+
+  if ($debug) {
+    use Data::Dumper;
+    print Dumper ( $hash_catalogID_uKey_timeperiodID ), "\n\n";
+  }
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+sub inIncidentMonitoringWindow {
+  my ($catalogID, $uniqueKey, $timeslot, $startTime, $endTime, $endDate, $timeperiodID_days, $catalogID_uKey_timeperiodID, $debug) = @_;
+
+  my $InIMW;
+
+  my ($year, $month, $day) = split (/[-\/]/, $endDate);
+
+  if (defined $year and defined $month and defined $day) {
+    my $Year  = $year-1900;
+    my $Month = $month-1;
+    my $wDay = (localtime( timelocal( 0, 0, 0, $day, $Month, $Year ) ))[6];
+    my $timeperiodes = ( exists $$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{SDE_IMW}->{$wDay} ) ? $$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{SDE_IMW}->{$wDay} : $$timeperiodID_days{$catalogID}->{$$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{ASNMTAP}}->{$wDay};
+
+    if ($debug) {
+      # (localtime)[6]: weekday Number of days since Sunday (0 - 6)
+      my %WDAYS = ('0'=>'sunday','1'=>'monday','2'=>'tuesday','3'=>'wednesday','4'=>'thursday','5'=>'friday','6'=>'saturday');
+      print "catalogID: $catalogID, uniqueKey: $uniqueKey, year: $year, month: $month, day: $day, wDay: $wDay, ". $WDAYS{$wDay} .", timeperiodes: $timeperiodes\n";
+      print "catalogID_uKey_timeperiodID: ". $$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{ASNMTAP} ."\n";
+    }
+
+    for my $timeperiode (split (/,/, $timeperiodes)) {
+      my ($from, $to) = split (/-/, $timeperiode);
+
+      if ( defined $from and defined $to ) {
+        $to =~ s/24:00/23:59/g;
+        print "$from, $to\n" if ($debug);
+        my ($from_hour, $from_min) = split (/:/, $from);
+        my ($to_hour, $to_min) = split (/:/, $to);
+
+        if ( defined $from_hour and defined $from_min and defined $to_hour and defined $to_min ) {
+          print "$from_hour, $from_min, $to_hour, $to_min\n" if ($debug);
+          my $from_time = timelocal(0, $from_min, $from_hour, $day, $Month, $Year );
+          my $to_time   = timelocal(59, $to_min, $to_hour, $day, $Month, $Year );
+
+          if ( defined $from_time and defined $to_time ) {
+            $InIMW = ( ( $from_time <= $timeslot and $timeslot <= $to_time ) ? 1 : ( ( defined $InIMW ) ? $InIMW : 0 ) );
+
+            if ($debug) {
+              print "$from_time, $timeslot, $to_time\n";
+              print scalar (localtime($from_time)), "\n";
+              print scalar (localtime($timeslot)), "\n";
+              print scalar (localtime($to_time)), "\n";
+              print "$InIMW !\n";
+            }
+          }
+        }
+      }
+    }
+
+    $InIMW = 1 unless (defined $InIMW);
+  } else {
+    $InIMW = 1;
+  }
+
+  return ($InIMW);
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -959,7 +1134,7 @@ sub printGroepCV {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemStatus {
-  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey) = @_;
+  my ($interval, $number, $status, $endTime, $acked, $timeslot, $activationTimeslot, $suspentionTimeslot, $instability, $persistent, $downtime, $suspentionTimeslotPersistentTrue, $suspentionTimeslotPersistentFalse, $catalogID_uniqueKey, $catalogID, $uniqueKey, $inIMW) = @_;
 
   my $statusIcon = ($acked and ($activationTimeslot - $step < $timeslot) and ($suspentionTimeslot > $timeslot)) ? ( $instability ? $ICONSUNSTABLE {$status} : $ICONSACK {$status} ) : $ICONS{$status};
 
@@ -1031,7 +1206,7 @@ sub printItemStatus {
       }
 
       $printCondensedView = 0 if ($downtime and ! $persistent);
-      $debugInfo .= "$instability-$persistent-$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
+      $debugInfo .= "$inIMW-$instability-$persistent-$downtime-$inProgressNumber-$verifyNumber-$checkOk-$checkSkip-$printCondensedView-$problemSolved-" if ($debug);
 
       my $update = 0;
       my $sqlWhere = '';
@@ -1229,7 +1404,7 @@ sub printGroepFooter {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub printItemFooter {
-  my ($catalogID_uniqueKey, $title, $status, $timeslot, $statusIcon, $insertInMCV, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage) = @_;
+  my ($catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $status, $timeslot, $statusIcon, $insertInMCV, $inIMW, $itemFullCondensedView, $printCondensedView, $arrayStatusMessage, $catalogID_uKey_timeperiodID) = @_;
 
   $itemFullCondensedView .= "</TR>\n";
 
@@ -1245,7 +1420,8 @@ sub printItemFooter {
 
   my $groep = ( $title =~ /^\[(\d+)\]/ ? $1 : 0);
   push ( @multiarrayFullCondensedView, [ $ERRORS{"$status"}, $groep, $timeslot, $statusIcon, $itemFullCondensedView, $printCondensedView ] );
-  push ( @multiarrayMinimalCondensedView, [ $ERRORS{"$status"}, '-MCV-', $timeslot, $statusIcon, $itemFullCondensedView ] ) if ( ( ! $statusIcon or ( $statusIcon and $insertInMCV ) ) and $status !~ /(?:OK|DEPENDENT|OFFLINE|NO TEST|TRENDLINE)/ and $printCondensedView );
+  my $priorityGroup = '-MCV-' . ( ( exists $$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{SDE_IMW}->{priority} ) ? $$catalogID_uKey_timeperiodID{$catalogID}->{$uniqueKey}->{SDE_IMW}->{priority} : 'P01' ) . '-';
+  push ( @multiarrayMinimalCondensedView, [ $ERRORS{"$status"}, $priorityGroup, $timeslot, $statusIcon, $itemFullCondensedView ] ) if ( ( ! $statusIcon or ( $statusIcon and $insertInMCV ) ) and $status !~ /(?:OK|DEPENDENT|OFFLINE|NO TEST|TRENDLINE)/ and $printCondensedView and $inIMW );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

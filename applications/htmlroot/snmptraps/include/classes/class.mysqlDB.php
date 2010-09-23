@@ -149,9 +149,9 @@ class database {
        }elseif($handle == "delete") {
           if($configINI['database']['tableArchiveExt'] != "") {
              if($configINI['database']['tableSnmpttUnk'] == $tableName) {
-               $query = "INSERT INTO $tableName". $configINI['database']['tableArchiveExt'] ." SELECT * FROM $tableName WHERE id = $trapID";
+               $query = "REPLACE INTO $tableName". $configINI['database']['tableArchiveExt'] ." SELECT * FROM $tableName WHERE id = $trapID";
              }else{
-               $query = "INSERT INTO $tableName". $configINI['database']['tableArchiveExt'] ." SELECT * FROM $tableName WHERE id = $trapID and category <> 'ASNMTAP'";
+               $query = "REPLACE INTO $tableName". $configINI['database']['tableArchiveExt'] ." SELECT * FROM $tableName WHERE id = $trapID and category <> 'ASNMTAP'";
              }
              $result = mysql_query($query);
              if(!$result) {

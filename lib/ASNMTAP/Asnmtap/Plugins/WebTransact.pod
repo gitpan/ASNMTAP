@@ -702,7 +702,7 @@ equals to:
   print "Navigation Token: $valNavigationToken\n";
 
 equals to:
-  
+
   use constant EXP_NAVIGATION_TOKEN => '<input\s+type="hidden"\s+name="NAVIGATION_TOKEN"\s+value="(-{0,1}\d+)"\s+/>';
 
   @URLS = (
@@ -832,21 +832,21 @@ equals to:
 
 =item Example 7
 
-@URLS = (
-  { Method => 'GET',  Url => 'https://USERNAME:PASSWORD@secure.citap.be/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
-);
+ @URLS = (
+   { Method => 'GET',  Url => 'https://USERNAME:PASSWORD@secure.citap.be/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
+ );
 
-$returnCode = $objectWebTransact->check ( { } );
+ $returnCode = $objectWebTransact->check ( { } );
 
 equals to:
 
-@URLS = (
-  { Method => 'GET',  Url => 'https://secure.citap.com/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
-);
+ @URLS = (
+   { Method => 'GET',  Url => 'https://secure.citap.com/authorization/', Qs_var => [], Qs_fixed => [], Exp => "Testing Client Authorization", Exp_Fault => ">>>NIHIL<<<", Msg => "Testing Client Authorization", Msg_Fault => "Testing Client Authorization" },
+ );
 
-$objectWebTransact->ua->credentials ( 'secure.citap.com:443', "ASNMTAP's Authorization Access", 'USERNAME', 'PASSWORD' );
+ $objectWebTransact->ua->credentials ( 'secure.citap.com:443', "ASNMTAP's Authorization Access", 'USERNAME', 'PASSWORD' );
 
-$returnCode = $objectWebTransact->check ( { } );
+ $returnCode = $objectWebTransact->check ( { } );
 
 =back
 

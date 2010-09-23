@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, archive.pl for ASNMTAP::Applications
+# 2010/mm/dd, v3.002.002, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Date::Calc qw(Date_to_Time Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.001;
+use ASNMTAP::Time v3.002.002;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.002.001;
+use ASNMTAP::Asnmtap::Applications v3.002.002;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y $opt_f  $opt_D $opt_V $opt_h $PRO
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -600,7 +600,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       }
     } elsif ( $staart eq "$command-$catalogID_uKey-csv.txt" ) {
       if ($datum le get_yearMonthDay($gzipEpoch)) {
-	    if ($debug) {
+	      if ($debug) {
           print "C+ <$datum><", get_yearMonthDay($gzipEpoch), "><$path><$filename>\n";
         } else {
           print EMAILREPORT "C+ <$datum><", get_yearMonthDay($gzipEpoch), "> gzip <$path><$filename>\n";
@@ -610,7 +610,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       }
     } elsif ( $staart eq "$command-$catalogID_uKey-csv.txt.gz" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
-	    if ($debug) {
+	      if ($debug) {
           print "C- <$datum><", get_yearMonthDay($removeGzipEpoch), "><$path><$filename>\n";
         } else {
           print EMAILREPORT "C- <$datum><", get_yearMonthDay($removeGzipEpoch), "> unlink <$path><$filename>\n";
@@ -624,7 +624,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       my $jaarWeekYesterday = int(get_year('yesterday'). $tWeek);
 
       if ( $jaarWeekFilename lt $jaarWeekYesterday ) {
-	    if ($debug) {
+	      if ($debug) {
           print "CW+<$jaarWeekYesterday><$jaarWeekFilename><$path><$filename>\n";
         } else {
           print EMAILREPORT "CW+<$jaarWeekYesterday><$jaarWeekFilename> gzip <$path><$filename>\n";
@@ -639,7 +639,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       my $jaarWeekRemove   = int(get_year('-'. $removeGzipWeeksAgo. ' weeks') .$tWeek);
 
       if ( $jaarWeekFilename le $jaarWeekRemove ) {
-		if ($debug) {
+		    if ($debug) {
           print "CW-<$jaarWeekRemove><$jaarWeekFilename><", get_yearMonthDay($removeWeeksEpoch), "<$path><$filename>\n";
         } else {
           print EMAILREPORT "CW-<$jaarWeekRemove><$jaarWeekFilename><", get_yearMonthDay($removeWeeksEpoch), " unlink <$path><$filename>\n";
@@ -704,7 +704,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       }
     } elsif ( $staart eq "$command-$catalogID_uKey.sql.gz" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
-	    if ($debug) {
+	      if ($debug) {
           print "S- <$datum><", get_yearMonthDay($removeGzipEpoch), "><$path><$filename>\n";
         } else {
           print EMAILREPORT "S- <$datum><", get_yearMonthDay($removeGzipEpoch), "> unlink <$path><$filename>\n";
@@ -713,7 +713,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       }
     } elsif ( $staart eq "$command-$catalogID_uKey-sql-error.txt" ) {
       if ($datum le get_yearMonthDay($removeGzipEpoch)) {
-	    if ($debug) {
+	      if ($debug) {
           print "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "><$path><$filename>\n";
         } else {
           print EMAILREPORT "SE-<$datum><", get_yearMonthDay($removeDebugEpoch), "> unlink <$path><$filename>\n";
@@ -722,7 +722,7 @@ sub removeAllNokgzipCsvSqlErrorWeekFilesOlderThenAndMoveToBackupShare {
       }
     } elsif ( $staart eq "nok.txt" ) {
       if ($datum le get_yearMonthDay($removeAllNokEpoch)) {
-	    if ($debug) {
+	      if ($debug) {
           print "N- <$datum><", get_yearMonthDay($removeAllNokEpoch), "><$path><$filename>\n";
         } else {
           print EMAILREPORT "N- <$datum><", get_yearMonthDay($removeAllNokEpoch), "> unlink <$path><$filename>\n";

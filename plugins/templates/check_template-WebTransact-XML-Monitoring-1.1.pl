@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, check_template-WebTransact-XML-Monitoring-1.1.pl
+# 2010/mm/dd, v3.002.002, check_template-WebTransact-XML-Monitoring-1.1.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.001;
+use ASNMTAP::Asnmtap::Plugins v3.002.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,16 +32,17 @@ my $schema = "1.1";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring-1.1.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.002.001',
-  _programUsagePrefix => '--message=<message> -H|--hostname <hostname> -s|--service <service> [--validation <validation>]',
+  _programVersion     => '3.002.002',
+  _programUsagePrefix => '--message=<message> [-H|--hostname <hostname> -s|--service <service>]|[--uKey <uKey>] [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
 -H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
+--uKey=<uKey>
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H=s', 'service|s=s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s', 'trendline|T:i'],
+  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H:s', 'service|s:s', 'uKey:s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
 
@@ -53,11 +54,16 @@ my $message = $objectPlugins->getOptionsArgv ('message');
 $objectPlugins->printUsage ('Missing command line argument message') unless (defined $message);
 $objectPlugins->pluginValue ( message => $message );
 
-my $hostname = $objectPlugins->getOptionsArgv ('hostname') ? $objectPlugins->getOptionsArgv ('hostname') : undef;
-$objectPlugins->printUsage ('Missing command line argument hostname') unless (defined $hostname);
+my ($uKey, $hostname, $service);
+$uKey = $objectPlugins->getOptionsArgv ('uKey') ? $objectPlugins->getOptionsArgv ('uKey') : undef;
 
-my $service = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
-$objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
+unless ( defined $uKey ) {
+  $hostname = $objectPlugins->getOptionsArgv ('hostname') ? $objectPlugins->getOptionsArgv ('hostname') : undef;
+  $objectPlugins->printUsage ('Missing command line argument uKey or hostname') unless (defined $hostname);
+
+  $service = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
+  $objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
+}
 
 my $validateDTD = $objectPlugins->getOptionsArgv ('validation') ? $objectPlugins->getOptionsArgv ('validation') : 'F';
 
@@ -107,7 +113,15 @@ $objectPlugins->exit (3) if ( $returnCode );
 my $currentTimeslot = timelocal ((localtime)[0,1,2,3,4,5]);
 my %environment = ( P => 'PROD', S => 'SIM', A => 'ACC', T => 'TEST', D => 'DEV', L => 'LOCAL' );
 
-if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Host} eq $hostname and $xml->{Monitoring}{Results}{Details}{Service} eq $service and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^$environment{$environment}$/i) {
+my $match = 0;
+
+if ( defined $xml->{Monitoring}{Results}{Extension}{Element}{eName} and $xml->{Monitoring}{Results}{Extension}{Element}{eName} eq 'uKey') {
+  $match = 1 if ( defined $xml->{Monitoring}{Results}{Extension}{Element}{eValue} and $xml->{Monitoring}{Results}{Extension}{Element}{eValue} eq $uKey );
+} else {
+  $match = 1 if ( $xml->{Monitoring}{Results}{Details}{Host} eq $hostname and $xml->{Monitoring}{Results}{Details}{Service} eq $service );
+}
+
+if ($match and $xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}{Details}{Environment} =~ /^$environment{$environment}$/i) {
   $debugfileMessage  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<HTML><HEAD><TITLE>$message \@ $APPLICATION</TITLE><style type=\"text/css\">\n.statusOdd { font-family: arial,serif; font-size: 10pt; background-color: #DBDBDB; }\n.statusEven { font-family: arial,serif; font-size: 10pt; background-color: #C4C2C2; }\ntd.statusOK { font-family: arial,serif; font-size: 10pt; background-color: #33FF00; }\ntd.statusWARNING { font-family: arial,serif; font-size: 10pt; background-color: #FFFF00; }\ntd.statusCRITICAL { font-family: arial,serif; font-size: 10pt; background-color: #F83838; }\ntd.statusUNKNOWN { font-family: arial,serif; font-size: 10pt; background-color: #FFFFFF; }\n</style>\n</HEAD><BODY><HR><H1 style=\"margin: 0px 0px 5px; font: 125% verdana,arial,helvetica\">$message @ $APPLICATION</H1><HR>\n";
   $debugfileMessage .= "\n<TABLE WIDTH=\"100%\"><TR><TD>\n<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Environment: $environmentText</H3></TD></TR></TABLE>\n";
   $debugfileMessage .= "\n<TABLE WIDTH=\"100%\">";
@@ -129,8 +143,14 @@ if ($xml->{Monitoring}{Schema}{Value} eq $schema and $xml->{Monitoring}{Results}
 } else {
   my $tError = 'Content Error:';
   $tError .= ' - Schema: '. $xml->{Monitoring}{Schema}{Value} ." ne $schema" if ($xml->{Monitoring}{Schema}{Value} ne $schema);
-  $tError .= ' - Host: '. $xml->{Monitoring}{Results}{Details}{Host} ." ne $hostname" if ($xml->{Monitoring}{Results}{Details}{Host} ne $hostname);
-  $tError .= ' - Service: '. $xml->{Monitoring}{Results}{Details}{Service} ." ne $service" if ($xml->{Monitoring}{Results}{Details}{Service} ne $service);
+
+  if ( $xml->{Monitoring}{Results}{Extension}{Element}{eName} eq 'uKey') {
+    $tError .= ' - uKey: '. $xml->{Monitoring}{Results}{Extension}{Element}{eValue} ." ne $uKey" if ($xml->{Monitoring}{Results}{Extension}{Element}{eValue} ne $uKey);
+  } else {	
+    $tError .= ' - Host: '. $xml->{Monitoring}{Results}{Details}{Host} ." ne $hostname" if ($xml->{Monitoring}{Results}{Details}{Host} ne $hostname);
+    $tError .= ' - Service: '. $xml->{Monitoring}{Results}{Details}{Service} ." ne $service" if ($xml->{Monitoring}{Results}{Details}{Service} ne $service);
+  }
+
   $tError .= ' - Environment: ' .$xml->{Monitoring}{Results}{Details}{Environment} ." ne ". $environment{$environment} if ($xml->{Monitoring}{Results}{Details}{Environment} !~ /^$environment{$environment}$/i);
   $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
 }

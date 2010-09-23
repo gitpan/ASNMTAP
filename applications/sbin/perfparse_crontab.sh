@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, perfparse_crontab.sh
+# 2010/mm/dd, v3.002.002, perfparse_crontab.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -31,7 +31,7 @@ if [ -e "$logFilename" ]; then
   elif [ -e "/bin/date" ]; then
     epoch=`/bin/date '+%s'`
   else
-    exit 1;
+    epoch=`perl -e 'print time()'`
   fi
 
   epochFilename="$logFilename-$epoch"

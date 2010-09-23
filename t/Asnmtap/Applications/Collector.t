@@ -14,7 +14,7 @@ TODO: {
   my $objectCollector = ASNMTAP::Asnmtap::Applications::Collector->new (
     _programName        => 'Collector.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Applications::Collector',
-    _programVersion     => '3.002.001',
+    _programVersion     => '3.002.002',
     _debug             => 0);
 
   isa_ok( $objectCollector, 'ASNMTAP::Asnmtap::Applications::Collector' );

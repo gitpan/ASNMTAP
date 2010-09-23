@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Applications::Collector
+# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Collector;
@@ -96,7 +96,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::Collector::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::Collector::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Collector::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $CHILD_OFF = 0;

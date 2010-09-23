@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, perfparse_crontab_failed.sh
+# 2010/mm/dd, v3.002.002, perfparse_crontab_failed.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then
@@ -24,16 +24,16 @@ PERFPARSEPATH=/opt/asnmtap/perfparse
 for file in $( find $AMPATH/log/ -name 'perfdata-asnmtap.log-*-failed' ) 
 do
   echo "Filename failed: '$file'";
-  cat $file | $PERFPARSEPATH/bin/perfparse-log2mysql
-  rv="$?"
+# cat $file | $PERFPARSEPATH/bin/perfparse-log2mysql
+# rv="$?"
 
-  if [ ! "$rv" = "0" ]; then
+# if [ ! "$rv" = "0" ]; then
     exec 3<&0
     exec 0<$file
 
     while read line
     do
-      echo $line | $PERFPARSEPATH/bin/perfparse-log2mysql
+      echo "$line" | $PERFPARSEPATH/bin/perfparse-log2mysql
         rv="$?"
 
         if [ ! "$rv" = "0" ]; then
@@ -42,7 +42,7 @@ do
     done
 
     exec 0<&3
-  fi
+# fi
 
   rm $file
 done

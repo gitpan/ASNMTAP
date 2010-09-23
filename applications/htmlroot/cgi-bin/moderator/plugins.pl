@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, plugins.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.001;
+use ASNMTAP::Time v3.002.002;
 use ASNMTAP::Time qw(&get_csvfiledate);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES &sending_mail);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "plugins.pl";
 my $prgtext     = "Plugins";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -45,6 +45,7 @@ my $pageset             = (defined $cgi->param('pageset'))            ? $cgi->pa
 my $debug               = (defined $cgi->param('debug'))              ? $cgi->param('debug')              : 'F';
 my $pageNo              = (defined $cgi->param('pageNo'))             ? $cgi->param('pageNo')             : 1;
 my $pageOffset          = (defined $cgi->param('pageOffset'))         ? $cgi->param('pageOffset')         : 0;
+my $filter              = (defined $cgi->param('filter'))             ? $cgi->param('filter')             : '';
 my $orderBy             = (defined $cgi->param('orderBy'))            ? $cgi->param('orderBy')            : 'optionValueTitle';
 my $action              = (defined $cgi->param('action'))             ? $cgi->param('action')             : 'listView';
 my $CcatalogID          = (defined $cgi->param('catalogID'))          ? $cgi->param('catalogID')          : $CATALOGID;
@@ -67,10 +68,10 @@ my ($rv, $dbh, $sth, $sql, $header, $numberRecordsIntoQuery, $nextAction, $formD
 my ($sessionID, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $iconQuery, $iconTable, $errorUserAccessControl, $remoteUserLoggedOn, undef, undef, $givenNameLoggedOn, $familyNameLoggedOn, undef, undef, undef, undef, undef, undef, $subTitle) = user_session_and_access_control (1, 'moderator', $cgi, $pagedir, $pageset, $debug, $htmlTitle, "Plugins", undef);
 
 # Serialize the URL Access Parameters into a string
-my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&shortDescription=$CshortDescription&trendline=$Ctrendline&helpPluginTextname=$ChelpPluginTextname&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID";
+my $urlAccessParameters = "pagedir=$pagedir&pageset=$pageset&debug=$debug&CGISESSID=$sessionID&pageNo=$pageNo&pageOffset=$pageOffset&filter=$filter&orderBy=$orderBy&action=$action&catalogID=$CcatalogID&catalogIDreload=$CcatalogIDreload&uKey=$CuKey&shortDescription=$CshortDescription&trendline=$Ctrendline&helpPluginTextname=$ChelpPluginTextname&helpPluginFilename=$ChelpPluginFilename&holidayBundleID=$CholidayBundleID";
 
 # Debug information
-print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>shortDescription  : $CshortDescription<br>trendline         : $Ctrendline<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
+print "<pre>pagedir           : $pagedir<br>pageset           : $pageset<br>debug             : $debug<br>CGISESSID         : $sessionID<br>page no           : $pageNo<br>page offset       : $pageOffset<br>filter            : $filter<br>order by          : $orderBy<br>action            : $action<br>catalog ID        : $CcatalogID<br>catalog ID reload : $CcatalogIDreload<br>uKey              : $CuKey<br>shortDescription  : $CshortDescription<br>trendline         : $Ctrendline<br>helpPluginTextname: $ChelpPluginTextname<br>helpPluginFilename: $ChelpPluginFilename<br>holiday Bundle ID : $CholidayBundleID<br>URL ...           : $urlAccessParameters</pre>" if ( $debug eq 'T' );
 
 my $uploadPluginStatus = 'OK';
 
@@ -122,7 +123,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
   my ($title, $environmentLabel, $catalogIDSelect, $holidayBundleSelect, $matchingPlugins, $navigationBar, $generatePluginCrontabSchedulingReport);
 
-  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;catalogID=$CcatalogID";
+  my $urlWithAccessParameters = $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;pageNo=$pageNo&amp;pageOffset=$pageOffset&amp;filter=$filter&amp;catalogID=$CcatalogID";
 
   # open connection to database and query data
   $rv  = 1;
@@ -167,25 +168,28 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
 
       $nextAction   = "listView" if ($rv);
     } elsif ($action eq 'listView') {
-      $htmlTitle    = "All plugins listed";
+      my $doFilter  = ( ( defined $filter and $filter ne '' ) ? 1 : 0 );
+      $htmlTitle    = ( $doFilter ) ? "All plugins matching filter: $filter" : "All plugins listed";
 
       if ( $CcatalogIDreload ) {
         $pageNo = 1;
         $pageOffset = 0;
       }
 
+      my $andFilter = ( ( $doFilter ) ? "AND title regexp '$filter'" : '' );
+
       $sql = "select catalogID, catalogName from $SERVERTABLCATALOG where not catalogID = '$CATALOGID' and activated = '1' order by catalogName asc";
       ($rv, $catalogIDSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, '', $CcatalogID, 'catalogID', $CATALOGID, '-Parent-', '', 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLPLUGINS where catalogID = '$CcatalogID'";
+      $sql = "select SQL_NO_CACHE count(uKey) from $SERVERTABLPLUGINS where catalogID = '$CcatalogID' $andFilter";
       ($rv, $numberRecordsIntoQuery) = do_action_DBI ($rv, $dbh, $sql, $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
-      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;orderBy=$orderBy");
+      $navigationBar = record_navigation_bar ($pageNo, $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;filter=$filter&amp;orderBy=$orderBy");
 
-      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLPLUGINS, 'title', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+      $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLPLUGINS, 'title', "catalogID = '$CcatalogID' $andFilter", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID&amp;filter=$filter", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
-      $sql = "select catalogID, uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, $SERVERTABLPLUGINS.environment, activated from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+      $sql = "select catalogID, uKey, concat( LTRIM(SUBSTRING_INDEX(title, ']', -1)), ' (', $SERVERTABLENVIRONMENT.label, ')' ) as optionValueTitle, $SERVERTABLPLUGINS.environment, activated from $SERVERTABLPLUGINS, $SERVERTABLENVIRONMENT where $SERVERTABLPLUGINS.catalogID = '$CcatalogID' and $SERVERTABLPLUGINS.environment = $SERVERTABLENVIRONMENT.environment $andFilter order by $orderBy limit $pageOffset, $RECORDSONPAGE";
       $header  = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID desc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog ID <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalogID asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=uKey asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=optionValueTitle desc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=optionValueTitle asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment desc, optionValueTitle asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Environment <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=environment asc, optionValueTitle asc, catalogID asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, catalogID asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, catalogID asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>\n";
-      ($rv, $matchingPlugins, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Plugin', 'catalogID|uKey', '0|1', '', '', '', $orderBy, $header, $navigationBar, 0, 0, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
+      ($rv, $matchingPlugins, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Plugin', 'catalogID|uKey', '0|1', '', '', "&amp;catalogID=$CcatalogID&amp;filter=$filter", $orderBy, $header, $navigationBar, 0, 0, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
     }
 
     if ($action eq 'displayView' or $action eq 'editView') {
@@ -244,9 +248,18 @@ function submitForm() {
   document.plugins.submit();
   return true;
 }
+
+function validateForm() {
+  if ( document.plugins.filter.value != null || document.plugins.filter.value != "") {
+    document.plugins.pageNo.value = 1;
+    document.plugins.pageOffset.value = 0 ;
+  }
+
+  return true;
+}
 </script>
 
-<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" enctype="multipart/form-data">
+<form action="$ENV{SCRIPT_NAME}" method="post" name="plugins" enctype="multipart/form-data" onSubmit="return validateForm();">
 HTML
     } else {
       print_header (*STDOUT, $pagedir, $pageset, $htmlTitle, $subTitle, 3600, '', 'F', '', $sessionID);
@@ -272,12 +285,12 @@ HTML
 
     print <<HTML;
   <table width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr align="center"><td>
+    <tr align="center"><td colspan="2">
 	  <table border="0" cellspacing="0" cellpadding="0"><tr>
 HTML
 
     print <<HTML;
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;orderBy=$orderBy">[List all plugins]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=listView&amp;orderBy=$orderBy">[List all/filtered plugins]</a></td>
 	  </tr></table>
 	</td></tr>
 HTML
@@ -315,7 +328,7 @@ HTML
       print "    <tr><td class=\"HeaderTitel\">$ChelpPluginTextname<br><br></td></tr>" if (defined $ChelpPluginTextname and $ChelpPluginTextname ne '');
       print "    <tr><td align=\"left\"><br><PRE>$matchingPlugins</PRE></td></tr>" if ($debug eq 'T' and defined $matchingPlugins and $matchingPlugins ne '');
     } else {
-      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td></tr></table></td></tr>";
+      print "    <tr><td><br><table align=\"center\" border=0 cellpadding=1 cellspacing=1 bgcolor='#333344'><tr><td align=\"left\"><b>Catalog ID: </b></td><td>$catalogIDSelect</td><td>&nbsp;<input type=\"text\" name=\"filter\" size=\"25\" maxlength=\"50\">&nbsp;<input type=\"submit\" value=\"Filter\"></td></tr></table></td></tr>";
       print "    <tr><td align=\"left\"><PRE>$matchingPlugins</PRE></td></tr>";
     }
 

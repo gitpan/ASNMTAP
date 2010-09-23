@@ -6,7 +6,7 @@
 
 Author       : Alex Peeters [alex.peeters@citap.be]
 Latest update: dd month 2010
-Version      : 3.002.001
+Version      : 3.002.002
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -213,14 +213,14 @@ Information about the configuration for ASNMTAP Applications can be found at:
   -----------------------------------------
 
   MySQL version 4.x
-    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002.sql
    or
-    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001-distributed.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002-distributed.sql
 
   MySQL version 5.0.x
-    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
    or
-    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.001_mysql-v5.0.x-distributed.sql
+    mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-distributed.sql
 
   
   ASNMTAP Web Access is now possible
@@ -330,11 +330,11 @@ Information about the configuration for ASNMTAP Applications can be found at:
 
     MySQL 5.0.x
 
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.001-v5.0.x.sql
-     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.002-v5.0.x.sql
+     SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
      or
-     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.001-v5.0.x.sql
-     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.001_mysql-v5.0.x.SQL
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.002-v5.0.x.sql
+     mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
 
     ... TODO ... NO PART OF NORMAL SETUP ...
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2010/mm/dd, v3.002.002, generateConfig.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,10 +21,10 @@ use File::stat;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.001;
+use ASNMTAP::Time v3.002.002;
 use ASNMTAP::Time qw(&get_csvfiledate &get_csvfiletime);
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.001;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :SADMIN :DBREADWRITE :DBTABLES $DIFFCOMMAND $RSYNCCOMMAND $SCPCOMMAND $SSHCOMMAND );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +35,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateConfig.pl";
 my $prgtext     = "Generate Config";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -852,7 +852,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
               $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;helpPluginFilename=<NIHIL>&amp;todo=duplicate\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{duplicate}\" title=\"Add Help Plugin Filename\" alt=\"Add Help Plugin Filename\" border=\"0\"></a>";
               $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin without help plugin filename defined</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;
-            } elsif (! -e "$PDPHELPPATH/$helpPluginFilename") {
+            } elsif ($helpPluginFilename !~ /^http(s)?\:\/\// and ! -e "$PDPHELPPATH/$helpPluginFilename") {
               $actionItem = "<a href=\"$urlWithAccessParameters&amp;action=updateView&amp;helpPluginFilename=$helpPluginFilename&amp;todo=edit\" target=\"_blank\"><img src=\"$IMAGESURL/$ICONSRECORD{edit}\" title=\"Edit Help Plugin Filename\" alt=\"Edit Help Plugin Filename\" border=\"0\"></a>";
               $matchingWarnings .= "<tr bgcolor=\"$COLORSTABLE{NOBLOCK}\"><td>$warning</td><td>'$title' plugin with missing help plugin filename '<b>$helpPluginFilename</b>'</td><td align=\"center\">$actionItem</td></tr>";
               $countWarnings++;

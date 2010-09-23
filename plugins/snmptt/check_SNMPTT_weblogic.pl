@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, check_SNMPTT_weblogic.pl
+# 2010/mm/dd, v3.002.002, check_SNMPTT_weblogic.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.001;
+use ASNMTAP::Asnmtap::Plugins v3.002.002;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_SNMPTT_weblogic.pl',
   _programDescription => 'Check SNMP Trap Translator Database for Weblogic SNMP traps',
-  _programVersion     => '3.002.001',
+  _programVersion     => '3.002.002',
   _programUsagePrefix => '[--weblogicConfig=<weblogicConfig>] [--adminConsole=<adminConsole>] [--uKey|-K=<uKey>] [-s|--server=<hostname>] [--database=<database>]',
   _programHelpPrefix  => '--weblogicConfig=<weblogicConfig>
 --adminConsole=<adminConsole>

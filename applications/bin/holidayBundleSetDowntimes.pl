@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
+# 2010/mm/dd, v3.002.002, holidayBundleSetDowntimes.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.002.001;
+use ASNMTAP::Asnmtap::Applications v3.002.002;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS
 
                                       $RMDEFAULTUSER
@@ -42,7 +42,7 @@ use vars qw($opt_V $opt_h $opt_D $PROGNAME);
 
 $PROGNAME       = "holidayBundleSetDowntimes.pl";
 my $prgtext     = "Set Holiday Bundle Downtimes for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

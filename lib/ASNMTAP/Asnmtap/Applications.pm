@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.001, package ASNMTAP::Asnmtap::Applications
+# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -166,7 +166,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -280,7 +280,7 @@ sub LOG_init_log4perl;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.002.001$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -382,7 +382,7 @@ our $DATABASE          = ( exists $_config{DATABASE}{ASNMTAP}           ? $_conf
 our $CATALOGID         = ( exists $_config{DATABASE}{CATALOGID}         ? $_config{DATABASE}{CATALOGID}         : 'CID' );
 
 # SET ASNMTAP::Asnmtap::Applications::CSV VARIABLES - - - - - - - - - - -
-our @EVENTS = ('catalogID', 'id', 'uKey', 'replicationStatus', 'test', 'title', 'status', 'startDate', 'startTime', 'endDate', 'endTime', 'duration', 'statusMessage', 'step', 'timeslot', 'instability', 'persistent', 'downtime', 'filename');
+our @EVENTS = ('catalogID', 'id', 'uKey', 'replicationStatus', 'test', 'title', 'status', 'startDate', 'startTime', 'endDate', 'endTime', 'duration', 'statusMessage', 'perfdata', 'step', 'timeslot', 'instability', 'persistent', 'downtime', 'filename');
 
 our %EVENTS = (
   'catalogID'         => 'varchar(5)',
@@ -397,7 +397,8 @@ our %EVENTS = (
   'endDate'           => 'char(10)',
   'endTime'           => 'char(8)',
   'duration'          => 'char(8)',
-  'statusMessage'     => 'varchar(254)',
+  'statusMessage'     => 'varchar(1024)',
+  'perfdata'          => 'text',
   'step'              => 'int(6)',
   'timeslot'          => 'varchar(10)',
   'instability'       => 'int(1)',
@@ -1622,9 +1623,9 @@ sub CSV_insert_into_table {
 	my ($column, $placeholders, @values);
 
     foreach my $columnName ( @{$columnSequence} ) { 
-	  $column .= $columnName .',';
+	    $column .= $columnName .',';
       $placeholders .= '?,';
-	  push ( @values, ( ( $columnName eq $columnNameAutoincrement ) ? '' : $tableValues->{$columnName} ) );
+	    push ( @values, ( ( $columnName eq $columnNameAutoincrement ) ? '' : $tableValues->{$columnName} ) );
     }
 
     if ( defined $column and defined $placeholders) {
@@ -1849,7 +1850,7 @@ sub DBI_connect {
 
     if ( $DBI_CONNECT_ALARM_OFF ) {
       $dbh = undef;
-      $rv = 0;
+      $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
       $alarmMessage = "DBI_CONNECT_ALARM_OFF = $DBI_CONNECT_ALARM_OFF";
       $$logger->debug("     DBI_CONNECT_ALARM_OFF: Connection to '$database' timed out") if ( defined $$logger and $$logger->is_debug() );
     }
@@ -1900,7 +1901,7 @@ sub DBI_do {
       sigaction( SIGALRM, $_actionOld ); # restore original signal handler
 
       if ( $DBI_DO_ALARM_OFF ) {
-        $rv = 0;
+        $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
         $alarmMessage = "DBI_DO_ALARM_OFF = $DBI_DO_ALARM_OFF";
         $$logger->debug("     DBI_DO_ALARM_OFF: dbh->do timed out") if ( defined $$logger and $$logger->is_debug() );
       }
@@ -1949,7 +1950,7 @@ sub DBI_execute {
       sigaction( SIGALRM, $_actionOld ); # restore original signal handler
 
       if ( $DBI_EXECUTE_ALARM_OFF ) {
-        $rv = 0;
+        $rv = $DBI_error_trap->(@{$DBI_error_trap_Arguments}, $logger, $debug);
         $alarmMessage = "DBI_EXECUTE_ALARM_OFF = $DBI_EXECUTE_ALARM_OFF";
         $$logger->debug("     DBI_EXECUTE_ALARM_OFF: sth->execute timed out") if ( defined $$logger and $$logger->is_debug() );
       }
