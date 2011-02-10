@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.002.002
+# Applications.cnf for package ASNMTAP::Asnmtap::Applications v3.002.003
 # ----------------------------------------------------------------------------------------------------------
 
 # Common variables  - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -48,12 +48,14 @@
 #  </HTMLTOPDF>
 
 #  <PERFPARSE>
-#    BIN             /opt/asnmtap/perfparse/bin
-#    ETC             /opt/asnmtap/perfparse/etc
-#    LIB             /opt/asnmtap/perfparse/lib
-#    SHARE           /opt/asnmtap/perfparse/share
-#    CGI             /cgi-bin/perfparse.cgi
+#    BIN             /opt/asnmtap/perfparse20/bin
+#    ETC             /opt/asnmtap/perfparse20/etc
+#    LIB             /opt/asnmtap/perfparse20/lib
+#    SHARE           /opt/asnmtap/perfparse20/share
+#    CGI             /perfparse20/perfparse.php
 #    ENABLED         1                      # '0' or '1'
+#    VERSION         20                     # '19' or '20'
+#    CONFIG          perfparse20.cfg        # 'perfparse.cfg' or 'perfparse20.cfg'
 #    DATABASE        ~ <DATABASE_ACCOUNT><READWRITE><DATABASE>
 #    HOST            ~ <DATABASE_ACCOUNT><READWRITE><HOST>
 #    PORT            ~ <DATABASE_ACCOUNT><READWRITE><PORT>

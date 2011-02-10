@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for ASNMTAP
-# $Id: Makefile.PL, v3.2.2 2010/xx/xx 18:14:00 Alex Peeters Exp $
+# $Id: Makefile.PL, v3.2.3 2010/xx/xx 18:14:00 Alex Peeters Exp $
 
 use 5.008000;
 use strict;
@@ -7,7 +7,7 @@ use strict;
 # - - - - - - - - - - UPDATE VERSION EVERY NEW RELEASE: - - - - - - - - -
 
 # Prepare new release ---------------------------------------------------
-# copy current release '3.002.002' to '3.002.003'
+# copy current release '3.002.003' to '3.002.004'
 #                       3.002.xxx      3.001.yyy
 
 # replace 'Version      : 3.002.xxx'  with `3.002.yyy;`
@@ -23,7 +23,7 @@ use strict;
 # replace ASNMTAP 3.002.xxx postfix; nl-BE; rv:3.002.xxx) Gecko/yyyymmdd with ASNMTAP 3.002.yyy postfix; nl-BE; rv:3.002.yyy) Gecko/2010....
 
 # Upload new release ----------------------------------------------------
-# replace 'Latest update: dd month 2010' with 'Latest update: .. ... 2010'
+# replace 'Latest update: dd month 2011' with 'Latest update: .. ... 2010'
 # replace `# 2010/mm/dd, v` with `# 2010/../.., v`
 
 # Module section  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +51,7 @@ unless ( eval ( "require $module; Exporter::require_version ( '$module', $versio
 
 # Configuration section - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $VERSION = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $VERSION = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 my $PERL_AUTOINSTALL     = exists $ENV{PERL_AUTOINSTALL}     ? $ENV{PERL_AUTOINSTALL}     : 0;
 my $ASNMTAP_APPLICATIONS = exists $ENV{ASNMTAP_APPLICATIONS} ? $ENV{ASNMTAP_APPLICATIONS} : 0;
@@ -289,12 +289,13 @@ my @prerequisites = (
   ],
   [ '*001104', 'SOAP support',        'ASNMTAP::Asnmtap::Plugins::SOAP',        { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'SOAP::Lite' => '0.710.08', 'WSRF::Lite' => '0.8.2.7', 'DateTime' => '0.37', 'DateTime::Format::Epoch' => '0.10', 'DateTime::Format::W3CDTF' => '0.04', 'Digest::SHA1' => '2.12', 'Crypt::OpenSSL::RSA' => '0.26', 'Crypt::OpenSSL::X509' => '1.2', 'HTTP::Daemon::SSL' => '1.04', 'Sys::Hostname::Long' => '1.4', 'MIME::Base64' => '3.08', 'XML::CanonicalizeXML' => '0.03', 'XML::DOM' => '1.44' }, 1, [], [] ],
   [ '*001105', 'WebTransact support', 'ASNMTAP::Asnmtap::Plugins::WebTransact', { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Bundle::LWP' => '1.11', 'CGI' => '3.37', 'Compress::Zlib' => '2.010', 'Crypt::SSLeay' => '0.56', 'Digest::MD5' => '2.36', 'IO::Socket::SSL' => '1.33', 'MIME::Base64' => '3.08', 'Net::FTP' => '2.75', 'Net::SSLeay' => '1.32', 'URI' => '1.36' }, 1, [], [] ],
-  [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.36', 'XML::LibXML' => '1.66', 'XML::Simple' => '2.18' }, 2, [], [] ],
+  [ '*001106', 'XML support',         'ASNMTAP::Asnmtap::Plugins::XML',         { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'XML::Parser' => '2.36', 'XML::LibXML' => '1.70', 'XML::Simple' => '2.18' }, 2, [], [] ],
   [ '*001199', 'Testing Templates',   'ASNMTAP::Asnmtap::Plugins::NPTest',      { 'ASNMTAP::Asnmtap::Plugins' => '*0011', 'Cwd' => '3.25', 'Data::Dumper' => '2.121', 'File::Basename' => '2.73', 'IO' => '1.23' }, 1, [], [] ],
   [ '', 'unbless data structure',     'Data::Structure::Util',                  { 'Test::Builder::Tester' => '1.13', 'Test::Pod' => '1.22', 'Clone' =>'0.18', 'File::Find::Rule' => '0.28', 'Data::Structure::Util' => '0.11' }, 4, [], [] ],
   [ '', 'FTP template',               'check_template-ftp.pl',                  { 'Net::FTP' => '2.75' }, 4, [], [] ],
   [ '', 'LDAP template',              'check_template-ldap.pl',                 { 'Convert::ASN1' => '0.19', 'URI::ldap' => '1.11', 'Digest::MD5' => '2.36', 'XML::Parser' => '2.36', 'Net::LDAP' => '0.34' }, 4, [], [] ],
-  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004', 'DBIx::Log4perl' => '0.18', 'Log::Log4perl' => '1.26' }, 4, [], [] ]
+  [ '', 'MySQL template',             'check_MySQL-database-replication.pl',    { 'Bit::Vector' => '6.3', 'Date::Calc' => '5.4', 'Bundle::DBI' => '1.604', 'Bundle::DBD::mysql' => '4.004', 'DBIx::Log4perl' => '0.18', 'Log::Log4perl' => '1.26' }, 4, [], [] ],
+  [ '', 'SFTP template',              'check_template-sftp.pl',                 { 'Net::SFTP::Foreign' => '1.61' }, 4, [], [] ]
 );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -542,7 +543,7 @@ if ( $ASNMTAP_PLUGINS or $ASNMTAP_APPLICATIONS ) {
 
             if ( $mode =~ /^[dD]$/ ) {
               $file .= '/.exists';
-			  $destination .= '/.exists';
+			        $destination .= '/.exists';
             }
 
             $PM{$file} = $destination;

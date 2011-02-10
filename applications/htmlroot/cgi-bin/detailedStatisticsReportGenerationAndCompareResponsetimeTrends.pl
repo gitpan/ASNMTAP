@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Delta_DHMS Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBPERFPARSE :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "detailedStatisticsReportGenerationAndCompareResponsetimeTrends.pl";
 my $prgtext     = "Detailed Statistics, Report Generation And Compare Response Time Trends";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -398,7 +398,7 @@ EndOfHtml
           if ( $rv ) {
             while( $sth->fetch() ) {
               $numbersOfTests += $numbersOfTestsQ if (defined $numbersOfTestsQ);
-			  $step = $stepQ if (defined $stepQ);
+			        $step = $stepQ if (defined $stepQ);
             }
 
             $sth->finish() or $rv = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", -1, '', $sessionID);
@@ -462,7 +462,7 @@ EndOfHtml
                 $commentData =~ s/[\n\r]/<br>/g;
                 $commentData =~ s/(?:<br>)+/<br>/g;
                 $commentData = encode_html_entities('C', $commentData);
-	            $commentDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">&nbsp;</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$solvedDate \@ $solvedTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td><td>$problemSolved</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
+	              $commentDetailList .= "<tr bgcolor=\"$COLORSTABLE{STARTBLOCK}\"><td rowspan=\"2\" valign=\"top\">&nbsp;</td><td>$activationDate \@ $activationTime</td><td>$suspentionDate \@ $suspentionTime</td><td>$solvedDate \@ $solvedTime</td><td>$instability</td><td>$persistent</td><td>$downtime</td><td>$problemSolved</td></tr><tr bgcolor=\"$COLORSTABLE{ENDBLOCK}\"><td colspan=\"7\">$commentData</td></tr>\n";
               }
 
               $commentDetailList .= "</table>\n";
@@ -484,7 +484,18 @@ EndOfHtml
             my ($sthPERFPARSE, $metric_id, $metric, $times, $percentiles, $unit, $Unit, $periodePERFPARSE, $countPERFPARSE, $valuePERFPARSE) = ( $dbh );
 
             my $toggle = 0;
-            $sqlQuery = "select $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $PERFPARSEDATABASE.perfdata_service_metric.unit from $DATABASE.$SERVERTABLREPORTSPRFDT, $PERFPARSEDATABASE.perfdata_service_metric WHERE $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID='$CcatalogID' and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $DATABASE.$SERVERTABLREPORTSPRFDT.activated='1' and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id"; 
+            my $sqlWherePERFDATA;
+
+            if ( $PERFPARSEVERSION eq '20' ) {
+              my $catalogID_uKey = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+              $sqlQuery = "select service_id from $PERFPARSEDATABASE.perfdata_service where service_description = '$catalogID_uKey'";
+              $sqlWherePERFDATA = "where $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $PERFPARSEDATABASE.perfdata_service_metric.service_id in ($sqlQuery)";
+            } else {
+              $sqlWherePERFDATA = "where $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID='$CcatalogID' and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey='$uKey1' and $DATABASE.$SERVERTABLREPORTSPRFDT.activated='1' and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id";
+            }
+
+            $sqlQuery = "select $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $PERFPARSEDATABASE.perfdata_service_metric.unit from $DATABASE.$SERVERTABLREPORTSPRFDT, $PERFPARSEDATABASE.perfdata_service_metric $sqlWherePERFDATA";
+
             $sth = $dbh->prepare( $sqlQuery ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID);
             $sth->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
             $sth->bind_columns( \$metric_id, \$metric, \$times, \$percentiles, \$unit, \$Unit ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlQuery", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -492,8 +503,16 @@ EndOfHtml
             if ( $rv ) {
               if ($sth->rows) {
                 my $sqlPeriodePERFDATA = $sqlPeriode;
-                $sqlPeriodePERFDATA    =~ s/AND startDate BETWEEN '(\d+-\d+-\d+)' AND '(\d+-\d+-\d+)'/AND ctime BETWEEN '$1 00:00:00' AND '$2 23:59:59'/g;
-                $sqlPeriodePERFDATA    =~ s/(startDate|startTime)/ctime/g;
+
+                if ( $PERFPARSEVERSION eq '20' ) {
+                  $sqlPeriodePERFDATA  =~ s/^AND startDate BETWEEN '(\d+-\d+-\d+)' AND '(\d+-\d+-\d+)'/AND FROM_UNIXTIME\(ctime\) BETWEEN '$1 00:00:00' AND '$2 23:59:59'/g;
+                  $sqlPeriodePERFDATA  =~ s/(startDate|startTime) BETWEEN/TIME\(FROM_UNIXTIME\(ctime\)\) BETWEEN/g;
+                  $sqlPeriodePERFDATA  =~ s/(startDate|startTime)/FROM_UNIXTIME\(ctime\)/g;
+                } else {
+                  $sqlPeriodePERFDATA  =~ s/^AND startDate BETWEEN '(\d+-\d+-\d+)' AND '(\d+-\d+-\d+)'/AND ctime BETWEEN '$1 00:00:00' AND '$2 23:59:59'/g;
+                  $sqlPeriodePERFDATA  =~ s/(startDate|startTime) BETWEEN/TIME\(ctime\) BETWEEN/g;
+                  $sqlPeriodePERFDATA  =~ s/(startDate|startTime)/ctime/g;
+                }
 
                 my $groupPERFDATA       = ( $inputType eq 'fromto' ) ? 'dayofmonth' : $inputType; # 'dayofmonth' < 4.1.1 <= 'dayofmonth' or 'day' !!!
                 my $percentagePERFDATA  = ( $inputType eq 'fromto' and $startDate ne $endDate ) ? 0 : 1;
@@ -501,7 +520,7 @@ EndOfHtml
   	            $perfdataDetailList .= "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" bgcolor=\"$COLORSTABLE{TABLE}\">\n";
 
                 while( $sth->fetch() ) {
-    	          $perfdataDetailList .= "<tr><th>&nbsp;$groupPERFDATA&nbsp;</th><th align=\"left\">&nbsp;$metric&nbsp;</th><th>&nbsp;Expression&nbsp;</th></tr>\n";
+    	            $perfdataDetailList .= "<tr><th>&nbsp;$groupPERFDATA&nbsp;</th><th align=\"left\">&nbsp;$metric&nbsp;</th><th>&nbsp;Expression&nbsp;</th></tr>\n";
                   $times = ( defined $times and $times ne '' ) ? '0,'. $times : '0'; 
 
                   my $sqlValuePERFDATA = '';
@@ -525,9 +544,20 @@ EndOfHtml
                         $sqlValuePERFDATA = 'and value <= '. $value;
                       }
 
-                      my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+                      my $sqlWherePERFDATA;
 
-                      my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), count(ctime) FROM $PERFPARSEDATABASE.perfdata_service_bin WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric' $sqlPeriodePERFDATA $sqlValuePERFDATA group by $groupPERFDATA(ctime)";
+                      if ( $PERFPARSEVERSION eq '20' ) {
+                        $sqlWherePERFDATA = "WHERE metric_id = '$metric_id'";
+                      } else {
+                        my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+                        $sqlWherePERFDATA = "WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric'";
+                      }
+
+                      my $sqlPERFDATA = "SELECT ";
+                      $sqlPERFDATA .= ( $PERFPARSEVERSION eq '20' ) ? "$groupPERFDATA(FROM_UNIXTIME(ctime))" :" $groupPERFDATA(ctime)";
+                      $sqlPERFDATA .= ", count(ctime) FROM $PERFPARSEDATABASE.perfdata_service_bin $sqlWherePERFDATA $sqlPeriodePERFDATA $sqlValuePERFDATA group by ";
+                      $sqlPERFDATA .= ( $PERFPARSEVERSION eq '20' ) ? "$groupPERFDATA(FROM_UNIXTIME(ctime))" : "$groupPERFDATA(ctime)";
+
                       $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                       $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                       $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$countPERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -569,9 +599,19 @@ EndOfHtml
                         my $offset = $IR - 1;
                         $FR = sprintf "0.%d", $FR;
 
-                        my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+                        my $sqlWherePERFDATA;
 
-                        my $sqlPERFDATA = "SELECT $groupPERFDATA(ctime), value FROM $PERFPARSEDATABASE.perfdata_service_bin WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric' $sqlPeriodePERFDATA order by value limit $offset, $limit";
+                        if ( $PERFPARSEVERSION eq '20' ) {
+                          $sqlWherePERFDATA = "WHERE metric_id = '$metric_id'";
+                        } else {
+                          my $catalogID_uKey1 = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $uKey1;
+                          $sqlWherePERFDATA = "WHERE host_name = '$Title' and service_description = '$catalogID_uKey1' and metric = '$metric'";
+                        }
+
+                        my $sqlPERFDATA = "SELECT ";
+                        $sqlPERFDATA .= ( $PERFPARSEVERSION eq '20' ) ? "$groupPERFDATA(FROM_UNIXTIME(ctime))" : "$groupPERFDATA(ctime)";
+                        $sqlPERFDATA .= ", value FROM $PERFPARSEDATABASE.perfdata_service_bin $sqlWherePERFDATA $sqlPeriodePERFDATA order by value limit $offset, $limit";
+
                         $sthPERFPARSE = $dbh->prepare( $sqlPERFDATA ) or $rv = error_trap_DBI("", "Cannot dbh->prepare: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID);
                         $sthPERFPARSE->execute() or $rv = error_trap_DBI("", "Cannot sth->execute: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
                         $sthPERFPARSE->bind_columns( \$periodePERFPARSE, \$valuePERFPARSE ) or $rv = error_trap_DBI("", "Cannot sth->bind_columns: $sqlPERFDATA", $debug, '', "", '', "", -1, '', $sessionID) if $rv;
@@ -679,7 +719,13 @@ EndOfHtml
             while( $sth->fetch() ) {
               $seconden = int(substr($duration, 6, 2)) + int(substr($duration, 3, 2)*60) + int(substr($duration, 0, 2)*3600);
               (undef, $rest) = split(/:/, $statusMessage, 2);
-              ($rest, undef) = split(/\|/, $rest, 2) if (defined $rest); # remove performance data
+
+            # ($rest, undef) = split(/\|/, $rest, 2) if (defined $rest); # remove performance data
+              if (defined $rest) {
+                my $_rest = reverse $rest;
+                my ($_rest, undef) = reverse split(/\|/, $_rest, 2);
+                my $rest = reverse $_rest;
+              } 
 
               if ($firstrun) {
                 $firstrun = 0;
@@ -734,8 +780,14 @@ EndOfHtml
             while( $sth->fetch() ) {
               $seconden = int(substr($duration, 6, 2)) + int(substr($duration, 3, 2)*60) + int(substr($duration, 0, 2)*3600);
               (undef, $rest) = split(/:/, $statusMessage, 2);
-              ($rest, undef) = split(/\|/, $rest, 2) if (defined $rest); # remove performance data
 
+            # ($rest, undef) = split(/\|/, $rest, 2) if (defined $rest); # remove performance data
+              if (defined $rest) {
+                my $_rest = reverse $rest;
+                my ($_rest, undef) = reverse split(/\|/, $_rest, 2);
+                my $rest = reverse $_rest;
+              } 
+							
               if ($wtel) {
                 ($oneblock, $block, $rrest, $dummy) = setBlockBGcolor ($oneblock, $status, $step, $startDateQ, $startTime, $nyear, $nmonth, $nday, $nhours, $nminuts, $nseconds, $nstatus, $nrest);
                 $responseTable .= "<tr $block><td>$dummy$wtel</td><td> $nstartDateQ \@ $nstartTime</td><td>$nendDateQ \@ $nendTime</td><td align=\"center\">".$nseconden."s</td><td><font color=\"".$COLORS {$nstatus}."\"> " .encode_html_entities('S', $nstatus). " </font></td><td> " .encode_html_entities('M', $rrest). " </td></tr>\n";
@@ -773,7 +825,11 @@ EndOfHtml
                 $rest = $dummy unless ( $rest );
 
                 if ($rest) {
-                  ($rest, undef) = split(/\|/, $rest, 2); # remove performance data
+                # ($rest, undef) = split(/\|/, $rest, 2); # remove performance data
+                   my $_rest = reverse $rest;
+                   my ($_rest, undef) = reverse split(/\|/, $_rest, 2);
+                   my $rest = reverse $_rest;
+
                   ($dummy, $rest) = split(/,/, $rest, 2);
                   $rest = $dummy unless ( $rest );
                 } else {

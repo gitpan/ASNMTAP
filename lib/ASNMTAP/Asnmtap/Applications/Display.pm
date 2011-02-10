@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications::Display
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::Display;
@@ -88,7 +88,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::Display::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::Display::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::Display::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -129,7 +129,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

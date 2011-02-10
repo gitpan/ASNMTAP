@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Plugins::Mail Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Mail::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Mail::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Constructor & initialisation  - - - - - - - - - - - - - - - - - - - - -
@@ -459,7 +459,7 @@ sub receiving_fingerprint_mails {
             }
           }
 
-		  if ( $toNotFound ) {
+		      if ( $toNotFound ) {
             if ($msgline =~ /^$self->{_text}->{to}/) {
               print "To ...... : $msgline\n" if ($debug);
               $toNotFound = ( $msgline !~ /^$self->{_text}->{to}\s+$self->{_mail}->{to}/ ? 1 : 0  );
@@ -469,14 +469,14 @@ sub receiving_fingerprint_mails {
             }
           }
 
-	  	  if ( $subjectNotFound ) {
+	  	    if ( $subjectNotFound ) {
             if ($msgline =~ /^$self->{_text}->{subject}/) {
               print "Subject . : $msgline\n" if ($debug);
               $subjectNotFound = ( $msgline !~ /^$self->{_text}->{subject}\s+$self->{_subject_}/ ? 1 : 0  );
               my $label = $subjectNotFound ? '    (?)' : '(match)';
               print "  $label : $self->{_text}->{subject} $self->{_subject_}\n" if ($debug);
               unless ( $subjectNotFound ) { $fingerprintFound--; next; }
-		    }
+		        }
           }
         }
 
@@ -745,7 +745,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

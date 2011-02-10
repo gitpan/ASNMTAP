@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap Object-Oriented Perl
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap;
@@ -60,7 +60,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # read config file  - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,7 +111,7 @@ if ( exists $_config{SUBDIR} ) {
 our $APPLICATION     = ( exists $_config{COMMON}{APPLICATION} )    ? $_config{COMMON}{APPLICATION}    : 'Application Monitoring';
 our $BUSINESS        = ( exists $_config{COMMON}{BUSINESS} )       ? $_config{COMMON}{BUSINESS}       : 'CITAP';
 our $DEPARTMENT      = ( exists $_config{COMMON}{DEPARTMENT} )     ? $_config{COMMON}{DEPARTMENT}     : 'Development';
-our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2010';
+our $COPYRIGHT       = ( exists $_config{COMMON}{COPYRIGHT} )      ? $_config{COMMON}{COPYRIGHT}      : '2000-2011';
 our $SENDEMAILTO     = ( exists $_config{COMMON}{SENDEMAILTO} )    ? $_config{COMMON}{SENDEMAILTO}    : 'alex.peeters@citap.be';
 our $TYPEMONITORING  = ( exists $_config{COMMON}{TYPEMONITORING} ) ? $_config{COMMON}{TYPEMONITORING} : 'central';
 our $RUNCMDONDEMAND  = ( exists $_config{COMMON}{RUNCMDONDEMAND} ) ? $_config{COMMON}{RUNCMDONDEMAND} : 'localhost';
@@ -417,7 +417,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

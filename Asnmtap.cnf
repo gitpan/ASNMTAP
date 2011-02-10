@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# Asnmtap.cnf for package ASNMTAP::Asnmtap v3.002.002
+# Asnmtap.cnf for package ASNMTAP::Asnmtap v3.002.003
 # ----------------------------------------------------------------------------------------------------------
 
 # SET ENVIRONMENT VARIABLES - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@
     APPLICATION     Application Monitoring
     BUSINESS        CITAP
     DEPARTMENT      Development
-    COPYRIGHT       2003-2010
+    COPYRIGHT       2003-2011
     SENDEMAILTO     alex.peeters@citap.be
   # TYPEMONITORING  central                      # central or distributed
   # RUNCMDONDEMAND  localhost                    # localhost or probe

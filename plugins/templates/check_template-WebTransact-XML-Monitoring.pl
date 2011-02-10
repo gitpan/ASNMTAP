@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, check_template-WebTransact-XML-Monitoring.pl
+# 2011/mm/dd, v3.002.003, check_template-WebTransact-XML-Monitoring.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.002;
+use ASNMTAP::Asnmtap::Plugins v3.002.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ my $schema = "1.0";
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-WebTransact-XML-Monitoring.pl',
   _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '--message=<message> [-H|--hostname <hostname> -s|--service <service>]|[--uKey <uKey>] [--validation <validation>]',
   _programHelpPrefix  => "--message=<message>
    --message=message
@@ -189,7 +189,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

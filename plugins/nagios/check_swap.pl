@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, check_swap.pl
+# 2011/mm/dd, v3.002.003, check_swap.pl
 # ----------------------------------------------------------------------------------------------------------
 # Linux: swap
 # ----------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.003;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +25,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
   _programName        => 'check_swap.pl',
   _programDescription => 'SWAP',
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '-w|--warning <percent> -c|--critical <percent>',
   _programHelpPrefix  => "-w, --warning=<percent>
     PERCENT: Percent allocated when to warn

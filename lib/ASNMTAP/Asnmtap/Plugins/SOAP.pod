@@ -4,13 +4,13 @@ ASNMTAP::Asnmtap::Plugins::SOAP is a Perl module that provides SOAP functions us
 
 =head1 SYNOPSIS
 
- use ASNMTAP::Asnmtap::Plugins v3.002.002;
+ use ASNMTAP::Asnmtap::Plugins v3.002.003;
  use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
  my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
    _programName        => 'check_template-SOAP.pl',
    _programDescription => "SOAP::LITE plugin template for testing the '$APPLICATION' with Performance Data",
-   _programVersion     => '3.002.002',
+   _programVersion     => '3.002.003',
    _programGetOptions  => ['proxy:s', 'trendline|T:i'],
    _timeout            => 30,
    _debug              => 0);
@@ -187,6 +187,7 @@ a required SOAP::Data->name definition
 This lets you specify a handler for on_action event. It is triggered when creating SOAPAction. 
 The default handler will set SOAPAction to "uri/method". 
 You can change this behavior, for a particular object to "uri/soapaction".
+To remove the soapaction you say soapaction => '',
 
 optional scalar, soapaction
 
@@ -217,6 +218,12 @@ optional, envprefix, default 'soapenv'
 =item encprefix
 
 optional, encprefix, default 'soapenc'
+
+=item encodingStyle
+
+To change the encodingStyle you say encodingStyle => 'http://schemas.xmlsoap.org/soap/envelope/',
+
+To remove the encodingStyle you say encodingStyle => '',
 
 =item readable
 
@@ -338,7 +345,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

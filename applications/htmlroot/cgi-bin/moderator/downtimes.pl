@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, downtimes.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, downtimes.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "downtimes.pl";
 my $prgtext     = "Downtimes";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -424,7 +424,7 @@ HTML
         print <<HTML;
     <tr align="center"><td colspan="2">
 	  <table border="0" cellspacing="0" cellpadding="0"><tr>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView">[Insert new downtimes]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView">[Insert downtimes]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
 	  </tr></table>
 	</td></tr>

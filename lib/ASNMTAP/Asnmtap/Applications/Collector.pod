@@ -50,7 +50,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap/applications/etc/CollectorCT-test
 
- # CollectorCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.002 or higher
+ # CollectorCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.003 or higher
  #
  # <minute (0-59)> <hour (0-23)> <day of the month (1-31)> <month of the year (1-12)> <day of the week (0-6 with 0=Sunday)> <interval (1-30 min)> [<catalogID>_]<uniqueKey>#<resultsdir>#<titel nnn>#check_nnn[#noOFFLINE|multiOFFLINE|noTEST]][|[<catalogID>_]<uniqueKey>#<resultsdir>#<titel mmm>#check_mmm[#noOFFLINE|multiOFFLINE|noTEST]]
  #
@@ -225,7 +225,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

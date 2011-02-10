@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, runCmdOnDemand.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES $PERLCOMMAND $SSHCOMMAND $SSHLOGONNAME);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "runCmdOnDemand.pl";
 my $prgtext     = "Run command on demand for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -215,7 +215,6 @@ EndOfHtml
             $capture =~ s/(window.location.href)/\/\/$1/gi;
 
             # RFC 1738 -> [ $\/:;=?@.\-!*'()\w&+,]+
-          # $capture =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[ $\/:;=?@.\-!*'()\w&+,]+\"(?:\s+\/?)?>)/<!--$1-->/img;
             $capture =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[^"]+\"(?:\s+\/?)?>)/<!--$1-->/img;
 
             # remove password from Basic Authentication URL before putting into database!
@@ -224,6 +223,9 @@ EndOfHtml
             # comment <SCRIPT></SCRIPT>
             $capture =~ s/<SCRIPT/<!--<SCRIPT/gi;
             $capture =~ s/<\/SCRIPT>/<\/SCRIPT>-->/gi;
+
+            # replace <BODY onload="..."> with <BODY>
+            $capture =~ s/<BODY\s*onload\s*=\s*.*\s*>/<BODY>/gi;
 
             print "$capture\n";
           } elsif ($capture_long) {

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Plugins::SOAP Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::SOAP::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::SOAP::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # Utility methods - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,6 +51,7 @@ sub get_soap_request {
                    params               => undef,
                    envprefix            => 'soapenv',
                    encprefix            => 'soapenc',
+                   encodingStyle        => undef,
                    readable             => 1,
                    cookies              => undef,
                    perfdataLabel        => undef,
@@ -103,6 +104,8 @@ sub get_soap_request {
   my $envprefix = $parms{envprefix};
 
   my $encprefix = $parms{envprefix};
+
+  my $encodingStyle = $parms{encodingStyle};
 
   unless ( $readable =~ /^[01]$/ ) {
     $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'SOAP parameter readable must be 0 or 1' }, $TYPE{APPEND} );
@@ -223,7 +226,7 @@ sub get_soap_request {
       -> encprefix  ( $encprefix )
       -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
       -> uri        ( $namespace )
-      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )
+      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? ( $soapaction eq '' ? '' : $soapaction ) : $uri .'/'. $_[1]) } )
       -> on_fault   ( sub { } )
     ;
   } else {
@@ -242,11 +245,12 @@ sub get_soap_request {
       -> encprefix  ( $encprefix )
       -> xmlschema  ( 'http://www.w3.org/2001/XMLSchema' )
       -> uri        ( $namespace )
-      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? $soapaction : $_[1]); sprintf '"%s/%s"', $uri, $method } )
+      -> on_action  ( sub { my $uri = $_[0]; $uri =~ s/\/$//; my $method = (defined $soapaction ? ( $soapaction eq '' ? '' : $soapaction ) : $uri .'/'. $_[1]) } )
       -> on_fault   ( sub { } )
     ;
   }
 
+  $service->serializer->encodingStyle ( $encodingStyle ) if ( defined $encodingStyle );
   $SOAP::Constants::PATCH_HTTP_KEEPALIVE = $PATCH_HTTP_KEEPALIVE;
 
   if ( defined $parms{registerNamespace} ) {
@@ -325,7 +329,15 @@ sub get_soap_request {
       }
 
       if ( $returnCode == $ERRORS{OK} and defined $parms{custom} ) {
-        $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($$asnmtapInherited, $som, $parms{customArguments}) : $parms{custom}->($$asnmtapInherited, $som);
+        my $root = $som->dataof ('/Envelope/Body');
+
+        if ( defined $root ) {
+          $returnCode = ( defined $parms{customArguments} ) ? $parms{custom}->($$asnmtapInherited, $som, $parms{customArguments}) : $parms{custom}->($$asnmtapInherited, $som);
+        } else {
+          print "ASNMTAP::Asnmtap::Plugins::SOAP::get_soap_request: Missing SOAP Envelope or Body", "\n" if ( $debug );
+          $$asnmtapInherited->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => 'Missing SOAP Envelope or Body' }, $TYPE{APPEND} );
+          return ($returnCode, undef);
+        }
       }
     } else {
       $returnCode = _soapCheckFault ($asnmtapInherited, $som, $debug);
@@ -379,7 +391,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications;
@@ -57,9 +57,9 @@ BEGIN {
                                                                        $CHARTDIRECTORLIB
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                        $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
-                                                                       $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
+                                                                       $PERFPARSEVERSION $PERFPARSECONFIG $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE $STATUSHEADER01
-                                                 					   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
+                                                 				          	   %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
@@ -97,7 +97,7 @@ BEGIN {
                                                                        @EVENTS %EVENTS
                                                                        &read_table &get_session_param
                                                                        &init_email_report &send_email_report
-																	   &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
+																	                                     &CSV_prepare_table &CSV_insert_into_table &CSV_import_from_table &CSV_cleanup_table
                                                                        &DBI_connect &DBI_do &DBI_execute
                                                                        &LOG_init_log4perl) ],
 
@@ -152,7 +152,7 @@ BEGIN {
                                                                        $CHARTDIRECTORLIB
                                                                        $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                        $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
-                                                                       $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
+                                                                       $PERFPARSEVERSION $PERFPARSECONFIG $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                        $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
                                                                        %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                        &get_session_param
@@ -162,11 +162,11 @@ BEGIN {
                                                                        $SERVERMYSQLVERSION $SERVERMYSQLMERGE
                                                                        $SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE
                                                                        $SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY
-                                                                       $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
+                                                                       $SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS) ] );
 
   @ASNMTAP::Asnmtap::Applications::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -280,7 +280,7 @@ sub LOG_init_log4perl;
 
 # Applications variables  - - - - - - - - - - - - - - - - - - - - - - - -
 
-our $RMVERSION = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+our $RMVERSION = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 our %QUARTERS  = ( '1' => '1', '2' => '4', '3' => '7', '4' => '10' );
 
@@ -438,6 +438,8 @@ our $PERFPARSESHARE    = ( exists $_config{COMMON}{PERFPARSE}{SHARE}    ? $_conf
 our $PERFPARSECGI      = ( exists $_config{COMMON}{PERFPARSE}{CGI}      ? $_config{COMMON}{PERFPARSE}{CGI}      : '/cgi-bin/perfparse.cgi' );
 our $PERFPARSEENABLED  = ( exists $_config{COMMON}{PERFPARSE}{ENABLED}  ? $_config{COMMON}{PERFPARSE}{ENABLED}  : 1 );
 
+our $PERFPARSEVERSION  = ( exists $_config{COMMON}{PERFPARSE}{VERSION}  ? $_config{COMMON}{PERFPARSE}{VERSION}  : 19 );
+our $PERFPARSECONFIG   = ( exists $_config{COMMON}{PERFPARSE}{CONFIG}   ? $_config{COMMON}{PERFPARSE}{CONFIG}   : 'perfparse.cfg' );
 our $PERFPARSEDATABASE = ( exists $_config{COMMON}{PERFPARSE}{DATABASE} ? $_config{COMMON}{PERFPARSE}{DATABASE} : $DATABASE );
 our $PERFPARSEHOST     = ( exists $_config{COMMON}{PERFPARSE}{HOST}     ? $_config{COMMON}{PERFPARSE}{HOST}     : $SERVERNAMEREADWRITE );
 our $PERFPARSEPORT     = ( exists $_config{COMMON}{PERFPARSE}{PORT}     ? $_config{COMMON}{PERFPARSE}{PORT}     : $SERVERPORTREADWRITE );
@@ -1547,7 +1549,7 @@ sub sending_mail {
   use Sys::Hostname;
   my %mail = ( To => $mailTo, From => $mailFrom, Subject => $mailSubject .' from '. hostname(), Message => $mailBody );
   my $returnCode = ( sendmail %mail ) ? 1 : 0;
-  print "\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log, "\n" if ($debug);
+  print "\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log, "\n" if ($debug eq 'T');
   return ( $returnCode );
 }
 
@@ -1557,10 +1559,10 @@ sub CSV_prepare_table {
   my ($path, $tableFilename, $extention, $tableName, $columnSequence, $tableDefinition, $logger, $debug) = @_;
 
   my $rv = 1;
-  my $dbh = DBI->connect ("DBI:CSV:", "", "", {f_schema => undef, f_dir => $path, f_ext => $extention} ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", $logger, $debug); 
+  my $dbh = DBI->connect ("DBI:CSV:", "", "", {f_schema => undef, f_dir => $path, f_ext => $extention} ) or $rv = DBI_error_trap(*EMAILREPORT, "Cannot connect to the database", $logger, $debug);
 
   if ( $rv ) {
-    $dbh->{csv_tables}{$tableName}  = { file => $tableFilename};
+    $dbh->{csv_tables}{$tableName}  = { file => $tableFilename };
 
     $dbh->{csv_null}                = 1;
     $dbh->{csv_allow_whitespace}    = 0;
@@ -2001,12 +2003,12 @@ sub LOG_init_log4perl {
             log4perl.appender.LOGFILE.mode        = append
             log4perl.appender.LOGFILE.Threshold   = ERROR
             log4perl.appender.LOGFILE.layout      = PatternLayout
-            log4perl.appender.LOGFILE.layout.ConversionPattern = [%r] %F %L %c - %m%n
+            log4perl.appender.LOGFILE.layout.ConversionPattern = [%d] %F %L %c - %m%n
 
             log4perl.appender.LOGSCREEN           = Log::Log4perl::Appender::Screen
             log4perl.appender.LOGSCREEN.stderr    = 0
             log4perl.appender.LOGSCREEN.layout    = PatternLayout
-            log4perl.appender.LOGSCREEN.layout.ConversionPattern = [%r] %F %L %c - %m%n
+            log4perl.appender.LOGSCREEN.layout.ConversionPattern = [%d] %F %L %c - %m%n
 
             log4perl.logger.DBIx.Log4perl         = TRACE, MySQL
             log4perl.appender.MySQL               = Log::Log4perl::Appender::File
@@ -2052,7 +2054,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

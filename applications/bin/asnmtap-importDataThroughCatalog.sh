@@ -1,6 +1,6 @@
 #!/bin/bash
 # ---------------------------------------------------------------
-# © Copyright 2009-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2009-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------
 # This shell script takes care of starting and stopping
 

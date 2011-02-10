@@ -67,6 +67,8 @@ printLinkToCartography()
 
 Integration with SDE
 
+getTimeperiodRelationshipsSDE()
+
 printRelationshipsSDE()
 
 =back
@@ -100,7 +102,7 @@ when the Application CGI module and CGI applications are installed, these config
 
  more /opt/asnmtap/applications/etc/DisplayCT-test
 
- # DisplayCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.002 or higher
+ # DisplayCT-test - CTP-CENTRAL, generated on 2010/mm/dd 17:58:16, ASNMTAP v3.002.003 or higher
  #
  # <interval>#<groep title>#<resultsdir>#[<catalogID>_]<uniqueKey>#<titel nnn>#check_nnn#<help 0|1>[|[<catalogID>_]<uniqueKey>#<titel mmm>#check_mmm#<help 0|1>]
  #
@@ -216,7 +218,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

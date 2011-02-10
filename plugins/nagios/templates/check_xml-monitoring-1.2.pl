@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2011/mm/dd, v3.002.003, check_template-WebTransact-XML-Monitoring-1.2.pl
+# 2011/mm/dd, v3.002.003, check_xml-monitoring-1.2.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,8 +20,8 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.001;
-use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.003;
+use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -29,84 +29,70 @@ my $schema = "1.2";
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
-  _programName        => 'check_template-WebTransact-XML-Monitoring-1.2.pl',
-  _programDescription => "WebTransact XML Monitoring plugin template for testing the '$APPLICATION'",
+my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
+  _programName        => 'check_xml-monitoring-1.2.pl',
+  _programDescription => 'Check Nagios by XML Monitoring 1.2',
   _programVersion     => '3.002.003',
-  _programUsagePrefix => '--message=<message> [-H|--hostname <hostname> -s|--service <service>]|[--uKey <uKey>] [--validation <validation>]',
-  _programHelpPrefix  => "--message=<message>
-   --message=message
--H, --hostname=<Nagios Hostname>
+  _programUsagePrefix => '-H|--hostname <hostname> -s|--service <service> [-P|--plugin <plugin>] [-p|--parameters <parameters>] [--validation <validation>]',
+  _programHelpPrefix  => "-H, --hostname=<Nagios Hostname>
 -s, --service=<Nagios service name>
---uKey=<uKey>
+-P, --plugin=<plugin to execute>
+-p, --parameters=<parameters for the plugin to execute>
 --validation=F|T
    F(alse)       : dtd validation off (default)
    T(true)       : dtd validation on",
-  _programGetOptions  => ['message=s', 'url|U=s', 'hostname|H:s', 'service|s:s', 'uKey:s', 'validation:s', 'interval|i=i', 'proxy:s', 'environment|e=s', 'trendline|T:i'],
+  _programGetOptions  => ['filename|F=s', 'hostname|H=s', 'service|s=s', 'plugin|P:s', 'parameters|p:s', 'validation:s', 'interval|i=i', 'environment|e=s'],
   _timeout            => 30,
   _debug              => 0);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $url = $objectPlugins->getOptionsArgv ('url');
+my $filename = $objectNagios->getOptionsArgv ('filename');
 
-my $message = $objectPlugins->getOptionsArgv ('message');
-$objectPlugins->printUsage ('Missing command line argument message') unless (defined $message);
-$objectPlugins->pluginValue ( message => $message );
+my $hostname = $objectNagios->getOptionsArgv ('hostname') ? $objectNagios->getOptionsArgv ('hostname') : undef;
+$objectNagios->printUsage ('Missing command line argument hostname') unless (defined $hostname);
 
-my ($uKey, $hostname, $service);
-$uKey = $objectPlugins->getOptionsArgv ('uKey') ? $objectPlugins->getOptionsArgv ('uKey') : undef;
+my $service = $objectNagios->getOptionsArgv ('service') ? $objectNagios->getOptionsArgv ('service') : undef;
+$objectNagios->printUsage ('Missing command line argument service') unless ( defined $service);
 
-unless ( defined $uKey ) {
-  $hostname = $objectPlugins->getOptionsArgv ('hostname') ? $objectPlugins->getOptionsArgv ('hostname') : undef;
-  $objectPlugins->printUsage ('Missing command line argument uKey or hostname') unless (defined $hostname);
-
-  $service = $objectPlugins->getOptionsArgv ('service') ? $objectPlugins->getOptionsArgv ('service') : undef;
-  $objectPlugins->printUsage ('Missing command line argument service') unless ( defined $service);
-}
-
-my $validateDTD = $objectPlugins->getOptionsArgv ('validation') ? $objectPlugins->getOptionsArgv ('validation') : 'F';
+my $plugin      = $objectNagios->getOptionsArgv ('plugin')     ? $objectNagios->getOptionsArgv ('plugin')     : undef;
+my $parameters  = $objectNagios->getOptionsArgv ('parameters') ? $objectNagios->getOptionsArgv ('parameters') : '';
+my $validateDTD = $objectNagios->getOptionsArgv ('validation') ? $objectNagios->getOptionsArgv ('validation') : 'F';
 
 if (defined $validateDTD) {
-  $objectPlugins->printUsage ('Invalid validation option: '. $validateDTD) unless ($validateDTD =~ /^[FT]$/);
+  $objectNagios->printUsage ('Invalid validation option: '. $validateDTD) unless ($validateDTD =~ /^[FT]$/);
   $validateDTD = ($validateDTD eq 'T') ? 1 : 0;
 }
 
-my $resultOutOfDate = $objectPlugins->getOptionsArgv ('interval');
+my $resultOutOfDate = $objectNagios->getOptionsArgv ('interval');
 
-my $environment = $objectPlugins->getOptionsArgv ('environment') ? $objectPlugins->getOptionsArgv ('environment') : 'P';
-my $environmentText = $objectPlugins->getOptionsValue ('environment');
+my $environment = $objectNagios->getOptionsArgv ('environment') ? $objectNagios->getOptionsArgv ('environment') : 'P';
+my $environmentText = $objectNagios->getOptionsValue ('environment');
 
-my $debug = $objectPlugins->getOptionsValue ('debug');
-
-my $reverse = 0;
+my $debug = $objectNagios->getOptionsValue ('debug');
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::WebTransact;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 use constant HEADER => '<?xml version="1.0" encoding="UTF-8"?>';
-use constant FOOTER => '</MonitoringXML>';
+use constant FOOTER => '</mon:MonitoringXML>'; # use constant FOOTER => '</MonitoringXML>';
 
-my @URLS = ();
-my $objectWebTransact = ASNMTAP::Asnmtap::Plugins::WebTransact->new ( \$objectPlugins, \@URLS );
-
-my ($returnCode, $result, $xml, $debugfileMessage);
+my ($reverse, $message, $result, $debugfileMessage) = ( 0, 'Check Nagios by XML Monitoring 1.2' );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-@URLS = (
-  { Method => 'GET',  Url => $url, Qs_var => [], Qs_fixed => [], Exp => "\Q<MonitoringXML>\E", Exp_Fault => ">>>NIHIL<<<", Msg => "XML", Msg_Fault => "XML" },
-);
+if ( defined $plugin ) {
+  if (-s $plugin ) {
+    $objectNagios->exit (3) if ( $objectNagios->call_system ( $plugin .' '. $parameters, 1 ) );
+  } else {
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "The Plugin '$plugin' doesn't exist" }, $TYPE{APPEND} );
+    $objectNagios->exit (3);
+  }
+}
 
-$returnCode = $objectWebTransact->check ( { } );
-undef $objectWebTransact;
-$objectPlugins->exit (7) if ( $returnCode );
-
-$result = $objectPlugins->pluginValue ('result');
-($returnCode, $xml) = extract_XML ( asnmtapInherited => \$objectPlugins, resultXML => $result, headerXML => HEADER, footerXML => FOOTER, validateDTD => $validateDTD, filenameDTD => "dtd/Monitoring-$schema.dtd" );
-$objectPlugins->exit (3) if ( $returnCode );
+my ($returnCode, $xml) = extract_XML ( asnmtapInherited => \$objectNagios, filenameXML => $filename, headerXML => HEADER, footerXML => FOOTER, validateDTD => $validateDTD, filenameDTD => "dtd/Monitoring-$schema.dtd" );
+$objectNagios->exit (3) if ( $returnCode );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -126,26 +112,20 @@ if ($xml->{Monitoring}{Schema}{Value} eq $schema) {
     processAllResult ( \$debugfileMessage, $firstResults, \$xml->{Monitoring}{Results}, $reverse, $debug );
   }
 
-  $objectPlugins->write_debugfile ( \$debugfileMessage, 0 );
+  $objectNagios->write_debugfile ( \$debugfileMessage, 0 );
 } else {
   my $tError = 'Content Error: - Schema: '. $xml->{Monitoring}{Schema}{Value} ." ne $schema";
-  $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
+  $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
 }
 
-$objectPlugins->exit (3);
+$objectNagios->exit (3);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub processAllResult {
   my ($debugfileMessage, $firstResults, $result, $reverse, $debug) = @_;
 
-  my $match = 0;
-
-  if ( defined $$result->{Results}{Extension}{Element}{eName} and $$result->{Extension}{Element}{eName} eq 'uKey') {
-    $match = 1 if ( defined $$result->{Extension}{Element}{eValue} and $$result->{Extension}{Element}{eValue} eq $uKey );
-  } else {
-    $match = 1 if ( $$result->{Details}{Host} eq $hostname and $$result->{Details}{Service} eq $service );
-  }
+  my $match = ( $$result->{Details}{Host} eq $hostname and $$result->{Details}{Service} eq $service ) ? 1 : 0;
 
   if (! $firstResults or ($match and $$result->{Details}{Environment} =~ /^$environment{$environment}$/i)) {
     $$debugfileMessage .= "\n<TABLE WIDTH=\"100%\"><TR><TD>\n<H3 style=\"margin-bottom: 0.5em; font: bold 90% verdana,arial,helvetica\">Environment: $environmentText</H3></TD></TR></TABLE>\n";
@@ -167,16 +147,10 @@ sub processAllResult {
     $debugfileMessage .= "<P style=\"font: normal 68% verdana,arial,helvetica;\" ALIGN=\"left\">Generated on: " .scalar(localtime()). "</P>\n</BODY>\n</HTML>";
   } else {
     my $tError = 'Content Error:';
-
-    if ( $$result->{Extension}{Element}{eName} eq 'uKey') {
-      $tError .= ' - uKey: '. $$result->{Extension}{Element}{eValue} ." ne $uKey" if ($$result->{Extension}{Element}{eValue} ne $uKey);
-    } else {	
-      $tError .= ' - Host: '. $$result->{Details}{Host} ." ne $hostname" if ($$result->{Details}{Host} ne $hostname);
-      $tError .= ' - Service: '. $$result->{Details}{Service} ." ne $service" if ($$result->{Details}{Service} ne $service);
-    }
-
+    $tError .= ' - Host: '. $$result->{Details}{Host} ." ne $hostname" if ($$result->{Details}{Host} ne $hostname);
+    $tError .= ' - Service: '. $$result->{Details}{Service} ." ne $service" if ($$result->{Details}{Service} ne $service);
     $tError .= ' - Environment: ' .$$result->{Details}{Environment} ." ne ". $environment{$environment} if ($$result->{Details}{Environment} !~ /^$environment{$environment}$/i);
-    $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => $tError, result => undef }, $TYPE{APPEND} );
   }
 }
 
@@ -214,14 +188,14 @@ sub validateResultOrSubResult {
   print "$checkTime, $checkHour, $checkMin, $checkSec\n" if ( $debug );
 
   my $xmlEpochtime = timelocal ( $checkSec, $checkMin, $checkHour, $checkDay, ($checkMonth-1), ($checkYear-1900) );
-  print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > $resultOutOfDate\n"  if ( $objectPlugins->getOptionsValue ('debug') );
+  print "$checkEpochtime, $xmlEpochtime ($checkDate, $checkTime), $currentTimeslot - $checkEpochtime = ". ($currentTimeslot - $checkEpochtime) ." > $resultOutOfDate\n"  if ( $objectNagios->getOptionsValue ('debug') );
 
   unless ( check_date ( $checkYear, $checkMonth, $checkDay) or check_time($checkHour, $checkMin, $checkSec ) ) {
-    $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Date or Time into XML from URL '$url' are wrong: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Date or Time into XML from filename '$filename' are wrong: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
   } elsif ( $checkEpochtime != $xmlEpochtime ) {
-    $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Epochtime difference from Date and Time into XML from URL '$url' are wrong: $checkEpochtime != $xmlEpochtime ($checkDate $checkTime)", result => undef }, $TYPE{APPEND} );
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Epochtime difference from Date and Time into XML from filename '$filename' are wrong: $checkEpochtime != $xmlEpochtime ($checkDate $checkTime)", result => undef }, $TYPE{APPEND} );
   } elsif ( $currentTimeslot - $checkEpochtime > $resultOutOfDate ) {
-    $objectPlugins->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Result into XML from URL '$url' are out of date: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{UNKNOWN}, error => "Result into XML from filename '$filename' are out of date: $checkDate $checkTime", result => undef }, $TYPE{APPEND} );
   } else {
     my ($errorDetail, $errorStack);
     $debugfileMessage .= "<TR><TD COLSPAN=\"7\">&nbsp;</TD></TR>\n";
@@ -232,16 +206,16 @@ sub validateResultOrSubResult {
       $debugfileMessage .= "\n<TR style=\"font: normal bold verdana,arial,helvetica; background:#0eeeee;\"><TD colspan=\"7\">Result: " .$$result->{$label}{Service}. "</TD></TR>";
 
       if ( $firstResults ) {
-        $objectPlugins->pluginValues ( { stateError => $STATE{$$result->{$label}{Status}}, alert => $$result->{$label}{StatusMessage}, result => $$result->{$label}{content} }, $TYPE{APPEND} );
+        $objectNagios->pluginValues ( { stateError => $STATE{$$result->{$label}{Status}}, alert => $$result->{$label}{StatusMessage}, result => $$result->{$label}{content} }, $TYPE{APPEND} );
       } else {
-        $objectPlugins->pluginValues ( { alert => $$result->{$label}{StatusMessage}, result => $$result->{$label}{content} }, $TYPE{APPEND} );
+        $objectNagios->pluginValues ( { alert => $$result->{$label}{StatusMessage}, result => $$result->{$label}{content} }, $TYPE{APPEND} );
       }
 
       $errorDetail = $$result->{ErrorDetail} if ( $$result->{ErrorDetail} );
 	    $errorStack  = $$result->{ErrorStack} if ( $$result->{ErrorStack} );
     } else {
       $debugfileMessage .= "\n<TR style=\"font: normal bold verdana,arial,helvetica; background:#0eeeee;\"><TD colspan=\"7\">Sub Result: " .$$result->{$label}{Service}. "</TD></TR>";
-      $objectPlugins->pluginValues( { alert => $$result->{$label}{Service} ." " . $STATE{$$result->{$label}{Status}} }, $TYPE{APPEND} );
+      $objectNagios->pluginValues( { alert => $$result->{$label}{Service} ." " . $STATE{$$result->{$label}{Status}} }, $TYPE{APPEND} );
       $errorDetail = $$result->{SubErrorDetail} if ( $$result->{SubErrorDetail} );
 	    $errorStack  = $$result->{SubErrorStack} if ( $$result->{SubErrorStack} );
     }
@@ -252,8 +226,8 @@ sub validateResultOrSubResult {
     $debugfileMessage .= "<TR style=\"font: normal 68% verdana,arial,helvetica; background:#e1e1ef;\"><TD valign=\"top\">Error Stack</TD><TD colspan=\"6\"><PRE>$errorStack</PRE></TD></TR>\n" if ( $errorStack );
     $debugfileMessage .= "<TR><TD COLSPAN=\"7\">&nbsp;</TD></TR>\n" if ( $subResult == 0 );
 
-    $objectPlugins->appendPerformanceData( "'" . $$result->{$label}{Service} ."'=" . $$result->{$label}{Status} . ';1;2;0;2' );
-    $objectPlugins->appendPerformanceData( $$result->{$label}{PerfData} ) if ( $$result->{$label}{PerfData} );
+    $objectNagios->appendPerformanceData( "'" . $$result->{$label}{Service} ."'=" . $$result->{$label}{Status} . ';1;2;0;2' );
+    $objectNagios->appendPerformanceData( $$result->{$label}{PerfData} ) if ( $$result->{$label}{PerfData} );
   }
 }
 
@@ -263,11 +237,11 @@ __END__
 
 =head1 NAME
 
-check_template-WebTransact-XML-Monitoring-1.2.pl
+ASNMTAP::Asnmtap::Plugins::Nagios
 
-WebTransact XML Monitoring plugin template for testing the 'Application Monitor' for Monitoring-1.2.xml
+check_xml-monitoring-1.2.pl
 
-The ASNMTAP plugins come with ABSOLUTELY NO WARRANTY.
+Check Nagios by XML Monitoring
 
 =head1 AUTHOR
 
@@ -289,4 +263,3 @@ Selling the code for this program without prior written consent is expressly for
 Obtain permission before redistributing this software over the Internet or in any other medium. In all cases copyright and header must remain intact.
 
 =cut
-

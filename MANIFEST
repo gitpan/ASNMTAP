@@ -143,6 +143,8 @@ applications/bin/root-importDataThroughCatalog.sh
 applications/custom/cartography.pm-orig
 applications/custom/display.pm-orig
 applications/custom/sde.pm-orig
+applications/custom/sde-supportRequest.pm-orig
+applications/custom/supportRequest.pm-orig
 
 applications/htmlroot/AnchorPosition.js
 applications/htmlroot/asnmtap-results.css
@@ -396,12 +398,12 @@ applications/sbin/perfparse_debug.sh
 applications/sbin/purge_table.pl
 applications/sbin/sshWrapperASNMTAP.pl
 
-applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
-applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
-applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
-applications/tools/mysql/asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
-applications/tools/mysql/asnmtap-3.002.002-database-schema.png
+applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-events.sql
+applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsUpdate.sql
+applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsDisplayData.sql
+applications/tools/mysql/asnmtap-3.002.003-distributed_mysql-v5.0.x.sql
+applications/tools/mysql/asnmtap-3.002.003-database-schema.png
 applications/tools/mysql/MySQLBackup.sh
 
 applications/tools/resources/CalendarPopup-combined-compact.js
@@ -441,7 +443,9 @@ plugins/nagios/check_swap-allocated.pl
 plugins/nagios/templates/check_template-ftp.pl
 plugins/nagios/templates/check_template-ldap.pl
 plugins/nagios/templates/check_template-nagios.pl
+plugins/nagios/templates/check_template-sftp.pl
 plugins/nagios/templates/check_xml-monitoring.pl
+plugins/nagios/templates/check_xml-monitoring-1.2.pl
 plugins/nagios/templates/check_xml.pl
 
 plugins/nagios/templates/dtd/Monitoring-1.0.dtd
@@ -512,12 +516,12 @@ plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.0-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.1-xml-validator.html
 plugins/templates/dtd/Fingerprint-1.0-and-monitoring-1.2-xml-validator.html
 
-plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.002.002_mysql-v5.0.x.SQL
+plugins/templates/jUnit/create_ASNMTAP_jUnit_configuration_for_jUnit-3.002.003_mysql-v5.0.x.SQL
 
-plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
+plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.003_mysql-v5.0.x.SQL
 plugins/templates/snmptt/snmptt-bea-weblogic.conf
 plugins/templates/snmptt/snmptt-oracle.conf
-plugins/templates/snmptt/snmptt-3.002.002-v5.0.x.sql
+plugins/templates/snmptt/snmptt-3.002.003-v5.0.x.sql
 plugins/templates/snmptt/snmptt.ini
 
 plugins/templates/xml/email-upgrade-1.0.xml

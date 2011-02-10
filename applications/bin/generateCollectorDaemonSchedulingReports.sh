@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, generateCollectorDaemonSchedulingReports.sh
+# 2011/mm/dd, v3.002.003, generateCollectorDaemonSchedulingReports.sh
 # ----------------------------------------------------------------------------------------------------------
 
 if [ -f ~/.profile ]; then

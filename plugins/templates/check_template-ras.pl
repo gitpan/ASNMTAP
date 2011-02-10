@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, check_template-ras.pl
+# 2011/mm/dd, v3.002.003, check_template-ras.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,7 +15,7 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.002;
+use ASNMTAP::Asnmtap::Plugins v3.002.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $ROUTECOMMAND);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_template-ras.pl',
   _programDescription => "RAS plugin template for the '$APPLICATION'",
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '--phonenumber=<phonenumber> [--port=<port>] [--baud=<baud rate>]',
   _programHelpPrefix  => '--phonenumber<phonenumber>
 --port=<port>
@@ -50,7 +50,7 @@ $objectPlugins->printUsage ('Missing command line argument Baud') unless (define
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Modem v3.002.002;
+use ASNMTAP::Asnmtap::Plugins::Modem v3.002.003;
 use ASNMTAP::Asnmtap::Plugins::Modem qw(&get_modem_request);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -151,7 +151,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 =head1 LICENSE

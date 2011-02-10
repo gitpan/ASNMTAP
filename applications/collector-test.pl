@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, collector-test.pl for ASNMTAP::Asnmtap::Applications::Collector
+# 2011/mm/dd, v3.002.003, collector-test.pl for ASNMTAP::Asnmtap::Applications::Collector
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -23,10 +23,10 @@ use Date::Calc qw(Delta_DHMS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.002;
+use ASNMTAP::Time v3.002.003;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_csvfiledate &get_csvfiletime &get_logfiledate &get_datetime &get_timeslot);
 
-use ASNMTAP::Asnmtap::Applications::Collector v3.002.002;
+use ASNMTAP::Asnmtap::Applications::Collector v3.002.003;
 use ASNMTAP::Asnmtap::Applications::Collector qw(:APPLICATIONS :COLLECTOR :DBCOLLECTOR);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +42,7 @@ use vars qw($opt_H  $opt_M $opt_C $opt_W $opt_A $opt_N $opt_s $opt_S $opt_D $opt
 
 $PROGNAME       = "collector.pl";
 my $prgtext     = "Collector for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -209,11 +209,11 @@ if ($mode eq 'C') {
       do {
         # Catch signals implementation
         if ($boolean_signal_hup) {
-		  printDebugAll ("read table: <$collectorlist>");
-		  @crontabtable = read_table($prgtext, $collectorlist, 2, $debug);
+		      printDebugAll ("read table: <$collectorlist>");
+		      @crontabtable = read_table($prgtext, $collectorlist, 2, $debug);
           resultsdirCreate();
-		  $boolean_signal_hup = 0;
-		}
+		      $boolean_signal_hup = 0;
+		    }
 
         # Update access and modify epoch time from the PID time
         utime (time(), time(), $pidfile) if (-e $pidfile);
@@ -472,7 +472,7 @@ sub do_crontab {
               print "Cannot open $tlogging-$msgCommand-$catalogID_uniqueKey-csv.txt to print debug information\n";
             }
 
-            insertEntryDBI ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $logging.$msgCommand.'-'.$catalogID_uniqueKey.'-sql', $command, int($tinterval), $status, $tlogging, $debug, $startDate, $startTime, $endDate, $endTime, 0, "$status - Deze applicatie is niet toegankelijk", '<NIHIL>', $insertData, $queryMySQL, $instability, $persistent, $downtime);
+            insertEntryDBI ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $logging.$msgCommand.'-'.$catalogID_uniqueKey.'-sql', $command, int($tinterval), $status, $tlogging, $debug, $startDate, $startTime, $endDate, $endTime, 0, "$status - Deze applicatie is niet toegankelijk", '', '<NIHIL>', $insertData, $queryMySQL, $instability, $persistent, $downtime);
           }
         }
 
@@ -792,31 +792,34 @@ sub call_system {
     $duration = sprintf("%02d:%02d:%02d", $diffDateTime[1], $diffDateTime[2], $diffDateTime[3]);
   }
 
+# my ($outputData, $performanceData) = split(/\|/, $returnStatus, 2);
+  my $_returnStatus = reverse $returnStatus;
+  my ($_outputData, $_performanceData) = reverse split(/\|/, $_returnStatus, 2);
+  my $outputData = reverse $_outputData;
+  my $performanceData = reverse $_performanceData;
+
   $rvOpen = open(CSV,">>$logging-$msgCommand-$catalogID_uniqueKey-csv.txt");
 
   if ($rvOpen) {
-    print CSV '"', $catalogID, '","","', $uniqueKey, '","I","', $system_action, '","', $title, '","', $dumphttpRename, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $returnStatus, '","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
-
+    print CSV '"', $catalogID, '","","', $uniqueKey, '","I","', $system_action, '","', $title, '","', $dumphttpRename, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $outputData, '","', $performanceData, '","', int($tinterval)*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","<NIHIL>"', "\n";
     close(CSV);
   } else {
     print "Cannot open $logging-$msgCommand-$catalogID_uniqueKey-csv.txt to print debug information\n";
   }
 
   if ( $boolean_perfParseInstalled ) {
-    my ($outputData, $performanceData) = split(/\|/, $returnStatus, 2);
-
     if (defined $performanceData) {
       my $perfParseTimeslot = get_timeslot ($currentDate);
 
       my $perfParseCommand;
       my $environment = (($system_action =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
       my $eTitle = $title .' ('. $ENVIRONMENT{$environment} .')' if (defined $environment);
-	  $eTitle .= ' from '. $catalogID;
+	    $eTitle .= ' from '. $catalogID;
 
       if ( $perfParseMethode eq 'PULP' ) {
         $perfParseCommand = "$APPLICATIONPATH/sbin/perfparse_asnmtap_pulp_command.pl $PREFIXPATH/log/perfdata-asnmtap.log \"$perfParseTimeslot\t$eTitle\t$catalogID_uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\"";
       } else {
-        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$eTitle\t$catalogID_uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PERFPARSEBIN/perfparse-log2mysql -c $PERFPARSEETC/perfparse.cfg";
+        $perfParseCommand = "printf \"%b\" \"$perfParseTimeslot\t$eTitle\t$catalogID_uniqueKey\t$outputData\t$dumphttpRename\t$performanceData\n\" | $PERFPARSEBIN/perfparse-log2mysql -c $PERFPARSEETC/$PERFPARSECONFIG";
       }
 
       if ($CAPTUREOUTPUT) {
@@ -833,7 +836,7 @@ sub call_system {
     }
   }
 
-  insertEntryDBI ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $dbiFilename.$msgCommand.'-'.$catalogID_uniqueKey.'-sql', $system_action, $interval, $dumphttpRename, $logging, $debug, $startDate, $startTime, $endDate, $endTime, $duration, $returnStatus, $debugFilename, 1, $queryMySQL, $instability, $persistent, $downtime);
+  insertEntryDBI ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $dbiFilename.$msgCommand.'-'.$catalogID_uniqueKey.'-sql', $system_action, $interval, $dumphttpRename, $logging, $debug, $startDate, $startTime, $endDate, $endTime, $duration, $outputData, ( defined $performanceData ) ? $performanceData : '', $debugFilename, 1, $queryMySQL, $instability, $persistent, $downtime);
   return $action;
 }
 
@@ -886,22 +889,22 @@ sub printDebugNOK {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub insertEntryDBI {
-  my ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $dbiFilename, $test, $interval, $status, $logging, $debug, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $filename, $insertMySQL, $queryMySQL, $instability, $persistent, $downtime) = @_;
+  my ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $title, $dbiFilename, $test, $interval, $status, $logging, $debug, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $filename, $insertMySQL, $queryMySQL, $instability, $persistent, $downtime) = @_;
 
   return ( 1 ) unless ( $insertMySQL );
 
   my ($sth, $lockString, $findString, $updateString, $insertString, $flushString, $unlockString, $insertEntryDBI, $updateEntryDBI);
   $insertEntryDBI = 0;
   $updateEntryDBI = 0;
-  my ($dbh, $rv, $alarmMessage) = DBI_connect ( $DATABASE, $serverName, $SERVERPORTREADWRITE, $SERVERUSERREADWRITE, $SERVERPASSREADWRITE, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot connect to the database"], \$logger, $debug, $boolean_debug_all );
+  my ($dbh, $rv, $alarmMessage) = DBI_connect ( $DATABASE, $serverName, $SERVERPORTREADWRITE, $SERVERUSERREADWRITE, $SERVERPASSREADWRITE, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot connect to the database"], \$logger, $debug, $boolean_debug_all );
 
   if ($dbh and $rv) {
     if ($queryMySQL) {
       my $numbersEntryDBI = 0;
       $findString = 'select SQL_NO_CACHE status from '.$SERVERTABLEVENTS.' where catalogID = "' .$catalogID. '" and uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
       printDebugAll ("query Entry DBI: <$findString>") if ($debug eq 'T');
-      $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->prepare: $findString", \$logger, $debug);
-      ($rv, undef) = DBI_execute ($rv, \$sth, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->execute: $findString"], \$logger, $debug);
+      $sth = $dbh->prepare($findString) or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->prepare: $findString", \$logger, $debug);
+      ($rv, undef) = DBI_execute ($rv, \$sth, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->execute: $findString"], \$logger, $debug);
 
       if ($rv) {
   	    while (my $ref = $sth->fetchrow_hashref()) {
@@ -913,7 +916,7 @@ sub insertEntryDBI {
         printDebugAll ("query Entry DBI: # <$numbersEntryDBI> insert <$insertEntryDBI> change <$updateEntryDBI>") if ($debug eq 'T');
       }
 
-      $sth->finish() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->finish: $findString", \$logger, $debug);
+      $sth->finish() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->finish: $findString", \$logger, $debug);
     } else {
       $insertEntryDBI = 1;
     }
@@ -925,7 +928,7 @@ sub insertEntryDBI {
     if ($lockMySQL) {
       if ($dbh and $rv) {
         $lockString = 'LOCK TABLES ' .$SERVERTABLEVENTS. ' WRITE, ' .$SERVERTABLEVENTSCHNGSLGDT. ' WRITE';
-        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $lockString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $lockString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
       }
     }
 
@@ -933,27 +936,27 @@ sub insertEntryDBI {
       $statusMessage =~ s/"/'/g;
 
       if ($updateEntryDBI) {
-        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET catalogID="' .$catalogID. '", uKey="' .$uniqueKey. '", replicationStatus="U", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", instability="' .$instability. '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where catalogID="' .$catalogID. '" and uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
-        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $updateString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+        $updateString = 'UPDATE ' .$SERVERTABLEVENTS. ' SET catalogID="' .$catalogID. '", uKey="' .$uniqueKey. '", replicationStatus="U", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", perfdata="' .$perfdata. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", instability="' .$instability. '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '" where catalogID="' .$catalogID. '" and uKey = "' .$uniqueKey. '" and step <> "0" and timeslot = "' . get_timeslot ($currentDate) . '" order by id desc';
+        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $updateString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
       } elsif ($insertEntryDBI) {
-        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET catalogID="' .$catalogID. '", uKey="' .$uniqueKey. '", replicationStatus="I", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", instability="' .$instability. '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
-        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $insertString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+        $insertString = 'INSERT INTO ' .$SERVERTABLEVENTS. ' SET catalogID="' .$catalogID. '", uKey="' .$uniqueKey. '", replicationStatus="I", test="' .$test. '", title="' .$title. '", status="' .$status. '", startDate="' .$startDate. '", startTime="' .$startTime.'", endDate="' .$endDate. '", endTime="' .$endTime. '", duration="' .$duration. '", statusMessage="' .$statusMessage. '", perfdata="' .$perfdata. '", step="' .($interval*60). '", timeslot="' .get_timeslot ($currentDate). '", instability="' .$instability. '", persistent="' .$persistent. '", downtime="' .$downtime. '", filename="' .$filename. '"';
+        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $insertString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
       }
 
       my ( $lastStatus, $lastTimeslot, $prevStatus, $prevTimeslot ) = ( $status, get_timeslot ($currentDate), '', '' );
       my $sql = "select SQL_NO_CACHE lastStatus, lastTimeslot from $SERVERTABLEVENTSCHNGSLGDT where catalogID = '$catalogID' and uKey = '$uniqueKey'";
-      my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->prepare: $sql", \$logger, $debug);
-      ($rv, undef) = DBI_execute ($rv, \$sth, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->execute: $sql"], \$logger, $debug);
+      my $sth = $dbh->prepare( $sql ) or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->prepare: $sql", \$logger, $debug);
+      ($rv, undef) = DBI_execute ($rv, \$sth, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->execute: $sql"], \$logger, $debug);
 
       if ( $rv ) {
         if ( $sth->rows ) {
-	      ($prevStatus, $prevTimeslot) = $sth->fetchrow_array() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->fetchrow_array: $sql", \$logger, $debug);
-          $sth->finish() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->finish: $sql", \$logger, $debug);
+	      ($prevStatus, $prevTimeslot) = $sth->fetchrow_array() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->fetchrow_array: $sql", \$logger, $debug);
+          $sth->finish() or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot sth->finish: $sql", \$logger, $debug);
           $updateString = 'UPDATE ' .$SERVERTABLEVENTSCHNGSLGDT. ' SET replicationStatus="U", lastStatus="' .$lastStatus. '", lastTimeslot="' .$lastTimeslot. '", prevStatus="' .$prevStatus. '", prevTimeslot="' .$prevTimeslot. '" where catalogID="' .$catalogID. '" and uKey="' .$uniqueKey. '"';
-          ($rv, undef, undef) = DBI_do ($rv, \$dbh, $updateString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+          ($rv, undef, undef) = DBI_do ($rv, \$dbh, $updateString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
         } else {
           $insertString = 'INSERT INTO ' .$SERVERTABLEVENTSCHNGSLGDT. ' SET catalogID="' .$catalogID. '", uKey="' .$uniqueKey. '", replicationStatus="I", lastStatus="' .$lastStatus. '", lastTimeslot="' .$lastTimeslot. '", prevStatus="' .$prevStatus. '", prevTimeslot="' .$prevTimeslot. '"';
-          ($rv, undef, undef) = DBI_do ($rv, \$dbh, $insertString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+          ($rv, undef, undef) = DBI_do ($rv, \$dbh, $insertString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
         }
       }
     }
@@ -961,13 +964,13 @@ sub insertEntryDBI {
     if ($lockMySQL) {
       if ($dbh and $rv) {
         $unlockString = 'UNLOCK TABLES';
-        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $unlockString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
+        ($rv, undef, undef) = DBI_do ($rv, \$dbh, $unlockString, $alarm, \&errorTrapDBI, [$currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Cannot dbh->do: $lockString"], \$logger, $debug);
       }
     }
   }
 
   if ($dbh and $rv) {
-    $dbh->disconnect or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, "Sorry, the database was unable to add your entry.", \$logger, $debug);
+    $dbh->disconnect or $rv = errorTrapDBI($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, "Sorry, the database was unable to add your entry.", \$logger, $debug);
     my $environment = (($test =~ /\-\-environment=([PASTDL])/) ? $1 : 'P');
     $rv = graphEntryDBI ($catalogID, $uniqueKey, $title, $environment, $dbiFilename, $interval, 121, 6, 1, 0, get_trendline_from_test ($test), 0, $debug) if ($interval > 0);
   }
@@ -978,7 +981,7 @@ sub insertEntryDBI {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub errorTrapDBI {
-  my ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $interval, $instability, $persistent, $downtime, $filename, $error_message, $logger, $debug) = @_;
+  my ($currentDate, $catalogID_uniqueKey, $catalogID, $uniqueKey, $test, $title, $status, $startDate, $startTime, $endDate, $endTime, $duration, $statusMessage, $perfdata, $interval, $instability, $persistent, $downtime, $filename, $error_message, $logger, $debug) = @_;
 
   print $error_message, "\nERROR: $DBI::err ($DBI::errstr)\n";
 
@@ -990,7 +993,7 @@ sub errorTrapDBI {
   # my $rvOpen = open(DEBUG,">>$tlogging-$msgCommand-$catalogID_uniqueKey.sql");
 
   # if ($rvOpen) {
-  #   print DEBUG '"', $catalogID, '","","', $uniqueKey, '","I","', $test, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $statusMessage, '","', $interval*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","', $filename, '"', "\n";
+  #   print DEBUG '"', $catalogID, '","","', $uniqueKey, '","I","', $test, '","', $title, '","', $status, '","', $startDate, '","', $startTime, '","', $endDate, '","', $endTime, '","', $duration, '","', $statusMessage, '","', $perfdata, '","', $interval*60, '","', get_timeslot ($currentDate), '","', $instability, '","', $persistent, '","', $downtime, '","', $filename, '"', "\n";
   #   close(DEBUG);
   # } else {
   #   print "Cannot open $tlogging-$msgCommand-$catalogID_uniqueKey.sql to print debug information\n";
@@ -1010,7 +1013,7 @@ sub errorTrapDBI {
     'endTime'           => $endTime,
     'duration'          => $duration,
     'statusMessage'     => $statusMessage,
-    'perfdata'          => '',
+    'perfdata'          => $perfdata,
     'step'              => $interval * 60,
     'timeslot'          => get_timeslot ($currentDate),
     'instability'       => $instability,

@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, snmptt_traps_remove_pending_and_duplicated.pl
+# 2011/mm/dd, v3.002.003, snmptt_traps_remove_pending_and_duplicated.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use DBI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.003;
 use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +27,7 @@ use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 my $objectNagios = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'snmptt_traps_remove_pending_and_duplicated.pl',
   _programDescription => 'Remove Pending and Duplicated SNMPTT Traps from Database',
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '[-c|--category <category|[category]>] [-s|--server <hostname>] [--database=<database>]',
   _programHelpPrefix  => '-c, --category=<category|[category]> (default: LOGONLY|NAGIOS)
 -s, --server=<hostname> (default: localhost)

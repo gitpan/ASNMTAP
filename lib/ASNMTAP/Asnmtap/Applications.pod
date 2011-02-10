@@ -73,7 +73,7 @@ when the Application CGI module and CGI applications are installed, this config 
 
  more /opt/asnmtap/applications/etc/ArchiveCT
 
- # ArchiveCT - CTP-CENTRAL, generated on 2010/dd/mm 17:58:36, ASNMTAP v3.002.002 or higher
+ # ArchiveCT - CTP-CENTRAL, generated on 2010/dd/mm 17:58:36, ASNMTAP v3.002.003 or higher
  #
  # <resultsdir>#[<catalogID>_]<uniqueKey>#check_nnn[|[<catalogID>_]<uniqueKey>#check_mmm]
  #
@@ -170,7 +170,7 @@ when the Application CGI module and CGI applications are installed, this config 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2011 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -325,7 +325,7 @@ when the Application CGI module and CGI applications are installed, this config 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2011 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -388,7 +388,7 @@ when the Application CGI module and CGI applications are installed, this config 
  more /opt/asnmtap.sh
  #!/bin/sh
  # ---------------------------------------------------------------
- # © Copyright 2004-2010 Alex Peeters [alex.peeters@citap.be]
+ # © Copyright 2004-2011 Alex Peeters [alex.peeters@citap.be]
  # ---------------------------------------------------------------
  # This shell script takes care of starting and stopping
 
@@ -894,31 +894,31 @@ MySQL 5.0.x
 
  database:
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.003_mysql-v5.0.x.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x.sql
 
  triggers to make fast display possible for heavy environment:
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.003_mysql-v5.0.x-trigger-events.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-events.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-events.sql
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsUpdate.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsUpdate.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsUpdate.sql
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsDisplayData.sql
   or
-  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002_mysql-v5.0.x-trigger-eventsDisplayData.sql
+  mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.003_mysql-v5.0.x-trigger-eventsDisplayData.sql
 
 Distributed monitoring example
 
 MySQL 5.0.x
 
- SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
+ SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.002.xxx\applications\tools\mysql\asnmtap-3.002.003-distributed_mysql-v5.0.x.sql
  or
- mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.002-distributed_mysql-v5.0.x.sql
+ mysql -u root -p  < /opt/asnmtap/applications/tools/mysql/asnmtap-3.002.003-distributed_mysql-v5.0.x.sql
 
 =item onto the master server:
 
@@ -1132,7 +1132,7 @@ We use the 'Pipe to Perfparse' methode
  cd /export/download/perfparse-0.106.1/scripts
  cat mysql_create.sql | mysql -u root -p -D asnmtap
 
-=item Configuration of Perfparse for ASNMTAP
+=item Configuration of Perfparse v19 for ASNMTAP
 
  cp /opt/asnmtap/perfparse/etc/perfparse.cfg.example /opt/asnmtap/perfparse/etc/perfparse.cfg
 
@@ -1158,9 +1158,46 @@ We use the 'Pipe to Perfparse' methode
 
   # Database Authentication
   DB_User =                    "asnmtap"
-  DB_Name =                    "asnmtap"
+  DB_Name =                    "perfparse_asnmtap"
   DB_Pass =                    "passwd"
   DB_Host =                    "localhost"
+
+=item Configuration of Perfparse v20 for ASNMTAP
+
+ cp /opt/asnmtap/perfparse/etc/perfparse20.cfg.example /opt/asnmtap/perfparse/etc/perfparse20.cfg
+
+ First you should edit '/opt/asnmtap/perfparse/etc/perfparse20.cfg', adding the correct database settings (if using something other than 'nagios' as DB name, username, and password). The options are :
+
+ Use_Storage_Mysql (only in perfparsed; considered as enabled in perfparse-log2mysql)
+
+ vi /opt/asnmtap/perfparse/etc/perfparse20.cfg
+   ...
+   Service_Log "-"
+   ...
+   # Error handling :
+   Error_Log =                 "/opt/asnmtap/log/perfparse-asnmtap-all"
+   Drop_File =                 "/opt/asnmtap/log/perfparse-asnmtap-drop"
+   ...
+
+  # Database managment :
+  # ====================
+  Storage_Modules_Load =       "mysql"
+  Use_Storage_Mysql    =       "yes"
+
+  No_Raw_Data =                "no"
+  No_Bin_Data =                "no"
+
+  # Database Authentication
+  DB_User     =                "asnmtap"
+  DB_Name     =                "perfparse_asnmtap_v20"
+  DB_Pass     =                "passwd"
+  DB_Host     =                "localhost"
+	DB_Socket   =                "/tmp/mysql.sock"
+
+	# PHPGui
+	PHP_Lang    = "en"
+	PHP_Style   = "" # "flo"
+	http_image_path = "/asnmtap/perfparse20/img/"
 
 =item Testing configuration
 
@@ -1212,11 +1249,11 @@ Install net-snmp 5.4.x
 
  MySQL 5.0.x
 
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.002-v5.0.x.sql
-  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\snmptt-3.002.003-v5.0.x.sql
+  SQLyog -> Db -> Import from SQL Statements ... -> \opt\asnmtap-3.001.xxx\plugins\templates\snmptt\create_weblogic_configuration_database_with_SNMP-3.002.003_mysql-v5.0.x.SQL
   or
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.002-v5.0.x.sql
-  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.002_mysql-v5.0.x.SQL
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/snmptt-3.002.003-v5.0.x.sql
+  mysql -u root -p  < /opt/asnmtap/plugins/templates/snmptt/create_weblogic_configuration_database_with_SNMP-3.002.003_mysql-v5.0.x.SQL
 
  ... TODO ... NO PART OF NORMAL SETUP ...
 
@@ -2078,7 +2115,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Applications::CGI, ASNMTAP::Asnmtap::Applica
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

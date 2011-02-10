@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, comments.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MODERATOR :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "comments.pl";
 my $prgtext     = "Comments";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -433,7 +433,7 @@ function validateForm() {
 }
 </script>
 
-<form action="$ENV{SCRIPT_NAME}" method="post" name="comments" enctype="multipart/form-data" onSubmit="return validateForm();">
+<form action="$ENV{SCRIPT_NAME}" method="post" name="comments" enctype="multipart/form-data" onSubmit="selectAllOptions('selected_id'); return validateForm();">
   <input type="hidden" name="pagedir"         value="$pagedir">
   <input type="hidden" name="pageset"         value="$pageset">
   <input type="hidden" name="debug"           value="$debug">
@@ -457,7 +457,7 @@ HTML
         print <<HTML;
     <tr align="center"><td colspan="2">
 	  <table border="0" cellspacing="0" cellpadding="0"><tr>
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView">[Insert new comments]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView">[Insert comments]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
 	  </tr></table>
 	</td></tr>
@@ -517,14 +517,14 @@ HTML
         <td>
           <b><input type="text" name="activationDate" value="$CactivationDate" size="10" maxlength="10"></b>&nbsp;
 		      <a href="#" onclick="cal1Calendar.select(document.forms[0].activationDate, 'activationDateCalendar','yyyy-MM-dd'); return false;" name="activationDateCalendar" id="activationDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <b><input type="text" name="activationTime" value="$CactivationTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['downtimes'].activationTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
+          <b><input type="text" name="activationTime" value="$CactivationTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].activationTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		    </td>
       </tr><tr>
         <td>Suspention: </td>
         <td>
           <b><input type="text" name="suspentionDate" value="$CsuspentionDate" size="10" maxlength="10"></b>&nbsp;
 		      <a href="#" onclick="cal1Calendar.select(document.forms[0].suspentionDate, 'suspentionDateCalendar','yyyy-MM-dd'); return false;" name="suspentionDateCalendar" id="suspentionDateCalendar"><img src="$IMAGESURL/cal.gif" alt="Calendar" border="0"></a>&nbsp;format: yyyy-mm-dd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <b><input type="text" name="suspentionTime" value="$CsuspentionTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['downtimes'].suspentionTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
+          <b><input type="text" name="suspentionTime" value="$CsuspentionTime" size="8" maxlength="8" onChange="ReadISO8601time(document.forms['comments'].suspentionTime.value);"></b> format: hh:mm:ss, 00:00:00 to 23:59:59
 		    </td>
       </tr><tr><td>&nbsp;</td><td>
         <br>

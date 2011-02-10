@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, display-test.pl for ASNMTAP::Asnmtap::Applications::Display
+# 2011/mm/dd, v3.002.003, display-test.pl for ASNMTAP::Asnmtap::Applications::Display
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,14 +22,14 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.002;
+use ASNMTAP::Time v3.002.003;
 use ASNMTAP::Time qw(&get_datetimeSignal &get_hour &get_timeslot);
 
 # because it is not yet exported by the ASNMTAP::Asnmtap::Applications::Display module
-use ASNMTAP::Asnmtap::Applications v3.002.002;
+use ASNMTAP::Asnmtap::Applications v3.002.003;
 use ASNMTAP::Asnmtap::Applications qw($SERVERTABLDISPLAYDMNS $SERVERTABLPLUGINS $SERVERTABLTIMEPERIODS $SERVERTABLVIEWS);
 
-use ASNMTAP::Asnmtap::Applications::Display v3.002.002;
+use ASNMTAP::Asnmtap::Applications::Display v3.002.003;
 use ASNMTAP::Asnmtap::Applications::Display qw(:APPLICATIONS :DISPLAY :DBDISPLAY &encode_html_entities);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,7 +40,7 @@ use vars qw($opt_H $opt_V $opt_h $opt_C $opt_P $opt_D $opt_L $opt_t $opt_c $opt_
 
 $PROGNAME       = "display.pl";
 my $prgtext     = "Display for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -163,8 +163,9 @@ my $pidfile = $PIDPATH .'/'. $checklist .'.pid';
 my @checklisttable = read_table($prgtext, $checklist, $loop, $debug);
 resultsdirCreate();
 
-build_hash_timeperiodID_days ($checklist, $pagedir, \%timeperiodID_days, $debug);
-build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedir, \%catalogID_uKey_timeperiodID, $debug);
+my $pagedirBuildHash = ($pagedir =~ /^_loop_(?:[a-zA-Z0-9-]+)_(.*)$/) ? $1 : $pagedir;
+build_hash_timeperiodID_days ($checklist, $pagedirBuildHash, \%timeperiodID_days, $debug);
+build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirBuildHash, \%catalogID_uKey_timeperiodID, $debug);
 
 my $directory = $HTTPSPATH .'/nav/'. $pagedir;
 create_dir ($directory) unless ( -e "$directory" );
@@ -195,8 +196,8 @@ unless (fork) {                                  # unless ($pid = fork) {
         @checklisttable = read_table($prgtext, $checklist, ( $loop ? 2 : 0 ), $debug);
         resultsdirCreate();
 
-        build_hash_timeperiodID_days ($checklist, $pagedirOrig, \%timeperiodID_days, $debug);
-        build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirOrig, \%catalogID_uKey_timeperiodID, $debug);
+        build_hash_timeperiodID_days ($checklist, $pagedirBuildHash, \%timeperiodID_days, $debug);
+        build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirBuildHash, \%catalogID_uKey_timeperiodID, $debug);
 
         $boolean_signal_hup = 0;
       }
@@ -221,8 +222,8 @@ unless (fork) {                                  # unless ($pid = fork) {
         $currHour = get_hour();
 
         if ( $prevHour != $currHour ) {
-          build_hash_timeperiodID_days ($checklist, $pagedirOrig, \%timeperiodID_days, $debug);
-          build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirOrig, \%catalogID_uKey_timeperiodID, $debug);
+          build_hash_timeperiodID_days ($checklist, $pagedirBuildHash, \%timeperiodID_days, $debug);
+          build_hash_catalogID_uKey_timeperiodID ($checklist, $pagedirBuildHash, \%catalogID_uKey_timeperiodID, $debug);
           $prevHour = $currHour;
         }
       }
@@ -508,9 +509,9 @@ sub do_crontab {
           $timeCorrectie = 0;
 
           if ( $trigger ) {
-            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTSDISPLAYDT.' where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by timeslot desc';
+            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, perfdata, filename from '.$SERVERTABLEVENTSDISPLAYDT.' where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by timeslot desc';
           } else {
-            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, filename from '.$SERVERTABLEVENTS.' force index (uKey) where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
+            $findString  = 'select SQL_NO_CACHE title, duration, timeslot, startTime, endTime, endDate, status, statusMessage, perfdata, filename from '.$SERVERTABLEVENTS.' force index (uKey) where catalogID="' .$catalogID. '" and uKey = "'.$uniqueKey.'" and step <> "0" and (timeslot between "'.$firstTimeslot.'" and "'.$lastTimeslot.'") order by id desc';
           }
 
           print "<", $findString, ">\n" if ($debug);
@@ -550,7 +551,13 @@ sub do_crontab {
                 $itemStatus[$timeslot] = $tstatus;
                 $itemStarttime[$timeslot] = $ref->{startTime};
                 $itemTimeslot[$timeslot]  = $ref->{timeslot};
-                ($ref->{statusMessage}, undef) = split(/\|/, $ref->{statusMessage}, 2); # remove performance data
+
+                unless ( defined $ref->{perfdata} and $ref->{perfdata} ne '' ) { # remove performance data
+                # ($ref->{statusMessage}, undef) = split(/\|/, $ref->{statusMessage}, 2);
+                  my $statusMessage = reverse $ref->{statusMessage};
+                  my ($_statusMessage, undef) = reverse split(/\|/, $statusMessage, 2);
+                  $ref->{statusMessage} = reverse $_statusMessage;
+                }
 
                 if ( -e $RESULTSPATH .'/'. $ref->{filename} ) {
                   $ref->{filename} = $RESULTSURL .'/'. $ref->{filename};
@@ -593,6 +600,7 @@ sub do_crontab {
 
                   if ( $timeslot == 0 or ( $timeslot == 1 and $itemStatus[0] eq 'IN PROGRESS' ) ) {
                     $ref->{statusMessage} =~ s/'/`/g;
+                    $ref->{statusMessage} =~ s/[\n\r]/<br>/g;
                     $popup .= '<TR><TD BGCOLOR=#000080 WIDTH=100 ALIGN=RIGHT VALIGN=TOP>Status</TD><TD BGCOLOR=#0000FF><IMG SRC='.$IMAGESURL.'/'.$statusIcon.' WIDTH=15 HEIGHT=15 title= alt= BORDER=0> '.$ref->{startTime}.' '.encode_html_entities('M', $ref->{statusMessage}).'</TD></TR>';
                   }
                 }
@@ -779,7 +787,7 @@ sub errorTrapDBI {
 sub build_hash_timeperiodID_days {
   my ($checklist, $pagedir, $hash_timeperiodID_days, $debug) = @_;
 
-  print "build_hash_timeperiodID_days\n" if ($debug);
+  print "build_hash_timeperiodID_days: '$checklist', '$pagedir'\n" if ($debug);
 
   my $rv  = 1;
   my $dbh = DBI->connect("DBI:mysql:$DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
@@ -823,7 +831,7 @@ sub build_hash_timeperiodID_days {
 sub build_hash_catalogID_uKey_timeperiodID {
   my ($checklist, $pagedir, $hash_catalogID_uKey_timeperiodID, $debug) = @_;
 
-  print "build_hash_catalogID_uKey_timeperiodID\n" if ($debug);
+  print "build_hash_catalogID_uKey_timeperiodID: '$checklist', '$pagedir'\n" if ($debug);
 
   my $rv  = 1;
   my $dbh = DBI->connect("DBI:mysql:$DATABASE:$serverName:$SERVERPORTREADWRITE", "$SERVERUSERREADWRITE", "$SERVERPASSREADWRITE") or $rv = errorTrapDBI($checklist, "Cannot connect to the database");
@@ -1114,7 +1122,7 @@ sub printGroepCV {
 	  $emptyCondencedView = ( scalar ( @multiarrayFullCondensedView ) ? 0 : 1 );
 
       unless ( $emptyCondencedView ) {
-        @multiarrayFullCondensedView = ( sort { $b->[2] <=> $a->[2] } @multiarrayFullCondensedView );
+        @multiarrayFullCondensedView = ( sort { $a->[2] <=> $b->[2] } @multiarrayFullCondensedView );
         @multiarrayFullCondensedView = ( sort { $b->[0] <=> $a->[0] } @multiarrayFullCondensedView );
         @multiarrayFullCondensedView = ( sort { $a->[3] <=> $b->[3] } @multiarrayFullCondensedView );
         @multiarrayFullCondensedView = ( sort { $a->[1] <=> $b->[1] } @multiarrayFullCondensedView );
@@ -1377,7 +1385,7 @@ sub printStatusMessage {
     $statusMessage =~ s/\+{2}/\+\+<br>/g;
   } elsif (-s "$APPLICATIONPATH/custom/display.pm") {
     require "$APPLICATIONPATH/custom/display.pm";
-	$errorMessage = printStatusMessageCustom( decode_html_entities('E', $statusMessage) );
+	  $errorMessage = printStatusMessageCustom( decode_html_entities('E', $statusMessage) );
   }
 
   my $returnMessage = '  <TR><TD WIDTH="56">&nbsp;</TD><TD VALIGN="TOP">' . $statusMessage . '</TD></TR>' . "\n";

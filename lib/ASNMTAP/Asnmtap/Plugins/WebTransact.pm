@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Plugins::WebTransact
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Plugins::WebTransact
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins::WebTransact;
@@ -28,7 +28,7 @@ use ASNMTAP::Asnmtap qw(%ERRORS %TYPE &_dumpValue);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
+BEGIN { $ASNMTAP::Asnmtap::Plugins::WebTransact::VERSION = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,7 +39,7 @@ use constant Field_Refs	=> {
                              Method	        => { is_ref => FALSE, type => ''      },
                              Url            => { is_ref => FALSE, type => ''      },
                              Qs_var	        => { is_ref => TRUE,  type => 'ARRAY' },
-                             Qs_fixed	    => { is_ref => TRUE,  type => 'ARRAY' },
+                             Qs_fixed	      => { is_ref => TRUE,  type => 'ARRAY' },
                              Exp            => { is_ref => FALSE, type => 'ARRAY' },
                              Exp_Fault	    => { is_ref => FALSE, type => ''      },
                              Exp_Return     => { is_ref => TRUE,  type => 'HASH'  },
@@ -249,7 +249,7 @@ sub check {
     my $url = $url_r->{Url} ? $url_r->{Url} : &_next_url ($response, $response_as_content);
     my $request = $self->_make_request ( $url_r->{Method}, $url, $url_r->{Qs_var}, $url_r->{Qs_fixed}, $cgi_parm_vals_hr );
     $request->protocol ('HTTP/1.1') if ( $parms{protocol} );
-	$request->proxy_authorization_basic ( $proxyUsername, $proxyPassword ) if ( defined $proxyServer && defined $proxyUsername && defined $proxyPassword );
+    $request->proxy_authorization_basic ( $proxyUsername, $proxyPassword ) if ( defined $proxyServer && defined $proxyUsername && defined $proxyPassword );
 
     my $request_as_string = $request->as_string;
     print "\n", ref ($self), '::send_request: ', $request_as_string, "\n" if ( $debug );
@@ -540,7 +540,7 @@ sub _make_request {
 
   # qs_fixed is an array_ref containing name value pairs
 
-  my ($request, @query_string, $query_string, @qs_var, @qs_fixed, %name_vals, @nvp);
+  my ($request, $content_type, @query_string, $query_string, @qs_var, @qs_fixed, %name_vals, @nvp);
   my @matches = @{ $self->matches() };
   @qs_var = @$qs_var_ar;
   @qs_fixed = @$qs_fixed_ar;
@@ -551,8 +551,12 @@ sub _make_request {
   @query_string = ();
   @nvp = ();
   $query_string = '';
+  $content_type = 0; # 'application/x-www-form-urlencoded'
 
-  while ( my ($name, $val) = splice(@qs_fixed, 0, 2) ) { splice(@query_string, scalar @query_string, 0, ($name, $val)); }
+  while ( my ($name, $val) = splice(@qs_fixed, 0, 2) ) {
+	  splice(@query_string, scalar @query_string, 0, ($name, $val));
+    $content_type = 1 if ( ref $val eq 'ARRAY' );
+  }
 
   # a cgi var name must be in qs_var for it's value to be changed (otherwise it doesn't get in the form query string)
 
@@ -571,7 +575,11 @@ sub _make_request {
       $request = GET $url;
     }
   } elsif ( $method eq 'POST' ) {
-    $request = POST $url, [ @query_string ];
+    if ( $content_type == 1 ) { # 'multipart/form-data'
+      $request = POST $url, Content_Type => 'multipart/form-data', Content => [ @query_string ];
+  	} else {
+      $request = POST $url, [ @query_string ];
+    }
   } elsif ( $method eq 'HEAD' ) {
     $request = HEAD $url;
   } else { # do something to indicate no such method
@@ -646,7 +654,6 @@ sub _write_debugfile {
       $response_as_content =~ s/(window.location.href)/\/\/$1/gi;
 
       # RFC 1738 -> [ $\/:;=?@.\-!*'()\w&+,]+
-    # $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[ $\/:;=?@.\-!*'()\w&+,]+\"(?:\s+\/?)?>)/<!--$1-->/img;
       $response_as_content =~ s/(<META\s+HTTP-EQUIV\s*=\s*\"Refresh\"\s+CONTENT\s*=\s*\"\d+;\s*URL\s*=[^"]+\"(?:\s+\/?)?>)/<!--$1-->/img;
 
       # remove password from Basic Authentication URL before putting into database!
@@ -655,6 +662,9 @@ sub _write_debugfile {
       # comment <SCRIPT></SCRIPT>
       $response_as_content =~ s/<SCRIPT/<!--<SCRIPT/gi;
       $response_as_content =~ s/<\/SCRIPT>/<\/SCRIPT>-->/gi;
+
+      # replace <BODY onload="..."> with <BODY>
+      $response_as_content =~ s/<BODY\s*onload\s*=\s*.*\s*>/<BODY>/gi;
 
       print HTTPDUMP '<HR>', $response_as_content, "\n";
     } else {

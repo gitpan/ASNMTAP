@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
+# 2011/mm/dd, v3.002.003, create_ASNMTAP_jUnit_configuration_for_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,13 +20,13 @@ use Data::Dumper;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.002;
+use ASNMTAP::Time v3.002.003;
 use ASNMTAP::Time qw(&get_datetimeSignal);
 
-use ASNMTAP::Asnmtap::Applications v3.002.002;
+use ASNMTAP::Asnmtap::Applications v3.002.003;
 use ASNMTAP::Asnmtap::Applications qw($CATALOGID &sending_mail $SERVERLISTSMTP $SENDMAILFROM);
 
-use ASNMTAP::Asnmtap::Plugins v3.002.002;
+use ASNMTAP::Asnmtap::Plugins v3.002.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,7 +34,7 @@ use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS $SENDEMAILTO);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'create_ASNMTAP_jUnit_configuration_for_jUnit.pl',
   _programDescription => 'Create ASNMTAP jUnit configuration for jUnit',
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '[--force] [--update] [-s|--server=<hostname>] [--database=<database>] [--_server=<hostname>] [--_database=<database>] [--_port=<port>] [--_username=<username>] [--_password=<password>]',
   _programHelpPrefix  => "--force
 --update
@@ -89,13 +89,13 @@ $jUnitPort  {A}{8}           = '4443';
 $jUnitServer{T}{8}           = $jUnitServer{A}{8};
 $jUnitPort  {T}{8}           = $jUnitPort{A}{8};
 
-$jUnitServer{P}{10}          = 'modi';
+$jUnitServer{P}{10}          = $jUnitServer{A}{8};
 $jUnitPort  {P}{10}          = '10200';
 
 $jUnitServer{S}{10}          = $jUnitServer{P}{10};
 $jUnitPort  {S}{10}          = $jUnitPort{P}{10};
 
-$jUnitServer{A}{10}          = 'magni';
+$jUnitServer{A}{10}          = $jUnitServer{P}{8};
 $jUnitPort  {A}{10}          = '10100';
 
 $jUnitServer{T}{10}          = $jUnitServer{A}{10};
@@ -109,7 +109,7 @@ my $pluginProduction         = 0;
 my $pluginPagedir            = '/jUnit/index/';           # pagedirs: 'jUnit' and 'index' must exist
 
 # plugins: template
-my $pluginTemplate = "test='$pluginTest', argumentsOndemand='$pluginArgumentsOndemand', ondemand='$pluginOndemand', production='$pluginProduction', pagedir='$pluginPagedir'";
+my $pluginTemplate = "test='$pluginTest', argumentsOndemand='$pluginArgumentsOndemand', ondemand='$pluginOndemand', pagedir='$pluginPagedir'";
 
 # displayDaemons: dynamically
 my @displayDaemon            = ( 'index', 'jUnit' );     # 'index' and 'jUnit' must be created
@@ -352,7 +352,7 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
         } else {
           resultsdir ( $dbhASNMTAP, $sthASNMTAP, $resultsdir, $groupName, $rv, \$actions );
 
-          my $sqlINSERT = "INSERT INTO `plugins` SET catalogID='$CATALOGID', uKey='$uKey', title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', step='$step', activated='$_Activated', $pluginTemplate";
+          my $sqlINSERT = "INSERT INTO `plugins` SET catalogID='$CATALOGID', uKey='$uKey', title='$title', arguments='$arguments', environment='$environment', resultsdir='$resultsdir', holidayBundleID='$holidayBundleID', step='$step', activated='$_Activated', production='$pluginProduction', $pluginTemplate";
           $actions .= "$returnChar  ASNMTAP: ukey '$uKey' doesn't exist\n  ASNMTAP: $sqlINSERT\n";
           unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
         }
@@ -386,11 +386,11 @@ if ( $dbhJUNIT and $dbhASNMTAP ) {
               }
             } else {
               $actions .= "  = views: uKey='$uKey' and displayDaemon='$displayDaemon' exist and up-to-date\n";
-   }
+            }
           } else {
-             my $sqlINSERT = "INSERT INTO `views` SET catalogID='$CATALOGID', uKey='$uKey', displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated=1";
-             $actions .= "  - views: uKey='$uKey' and displayDaemon='$displayDaemon' doesn't exist\n  - views: $sqlINSERT\n";
-             unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
+            my $sqlINSERT = "INSERT INTO `views` SET catalogID='$CATALOGID', uKey='$uKey', displayDaemon='$displayDaemon', displayGroupID='$displayGroupID', activated=1";
+            $actions .= "  - views: uKey='$uKey' and displayDaemon='$displayDaemon' doesn't exist\n  - views: $sqlINSERT\n";
+            unless ( $debug ) { $dbhASNMTAP->do( $sqlINSERT ) or $rv = _ErrorTrapDBI (\$objectPlugins, "Cannot dbh->do: $sqlINSERT") };
           }
 
           $sthASNMTAP->finish() or $rv = _ErrorTrapDBI ( \$objectPlugins, 'Cannot sth->finish: '. $sqlSTRING );

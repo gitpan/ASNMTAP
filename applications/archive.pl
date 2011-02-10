@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, archive.pl for ASNMTAP::Applications
+# 2011/mm/dd, v3.002.003, archive.pl for ASNMTAP::Applications
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,10 +22,10 @@ use Date::Calc qw(Date_to_Time Monday_of_Week);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Time v3.002.002;
+use ASNMTAP::Time v3.002.003;
 use ASNMTAP::Time qw(&get_epoch &get_wday &get_yearMonthDay &get_year &get_month &get_day &get_week);
 
-use ASNMTAP::Asnmtap::Applications v3.002.002;
+use ASNMTAP::Asnmtap::Applications v3.002.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS :ARCHIVE :DBARCHIVE $SERVERTABLPLUGINS $SERVERTABLVIEWS $SERVERTABLDISPLAYDMNS $SERVERTABLCRONTABS $SERVERTABLCLLCTRDMNS $SERVERTABLSERVERS );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ use vars qw($opt_A $opt_c $opt_r $opt_d $opt_y $opt_f  $opt_D $opt_V $opt_h $PRO
 
 $PROGNAME       = "archive.pl";
 my $prgtext     = "Archiver for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------------------------------------
 # © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2011/mm/dd, v3.002.003, check_template.pl
+# 2011/mm/dd, v3.002.003, check_template-sftp.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -15,43 +15,74 @@ BEGIN { if ( $ENV{ASNMTAP_PERL5LIB} ) { eval 'use lib ( "$ENV{ASNMTAP_PERL5LIB}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.003;
-use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.003;
+use ASNMTAP::Asnmtap::Plugins::Nagios qw(:NAGIOS);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
-  _programName        => 'check_template.pl',
-  _programDescription => "General plugin template for the '$APPLICATION'",
+my $objectNagios = ASNMTAP::Asnmtap::Plugins::Nagios->new (
+  _programName        => 'check_template-sftp.pl',
+  _programDescription => 'SFTP Nagios Template',
+  _programUsagePrefix => '-i|--id <id file>',
+  _programHelpPrefix  => '-i, --id=<id file>',
   _programVersion     => '3.002.003',
-  _programUsagePrefix => '-w|--warning <warning> -c|--critical <critical>',
-  _programHelpPrefix  => '-w, --warning=<WARNING>
-   warning threshold with more than one type of threshold
--c, --critical=<CRITICAL>
-   critical threshold with more than one type of threshold',
-  _programGetOptions  => ['host|H=s', 'warning|w=s', 'critical|c=s', 'timeout|t:i', 'trendline|T:i'],
+  _programGetOptions  => ['id|i=s', 'host|H=s', 'username|u|loginname=s', 'port|p=s', 'environment|e=s', 'trendline|T:i'],
   _timeout            => 30,
   _debug              => 0);
+
+my $id          = $objectNagios->getOptionsArgv ('id');
+$objectNagios->printUsage ('Missing command line argument id') unless ( defined $id);
+
+my $host        = $objectNagios->getOptionsArgv ('host');
+my $port        = $objectNagios->getOptionsArgv ('port');
+my $username    = $objectNagios->getOptionsArgv ('username');
+my $environment = $objectNagios->getOptionsArgv ('environment');
+
+my $debug = $objectNagios->getOptionsValue ('debug');
+
+my $timeout = $objectNagios->timeout ();
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-my $host = $objectPlugins->getOptionsArgv ('host');
+my $returnValue = 1;
 
-my $warning = $objectPlugins->getOptionsArgv ('warning');
-my $critical = $objectPlugins->getOptionsArgv ('critical');
+use Net::SFTP::Foreign;
+use Fcntl qw(S_ISDIR);
 
-$objectPlugins->pluginValue ( stateValue => $ERRORS{CRITICAL} );
-$objectPlugins->pluginValue ( alert => '.1.' );
+my $sftp = Net::SFTP::Foreign->new($host, port => $port, user => $username, more => [-i => $id]);
 
-$objectPlugins->pluginValues ( { stateValue => $ERRORS{WARNING}, alert => '.2.', error => '.3.' }, $TYPE{APPEND} );
+if ( $returnValue = errorTrapSFTP ('SFTP connection failed', \$sftp, $debug) ) {
+  print "You are logged on\n" if ($debug);
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Start plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # ...
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+
+$objectNagios->pluginValues ( { stateValue => $ERRORS{OK}, alert => 'OKIDO' }, $TYPE{APPEND} ) if ( $returnValue ); 
+$objectNagios->exit (7);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# End plugin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-$objectPlugins->exit (7);
+sub errorTrapSFTP {
+  my ($error_message, $sftp, $debug) = @_;
+
+  if ( $$sftp->error ) {
+    print $error_message, ": ", $$sftp->error,"\n" if ($debug);
+    $objectNagios->pluginValues ( { stateValue => $ERRORS{CRITICAL}, error => $error_message .': '. $$sftp->error, result => '' }, $TYPE{APPEND} );
+    return 0;
+  } else {
+    return 1;
+  }
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,11 +90,11 @@ __END__
 
 =head1 NAME
 
-check_template.pl
+ASNMTAP::Asnmtap::Plugins::Nagios
 
-General plugin template for the 'Application Monitor'
+check_template-sftp.pl
 
-The ASNMTAP plugins come with ABSOLUTELY NO WARRANTY.
+SFTP Nagios Template
 
 =head1 AUTHOR
 

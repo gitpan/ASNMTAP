@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Plugins::Nagios Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 # Class name  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +51,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::Nagios::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::Nagios::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -68,7 +68,7 @@ sub convert_from_KB_to_metric;
 sub convert_to_KB {
   my ($metric, $value) = @_;
 
-  my $result = ( ($metric =~ /^[Gg]$/) ? ($value * 1024 * 1024) : ( ($metric =~ /^[Mm]$/) ? ($value * 1024) : $value ) );
+  my $result = ( ($metric =~ /^[Gg]$/) ? ($value * (1024 * 1024)) : ( ($metric =~ /^[Mm]$/) ? ($value * 1024) : $value ) );
   return ( $result )
 }
 
@@ -77,7 +77,7 @@ sub convert_to_KB {
 sub convert_from_KB_to_metric {
   my ($metric, $value) = @_;
 
-  my $result = ( ($metric eq 'GB') ? ($value / 1024 * 1024) : ( ($metric eq 'MB') ? ($value / 1024) : $value ) );
+  my $result = ( ($metric eq 'GB') ? ($value / (1024 * 1024)) : ( ($metric eq 'MB') ? ($value / 1024) : $value ) );
   $result = sprintf("%.2f", $result) if ($metric ne 'kB');
   return ( $result )
 }
@@ -147,7 +147,10 @@ sub _getOptions {
 
 # Destructor  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sub DESTROY { print (ref ($_[0]), "::DESTROY: ()\n") if ( $_[0]->{_debug} ); }
+sub DESTROY {
+  print (ref ($_[0]), "::DESTROY: ()\n") if ( $_[0]->{_debug} );
+  $_[0]->SUPER::DESTROY;
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -175,7 +178,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

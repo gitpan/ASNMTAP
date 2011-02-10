@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Applications::CGI
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Applications::CGI;
@@ -58,7 +58,7 @@ BEGIN {
                                                                            $CHARTDIRECTORLIB
                                                                            $HTMLTOPDFPRG $HTMLTOPDFHOW $HTMLTOPDFOPTNS
                                                                            $PERFPARSEBIN $PERFPARSEETC $PERFPARSELIB $PERFPARSESHARE $PERFPARSECGI $PERFPARSEENABLED
-                                                                           $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
+                                                                           $PERFPARSEVERSION $PERFPARSECONFIG $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD
                                                                            $RECORDSONPAGE $NUMBEROFFTESTS $VERIFYNUMBEROK $VERIFYMINUTEOK $FIRSTSTARTDATE $STRICTDATE
                                                                            %COLORS %COLORSPIE %COLORSRRD %COLORSTABLE %ICONS %ICONSACK %ICONSUNSTABLE %ICONSRECORD %ICONSSYSTEM %ENVIRONMENT %SOUND %QUARTERS
                                                                            &get_session_param
@@ -105,7 +105,7 @@ BEGIN {
                                                                            &encode_html_entities &print_header &print_legend
 
                                                                            &user_session_and_access_control
-                                    	 	 					           &do_action_DBI &error_trap_DBI &check_record_exist
+                                    	 	 					                         &do_action_DBI &error_trap_DBI &check_record_exist
                                                                            &get_title
                                                                            &create_combobox_from_keys_and_values_pairs &create_combobox_from_DBI &create_combobox_multiple_from_DBI
                                                                            &record_navigation_table &record_navigation_bar &record_navigation_bar_alpha ) ],
@@ -126,7 +126,7 @@ BEGIN {
                                                                            $SSHLOGONNAME $RSYNCIDENTITY $SSHIDENTITY $WWWIDENTITY
                                                                            $RMVERSION $RMDEFAULTUSER ) ],
 
-                                                      DBPERFPARSE  => [ qw($PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD ) ],
+                                                      DBPERFPARSE  => [ qw($PERFPARSEVERSION $PERFPARSECONFIG $PERFPARSEDATABASE $PERFPARSEHOST $PERFPARSEPORT $PERFPARSEUSERNAME $PERFPARSEPASSWORD ) ],
                                                       DBREADONLY   => [ qw($SERVERNAMEREADONLY $SERVERPORTREADONLY $SERVERUSERREADONLY $SERVERPASSREADONLY ) ],
                                                       DBREADWRITE  => [ qw($SERVERNAMEREADWRITE $SERVERPORTREADWRITE $SERVERUSERREADWRITE $SERVERPASSREADWRITE ) ],
                                                       DBTABLES     => [ qw($SERVERTABLCATALOG $SERVERTABLCLLCTRDMNS $SERVERTABLCOMMENTS $SERVERTABLCOUNTRIES $SERVERTABLCRONTABS $SERVERTABLDISPLAYDMNS $SERVERTABLDISPLAYGRPS $SERVERTABLENVIRONMENT $SERVERTABLEVENTS $SERVERTABLEVENTSCHNGSLGDT $SERVERTABLEVENTSDISPLAYDT $SERVERTABLHOLIDYS $SERVERTABLHOLIDYSBNDL $SERVERTABLLANGUAGE $SERVERTABLPAGEDIRS $SERVERTABLPLUGINS $SERVERTABLREPORTS $SERVERTABLREPORTSPRFDT $SERVERTABLRESULTSDIR $SERVERTABLSERVERS $SERVERTABLTIMEPERIODS $SERVERTABLUSERS $SERVERTABLVIEWS ) ],
@@ -139,7 +139,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Applications::CGI::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Applications::CGI::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Applications::CGI::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

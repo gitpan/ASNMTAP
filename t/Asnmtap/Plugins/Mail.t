@@ -4,13 +4,13 @@ BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail' ) };
 BEGIN { use_ok ( 'ASNMTAP::Asnmtap::Plugins::Mail', qw(:ALL) ) };
 
 TODO: {
-  use ASNMTAP::Asnmtap::Plugins v3.002.002;
+  use ASNMTAP::Asnmtap::Plugins v3.002.003;
   use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS %STATE);
 
   my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
     _programName        => 'Mail.t',
     _programDescription => 'Test ASNMTAP::Asnmtap::Plugins::MAIL',
-    _programVersion     => '3.002.002',
+    _programVersion     => '3.002.003',
     _programGetOptions  => ['environment|e:s', 'timeout|t:i', 'trendline|T:i'],
     _timeout            => 30,
     _debug              => 0);
@@ -24,7 +24,7 @@ TODO: {
 
   my $body = "\nThis is the body of the email !!! ...\n";
 
-  use ASNMTAP::Asnmtap::Plugins::Mail v3.002.002;
+  use ASNMTAP::Asnmtap::Plugins::Mail v3.002.003;
 
   my $objectMAIL = ASNMTAP::Asnmtap::Plugins::Mail->new (
     _asnmtapInherited => \$objectPlugins,

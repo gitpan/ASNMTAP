@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, generateChart.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -22,7 +22,7 @@ use Date::Calc qw(Add_Delta_Days Date_to_Text_Long Delta_Days);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :REPORTS :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,7 +38,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "generateChart.pl";
 my $prgtext     = "Generate Chart";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -233,8 +233,8 @@ if ( $rv ) {
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$status, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
-		    if ( $rv ) {
-  		      if ( $sth->rows ) {
+		        if ( $rv ) {
+  		        if ( $sth->rows ) {
                 my %labels = ();
 
                 while( $sth->fetch() ) {
@@ -269,9 +269,9 @@ if ( $rv ) {
                   }
 
                   push (@data, $labels{$label});
-				}
+				        }
               } else {
-			    $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (1)";
+			          $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (1)";
               }
 
               $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
@@ -283,14 +283,18 @@ if ( $rv ) {
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$title, \$statusmessage, \$aantal ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
-		    if ( $rv ) {
-  		      if ( $sth->rows ) {
+		        if ( $rv ) {
+  		        if ( $sth->rows ) {
                 while( $sth->fetch() ) {
                   my ($dummy, $rest) = split(/:/, $statusmessage, 2);
                   $rest = $dummy unless ( $rest );
 
                   if ($rest) {
-                    ($rest, undef) = split(/\|/, $rest, 2); # remove performance data
+                  # ($rest, undef) = split(/\|/, $rest, 2); # remove performance data
+                     my $_rest = reverse $rest;
+                     my ($_rest, undef) = reverse split(/\|/, $_rest, 2);
+                     my $rest = reverse $_rest;
+
                     ($dummy, $rest) = split(/,/, $rest, 2);
                     $rest = $dummy unless ( $rest);
                   } else {
@@ -309,7 +313,7 @@ if ( $rv ) {
                   push (@labels, substr($rest, 1, 38));
                 }
               } else {
-			    $hight = 380; $rv = 0; $errorMessage = "NO ERRORS FOR THIS PERIOD";
+			          $hight = 380; $rv = 0; $errorMessage = "NO ERRORS FOR THIS PERIOD";
               }
 
               $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
@@ -322,8 +326,8 @@ if ( $rv ) {
             $sth->execute() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->execute: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
             $sth->bind_columns( \$duration, \$startDate, \$startTime, \$status, \$step ) or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->bind_columns: $sql", $debug, '', "", '', "", 0, '', $sessionID) if $rv;
 
-		    if ( $rv ) {
-  		      if ( $sth->rows ) {
+		        if ( $rv ) {
+  		        if ( $sth->rows ) {
                 my $counter = 0;
                 $numberOfLabels = ($sth->rows < 25) ? $sth->rows : 25;
                 my $labelCounter = int($sth->rows / $numberOfLabels);
@@ -372,7 +376,7 @@ if ( $rv ) {
 
                 $AreaBOffset += 36 if ($moreDays);
               } else {
-			    $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (2)";
+			          $hight = 380; $rv = 0; $errorMessage = "NO DATA FOR THIS PERIOD (2)";
               }
 
               $sth->finish() or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("", "Cannot sth->finish", $debug, '', "", '', "", 0, '', $sessionID);
@@ -423,7 +427,7 @@ if ( $rv ) {
             @avg3 = rebuildDataArrayDailyAverage (\@labels, \@labels3, \@avg3) if ($uKey3 ne 'none');
           }
         }
-	  }
+	    }
     }
 
     $dbh->disconnect or ($rv, $errorMessage, $dbiErrorCode, $dbiErrorString) = error_trap_DBI("Sorry, the database was unable to disconnect", $debug, '', "", '', "", '', 0, '', $sessionID);
@@ -525,7 +529,7 @@ if ( $rv ) {
     }
 
     $c->yAxis()->addZone(0, -6, $trendZone);
-	my $layer;
+	  my $layer;
 	
     if ( $selChart eq "Bar" ) {
       # Add a line layer to the chart

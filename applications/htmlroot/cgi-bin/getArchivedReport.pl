@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, getArchivedReport.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -21,7 +21,7 @@ use Date::Calc qw(Add_Delta_Days Monday_of_Week Week_of_Year);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :MEMBER :DBREADONLY :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "getArchivedReport.pl";
 my $prgtext     = "Get Archived Report";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -133,15 +133,15 @@ unless ( defined $errorUserAccessControl ) {
 
             if ($archivedReportFile =~ /.pdf$/ and $archivedReportFile =~ /-$catalogID_uKey-/) {
               my $reportYear  = substr($archivedReportFile, 0, 4);
-		  	  my $reportMonth = substr($archivedReportFile, 4, 2);
-			  my $reportDay   = substr($archivedReportFile, 6, 2);
+		  	      my $reportMonth = substr($archivedReportFile, 4, 2);
+			        my $reportDay   = substr($archivedReportFile, 6, 2);
 
               my ($reportPeriode, $reportDate);
 
               if ( $day eq 'on' and $archivedReportFile =~ /-Day_(\w+)-id_(\d+)/ ) {
                 $reportPeriode = "$1";
-		  	    $reportDate    = "$reportYear/$reportMonth/$reportDay";
-			  } elsif ( $week eq 'on' and $archivedReportFile =~ /-Week_(\d+)-id_(\d+)/ ) {
+		  	        $reportDate    = "$reportYear/$reportMonth/$reportDay";
+			        } elsif ( $week eq 'on' and $archivedReportFile =~ /-Week_(\d+)-id_(\d+)/ ) {
                 $reportYear-- if ( $1 == 53 and ((localtime)[5] + 1900) == $reportYear );
                 ($reportYear, my $f_month, my $f_day) = Monday_of_Week($1, $reportYear);
                 my ($t_year, $t_month, $t_day) = Add_Delta_Days($reportYear, $f_month, $f_day, 6);
@@ -150,11 +150,11 @@ unless ( defined $errorUserAccessControl ) {
                 $f_day   = sprintf ("%02d", $f_day);
                 $t_month = sprintf ("%02d", $t_month);
                 $t_day   = sprintf ("%02d", $t_day);
-			    $reportDate    = "from $reportYear/$f_month/$f_day until $t_year/$t_month/$t_day";
+			          $reportDate    = "from $reportYear/$f_month/$f_day until $t_year/$t_month/$t_day";
               } elsif ( $month eq 'on' and $archivedReportFile =~ /-Month_(\w+)-id_(\d+)/ ) {
                 $reportPeriode = "Month: $1";
                 $reportDate    = $reportYear;
-		  	  } elsif ( $quarter eq 'on' and $archivedReportFile =~ /-Quarter_(\d+)-id_(\d+)/ ) {
+		  	      } elsif ( $quarter eq 'on' and $archivedReportFile =~ /-Quarter_(\d+)-id_(\d+)/ ) {
                 $reportPeriode = "Quarter: $1";
                 $reportDate    = $reportYear;
               } elsif ( $year eq 'on' and $archivedReportFile =~ /-Year_(\d+)-id_(\d+)/ ) {

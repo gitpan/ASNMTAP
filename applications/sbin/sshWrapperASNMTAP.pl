@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, sshWrapperASNMTAP.pl for ASNMTAP::Applications
+# 2011/mm/dd, v3.002.003, sshWrapperASNMTAP.pl for ASNMTAP::Applications
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use Getopt::Long;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications v3.002.002;
+use ASNMTAP::Asnmtap::Applications v3.002.003;
 use ASNMTAP::Asnmtap::Applications qw(:APPLICATIONS $APPLICATIONPATH $PIDPATH $PERLCOMMAND);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +30,7 @@ use vars qw($opt_C $PROGNAME);
 
 $PROGNAME       = 'sshWrapperASNMTAP.pl';
 my $prgtext     = "ASNMTAP SSH Wrapper for the '$APPLICATION'";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

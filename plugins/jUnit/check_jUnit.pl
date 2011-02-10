@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, check_jUnit.pl
+# 2011/mm/dd, v3.002.003, check_jUnit.pl
 # ----------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,10 +20,10 @@ use Time::Local;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Plugins v3.002.002;
+use ASNMTAP::Asnmtap::Plugins v3.002.003;
 use ASNMTAP::Asnmtap::Plugins qw(:PLUGINS);
 
-use ASNMTAP::Asnmtap::Plugins::XML v3.002.002;
+use ASNMTAP::Asnmtap::Plugins::XML v3.002.003;
 use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use ASNMTAP::Asnmtap::Plugins::XML qw(&extract_XML);
 my $objectPlugins = ASNMTAP::Asnmtap::Plugins->new (
   _programName        => 'check_jUnit.pl',
   _programDescription => 'Check jUnit Server',
-  _programVersion     => '3.002.002',
+  _programVersion     => '3.002.003',
   _programUsagePrefix => '--uKey|-K=<uKey> --jUnitServer=<jUnitServer> --jUnitPort=<jUnitPort> --svParam=<svParam> [--maxtime=<maxtime>] [--config=<config>] [--result=<result>]',
   _programHelpPrefix  => '-K, --uKey=<uKey>
 --jUnitServer=<jUnitServer>
@@ -256,7 +256,7 @@ if ($dbh and $rv) {
             $objectPlugins->pluginValue ( stateValue => $ERRORS{UNKNOWN} );
           }
         }
-      } elsif ($STATUS eq 'NOTOK') {
+      } elsif ($STATUS =~ /(NOTOK|TIMEOUT)/) {
         if ($EXCEPTION eq '') {
           print "EXCEPTION ...\n" if ( $debug );
         } elsif ( $EXCEPTION =~ m/^$XMLHEADER/i ) {

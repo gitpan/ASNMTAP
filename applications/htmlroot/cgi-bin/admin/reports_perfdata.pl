@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # ---------------------------------------------------------------------------------------------------------
-# © Copyright 2003-2010 Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2003-2011 Alex Peeters [alex.peeters@citap.be]
 # ---------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
+# 2011/mm/dd, v3.002.003, reports_perfdata.pl for ASNMTAP::Asnmtap::Applications::CGI
 # ---------------------------------------------------------------------------------------------------------
 
 use strict;
@@ -20,7 +20,7 @@ use CGI;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-use ASNMTAP::Asnmtap::Applications::CGI v3.002.002;
+use ASNMTAP::Asnmtap::Applications::CGI v3.002.003;
 use ASNMTAP::Asnmtap::Applications::CGI qw(:APPLICATIONS :CGI :ADMIN :DBPERFPARSE :DBREADWRITE :DBTABLES);
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,7 +31,7 @@ use vars qw($PROGNAME);
 
 $PROGNAME       = "reports_perfdata.pl";
 my $prgtext     = "Reports Perfdata";
-my $version     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
+my $version     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r }; # must be all on one line or MakeMaker will get confused.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -157,6 +157,7 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       $navigationBar .= record_navigation_bar_alpha ($rv, $dbh, $SERVERTABLREPORTSPRFDT, 'uKey', "catalogID = '$CcatalogID'", $numberRecordsIntoQuery, $RECORDSONPAGE, $ENV{SCRIPT_NAME} . "?pagedir=$pagedir&amp;pageset=$pageset&amp;debug=$debug&amp;CGISESSID=$sessionID&amp;action=listView&amp;catalogID=$CcatalogID", $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       $sql = "select $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID, $DATABASE.$SERVERTABLREPORTSPRFDT.uKey, $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id, concat( LTRIM(SUBSTRING_INDEX($DATABASE.$SERVERTABLPLUGINS.title, ']', -1)), ' (', $DATABASE.$SERVERTABLENVIRONMENT.label, ')' ), $PERFPARSEDATABASE.perfdata_service_metric.metric, $DATABASE.$SERVERTABLREPORTSPRFDT.times, $DATABASE.$SERVERTABLREPORTSPRFDT.percentiles, $DATABASE.$SERVERTABLREPORTSPRFDT.unit, $DATABASE.$SERVERTABLREPORTSPRFDT.activated from $DATABASE.$SERVERTABLREPORTSPRFDT, $DATABASE.$SERVERTABLPLUGINS, $DATABASE.$SERVERTABLENVIRONMENT, $PERFPARSEDATABASE.perfdata_service_metric where $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = '$CcatalogID' and $DATABASE.$SERVERTABLREPORTSPRFDT.catalogID = $DATABASE.$SERVERTABLPLUGINS.catalogID and $DATABASE.$SERVERTABLREPORTSPRFDT.uKey = $DATABASE.$SERVERTABLPLUGINS.uKey and $DATABASE.$SERVERTABLREPORTSPRFDT.metric_id = $PERFPARSEDATABASE.perfdata_service_metric.metric_id and $DATABASE.$SERVERTABLPLUGINS.environment = $DATABASE.$SERVERTABLENVIRONMENT.environment order by $orderBy limit $pageOffset, $RECORDSONPAGE";
+
       $header = "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, title desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Catalog <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog desc, uKey desc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unique Key <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=catalog asc, uKey asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title desc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Plugin Title <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=title asc, catalog asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       $header .= "<th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Metric <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=metric_id asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Times <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=times asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Percentiles <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=percentiles asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Unit <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=unit asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th><th><a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated desc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{up}\" ALT=\"Up\" BORDER=0></a> Activated <a href=\"$urlWithAccessParameters&amp;action=listView&amp;orderBy=activated asc, title asc\"><IMG SRC=\"$IMAGESURL/$ICONSRECORD{down}\" ALT=\"Down\" BORDER=0></a></th>";
       ($rv, $matchingReportsPerfdata, $nextAction) = record_navigation_table ($rv, $dbh, $sql, 'Report Perfdata', 'catalogID|uKey|metric_id', '0|1|2', '2', '', '', $orderBy, $header, $navigationBar, $iconAdd, $iconDelete, $iconDetails, $iconEdit, $nextAction, $pagedir, $pageset, $pageNo, $pageOffset, $htmlTitle, $subTitle, $sessionID, $debug);
@@ -185,10 +186,19 @@ if ( defined $sessionID and ! defined $errorUserAccessControl ) {
       ($rv, $uKeySelect, $htmlTitle) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $CuKey, 'uKey', 'none', '-Select-', $formDisabledPrimaryKey, 'onChange="javascript:submitForm();"', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
 
       if ( $CuKey ne 'none' ) {
-        my $catalogID_CuKey = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $CuKey;
+        my $sqlWherePERFDATA;
+        my $catalogID_uKey = ( ( $CcatalogID eq 'CID' ) ? '' : $CcatalogID .'_' ) . $CuKey;
 
-        $sql = "select metric_id, metric from $PERFPARSEDATABASE.perfdata_service_metric where service_description = '$catalogID_CuKey' and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
-        ($rv, $metric_idSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $Cmetric_id, 'metric_id', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+        if ( $PERFPARSEVERSION eq '20' ) {
+          $sqlWherePERFDATA = "where service_id in (select service_id from $PERFPARSEDATABASE.perfdata_service where service_description = '$catalogID_uKey')";
+        } else {
+          $sqlWherePERFDATA = "where service_description = '$catalogID_uKey'";
+        }
+
+        if ( $rv ) {
+          $sql = "select metric_id, metric from $PERFPARSEDATABASE.perfdata_service_metric $sqlWherePERFDATA and metric not regexp '^(Compilation|Execution|Duration)\$' and unit regexp '^(s|ms)\$' order by metric";
+          ($rv, $metric_idSelect, undef) = create_combobox_from_DBI ($rv, $dbh, $sql, 1, $nextAction, $Cmetric_id, 'metric_id', 'none', '-Select-', $formDisabledPrimaryKey, '', $pagedir, $pageset, $htmlTitle, $subTitle, $sessionID, $debug);
+        }
 
         $formDisabledNoMetricID = '';
       } else {
@@ -323,7 +333,7 @@ HTML
 
     if ( $iconAdd ) {
       print <<HTML;
-        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView&amp;orderBy=$orderBy">[Insert new report perfdata]</a></td>
+        <td class="StatusItem"><a href="$urlWithAccessParameters&amp;action=insertView&amp;orderBy=$orderBy">[Insert report perfdata]</a></td>
         <td class="StatusItem">&nbsp;&nbsp;&nbsp;</td>
 HTML
     }

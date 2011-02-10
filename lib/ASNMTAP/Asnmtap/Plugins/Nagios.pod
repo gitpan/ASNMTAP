@@ -16,7 +16,7 @@ This module that provides a nice object oriented interface for building Nagios (
 
 =head1 EXAMPLE
 
-use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.002;
+use ASNMTAP::Asnmtap::Plugins::Nagios v3.002.003;
 
 use ASNMTAP::Asnmtap::Plugins::Nagios;
 
@@ -253,7 +253,9 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
   check_template-ftp.pl
   check_template-ldap.pl
   check_template-nagios.pl
+	check_template-sftp.pl
   check_xml-monitoring.pl
+  check_xml-monitoring-1.2.pl
   check_xml.pl
 
 =head1 DEPENDENCIES
@@ -275,7 +277,7 @@ ASNMTAP::Asnmtap, ASNMTAP::Asnmtap::Plugins
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]

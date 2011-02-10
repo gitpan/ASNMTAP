@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------------
-# © Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be]
+# © Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be]
 # ----------------------------------------------------------------------------------------------------------
-# 2010/mm/dd, v3.002.002, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
+# 2011/mm/dd, v3.002.003, package ASNMTAP::Asnmtap::Plugins Object-Oriented Perl
 # ----------------------------------------------------------------------------------------------------------
 
 package ASNMTAP::Asnmtap::Plugins;
@@ -58,7 +58,7 @@ BEGIN {
 
   @ASNMTAP::Asnmtap::Plugins::EXPORT_OK   = ( @{ $ASNMTAP::Asnmtap::Plugins::EXPORT_TAGS{ALL} } );
 
-  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.002.002$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+  $ASNMTAP::Asnmtap::Plugins::VERSION     = do { my @r = (q$Revision: 3.002.003$ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 }
 
 our $ALARM_OFF = 0;
@@ -135,9 +135,11 @@ sub _init {
 
   $_[0]->[ $_[0]->[0]{_exit_} = @{$_[0]} ] = 0;
 
+  $_[0]->[ $_[0]->[0]{_plugins} = @{$_[0]} ] = (defined $_[1]->{_plugins}) ? $_[1]->{_plugins} : 1;
+
   $_[0]->[ $_[0]->[0]{_timeout} = @{$_[0]} ] = (defined $_[1]->{_timeout}) ? $_[1]->{_timeout} : 10;
 
-  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.002.002 postfix; nl-BE; rv:3.002.002) Gecko/yyyymmdd libwww-perl/5.813';
+  $_[0]->[ $_[0]->[0]{_browseragent} = @{$_[0]} ] = (defined $_[1]->{_browseragent}) ? $_[1]->{_browseragent} : 'Mozilla/5.0 (compatible; ASNMTAP; U; ASNMTAP 3.002.003 postfix; nl-BE; rv:3.002.003) Gecko/yyyymmdd libwww-perl/5.813';
 
   $_[0]->[ $_[0]->[0]{_SSLversion} = @{$_[0]} ] = (defined $_[1]->{_SSLversion} and $_[1]->{_SSLversion} =~ /^(?:2|3|23)$/) ? $_[1]->{_SSLversion} : 3;
 
@@ -755,7 +757,7 @@ sub exit {
 
   $_[0]->dumpData (1) if ( $_[0]->getOptionsArgv ('dumpData') );
 
-  print "$returnMessage\n";
+  print "$returnMessage\n" if ( $_[0]->{_plugins} );
   $_[0]->{_exit_} = 1;
   exit $ERRORS { $_[0]->{_pluginValues}->{stateError} };
 }
@@ -802,7 +804,7 @@ Alex Peeters [alex.peeters@citap.be]
 
 =head1 COPYRIGHT NOTICE
 
-(c) Copyright 2000-2010 by Alex Peeters [alex.peeters@citap.be],
+(c) Copyright 2000-2011 by Alex Peeters [alex.peeters@citap.be],
                         All Rights Reserved.
 
 ASNMTAP is based on 'Process System daemons v1.60.17-01', Alex Peeters [alex.peeters@citap.be]
